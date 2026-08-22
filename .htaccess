@@ -1,0 +1,42 @@
+# ==============================================================================
+# EduPulse - Apache Configuration & URL Rewrites
+# ==============================================================================
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /automation/
+
+    # Security: Deny direct access to sensitive directories
+    RewriteRule ^(app|storage|cron|database)/ - [F,L,NC]
+    RewriteRule ^config\.php$ - [F,L,NC]
+
+    # Clean URLs for Public Pages
+    RewriteRule ^sitemap\.xml$ sitemap.php [L,QSA]
+    RewriteRule ^article/([a-zA-Z0-9_-]+)/?$ article.php?slug=$1 [L,QSA]
+    RewriteRule ^category/([a-zA-Z0-9_-]+)/?$ category.php?slug=$1 [L,QSA]
+    RewriteRule ^search/?$ search.php [L,QSA]
+    RewriteRule ^about/?$ about.php [L,QSA]
+    RewriteRule ^why-choose-us/?$ why-choose-us.php [L,QSA]
+    RewriteRule ^contact/?$ contact.php [L,QSA]
+    RewriteRule ^privacy-policy/?$ privacy-policy.php [L,QSA]
+    RewriteRule ^disclaimer/?$ disclaimer.php [L,QSA]
+    RewriteRule ^terms/?$ terms.php [L,QSA]
+    RewriteRule ^editorial-policy/?$ editorial-policy.php [L,QSA]
+    RewriteRule ^ai-policy/?$ ai-policy.php [L,QSA]
+
+    # Serve existing files and directories directly
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Custom 404 Fallback
+    ErrorDocument 404 /automation/404.php
+</IfModule>
+
+# Security Headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>

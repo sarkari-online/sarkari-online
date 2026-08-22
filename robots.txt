@@ -1,0 +1,28 @@
+# ==============================================================================
+# EduPulse - Robots.txt
+# ==============================================================================
+
+User-agent: *
+Allow: /
+Allow: /article/
+Allow: /category/
+Allow: /search/
+Allow: /about/
+Allow: /contact/
+Allow: /editorial-policy/
+Allow: /ai-policy/
+Allow: /privacy-policy/
+Allow: /terms/
+Allow: /disclaimer/
+
+# Disallow Internal & Protected Directories
+Disallow: /admin/
+Disallow: /api/
+Disallow: /app/
+Disallow: /cron/
+Disallow: /database/
+Disallow: /storage/
+Disallow: /tests/
+
+# Sitemap Location
+Sitemap: http://localhost:8888/automation/sitemap.xml

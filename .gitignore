@@ -1,0 +1,35 @@
+# Environment & Security
+.env
+.env.backup
+.env.production
+.env.local
+
+# Operating System & IDE Artifacts
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Application Logs & Cache
+storage/logs/*.log
+storage/cache/*
+storage/generated/*
+!storage/logs/.gitkeep
+!storage/cache/.gitkeep
+!storage/generated/.gitkeep
+
+# Temporary Scripts
+scratch/
+*.tmp
+*.bak
+*.swp
+
+# macOS MAMP specific
+.mamp/

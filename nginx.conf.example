@@ -1,0 +1,67 @@
+# ==============================================================================
+# Nginx Virtual Host Configuration for Sarkari.online
+# Location on Ubuntu: /etc/nginx/sites-available/sarkari.online
+# ==============================================================================
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name sarkari.online www.sarkari.online;
+
+    # Document Root
+    root /var/www/sarkari.online;
+    index index.php index.html;
+
+    # Security Headers
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    # Max upload size for thumbnails/media
+    client_max_body_size 20M;
+
+    # Gzip Compression
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_proxied expired no-cache no-store private auth;
+    gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml application/json image/svg+xml;
+
+    # Clean URL Routing
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    # PHP-FPM FastCGI Handler (PHP 8.2 / 8.3)
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    # Block access to hidden files and sensitive directories
+    location ~ /\.(?!well-known).* {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+
+    location ^~ /storage/logs/ {
+        deny all;
+        return 403;
+    }
+
+    location ^~ /database/ {
+        deny all;
+        return 403;
+    }
+
+    # Static Assets Caching
+    location ~* \.(jpg|jpeg|png|gif|webp|svg|css|js|ico|woff|woff2|ttf)$ {
+        expires 30d;
+        add_header Cache-Control "public, no-transform";
+        access_log off;
+    }
+}
