@@ -30,19 +30,26 @@ class ThumbnailService {
      * Detect available system TrueType fonts
      */
     private function detectFonts(): void {
+        $bundledBold = dirname(__DIR__, 2) . '/assets/fonts/Bold.ttf';
+        $bundledReg = dirname(__DIR__, 2) . '/assets/fonts/Regular.ttf';
+
         $boldCandidates = [
+            $bundledBold,
+            '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
+            '/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf',
+            '/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf',
             '/System/Library/Fonts/Supplemental/Arial Bold.ttf',
             '/System/Library/Fonts/Supplemental/Arial.ttf',
-            '/Library/Fonts/Arial Bold.ttf',
-            '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
-            '/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf'
+            '/Library/Fonts/Arial Bold.ttf'
         ];
 
         $regCandidates = [
-            '/System/Library/Fonts/Supplemental/Arial.ttf',
-            '/Library/Fonts/Arial.ttf',
+            $bundledReg,
             '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
-            '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf'
+            '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf',
+            '/usr/share/fonts/dejavu/DejaVuSans.ttf',
+            '/System/Library/Fonts/Supplemental/Arial.ttf',
+            '/Library/Fonts/Arial.ttf'
         ];
 
         foreach ($boldCandidates as $f) {
