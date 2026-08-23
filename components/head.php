@@ -31,6 +31,10 @@ $ogImageVal = !empty($ogImage) ? (str_starts_with($ogImage, 'http') ? $ogImage :
 <!DOCTYPE html>
 <html lang="en-IN">
 <head>
+<?php 
+$isAdminSession = \App\Helpers\Auth::check();
+if (!$isAdminSession): 
+?>
     <!-- Google Tag Manager -->
     <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
     new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -50,6 +54,7 @@ $ogImageVal = !empty($ogImage) ? (str_starts_with($ogImage, 'http') ? $ogImage :
         'cookie_domain': 'auto'
       });
     </script>
+<?php endif; ?>
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -133,7 +138,9 @@ $ogImageVal = !empty($ogImage) ? (str_starts_with($ogImage, 'http') ? $ogImage :
     <?php endif; ?>
 </head>
 <body>
-    <!-- Google Tag Manager (noscript) -->
-    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TBKXJRWX"
-    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-    <!-- End Google Tag Manager (noscript) -->
+    <?php if (!$isAdminSession): ?>
+        <!-- Google Tag Manager (noscript) -->
+        <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TBKXJRWX"
+        height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+        <!-- End Google Tag Manager (noscript) -->
+    <?php endif; ?>
