@@ -15,9 +15,47 @@ $crumbs = [
 ];
 
 $messageSent = false;
+$errorMessage = '';
+
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
-    // Phase 0 UI feedback
-    $messageSent = true;
+    $senderName    = trim($_POST['name'] ?? '');
+    $senderEmail   = trim($_POST['email'] ?? '');
+    $inquiryType   = trim($_POST['subject'] ?? 'General Query');
+    $articleUrl    = trim($_POST['article_url'] ?? '');
+    $senderMessage = trim($_POST['message'] ?? '');
+
+    if (!empty($senderName) && !empty($senderEmail) && !empty($senderMessage) && filter_var($senderEmail, FILTER_VALIDATE_EMAIL)) {
+        $to = 'official.sarkarionline@gmail.com';
+        $emailSubject = "[Sarkari.online Inquiry] {$inquiryType} from " . strip_tags($senderName);
+
+        $emailBody = "<html><body style='font-family: Arial, sans-serif; line-height: 1.6; color: #1e293b; max-width: 600px; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;'>";
+        $emailBody .= "<h2 style='color: #1e3a8a; border-bottom: 2px solid #f97316; padding-bottom: 8px; margin-top: 0;'>New Communication Received on Sarkari.online</h2>";
+        $emailBody .= "<table style='width: 100%; border-collapse: collapse; margin-bottom: 20px;'>";
+        $emailBody .= "<tr><td style='padding: 8px; font-weight: bold; width: 140px; color: #64748b;'>Sender Name:</td><td style='padding: 8px;'>" . htmlspecialchars($senderName) . "</td></tr>";
+        $emailBody .= "<tr style='background: #f8fafc;'><td style='padding: 8px; font-weight: bold; color: #64748b;'>Sender Email:</td><td style='padding: 8px;'><a href='mailto:" . htmlspecialchars($senderEmail) . "'>" . htmlspecialchars($senderEmail) . "</a></td></tr>";
+        $emailBody .= "<tr><td style='padding: 8px; font-weight: bold; color: #64748b;'>Inquiry Type:</td><td style='padding: 8px; font-weight: 600; color: #f97316;'>" . htmlspecialchars($inquiryType) . "</td></tr>";
+        if (!empty($articleUrl)) {
+            $emailBody .= "<tr style='background: #f8fafc;'><td style='padding: 8px; font-weight: bold; color: #64748b;'>Article URL:</td><td style='padding: 8px;'><a href='" . htmlspecialchars($articleUrl) . "' target='_blank'>" . htmlspecialchars($articleUrl) . "</a></td></tr>";
+        }
+        $emailBody .= "<tr><td style='padding: 8px; font-weight: bold; color: #64748b;'>Received At:</td><td style='padding: 8px;'>" . date('d M Y, h:i A (T)') . "</td></tr>";
+        $emailBody .= "<tr style='background: #f8fafc;'><td style='padding: 8px; font-weight: bold; color: #64748b;'>Sender IP:</td><td style='padding: 8px;'>" . htmlspecialchars($_SERVER['REMOTE_ADDR'] ?? 'Unknown') . "</td></tr>";
+        $emailBody .= "</table>";
+        $emailBody .= "<h3 style='color: #0f172a; margin-bottom: 8px;'>Message Content:</h3>";
+        $emailBody .= "<div style='background: #f1f5f9; padding: 15px; border-radius: 6px; border-left: 4px solid #1e3a8a; white-space: pre-wrap; font-size: 14px;'>" . htmlspecialchars($senderMessage) . "</div>";
+        $emailBody .= "<p style='margin-top: 25px; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 10px;'>This automated alert was sent from the Sarkari.online Contact &amp; Grievance portal.</p>";
+        $emailBody .= "</body></html>";
+
+        $headers  = "MIME-Version: 1.0\r\n";
+        $headers .= "Content-type: text/html; charset=UTF-8\r\n";
+        $headers .= "From: Sarkari.online Notification <no-reply@sarkari.online>\r\n";
+        $headers .= "Reply-To: " . addslashes($senderName) . " <{$senderEmail}>\r\n";
+        $headers .= "X-Mailer: PHP/" . phpversion();
+
+        @mail($to, $emailSubject, $emailBody, $headers);
+        $messageSent = true;
+    } else {
+        $errorMessage = 'Please provide a valid name, email address, and message details.';
+    }
 }
 
 include __DIR__ . '/components/head.php';
