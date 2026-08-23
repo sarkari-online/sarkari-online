@@ -15,7 +15,7 @@ if [ -n "$DB_HOST" ]; then
     done
 
     if [ $count -ge $max_retries ]; then
-        echo "⚠️ Warning: Database connection timed out. Proceeding anyway..."
+        echo "⚠️ Warning: Database connection timed out. Propceeding anyway..."
     else
         echo "✅ Database connection established!"
 
