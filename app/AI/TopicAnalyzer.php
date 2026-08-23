@@ -37,15 +37,16 @@ TAXONOMY CATEGORIES AVAILABLE:
 - government-jobs (UPSC, SSC, State PSC, Bank, Defence, Railway recruitment)
 - higher-education (Admissions, counselling, college cutoffs, university updates)
 - school-boards (CBSE, ICSE, State Boards 10th/12th updates)
-- scholarships (Government & institutional financial aids)
+- scholarships (Government & institutional financial aids, youth fellowships, student fee waivers)
 - career-guides (Preparation strategies, subject roadmaps, career paths)
-- student-technology (EdTech tools, AI for learning, educational apps)
+- student-technology (EdTech tools, AI for learning, NSDC & Skill India programs, free Cloud/AI certification initiatives, government youth digital upskilling)
 
 CRITICAL RULES:
-1. Prioritize actionable student information (official dates, direct portal instructions, criteria).
+1. Prioritize actionable student information (official dates, direct portal instructions, eligibility criteria, registration steps).
 2. Avoid low-value clickbait rumors (e.g., unofficial "likely today" speculation without authority notice).
 3. If similar articles already exist, assess duplicate risk. Only recommend publishing if there is a genuine new update.
 4. TEMPORAL FRESHNESS & RELEVANCE: Current operating year is 2026. Strictly REJECT (publish_recommendation: false) any old, expired historical exam/recruitment cycles (e.g., 2024, 2023, 2022, 2021). Only approve active 2026/2027 ongoing cycles.
+5. NATIONAL SKILLING & TECH EMPOWERMENT: Proactively APPROVE (publish_recommendation: true) under 'student-technology' or 'scholarships' any national skill development initiatives (NSDC, Skill India, PMKVY), Free Cloud/AI certifications (AWS, Microsoft, Google, NASSCOM), and government-backed digital learning programs offering concrete career value to Indian students.
 PROMPT;
 
         $existingList = empty($existingArticles) ? "None" : implode("\n- ", array_map(function($a) {
