@@ -73,8 +73,12 @@ class SourceVerifier {
      */
     public function classifyArticleType(string $title): string {
         $lower = strtolower($title);
-        $guidePatterns = ['syllabus', 'weightage', 'preparation guide', 'chapter-wise',
-                          'how to', 'roadmap', 'career guide', 'best books', 'strategy', 'tips'];
+        $guidePatterns = [
+            'guide', 'complete guide', 'recruitment guide', 'preparation guide',
+            'syllabus', 'weightage', 'chapter-wise', 'how to', 'roadmap',
+            'career guide', 'best books', 'strategy', 'tips', 'exam pattern',
+            'eligibility', 'selection process', 'overview'
+        ];
         foreach ($guidePatterns as $p) {
             if (str_contains($lower, $p)) return 'guide';
         }
