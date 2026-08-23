@@ -1,83 +1,73 @@
-# Sarkari.online — Autonomous Indian Education & Career Portal
+# Sarkari.online — Production Docker DevOps Architecture
 
-A modern, high-trust, production-ready educational news network and automated publishing system designed for competitive exams, government recruitment, board results, and scholarships across India.
-
----
-
-## 📁 Repository Structure
-
-```
-├── app/                  # Application Core (Controllers, AI Engine, Services, DB)
-│   ├── AI/               # Gemini & Verification Engines
-│   ├── Database/         # PDO Singleton Database Layer
-│   ├── Helpers/          # Auth, CSRF, SEO, Sanitizer, Logger
-│   └── Services/         # Publishing, Pipeline, Thumbnail, Trends
-├── components/           # Reusable UI Components (Header, Footer, Nav, Cards)
-├── admin/                # Admin Management & Verification Console
-├── cron/                 # Background Autonomous Workers
-├── assets/               # CSS, JavaScript, Web Fonts, Logo & Favicon Assets
-├── uploads/              # Generated WebP Thumbnails & Media
-├── database/             # Production MySQL Dump & Schema
-│   ├── production_dump.sql  # Complete Database Dump (Live Ready)
-│   └── schema.sql           # Clean Database DDL
-├── nginx.conf.example    # Nginx Virtual Host Configuration
-├── deploy.sh             # 1-Click Server Update Script
-└── .env.example          # Environment Variables Template
-```
+A fully isolated, zero-impact Docker production stack for Sarkari.online that runs safely alongside other client websites on an Ubuntu/Nginx server.
 
 ---
 
-## 🚀 Quick Production Server Deployment (Ubuntu / Nginx)
+## 🏗️ Architecture Overview
 
-### 1. Clone to Server
+- **`sarkari_app`**: PHP 8.3-FPM + Alpine Nginx + 24/7 Crond Daemon (Bound to `127.0.0.1:8085`).
+- **`sarkari_db`**: Isolated MariaDB 10.11 on private bridge network `sarkari_network`.
+- **Host Nginx**: Serves as a lightweight Reverse Proxy (`sarkari.online` ➡️ `127.0.0.1:8085`) with Certbot SSL.
+- **Client Projects**: 100% untouched and isolated on the host system.
+
+---
+
+## 🚀 5-Minute VPS Deployment Guide (via SSH)
+
+### 1. Install Docker & Docker Compose on Server (If not installed)
 ```bash
-sudo git clone https://github.com/YOUR_USERNAME/sarkari-online.git /var/www/sarkari.online
+sudo apt update
+sudo apt install -y docker.io docker-compose-plugin
+sudo systemctl enable --now docker
+```
+
+### 2. Clone Repository
+```bash
+sudo git clone https://sarkari-online:YOUR_TOKEN@github.com/sarkari-online/sarkari-online.git /var/www/sarkari.online
 cd /var/www/sarkari.online
 ```
 
-### 2. Configure Environment (.env)
+### 3. Create Environment File (.env)
 ```bash
 cp .env.example .env
 nano .env
 ```
-*(Update your DB credentials, `APP_URL=https://sarkari.online`, and `GEMINI_API_KEY`)*
+*(Add your Gemini API Key, then press `Ctrl+O`, `Enter`, `Ctrl+X`)*
 
-### 3. Import Production Database
+### 4. Build & Start Docker Stack (1-Command)
 ```bash
-mysql -u sarkari_user -p automation < database/production_dump.sql
+sudo docker compose up -d --build
 ```
+*(The container will automatically wait for the database, import `production_dump.sql` with 14 live articles, and start the 24/7 AI publishing cron!)*
 
-### 4. Setup File Permissions
+### 5. Setup Host Nginx Reverse Proxy
 ```bash
-sudo chown -R www-data:www-data /var/www/sarkari.online
-sudo chmod -R 775 /var/www/sarkari.online/storage
-sudo chmod -R 775 /var/www/sarkari.online/uploads
-```
-
-### 5. Nginx & Free SSL (Let's Encrypt)
-```bash
-sudo cp nginx.conf.example /etc/nginx/sites-available/sarkari.online
+sudo cp host-nginx-reverse-proxy.conf.example /etc/nginx/sites-available/sarkari.online
 sudo ln -s /etc/nginx/sites-available/sarkari.online /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl reload nginx
-
-# Generate Free HTTPS Certificate
-sudo certbot --nginx -d sarkari.online -d www.sarkari.online
 ```
 
-### 6. Enable 24/7 Background Crontab
-Run `crontab -e` on the server and append:
+### 6. Activate Free SSL (Certbot HTTPS)
 ```bash
-*/15 * * * * cd /var/www/sarkari.online && php cron/fetch-trends.php >> /var/www/sarkari.online/storage/logs/cron.log 2>&1
-*/20 * * * * cd /var/www/sarkari.online && php cron/analyze-trends.php >> /var/www/sarkari.online/storage/logs/cron.log 2>&1
-*/30 * * * * cd /var/www/sarkari.online && php cron/generate-articles.php >> /var/www/sarkari.online/storage/logs/cron.log 2>&1
-*/45 * * * * cd /var/www/sarkari.online && php cron/publish-articles.php >> /var/www/sarkari.online/storage/logs/cron.log 2>&1
+sudo certbot --nginx -d sarkari.online -d www.sarkari.online
 ```
 
 ---
 
-## 🔄 1-Click Server Update (After Git Push)
-Whenever you push changes to GitHub, run this single command on your server:
+## 📊 Useful Docker DevOps Commands
+
 ```bash
-bash /var/www/sarkari.online/deploy.sh
+# Check running containers
+docker compose ps
+
+# View live application & cron logs
+docker compose logs -f app
+
+# Restart stack
+docker compose restart
+
+# Pull & Rebuild on updates
+docker compose up -d --build
 ```

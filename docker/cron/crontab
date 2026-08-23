@@ -1,0 +1,5 @@
+# Sarkari.online 24/7 Autonomous Publishing Cron inside Docker
+*/15 * * * * cd /var/www/html && php cron/fetch-trends.php >> /var/www/html/storage/logs/cron.log 2>&1
+*/20 * * * * cd /var/www/html && php cron/analyze-trends.php >> /var/www/html/storage/logs/cron.log 2>&1
+*/30 * * * * cd /var/www/html && php cron/generate-articles.php >> /var/www/html/storage/logs/cron.log 2>&1
+*/45 * * * * cd /var/www/html && php cron/publish-articles.php >> /var/www/html/storage/logs/cron.log 2>&1
