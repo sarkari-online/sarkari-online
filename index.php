@@ -90,7 +90,7 @@ include __DIR__ . '/components/header.php';
 
         <!-- 3. Two-Column Layout: Exam Updates + Trending 1-5 -->
         <section class="content-section">
-            <div style="display: grid; grid-template-columns: 1.35fr 1fr; gap: 1.5rem;" class="hero-editorial-grid">
+            <div class="hero-editorial-grid">
                 
                 <!-- Left: Exam Updates (Dates, Admit Cards, Results) -->
                 <div>
