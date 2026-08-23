@@ -60,7 +60,7 @@ include __DIR__ . '/components/header.php';
 
                 <h2>Contact the Editorial Desk</h2>
                 <p>
-                    For news tips, factual corrections, or institutional press releases, visit our <a href="<?= url('contact/') ?>">Contact &amp; Grievance Page</a> or write to our editorial desk at <code>editorial@sarkari.online</code>.
+                    For news tips, factual corrections, or institutional press releases, visit our <a href="<?= url('contact/') ?>">Contact &amp; Grievance Page</a> or write to our editorial desk at <code>official.sarkarionline@gmail.com</code>.
                 </p>
             </div>
         </article>

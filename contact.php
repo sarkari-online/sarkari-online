@@ -83,21 +83,12 @@ include __DIR__ . '/components/header.php';
                     </button>
                 </form>
 
-                <div style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border-color); display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem;">
-                    <div>
-                        <h4>Editorial Desk</h4>
-                        <p style="font-size: 0.875rem; color: var(--text-muted);">
-                            For news tips, exam schedules, and correction requests:<br>
-                            <strong style="color: var(--text-main);">editorial@sarkari.online</strong>
-                        </p>
-                    </div>
-                    <div>
-                        <h4>Grievance Officer</h4>
-                        <p style="font-size: 0.875rem; color: var(--text-muted);">
-                            In accordance with Information Technology Rules (India):<br>
-                            <strong style="color: var(--text-main);">grievance@sarkari.online</strong>
-                        </p>
-                    </div>
+                <div style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0.5rem;">
+                    <h4 style="margin-bottom: 0.25rem;">Official Editorial &amp; Grievance Communication</h4>
+                    <p style="font-size: 0.935rem; color: var(--text-muted); line-height: 1.6;">
+                        For news tips, factual corrections, official press releases, and statutory grievance redressal:<br>
+                        <a href="mailto:official.sarkarionline@gmail.com" style="color: var(--color-primary); font-weight: 600; font-size: 1.05rem; text-decoration: none;">official.sarkarionline@gmail.com</a>
+                    </p>
                 </div>
             </div>
         </article>
