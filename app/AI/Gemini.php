@@ -99,7 +99,7 @@ class Gemini {
             ];
         }
 
-        $modelsToTry = array_unique([$this->model, 'gemini-3.1-flash-lite', 'gemini-3-flash-preview', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite-preview', 'gemma-4-31b-it']);
+        $modelsToTry = array_unique([$this->model, 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro']);
         $attempt = 0;
         $lastError = '';
         $tokensUsed = 0;
