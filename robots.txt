@@ -25,4 +25,4 @@ Disallow: /storage/
 Disallow: /tests/
 
 # Sitemap Location
-Sitemap: http://localhost:8888/automation/sitemap.xml
+Sitemap: https://sarkari.online/sitemap.xml

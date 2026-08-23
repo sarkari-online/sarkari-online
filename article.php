@@ -52,7 +52,8 @@ $sourceRef = $article['source_ref'] ?? (is_array($article['source'] ?? null) ? $
 // SEO Setup
 $pageTitle = !empty($article['meta_title']) ? $article['meta_title'] : $article['title'];
 $pageDesc = !empty($article['meta_description']) ? $article['meta_description'] : ($article['excerpt'] ?? '');
-$canonicalUrl = !empty($article['canonical_url']) ? $article['canonical_url'] : url('article/' . $article['slug'] . '/');
+// Ensure canonical and social share URLs always dynamically use current domain (never localhost)
+$canonicalUrl = url('article/' . $article['slug'] . '/');
 
 // Generate Rich Niche-Targeted Long-Tail Keywords
 $cleanTitleKeywords = str_replace([':', '—', '-', '|', '2026', '2027'], '', $article['title']);
@@ -168,6 +169,13 @@ include __DIR__ . '/components/header.php';
                 <div class="article-body-content">
                     <?php
                     $renderedContent = $article['content_html'] ?? $article['content'] ?? '';
+                    
+                    // Sanitize any legacy local URLs
+                    $renderedContent = str_replace(
+                        ['http://localhost:8888/automation/', 'http://localhost/automation/', '/automation/article/'],
+                        [SITE_URL . '/', SITE_URL . '/', url('article/')],
+                        $renderedContent
+                    );
                     
                     if (str_contains($renderedContent, '<table') && !str_contains($renderedContent, 'table-responsive')) {
                         $renderedContent = preg_replace('/<table\b([^>]*)>/i', '<div class="table-responsive"><table$1>', $renderedContent);
