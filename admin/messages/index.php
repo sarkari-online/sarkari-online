@@ -7,6 +7,19 @@ App\Helpers\Auth::requireAuth();
 
 use App\Database\Database;
 
+// Auto-create table if not exists
+Database::query("CREATE TABLE IF NOT EXISTS `contact_messages` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `name` VARCHAR(150) NOT NULL,
+  `email` VARCHAR(150) NOT NULL,
+  `subject` VARCHAR(150) NOT NULL,
+  `article_url` VARCHAR(255) NULL,
+  `message` TEXT NOT NULL,
+  `ip_address` VARCHAR(45) NULL,
+  `status` ENUM('unread', 'read', 'archived') DEFAULT 'unread',
+  `created_at` DATETIME NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+
 // Handle Actions (Mark Read / Unread / Delete)
 $action = $_GET['action'] ?? null;
 $msgId = (int)($_GET['id'] ?? 0);
