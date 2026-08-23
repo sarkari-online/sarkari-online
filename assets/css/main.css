@@ -679,7 +679,7 @@ p:last-child {
     bottom: 0;
     background-color: rgba(15, 23, 42, 0.6);
     backdrop-filter: blur(4px);
-    z-index: 999;
+    z-index: 2000;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.25s ease, visibility 0.25s ease;
@@ -697,7 +697,7 @@ p:last-child {
     width: 82%;
     max-width: 320px;
     height: 100%;
-    background-color: var(--bg-surface);
+    background-color: #ffffff;
     box-shadow: var(--shadow-lg);
     display: flex;
     flex-direction: column;
@@ -748,7 +748,7 @@ p:last-child {
     height: 100%;
     background-color: rgba(15, 23, 42, 0.7);
     backdrop-filter: blur(6px);
-    z-index: 1000;
+    z-index: 2050;
     display: flex;
     align-items: flex-start;
     justify-content: center;
