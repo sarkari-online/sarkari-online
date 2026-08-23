@@ -185,34 +185,34 @@ class ThumbnailService {
         // Left Decorative Category Color Strip inside card
         imagefilledrectangle($img, 60, 130, 72, 560, $accentColor);
 
-        // 5. Render Main Headline Text (Auto-wrapped to max 3 lines with dynamic sizing)
-        $wrappedLines = $this->wrapText($title, 34);
+        // 5. Render Main Headline Text (Large, Bold & High-Contrast)
+        $wrappedLines = $this->wrapText($title, 26);
         $lineCount = min(count($wrappedLines), 3);
-        $fontSize = $lineCount >= 3 ? 30 : 34;
-        $lineSpacing = $lineCount >= 3 ? 50 : 56;
-        $startY = $lineCount >= 3 ? 220 : 235;
+        $fontSize = $lineCount >= 3 ? 42 : 48;
+        $lineSpacing = $lineCount >= 3 ? 66 : 74;
+        $startY = $lineCount >= 3 ? 235 : 255;
 
         for ($i = 0; $i < $lineCount; $i++) {
             $line = $wrappedLines[$i];
-            if ($i === 2 && mb_strlen($line) > 32) {
-                $line = mb_substr($line, 0, 29) . '...';
+            if ($i === 2 && mb_strlen($line) > 28) {
+                $line = mb_substr($line, 0, 25) . '...';
             }
             $this->drawText($img, $fontSize, 0, 105, $startY + ($i * $lineSpacing), $whiteColor, $line, true);
         }
 
         // Subtitle / Highlight Strip with crisp drawn verified badge
-        $subY = $startY + ($lineCount * $lineSpacing) + 15;
+        $subY = $startY + ($lineCount * $lineSpacing) + 25;
         $this->drawVerifiedBadge($img, 105, $subY - 14, $accentColor);
-        $this->drawText($img, 16, 0, 134, $subY, $accentColor, "VERIFIED PUBLIC NOTICE & DIRECT DETAILS", true);
+        $this->drawText($img, 20, 0, 138, $subY, $accentColor, "VERIFIED PUBLIC NOTICE & DIRECT DETAILS", true);
 
         // 6. Bottom Information Footer Bar
         // Source Reference Pill
-        imagefilledrectangle($img, 105, 480, 580, 525, imagecolorallocatealpha($img, 255, 255, 255, 110));
-        $this->drawText($img, 15, 0, 120, 508, $whiteColor, "Source: " . $this->truncate($sourceName, 38), false);
+        imagefilledrectangle($img, 105, 480, 620, 535, imagecolorallocatealpha($img, 255, 255, 255, 110));
+        $this->drawText($img, 18, 0, 125, 514, $whiteColor, "Source: " . $this->truncate($sourceName, 36), false);
 
         // Date Pill
-        imagefilledrectangle($img, 900, 480, 1100, 525, imagecolorallocatealpha($img, 255, 255, 255, 110));
-        $this->drawText($img, 15, 0, 920, 508, $mutedTextColor, "Date: " . $dateStr, false);
+        imagefilledrectangle($img, 860, 480, 1100, 535, imagecolorallocatealpha($img, 255, 255, 255, 110));
+        $this->drawText($img, 18, 0, 885, 514, $mutedTextColor, "Date: " . $dateStr, false);
 
         // 7. Save as WebP
         $saved = imagewebp($img, $fullPath, 85);

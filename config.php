@@ -402,9 +402,9 @@ SVG;
         $lines[2] = mb_substr($lines[2], 0, 23) . '...';
     }
 
-    $fontSize = count($lines) >= 3 ? 22 : 25;
-    $lineSpacing = count($lines) >= 3 ? 34 : 40;
-    $startY = count($lines) >= 3 ? 165 : 180;
+    $fontSize = count($lines) >= 3 ? 28 : 34;
+    $lineSpacing = count($lines) >= 3 ? 46 : 54;
+    $startY = count($lines) >= 3 ? 165 : 185;
 
     $textSvg = '';
     foreach ($lines as $i => $lineText) {
