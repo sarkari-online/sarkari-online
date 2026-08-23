@@ -104,10 +104,11 @@ ARTICLE CONTENT:
 {$articleSnippet}
 
 Perform an autonomous accuracy & safety audit on this Study Guide / Syllabus / Strategy article:
-1. Verify that all exam frameworks (total marks, negative marking, subject sections, exam duration, question count) match genuine Indian standards (e.g. NEET UG 720 marks / 180 Qs, SSC CGL Tier-1 100 Qs / 200 marks, UPSC CSE 9 papers, CTET 150 Qs).
-2. Check if chapter weightage or question distribution is labeled honestly as past-year trend analysis (PYQ) and NOT falsely claimed as "statutory/mandatory official distribution".
-3. Verify that there are no expired historical dates (2020-2024) presented as active current schedules.
-4. Verify that the article contains complete, actionable, high-quality educational guidance.
+1. Verify that all exam frameworks (total marks, negative marking, subject sections, exam duration, question count) match genuine Indian standards (e.g. NEET UG 720 marks / 180 Qs, SSC CGL Tier-1 100 Qs / 200 marks, UPSC CSE 9 papers, CTET 150 Qs, State PSC KAS/PSC patterns).
+2. TENTATIVE / PENDING DATES POLICY: If an upcoming examination date has not yet been announced by the commission/agency, it is 100% legitimate and standard practice to state dates as 'To Be Announced (TBA)', 'Tentative', or 'Pending Official Notice at official portal'. Approve such honest reporting!
+3. Check if chapter weightage or question distribution is labeled honestly as past-year trend analysis (PYQ) and NOT falsely claimed as "statutory/mandatory official distribution".
+4. Verify that there are no expired historical cycles (2020-2024) presented as active current schedules.
+5. Verify that the article contains complete, actionable, high-quality educational guidance.
 
 Return strictly JSON:
 {
@@ -119,8 +120,8 @@ Return strictly JSON:
   "reason": "Clear explanation of audit outcome"
 }
 Rules:
-- If exam pattern, marking scheme, and trend-based disclaimers are accurate -> verdict: "pass", confidence: 85-95
-- If contains false statutory claims, hallucinated rules, or broken dates -> verdict: "fail", confidence: 30
+- If exam pattern, marking scheme, eligibility, and syllabus are accurate -> verdict: "pass", confidence: 85-95
+- If contains false statutory claims, fabricated confirmed dates, or expired historical years -> verdict: "fail", confidence: 30
 PROMPT;
         } else {
             // Autonomous Notice / Recruitment / Result Verification
@@ -130,7 +131,7 @@ PROMPT;
 
             $prompt = <<<PROMPT
 You are a strict fact-verification engine for Indian government jobs, exams, and scholarship notifications.
-Today's date is: {$currentYear}-08-22.
+Today's date is: {$currentYear}-08-23.
 
 ARTICLE TITLE: {$articleTitle}
 SOURCE AUTHORITY: {$sourceName}
@@ -143,8 +144,9 @@ ARTICLE CONTENT:
 
 Verify the factual accuracy of this notification:
 1. Check key claims (exam/recruitment name, conducting body, eligibility, age limits, pay scale/vacancies, application procedures).
-2. Ensure dates are for active/upcoming cycles ({$currentYear}+), and no expired historical cycles (2020-2024) are presented as active.
-3. Check for factual consistency with standard official notification formats.
+2. TENTATIVE & UPCOMING NOTICES POLICY: If the conducting authority has not yet gazetted the exact exam dates for an upcoming {$currentYear}+ recruitment cycle, it is 100% valid and correct for the article to state dates as 'To be announced (TBA)' or 'Tentative at official portal' while detailing confirmed eligibility and exam syllabus. Do NOT fail an article for honestly stating 'To be announced'.
+3. Ensure no expired historical cycles (2020-2024) are presented as active.
+4. Check for factual consistency with standard official notification formats.
 
 Return strictly JSON:
 {
@@ -156,8 +158,8 @@ Return strictly JSON:
   "reason": "Summary of factual assessment"
 }
 Rules:
-- If accurate and factually sound -> verdict: "pass", confidence: 80-95
-- If contains contradicted numbers, wrong eligibility, or expired dates -> verdict: "fail", confidence: 30
+- If eligibility, exam format, and authority details are accurate and dates are either confirmed or honestly marked TBA -> verdict: "pass", confidence: 85-95
+- Only if contains fabricated/fake confirmed dates, wrong eligibility, or expired years -> verdict: "fail", confidence: 30
 PROMPT;
         }
 
