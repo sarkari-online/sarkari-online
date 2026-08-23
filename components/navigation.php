@@ -15,10 +15,9 @@ $primaryNavLinks = [
 ];
 
 $moreNavLinks = [
-    ['label' => 'Entrance Exams', 'url' => 'category/entrance-exams/', 'icon' => 'compass', 'desc' => 'JEE, NEET, CUET & State CETs'],
-    ['label' => 'College Updates', 'url' => 'category/college-updates/', 'icon' => 'building', 'desc' => 'Admissions, Cutoffs & Rankings'],
-    ['label' => 'Career Guides', 'url' => 'category/career-guides/', 'icon' => 'trending-up', 'desc' => 'Syllabus & Career Roadmaps'],
-    ['label' => 'Student Tech & AI', 'url' => 'category/student-technology/', 'icon' => 'cpu', 'desc' => 'AI Study Tools & Productivity']
+    ['label' => 'Career Guides', 'url' => 'category/career-guides/', 'icon' => 'trending-up', 'desc' => 'Syllabus, Exam Patterns & Roadmaps'],
+    ['label' => 'Entrance Exams', 'url' => 'category/entrance-exams/', 'icon' => 'compass', 'desc' => 'NEET, JEE, CTET & State CETs'],
+    ['label' => 'Student Tech & AI', 'url' => 'category/student-technology/', 'icon' => 'cpu', 'desc' => 'NSDC, Free Cloud & AI Certifications']
 ];
 
 $isMoreActive = false;

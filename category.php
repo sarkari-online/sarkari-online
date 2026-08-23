@@ -4,8 +4,6 @@
  * Retrieves category records and paginated articles from MySQL via CategoryService & ArticleService.
  */
 require_once __DIR__ . '/config.php';
-require_once __DIR__ . '/app/Data/MockData.php';
-
 use App\Services\CategoryService;
 use App\Services\ArticleService;
 
@@ -22,11 +20,6 @@ if (!$category) {
 
 $currentPage = max(1, (int)($_GET['page'] ?? 1));
 $categoryData = ArticleService::getByCategory($slug, $currentPage, 6);
-
-// Fallback to MockData if database category has 0 articles
-if (empty($categoryData['items'])) {
-    $categoryData = MockData::getCategoryArticles($slug, $currentPage, 6);
-}
 
 $articles = $categoryData['items'];
 $totalPages = $categoryData['total_pages'];

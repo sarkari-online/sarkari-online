@@ -34,7 +34,7 @@
                         <li><a href="<?= url('category/entrance-exams/') ?>" class="footer-link">UPSC Civil Services</a></li>
                         <li><a href="<?= url('category/school-boards/') ?>" class="footer-link">CBSE &amp; State Boards</a></li>
                         <li><a href="<?= url('category/exam-results/') ?>" class="footer-link">Teacher Eligibility (CTET)</a></li>
-                        <li><a href="<?= url('category/college-updates/') ?>" class="footer-link">Central University Admissions</a></li>
+                        <li><a href="<?= url('category/entrance-exams/') ?>" class="footer-link">Central University Admissions</a></li>
                         <li><a href="<?= url('category/answer-keys/') ?>" class="footer-link">Official Answer Keys</a></li>
                     </ul>
                 </div>

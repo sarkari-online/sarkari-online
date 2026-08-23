@@ -3,8 +3,10 @@
  * Sidebar Component
  * Displays Trending Stories, Category Quick Links, and Latest Alerts.
  */
-$sidebarTrending = MockData::getTrendingNow();
-$sidebarLatest = MockData::getLatestArticles(4);
+use App\Services\ArticleService;
+
+$sidebarTrending = ArticleService::getLatestPublished(4);
+$sidebarLatest = ArticleService::getLatestPublished(4);
 ?>
 <aside class="article-sidebar" aria-label="Secondary Sidebar">
     
@@ -15,9 +17,12 @@ $sidebarLatest = MockData::getLatestArticles(4);
             <span>Trending Right Now</span>
         </h3>
         <div class="trending-numbered-list" style="border: none; box-shadow: none;">
-            <?php foreach (array_slice($sidebarTrending, 0, 4) as $item): ?>
+            <?php 
+            $rank = 1;
+            foreach ($sidebarTrending as $item): 
+            ?>
                 <div class="trending-item-row" style="padding-left: 0; padding-right: 0;">
-                    <div class="trending-rank-num" style="font-size: 1.25rem; min-width: 22px;"><?= e((string)$item['rank']) ?></div>
+                    <div class="trending-rank-num" style="font-size: 1.25rem; min-width: 22px;"><?= $rank++ ?></div>
                     <div class="trending-item-content">
                         <h4 class="trending-item-title" style="font-size: 0.875rem;">
                             <a href="<?= url('article/' . $item['slug'] . '/') ?>">
@@ -25,7 +30,7 @@ $sidebarLatest = MockData::getLatestArticles(4);
                             </a>
                         </h4>
                         <div class="trending-item-meta">
-                            <span><?= e($item['views']) ?></span>
+                            <span><?= format_date($item['published_at'] ?? 'now') ?></span>
                         </div>
                     </div>
                 </div>

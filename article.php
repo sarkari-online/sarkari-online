@@ -4,13 +4,12 @@
  * Full SEO-optimized article rendering with preview mode, breadcrumbs, verification box, FAQs, and JSON-LD schemas.
  */
 require_once __DIR__ . '/config.php';
-require_once __DIR__ . '/app/Data/MockData.php';
 
 use App\Services\ArticleService;
 use App\Helpers\Auth;
 use App\Helpers\SEOHelper;
 
-$slug = $_GET['slug'] ?? 'neet-ug-2026-counselling-schedule-released-mcc-nic-in';
+$slug = $_GET['slug'] ?? '';
 $slug = trim($slug, '/');
 $isPreview = isset($_GET['preview']) && (bool)$_GET['preview'];
 
@@ -18,12 +17,7 @@ $isPreview = isset($_GET['preview']) && (bool)$_GET['preview'];
 $allowDraft = $isPreview && Auth::check();
 
 // Fetch from Database
-$article = ArticleService::getBySlug($slug, $allowDraft);
-
-// Fallback to MockData if not in DB yet (for mock demonstration)
-if (!$article) {
-    $article = MockData::getArticleBySlug($slug);
-}
+$article = $slug !== '' ? ArticleService::getBySlug($slug, $allowDraft) : null;
 
 if (!$article) {
     http_response_code(404);

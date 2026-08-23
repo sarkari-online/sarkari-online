@@ -204,12 +204,11 @@ const NAV_LINKS = [
     ['label' => 'Results', 'url' => 'category/exam-results/'],
     ['label' => 'Admit Cards', 'url' => 'category/admit-cards/'],
     ['label' => 'Exam Dates', 'url' => 'category/exam-dates/'],
-    ['label' => 'Entrance', 'url' => 'category/entrance-exams/'],
     ['label' => 'Govt Jobs', 'url' => 'category/government-jobs/'],
-    ['label' => 'Colleges', 'url' => 'category/college-updates/'],
     ['label' => 'Scholarships', 'url' => 'category/scholarships/'],
-    ['label' => 'Career', 'url' => 'category/career-guides/'],
-    ['label' => 'Tech', 'url' => 'category/student-technology/']
+    ['label' => 'Entrance', 'url' => 'category/entrance-exams/'],
+    ['label' => 'Career Guides', 'url' => 'category/career-guides/'],
+    ['label' => 'Tech & AI', 'url' => 'category/student-technology/']
 ];
 
 // ==========================================
