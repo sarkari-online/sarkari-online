@@ -25,6 +25,23 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     $senderMessage = trim($_POST['message'] ?? '');
 
     if (!empty($senderName) && !empty($senderEmail) && !empty($senderMessage) && filter_var($senderEmail, FILTER_VALIDATE_EMAIL)) {
+        // 1. Save to Database for Admin Inquiries & Leads Panel
+        try {
+            \App\Database\Database::insert('contact_messages', [
+                'name' => $senderName,
+                'email' => $senderEmail,
+                'subject' => $inquiryType,
+                'article_url' => $articleUrl ?: null,
+                'message' => $senderMessage,
+                'ip_address' => $_SERVER['REMOTE_ADDR'] ?? 'Unknown',
+                'status' => 'unread',
+                'created_at' => date('Y-m-d H:i:s')
+            ]);
+        } catch (\Throwable $e) {
+            \App\Helpers\Logger::warning('Contact message DB insert error: ' . $e->getMessage());
+        }
+
+        // 2. Email Notification
         $to = 'official.sarkarionline@gmail.com';
         $emailSubject = "[Sarkari.online Inquiry] {$inquiryType} from " . strip_tags($senderName);
 
