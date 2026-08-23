@@ -45,7 +45,8 @@ $ogImageVal = !empty($ogImage) ? (str_starts_with($ogImage, 'http') ? $ogImage :
     <!-- Crawling & Indexation Directives -->
     <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
     <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
-    <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <!-- Google Search Console Ownership Verification -->
+    <meta name="google-site-verification" content="tbEauc4I8_zvPJ8zJOf_YA3-40UtKAZNRxgo881ZLiY">
 
     <!-- Authorship & Publisher Directives -->
     <meta name="author" content="<?= e($metaAuthorVal) ?>">
