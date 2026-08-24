@@ -109,7 +109,7 @@ include __DIR__ . '/components/header.php';
                             <div class="exam-update-card">
                                 <div class="exam-update-info">
                                     <div class="card-meta" style="margin-bottom: 0.25rem;">
-                                        <span class="badge badge-pill" style="background: var(--color-primary-light); color: var(--color-primary); font-size: 0.7rem;">
+                                        <span class="badge badge-pill" style="background: #eff6ff; color: #1e3a8a; font-weight: 700; font-size: 0.7rem; border: 1px solid #bfdbfe;">
                                             <?= e($exam['category_name'] ?? 'Exam Notice') ?>
                                         </span>
                                         <span><?= format_date($exam['published_at'] ?? 'now') ?></span>
@@ -233,7 +233,7 @@ include __DIR__ . '/components/header.php';
                                 </div>
                                 <div class="compact-row-content">
                                     <div class="card-meta" style="margin-bottom: 0.35rem; font-size: 0.75rem;">
-                                        <span class="badge" style="background: var(--bg-surface-subtle); color: var(--text-main); font-size: 0.65rem;">
+                                        <span class="badge" style="background: #e2e8f0; color: #0f172a; font-weight: 700; font-size: 0.7rem; border: 1px solid #cbd5e1;">
                                             <?= e($tech['category_name'] ?? 'Tech') ?>
                                         </span>
                                         <span class="meta-dot"></span>
@@ -265,10 +265,10 @@ include __DIR__ . '/components/header.php';
                                     <?= icon('check-circle', 'icon-sm') ?>
                                 </div>
                                 <div>
-                                    <span class="badge" style="font-size: 0.65rem; margin-bottom: 0.25rem;"><?= e($pop['category_name'] ?? 'Guide') ?></span>
-                                    <h4 style="font-size: 0.9375rem; font-weight: 700; line-height: 1.35; margin-bottom: 0.25rem;">
+                                    <span class="badge" style="font-size: 0.7rem; font-weight: 700; background: #e0e7ff; color: #1e1b4b; margin-bottom: 0.25rem;"><?= e($pop['category_name'] ?? 'Guide') ?></span>
+                                    <h3 style="font-size: 0.9375rem; font-weight: 700; line-height: 1.35; margin-bottom: 0.25rem;">
                                         <a href="<?= url('article/' . $pop['slug'] . '/') ?>"><?= e($pop['title']) ?></a>
-                                    </h4>
+                                    </h3>
                                     <span style="font-size: 0.75rem; color: var(--text-muted);"><?= format_date($pop['published_at'] ?? 'now') ?></span>
                                 </div>
                             </div>

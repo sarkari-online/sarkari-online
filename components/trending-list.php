@@ -18,16 +18,16 @@ if (empty($trendingItems)) {
             <div class="trending-rank-num"><?= $rank++ ?></div>
             <div class="trending-item-content">
                 <div class="trending-item-meta">
-                    <span class="badge" style="background-color: <?= e($item['category_color'] ?? '#1e3a8a') ?>15; color: <?= e($item['category_color'] ?? '#1e3a8a') ?>; font-size: 0.65rem;">
+                    <span class="badge" style="background-color: <?= e($item['category_bg_light'] ?? '#eff6ff') ?>; color: #0f172a; font-weight: 700; font-size: 0.68rem; border: 1px solid <?= e($item['category_color'] ?? '#cbd5e1') ?>40;">
                         <?= e($item['category_name'] ?? 'Education') ?>
                     </span>
                     <span><?= format_date($item['published_at'] ?? 'now') ?></span>
                 </div>
-                <h4 class="trending-item-title">
+                <h3 class="trending-item-title">
                     <a href="<?= url('article/' . $item['slug'] . '/') ?>">
                         <?= e($item['title']) ?>
                     </a>
-                </h4>
+                </h3>
             </div>
         </div>
     <?php endforeach; ?>

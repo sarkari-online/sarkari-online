@@ -24,11 +24,11 @@ $sidebarLatest = ArticleService::getLatestPublished(4);
                 <div class="trending-item-row" style="padding-left: 0; padding-right: 0;">
                     <div class="trending-rank-num" style="font-size: 1.25rem; min-width: 22px;"><?= $rank++ ?></div>
                     <div class="trending-item-content">
-                        <h4 class="trending-item-title" style="font-size: 0.875rem;">
+                        <h3 class="trending-item-title" style="font-size: 0.875rem;">
                             <a href="<?= url('article/' . $item['slug'] . '/') ?>">
                                 <?= e($item['title']) ?>
                             </a>
-                        </h4>
+                        </h3>
                         <div class="trending-item-meta">
                             <span><?= format_date($item['published_at'] ?? 'now') ?></span>
                         </div>

@@ -28,7 +28,7 @@
 
                 <!-- Column 2: National Examination Hub -->
                 <div class="footer-col">
-                    <h4 class="footer-heading">National Exams</h4>
+                    <h3 class="footer-heading">National Exams</h3>
                     <ul class="footer-links-list">
                         <li><a href="<?= url('category/career-guides/') ?>" class="footer-link">NTA Entrance Tests</a></li>
                         <li><a href="<?= url('category/entrance-exams/') ?>" class="footer-link">UPSC Civil Services</a></li>
@@ -41,7 +41,7 @@
 
                 <!-- Column 3: Recruitment & Aid -->
                 <div class="footer-col">
-                    <h4 class="footer-heading">Recruitment &amp; Aid</h4>
+                    <h3 class="footer-heading">Recruitment &amp; Aid</h3>
                     <ul class="footer-links-list">
                         <li><a href="<?= url('category/government-jobs/') ?>" class="footer-link">Staff Selection (SSC)</a></li>
                         <li><a href="<?= url('category/government-jobs/') ?>" class="footer-link">Railway Recruitment (RRB)</a></li>
@@ -54,7 +54,7 @@
 
                 <!-- Column 4: Trust & Standards -->
                 <div class="footer-col">
-                    <h4 class="footer-heading">Editorial &amp; Legal</h4>
+                    <h3 class="footer-heading">Editorial &amp; Legal</h3>
                     <ul class="footer-links-list">
                         <li><a href="<?= url('about/') ?>" class="footer-link">About Editorial Desk</a></li>
                         <li><a href="<?= url('editorial-policy/') ?>" class="footer-link">Fact-Checking Charter</a></li>

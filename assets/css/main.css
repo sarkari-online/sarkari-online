@@ -3345,9 +3345,10 @@ html {
 
 .topic-pill-hindi {
     font-size: 0.7rem;
-    font-weight: 600;
-    color: #64748b;
-    background: #f1f5f9;
+    font-weight: 700;
+    color: #0f172a;
+    background: #e2e8f0;
+    border: 1px solid #cbd5e1;
     padding: 2px 7px;
     border-radius: 999px;
     transition: all 0.2s ease;
