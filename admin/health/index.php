@@ -17,9 +17,12 @@ $adminPageKey = 'health';
 $dbStatus = ['name' => 'MySQL Database Engine', 'status' => 'pass', 'details' => ''];
 try {
     $dbStart = microtime(true);
-    $tableCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = :db", ['db' => DB_NAME]);
+    $dbName = Env::get('DB_DATABASE', 'sarkari_online_db');
+    $dbHost = Env::get('DB_HOST', '127.0.0.1');
+    $dbPort = Env::get('DB_PORT', '3306');
+    $tableCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = :db", ['db' => $dbName]);
     $dbTime = round((microtime(true) - $dbStart) * 1000, 2);
-    $dbStatus['details'] = "Connected successfully to " . DB_HOST . ":" . DB_PORT . " ({$tableCount} tables, latency: {$dbTime}ms)";
+    $dbStatus['details'] = "Connected successfully to {$dbHost}:{$dbPort} ({$tableCount} tables, latency: {$dbTime}ms)";
 } catch (Throwable $e) {
     $dbStatus['status'] = 'fail';
     $dbStatus['details'] = "Database connection error: " . $e->getMessage();
