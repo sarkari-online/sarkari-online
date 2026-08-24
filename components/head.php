@@ -137,9 +137,16 @@ if (!$isAdminSession):
     <link rel="dns-prefetch" href="https://www.googletagmanager.com">
     <link rel="dns-prefetch" href="https://www.google-analytics.com">
 
-    <!-- Master CSS Design System (Preloaded for 0ms Render-Blocking) -->
-    <link rel="preload" href="<?= asset('css/main.css') ?>" as="style">
-    <link rel="stylesheet" href="<?= asset('css/main.css') ?>">
+    <?php if (!empty($lcpImagePreload)): ?>
+        <!-- Preload Largest Contentful Paint (LCP) Candidate Image -->
+        <link rel="preload" as="image" href="<?= e($lcpImagePreload) ?>" fetchpriority="high">
+    <?php endif; ?>
+
+    <!-- Master CSS Design System (0ms Render-Blocking Asynchronous Delivery) -->
+    <?php $cssFile = file_exists(dirname(__DIR__) . '/assets/css/main.min.css') ? 'css/main.min.css' : 'css/main.css'; ?>
+    <link rel="preload" href="<?= asset($cssFile) ?>" as="style">
+    <link rel="stylesheet" href="<?= asset($cssFile) ?>" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="<?= asset($cssFile) ?>"></noscript>
 
     <!-- Schema.org Organization Structured Data -->
     <script type="application/ld+json">

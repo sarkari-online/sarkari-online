@@ -58,6 +58,7 @@ if (empty($studentTech)) {
 
 $popularGuides = array_slice($dbArticles, 0, 4);
 $categoriesList = CategoryService::getAll();
+$lcpImagePreload = !empty($featured['featured_image']) ? url($featured['featured_image']) : null;
 
 include __DIR__ . '/components/head.php';
 include __DIR__ . '/components/header.php';

@@ -79,6 +79,8 @@ $crumbs = [
     ['label' => truncate_text($article['title'], 45), 'url' => null]
 ];
 
+$lcpImagePreload = !empty($article['featured_image']) ? url($article['featured_image']) : null;
+
 include __DIR__ . '/components/head.php';
 include __DIR__ . '/components/header.php';
 ?>
