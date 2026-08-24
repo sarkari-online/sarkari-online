@@ -38,7 +38,7 @@ if (!empty($dbLatest)) {
                     <?php endforeach; ?>
                     <!-- Duplicate for infinite seamless scroll -->
                     <?php foreach ($breakingUpdates as $update): ?>
-                        <a href="<?= url($update['url']) ?>" class="ticker-item" aria-hidden="true">
+                        <a href="<?= url($update['url']) ?>" class="ticker-item" aria-hidden="true" tabindex="-1">
                             <span class="badge badge-pill" style="font-size: 0.65rem; background: rgba(255,255,255,0.15); color: #fff;"><?= e($update['tag']) ?></span>
                             <span><?= e($update['title']) ?></span>
                             <span class="ticker-time">(<?= e($update['time']) ?>)</span>

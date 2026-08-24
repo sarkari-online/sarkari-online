@@ -1,0 +1,22 @@
+# Sarkari.online
+
+> Sarkari.online is an independent educational and career information portal providing authentic alerts on entrance exams, board results, admit cards, government jobs, and scholarships across India.
+
+## Core Categories
+
+- [Entrance Exams](https://sarkari.online/category/entrance-exams/): Comprehensive updates on NEET, JEE Main, GATE, CUET, CTET, and university entrance examinations.
+- [Exam Results](https://sarkari.online/category/exam-results/): Verified cut-offs, scorecards, merit lists, and qualifying marks.
+- [Government Jobs](https://sarkari.online/category/government-jobs/): Official recruitment notifications, vacancy eligibility, and application procedures.
+- [Admit Cards](https://sarkari.online/category/admit-cards/): Direct hall ticket download links and exam city intimation slips.
+- [Exam Dates](https://sarkari.online/category/exam-dates/): Time tables, date sheets, and examination schedules.
+- [Scholarships](https://sarkari.online/category/scholarships/): National Scholarship Portal (NSP), PMSSS, and financial grant registration guides.
+- [Career Guides](https://sarkari.online/category/career-guides/): Official syllabus, chapter-wise weightage, and study preparation roadmaps.
+- [Student Tech & AI](https://sarkari.online/category/student-technology/): DigiLocker, Academic Bank of Credits (ABC), APAAR ID, and free national AI/Cloud skilling initiatives.
+
+## Key Information
+
+- [About Us](https://sarkari.online/about/): Background, mission, and independent editorial structure.
+- [Editorial Policy](https://sarkari.online/editorial-policy/): Fact-checking, source attribution, and verification guidelines.
+- [AI Policy](https://sarkari.online/ai-policy/): Transparency on AI assistance and human editorial review.
+- [Contact Us](https://sarkari.online/contact/): Media, editorial, and student support inquiries.
+- [Sitemap](https://sarkari.online/sitemap.xml): Full XML sitemap for automated indexing.
