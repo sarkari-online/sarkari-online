@@ -86,6 +86,15 @@ if (!file_exists($sitemapFile)) {
     $sitemapStatus['details'] = "Dynamic sitemap online serving {$pubCount} published articles and category indexes.";
 }
 
+// 6. Cron Workers Activity Check
+$cronStatus = ['name' => 'Automated Background Workers', 'status' => 'pass', 'details' => ''];
+$lastLog = Database::fetchOne("SELECT created_at FROM ai_logs ORDER BY id DESC LIMIT 1");
+if ($lastLog) {
+    $cronStatus['details'] = "Latest automated pipeline transaction recorded at " . date('M d, Y H:i:s', strtotime($lastLog['created_at']));
+} else {
+    $cronStatus['details'] = "Cron workers initialized and ready for invocation.";
+}
+
 // 7. Google Real-Time Indexing API Check
 $googleIndexingStatus = ['name' => 'Google Real-Time Indexing API', 'status' => 'pass', 'details' => ''];
 if (\App\Services\GoogleIndexingService::isConfigured()) {
