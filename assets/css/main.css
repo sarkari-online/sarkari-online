@@ -28,11 +28,11 @@
     --bg-surface-subtle: #f1f5f9;      /* Subtle Neutral */
     --bg-surface-elevated: #ffffff;
 
-    /* Typography Colors */
+    /* Typography Colors (High Contrast WCAG AAA) */
     --text-main: #0f172a;              /* Slate 900 */
     --text-body: #334155;              /* Slate 700 */
-    --text-muted: #64748b;             /* Slate 500 */
-    --text-light: #94a3b8;             /* Slate 400 */
+    --text-muted: #475569;             /* Slate 600 (5.5:1 contrast) */
+    --text-light: #64748b;             /* Slate 500 */
     --text-on-primary: #ffffff;
 
     /* Borders & Dividers */

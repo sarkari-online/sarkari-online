@@ -70,7 +70,7 @@ if (!isset($featured) || !isset($secondary)) {
                 <?= icon('zap') ?>
                 <span>Top Highlights</span>
             </h2>
-            <span class="badge badge-pill" style="font-size: 0.7rem; background: var(--bg-surface-subtle); color: var(--text-muted);">
+            <span class="badge badge-pill" style="font-size: 0.7rem; font-weight: 700; background: #e2e8f0; color: #0f172a; border: 1px solid #cbd5e1;">
                 Verified Notices
             </span>
         </div>
