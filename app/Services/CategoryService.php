@@ -98,38 +98,38 @@ class CategoryService {
      * Intelligently auto-resolve and correct category taxonomy based on title and content
      */
     public static function autoResolveCategory(string $title, string $content = '', ?string $currentSlug = null): ?array {
-        $lower = mb_strtolower($title . ' ' . mb_substr($content, 0, 500));
+        $t = mb_strtolower(trim($title));
 
-        // 1. Admit Cards
-        if (str_contains($lower, 'admit card') || str_contains($lower, 'hall ticket') || str_contains($lower, 'city slip') || str_contains($lower, 'call letter')) {
-            $slug = 'admit-cards';
-        }
-        // 2. Scholarships
-        elseif (str_contains($lower, 'scholarship') || str_contains($lower, 'nsp ') || str_contains($lower, 'pmsss') || str_contains($lower, 'yasasvi') || str_contains($lower, 'fellowship') || str_contains($lower, 'post matric')) {
-            $slug = 'scholarships';
-        }
-        // 3. Student Tech, DigiLocker & AI Skilling
-        elseif (str_contains($lower, 'digilocker') || str_contains($lower, 'academic bank of credits') || str_contains($lower, 'abc') || str_contains($lower, 'apaar') || str_contains($lower, 'aadhaar linking') || str_contains($lower, 'nsdc') || str_contains($lower, 'skill initiative') || str_contains($lower, 'cloud certification') || str_contains($lower, 'ai skill') || str_contains($lower, 'edtech')) {
+        // 1. Student Tech & AI (DigiLocker, ABC, APAAR, Aadhaar, NSDC, Cloud, AI Skilling)
+        if (str_contains($t, 'aadhaar') || str_contains($t, 'digilocker') || str_contains($t, 'academic bank of credits') || str_contains($t, 'abc') || str_contains($t, 'apaar') || str_contains($t, 'nsdc') || str_contains($t, 'cloud certification') || str_contains($t, 'ai skill') || str_contains($t, 'edtech') || str_contains($t, 'skill initiative')) {
             $slug = 'student-technology';
         }
-        // 4. Career Guides (Syllabus, Weightage, Roadmap, Preparation)
-        elseif (str_contains($lower, 'syllabus') || str_contains($lower, 'weightage') || str_contains($lower, 'roadmap') || str_contains($lower, 'preparation guide') || str_contains($lower, 'preparation strategy') || str_contains($lower, 'chapter-wise') || str_contains($lower, 'best books') || str_contains($lower, 'study guide')) {
-            $slug = 'career-guides';
+        // 2. Scholarships (Financial Aids, Fellowships, Fee Waivers, Grants)
+        elseif (str_contains($t, 'scholarship') || str_contains($t, 'nsp ') || str_contains($t, 'pmsss') || str_contains($t, 'yasasvi') || str_contains($t, 'fellowship') || str_contains($t, 'post matric') || str_contains($t, 'pre matric') || str_contains($t, 'fee waiver')) {
+            $slug = 'scholarships';
         }
-        // 5. Government Jobs (Recruitment, Vacancies, Notification)
-        elseif (str_contains($lower, 'recruitment') || str_contains($lower, 'vacanc') || str_contains($lower, 'agniveer') || str_contains($lower, 'havaldar') || str_contains($lower, 'apply by') || (str_contains($lower, 'notification') && !str_contains($lower, 'result') && !str_contains($lower, 'ctet'))) {
-            $slug = 'government-jobs';
+        // 3. Admit Cards (Hall Tickets, City Intimation Slips, Call Letters)
+        elseif (str_contains($t, 'admit card') || str_contains($t, 'hall ticket') || str_contains($t, 'city slip') || str_contains($t, 'call letter')) {
+            $slug = 'admit-cards';
         }
-        // 6. Exam Results (Result, Cutoff, Merit list, Scorecard, Marksheet, Answer Key)
-        elseif (str_contains($lower, 'result') || str_contains($lower, 'cut off') || str_contains($lower, 'cutoff') || str_contains($lower, 'scorecard') || str_contains($lower, 'merit list') || str_contains($lower, 'rank list') || str_contains($lower, 'qualifying marks') || str_contains($lower, 'answer key')) {
+        // 4. Exam Results (Result, Scorecard, Cutoff, Merit List, Marks, Answer Key)
+        elseif (str_contains($t, 'result') || str_contains($t, 'cut off') || str_contains($t, 'cutoff') || str_contains($t, 'scorecard') || str_contains($t, 'merit list') || str_contains($t, 'rank list') || str_contains($t, 'qualifying marks') || str_contains($t, 'answer key')) {
             $slug = 'exam-results';
         }
+        // 5. Career Guides & Syllabus (Syllabus, Weightage, Roadmap, Preparation Strategy, Study Plans)
+        elseif (str_contains($t, 'syllabus') || str_contains($t, 'weightage') || str_contains($t, 'roadmap') || str_contains($t, 'preparation strategy') || str_contains($t, 'preparation guide') || str_contains($t, 'chapter-wise') || str_contains($t, 'best books') || str_contains($t, 'study plan') || str_contains($t, 'strategy')) {
+            $slug = 'career-guides';
+        }
+        // 6. Government Jobs & Recruitment (Vacancies, Notifications, Agniveer, Havaldar, Jobs)
+        elseif (str_contains($t, 'recruitment') || str_contains($t, 'vacanc') || str_contains($t, 'agniveer') || str_contains($t, 'havaldar') || str_contains($t, 'constable') || str_contains($t, 'apply by') || (str_contains($t, 'notification') && !str_contains($t, 'ctet'))) {
+            $slug = 'government-jobs';
+        }
         // 7. Entrance Exams & Admissions (GATE, NEET, JEE, CUET, CTET, UPSC Mains, Counselling, Registration Timeline)
-        elseif (str_contains($lower, 'gate 20') || str_contains($lower, 'jee ') || str_contains($lower, 'neet ') || str_contains($lower, 'cuet ') || str_contains($lower, 'ctet ') || str_contains($lower, 'counselling') || str_contains($lower, 'seat allotment') || str_contains($lower, 'entrance') || str_contains($lower, 'registration timeline')) {
+        elseif (str_contains($t, 'gate 20') || str_contains($t, 'jee ') || str_contains($t, 'neet ') || str_contains($t, 'cuet ') || str_contains($t, 'ctet ') || str_contains($t, 'counselling') || str_contains($t, 'seat allotment') || str_contains($t, 'entrance') || str_contains($t, 'registration timeline')) {
             $slug = 'entrance-exams';
         }
         // 8. Exam Dates & Timetables
-        elseif (str_contains($lower, 'exam date') || str_contains($lower, 'date sheet') || str_contains($lower, 'time table') || str_contains($lower, 'timeline') || str_contains($lower, 'exam schedule')) {
+        elseif (str_contains($t, 'exam date') || str_contains($t, 'date sheet') || str_contains($t, 'time table') || str_contains($t, 'schedule')) {
             $slug = 'exam-dates';
         }
         else {
