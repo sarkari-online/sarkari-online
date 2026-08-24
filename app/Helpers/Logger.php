@@ -26,7 +26,12 @@ class Logger {
         $contextStr = !empty($context) ? ' ' . json_encode($context, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : '';
         $logLine = sprintf("[%s] [%s] %s%s%s", $timestamp, strtoupper($level), $message, $contextStr, PHP_EOL);
 
-        file_put_contents(self::$logFile, $logLine, FILE_APPEND | LOCK_EX);
+        if (!file_exists(self::$logFile)) {
+            @touch(self::$logFile);
+            @chmod(self::$logFile, 0666);
+        }
+
+        @file_put_contents(self::$logFile, $logLine, FILE_APPEND | LOCK_EX);
     }
 
     public static function info(string $message, array $context = []): void {
