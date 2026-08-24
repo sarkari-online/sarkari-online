@@ -99,19 +99,42 @@
 
 <?php include __DIR__ . '/mobile-nav.php'; ?>
 
-<!-- Google Neural Multi-Language Translation Engine -->
+<!-- Google Neural Multi-Language Translation Engine (Lazy-Loaded On Demand) -->
 <div id="google_translate_element" style="display:none;" aria-hidden="true"></div>
-<script type="text/javascript">
-function googleTranslateElementInit() {
+<script>
+window.googleTranslateElementInit = function() {
     new google.translate.TranslateElement({
         pageLanguage: 'en',
         includedLanguages: 'en,hi,ta,te,ur,bn,mr,gu,pa,kn,ml,or',
         autoDisplay: false,
         layout: google.translate.TranslateElement.InlineLayout.SIMPLE
     }, 'google_translate_element');
+};
+
+function loadGoogleTranslate() {
+    if (window._gtLoaded) return;
+    window._gtLoaded = true;
+    const s = document.createElement('script');
+    s.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+    s.async = true;
+    document.body.appendChild(s);
 }
+
+// Load on user interaction or idle callback (0ms initial blocking)
+document.addEventListener('DOMContentLoaded', function() {
+    const triggers = document.querySelectorAll('.lang-toggle-btn, .lang-option-btn, #mobileLangSelect, .mobile-lang-box');
+    triggers.forEach(function(t) {
+        t.addEventListener('click', loadGoogleTranslate, { once: true });
+        t.addEventListener('mouseenter', loadGoogleTranslate, { once: true });
+        t.addEventListener('focus', loadGoogleTranslate, { once: true });
+    });
+    if (document.cookie.indexOf('googtrans=') !== -1 && document.cookie.indexOf('googtrans=/en/en') === -1) {
+        loadGoogleTranslate();
+    } else if ('requestIdleCallback' in window) {
+        requestIdleCallback(function() { setTimeout(loadGoogleTranslate, 3500); });
+    }
+});
 </script>
-<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" defer></script>
 
 <!-- Vanilla JS Application Script -->
 <script src="<?= asset('js/main.js') ?>" defer></script>

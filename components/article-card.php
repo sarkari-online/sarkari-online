@@ -14,7 +14,7 @@ $cardCatColor = $article['category_color'] ?? '#1e3a8a';
     <div class="article-card-thumb">
         <a href="<?= url('article/' . $article['slug'] . '/') ?>" aria-label="<?= e($article['title']) ?>">
             <?php if (!empty($article['featured_image'])): ?>
-                <img src="<?= url($article['featured_image']) ?>" alt="<?= e($article['featured_image_alt'] ?? $article['title']) ?>" class="card-thumb-img" loading="lazy" width="640" height="360" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+                <img src="<?= url($article['featured_image']) ?>" alt="<?= e($article['featured_image_alt'] ?? $article['title']) ?>" class="card-thumb-img" loading="lazy" decoding="async" width="640" height="360" style="width: 100%; height: 100%; object-fit: cover; display: block;">
             <?php else: ?>
                 <?= render_thumbnail_svg($cardCatSlug, $article['title'], 640, 360) ?>
             <?php endif; ?>

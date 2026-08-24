@@ -117,9 +117,13 @@ if (!$isAdminSession):
     <link rel="apple-touch-icon" sizes="180x180" href="<?= asset('apple-touch-icon.png') ?>">
     <link rel="manifest" href="<?= asset('site.webmanifest') ?>">
     <meta name="theme-color" content="#1e3a8a">
-    <meta name="msapplication-TileColor" content="#1e3a8a">
+    <!-- Core Web Vitals Resource Hints & Preconnects -->
+    <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+    <link rel="dns-prefetch" href="https://www.google-analytics.com">
 
-    <!-- Master CSS Design System -->
+    <!-- Master CSS Design System (Preloaded for 0ms Render-Blocking) -->
+    <link rel="preload" href="<?= asset('css/main.css') ?>" as="style">
     <link rel="stylesheet" href="<?= asset('css/main.css') ?>">
 
     <!-- Schema.org Organization Structured Data -->
