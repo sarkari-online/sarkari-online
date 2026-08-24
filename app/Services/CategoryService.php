@@ -108,8 +108,8 @@ class CategoryService {
         elseif (str_contains($lower, 'scholarship') || str_contains($lower, 'nsp ') || str_contains($lower, 'pmsss') || str_contains($lower, 'yasasvi') || str_contains($lower, 'fellowship') || str_contains($lower, 'post matric')) {
             $slug = 'scholarships';
         }
-        // 3. Student Tech & AI Skilling
-        elseif (str_contains($lower, 'nsdc') || str_contains($lower, 'skill initiative') || str_contains($lower, 'cloud certification') || str_contains($lower, 'ai skill') || str_contains($lower, 'edtech')) {
+        // 3. Student Tech, DigiLocker & AI Skilling
+        elseif (str_contains($lower, 'digilocker') || str_contains($lower, 'academic bank of credits') || str_contains($lower, 'abc') || str_contains($lower, 'apaar') || str_contains($lower, 'aadhaar linking') || str_contains($lower, 'nsdc') || str_contains($lower, 'skill initiative') || str_contains($lower, 'cloud certification') || str_contains($lower, 'ai skill') || str_contains($lower, 'edtech')) {
             $slug = 'student-technology';
         }
         // 4. Career Guides (Syllabus, Weightage, Roadmap, Preparation)
