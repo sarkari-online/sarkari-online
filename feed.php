@@ -63,12 +63,24 @@ echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
         $cleanContent = $art['content_html'] ?? $art['content'] ?? $excerpt;
         $cleanContent = strip_tags($cleanContent, '<p><br><h2><h3><ul><ol><li><strong><em><table><thead><tbody><tr><th><td><blockquote><a>');
         
-        // Append official source backlink
-        $syndicationFooter = "<hr><p><em>Originally published and verified at <a href=\"{$articleUrl}\">Sarkari.online — " . htmlspecialchars($art['title'], ENT_QUOTES, 'UTF-8') . "</a>. For live updates, dates, and official notification PDFs, visit the official coverage on <a href=\"https://sarkari.online/\">Sarkari.online</a>.</em></p>";
-        $fullBody = $cleanContent . $syndicationFooter;
+        // Dynamic Category Hashtags for Twitter / Social Syndication
+        $catSlug = $art['category_slug'] ?? '';
+        $hashtags = '#SarkariOnline #ExamAlerts';
+        if (str_contains($catSlug, 'job') || str_contains($catSlug, 'recruitment')) {
+            $hashtags .= ' #GovtJobs #SarkariResult';
+        } elseif (str_contains($catSlug, 'entrance') || str_contains($catSlug, 'neet') || str_contains($catSlug, 'gate') || str_contains($catSlug, 'jee')) {
+            $hashtags .= ' #EntranceExam #AdmitCard';
+        } elseif (str_contains($catSlug, 'scholarship')) {
+            $hashtags .= ' #Scholarships #NSP';
+        } elseif (str_contains($catSlug, 'result')) {
+            $hashtags .= ' #ResultOut #SarkariResult';
+        } else {
+            $hashtags .= ' #LatestUpdate';
+        }
+        $syndicationTitle = $art['title'] . ' ' . $hashtags;
     ?>
     <item>
-        <title><?= htmlspecialchars($art['title'], ENT_XML1, 'UTF-8') ?></title>
+        <title><?= htmlspecialchars($syndicationTitle, ENT_XML1, 'UTF-8') ?></title>
         <link><?= htmlspecialchars($articleUrl, ENT_XML1, 'UTF-8') ?></link>
         <guid isPermaLink="true"><?= htmlspecialchars($articleUrl, ENT_XML1, 'UTF-8') ?></guid>
         <comments><?= htmlspecialchars($articleUrl . '#comments', ENT_XML1, 'UTF-8') ?></comments>
