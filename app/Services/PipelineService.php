@@ -78,9 +78,10 @@ class PipelineService {
             }
         }
 
-        $categorySlug = $trend['category_hint'] ?: 'exam-results';
-        $cat = CategoryService::getBySlug($categorySlug);
-        $categoryId = $cat ? (int)$cat['id'] : ($trend['category_id'] ?: 1);
+        // Intelligently auto-resolve correct category from keyword
+        $autoCat = CategoryService::autoResolveCategory($trend['keyword'], '', $trend['category_hint'] ?? null);
+        $categorySlug = $autoCat['slug'] ?? 'entrance-exams';
+        $categoryId = (int)($autoCat['id'] ?? 5);
 
         $sourceData = [
             'keyword' => $trend['keyword'],

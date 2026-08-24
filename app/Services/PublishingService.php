@@ -58,6 +58,15 @@ class PublishingService {
             return ['can_publish' => false, 'reasons' => ["Article #{$articleId} not found in database."], 'article' => null];
         }
 
+        // Automatic Category Auto-Correction: Fix any mismatch automatically before review
+        $autoCat = CategoryService::autoResolveCategory($article['title'], $article['content'] ?? '', $article['category_slug'] ?? null);
+        if ($autoCat && (int)$article['category_id'] !== (int)$autoCat['id']) {
+            Database::update('articles', ['category_id' => $autoCat['id']], 'id = :id', ['id' => $articleId]);
+            $article['category_id'] = (int)$autoCat['id'];
+            $article['category_name'] = $autoCat['name'];
+            $article['category_slug'] = $autoCat['slug'];
+        }
+
         $reasons = [];
 
         // Check 1: Quality Score threshold

@@ -93,4 +93,54 @@ class CategoryService {
         }
         return $deleted > 0;
     }
+
+    /**
+     * Intelligently auto-resolve and correct category taxonomy based on title and content
+     */
+    public static function autoResolveCategory(string $title, string $content = '', ?string $currentSlug = null): ?array {
+        $lower = mb_strtolower($title . ' ' . mb_substr($content, 0, 500));
+
+        // 1. Admit Cards
+        if (str_contains($lower, 'admit card') || str_contains($lower, 'hall ticket') || str_contains($lower, 'city slip') || str_contains($lower, 'call letter')) {
+            $slug = 'admit-cards';
+        }
+        // 2. Scholarships
+        elseif (str_contains($lower, 'scholarship') || str_contains($lower, 'nsp ') || str_contains($lower, 'pmsss') || str_contains($lower, 'yasasvi') || str_contains($lower, 'fellowship') || str_contains($lower, 'post matric')) {
+            $slug = 'scholarships';
+        }
+        // 3. Student Tech & AI Skilling
+        elseif (str_contains($lower, 'nsdc') || str_contains($lower, 'skill initiative') || str_contains($lower, 'cloud certification') || str_contains($lower, 'ai skill') || str_contains($lower, 'edtech')) {
+            $slug = 'student-technology';
+        }
+        // 4. Career Guides (Syllabus, Weightage, Roadmap, Preparation)
+        elseif (str_contains($lower, 'syllabus') || str_contains($lower, 'weightage') || str_contains($lower, 'roadmap') || str_contains($lower, 'preparation guide') || str_contains($lower, 'preparation strategy') || str_contains($lower, 'chapter-wise') || str_contains($lower, 'best books') || str_contains($lower, 'study guide')) {
+            $slug = 'career-guides';
+        }
+        // 5. Government Jobs (Recruitment, Vacancies, Notification)
+        elseif (str_contains($lower, 'recruitment') || str_contains($lower, 'vacanc') || str_contains($lower, 'agniveer') || str_contains($lower, 'havaldar') || str_contains($lower, 'apply by') || (str_contains($lower, 'notification') && !str_contains($lower, 'result') && !str_contains($lower, 'ctet'))) {
+            $slug = 'government-jobs';
+        }
+        // 6. Exam Results (Result, Cutoff, Merit list, Scorecard, Marksheet, Answer Key)
+        elseif (str_contains($lower, 'result') || str_contains($lower, 'cut off') || str_contains($lower, 'cutoff') || str_contains($lower, 'scorecard') || str_contains($lower, 'merit list') || str_contains($lower, 'rank list') || str_contains($lower, 'qualifying marks') || str_contains($lower, 'answer key')) {
+            $slug = 'exam-results';
+        }
+        // 7. Entrance Exams & Admissions (GATE, NEET, JEE, CUET, CTET, UPSC Mains, Counselling, Registration Timeline)
+        elseif (str_contains($lower, 'gate 20') || str_contains($lower, 'jee ') || str_contains($lower, 'neet ') || str_contains($lower, 'cuet ') || str_contains($lower, 'ctet ') || str_contains($lower, 'counselling') || str_contains($lower, 'seat allotment') || str_contains($lower, 'entrance') || str_contains($lower, 'registration timeline')) {
+            $slug = 'entrance-exams';
+        }
+        // 8. Exam Dates & Timetables
+        elseif (str_contains($lower, 'exam date') || str_contains($lower, 'date sheet') || str_contains($lower, 'time table') || str_contains($lower, 'timeline') || str_contains($lower, 'exam schedule')) {
+            $slug = 'exam-dates';
+        }
+        else {
+            $slug = $currentSlug ?: 'entrance-exams';
+        }
+
+        $category = self::getBySlug($slug);
+        if (!$category) {
+            $category = self::getBySlug('entrance-exams') ?: self::getBySlug('exam-results');
+        }
+
+        return $category;
+    }
 }
