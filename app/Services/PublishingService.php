@@ -267,6 +267,11 @@ class PublishingService {
             'quality_score' => (int)$article['quality_score']
         ]);
 
+        // 6. Real-Time Google Indexing API Notification
+        if (GoogleIndexingService::isConfigured()) {
+            GoogleIndexingService::pingArticle($articleId);
+        }
+
         return [
             'success' => true,
             'article_id' => $articleId,
