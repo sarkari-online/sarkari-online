@@ -3,6 +3,8 @@
 .env.backup
 .env.production
 .env.local
+storage/google-indexing-key.json
+storage/*.json
 
 # Operating System & IDE Artifacts
 .DS_Store

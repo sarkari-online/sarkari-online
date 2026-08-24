@@ -109,7 +109,7 @@ class GoogleIndexingService {
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        unset($ch);
 
         if ($httpCode !== 200) {
             Logger::error("Google OAuth2 Token Exchange Failed [HTTP {$httpCode}]: {$response}");
@@ -174,7 +174,7 @@ class GoogleIndexingService {
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $curlError = curl_error($ch);
-        curl_close($ch);
+        unset($ch);
 
         if ($curlError) {
             Logger::error("Google Indexing API cURL error: {$curlError}");
