@@ -142,11 +142,25 @@ if (!$isAdminSession):
         <link rel="preload" as="image" href="<?= e($lcpImagePreload) ?>" fetchpriority="high">
     <?php endif; ?>
 
-    <!-- Master CSS Design System (0ms Render-Blocking Asynchronous Delivery) -->
+    <!-- Critical CSS Reset: Prevent Giant Icon Flash & Layout Shifts (CLS = 0) -->
+    <style>
+    svg.icon{width:1em;height:1em;display:inline-block;vertical-align:middle;max-width:24px;max-height:24px}
+    svg.icon-xs{width:12px;height:12px}
+    svg.icon-sm{width:16px;height:16px}
+    svg.icon-md{width:20px;height:20px}
+    svg.icon-lg{width:24px;height:24px}
+    svg.icon-xl{width:32px;height:32px}
+    *,*::before,*::after{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f8fafc;color:#0f172a}
+    img{max-width:100%;height:auto;display:block}
+    .goog-te-banner-frame,iframe.skiptranslate,.VIpgJd-ZVi9od-aZ2wEe-wOHMyf,.VIpgJd-ZVi9od-ORHb-OEVmcb{display:none!important;visibility:hidden!important;height:0!important;width:0!important}
+    body{top:0!important}
+    </style>
+
+    <!-- Master Minified CSS Design System -->
     <?php $cssFile = file_exists(dirname(__DIR__) . '/assets/css/main.min.css') ? 'css/main.min.css' : 'css/main.css'; ?>
     <link rel="preload" href="<?= asset($cssFile) ?>" as="style">
-    <link rel="stylesheet" href="<?= asset($cssFile) ?>" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="<?= asset($cssFile) ?>"></noscript>
+    <link rel="stylesheet" href="<?= asset($cssFile) ?>">
 
     <!-- Schema.org Organization Structured Data -->
     <script type="application/ld+json">

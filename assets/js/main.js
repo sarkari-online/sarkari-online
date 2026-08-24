@@ -336,7 +336,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.addEventListener('load', cleanGoogleBanner);
-    setInterval(cleanGoogleBanner, 300);
+    if ('requestIdleCallback' in window) {
+        requestIdleCallback(function() { setTimeout(cleanGoogleBanner, 2000); });
+    }
 
     /* ==========================================================================
        Interactive Web Speech Synthesis Audio Article Player
