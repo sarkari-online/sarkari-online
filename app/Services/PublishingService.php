@@ -272,6 +272,11 @@ class PublishingService {
             GoogleIndexingService::pingArticle($articleId);
         }
 
+        // 7. Real-Time Twitter (X) Broadcast
+        if (TwitterService::isConfigured()) {
+            TwitterService::broadcastArticle($articleId);
+        }
+
         return [
             'success' => true,
             'article_id' => $articleId,
