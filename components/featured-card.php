@@ -22,7 +22,7 @@ if (!isset($featured) || !isset($secondary)) {
         <div class="card-media hero-media-large">
             <a href="<?= url('article/' . $featured['slug'] . '/') ?>" aria-label="<?= e($featured['title']) ?>">
                 <?php if (!empty($featured['featured_image'])): ?>
-                    <img src="<?= url($featured['featured_image']) ?>" alt="<?= e($featured['featured_image_alt'] ?? $featured['title']) ?>" class="card-thumb-img" loading="eager" width="800" height="450" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+                    <img src="<?= url($featured['featured_image']) ?>" alt="<?= e($featured['featured_image_alt'] ?? $featured['title']) ?>" class="card-thumb-img" loading="eager" fetchpriority="high" decoding="async" width="800" height="450" style="width: 100%; height: 100%; object-fit: cover; display: block;">
                 <?php else: ?>
                     <?= render_thumbnail_svg($featured['category_slug'] ?? $featured['category'] ?? 'exam-results', $featured['title'], 800, 450) ?>
                 <?php endif; ?>
@@ -84,7 +84,7 @@ if (!isset($featured) || !isset($secondary)) {
                 <div class="compact-row-thumb">
                     <a href="<?= url('article/' . $item['slug'] . '/') ?>" aria-label="<?= e($item['title']) ?>">
                         <?php if (!empty($item['featured_image'])): ?>
-                            <img src="<?= url($item['featured_image']) ?>" alt="<?= e($item['featured_image_alt'] ?? $item['title']) ?>" class="card-thumb-img" loading="lazy" width="360" height="202" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+                            <img src="<?= url($item['featured_image']) ?>" alt="<?= e($item['featured_image_alt'] ?? $item['title']) ?>" class="card-thumb-img" loading="lazy" decoding="async" width="360" height="202" style="width: 100%; height: 100%; object-fit: cover; display: block;">
                         <?php else: ?>
                             <?= render_thumbnail_svg($itemCatSlug, $item['title'], 360, 202) ?>
                         <?php endif; ?>

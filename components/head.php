@@ -35,24 +35,39 @@ $ogImageVal = !empty($ogImage) ? (str_starts_with($ogImage, 'http') ? $ogImage :
 $isAdminSession = \App\Helpers\Auth::check();
 if (!$isAdminSession): 
 ?>
-    <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-TBKXJRWX');</script>
-    <!-- End Google Tag Manager -->
-
-    <!-- Google Analytics 4 (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XW0PTK22ZW"></script>
+    <!-- High-Performance Asynchronous Google Tag Manager & GA4 -->
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-XW0PTK22ZW', {
-        'send_page_view': true,
-        'cookie_domain': 'auto'
-      });
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-XW0PTK22ZW', { 'send_page_view': true, 'cookie_domain': 'auto' });
+
+    function initAnalytics() {
+        if (window._analyticsLoaded) return;
+        window._analyticsLoaded = true;
+        
+        // GTM
+        (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+        })(window,document,'script','dataLayer','GTM-TBKXJRWX');
+
+        // GA4
+        var ga = document.createElement('script');
+        ga.async = true;
+        ga.src = 'https://www.googletagmanager.com/gtag/js?id=G-XW0PTK22ZW';
+        document.head.appendChild(ga);
+    }
+
+    if ('requestIdleCallback' in window) {
+        requestIdleCallback(function() { setTimeout(initAnalytics, 1500); });
+    } else {
+        window.addEventListener('load', function() { setTimeout(initAnalytics, 1500); });
+    }
+    ['scroll', 'touchstart', 'mousemove', 'click'].forEach(function(e) {
+        window.addEventListener(e, initAnalytics, { once: true, passive: true });
+    });
     </script>
 <?php endif; ?>
 
