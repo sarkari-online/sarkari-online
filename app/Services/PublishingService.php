@@ -11,6 +11,12 @@ use App\Database\Database;
 use App\Helpers\Env;
 use App\Helpers\Logger;
 use App\Helpers\SEOHelper;
+use App\Services\CategoryService;
+use App\Services\GoogleIndexingService;
+use App\Services\IndexNowService;
+use App\Services\ThumbnailService;
+use App\Services\TrendService;
+use App\Services\TwitterService;
 use Exception;
 use Throwable;
 
