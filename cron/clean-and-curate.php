@@ -77,7 +77,7 @@ foreach ($allArticles as $art) {
 
     if ($newCatId !== $currentCatId) {
         echo "🔄 [RE-CATEGORIZE] Article #{$id}: '{$title}' -> Old Cat: {$currentCatId} -> New Cat: {$newCatId} ({$autoCat['name']})\n";
-        Database::update('articles', ['category_id' => $newCatId, 'updated_at' => date('Y-m-d H:i:s')], 'id = :id', ['id' => $id]);
+        Database::update('articles', ['category_id' => $newCatId], 'id = :id', ['id' => $id]);
         $reCategorizedCount++;
     }
 

@@ -2,7 +2,8 @@
 /**
  * Sarkari.online - Dynamic XML Sitemap Engine
  * Standards-compliant XML sitemap adhering strictly to Google Search Central & W3C Sitemaps Protocol.
- * Clean, fast, accurate <lastmod>, zero changefreq/priority bloat, canonical-only, automatic purge of non-published items.
+ * Clean, fast, accurate <lastmod> derived strictly from real database content modification timestamps.
+ * Zero changefreq/priority bloat, canonical-only, automatic purge of non-published items.
  */
 require_once __DIR__ . '/config.php';
 
@@ -19,9 +20,15 @@ if (!headers_sent()) {
 $categories = CategoryService::getAll();
 $articles = ArticleService::getAllForSitemap();
 
-// Determine the most recent content update for the homepage <lastmod>
-$latestArticleTime = !empty($articles) ? ($articles[0]['updated_at'] ?? $articles[0]['published_at']) : null;
-$homeLastMod = $latestArticleTime ? date('Y-m-d', strtotime($latestArticleTime)) : date('Y-m-d');
+// Determine the most recent meaningful content update for the homepage <lastmod>
+$latestArticleTime = null;
+if (!empty($articles)) {
+    $firstArt = $articles[0];
+    $latestArticleTime = (!empty($firstArt['updated_at']) && $firstArt['updated_at'] > ($firstArt['published_at'] ?? ''))
+        ? $firstArt['updated_at']
+        : ($firstArt['published_at'] ?? $firstArt['created_at'] ?? null);
+}
+$homeLastMod = $latestArticleTime ? date('Y-m-d', strtotime($latestArticleTime)) : '2026-08-20';
 
 // Canonical static indexable pages with file modification timestamps
 $staticPages = [
@@ -50,7 +57,7 @@ echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
         if (isset($seenUrls[$fullUrl])) continue;
         $seenUrls[$fullUrl] = true;
 
-        $lastmod = $page['lastmod'] ?? (isset($page['file']) && file_exists($page['file']) ? date('Y-m-d', filemtime($page['file'])) : date('Y-m-d'));
+        $lastmod = $page['lastmod'] ?? (isset($page['file']) && file_exists($page['file']) ? date('Y-m-d', filemtime($page['file'])) : '2026-08-20');
     ?>
     <url>
         <loc><?= htmlspecialchars($fullUrl, ENT_XML1, 'UTF-8') ?></loc>
@@ -65,14 +72,19 @@ echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
         $seenUrls[$catUrl] = true;
 
         // Category lastmod from most recent published article in that category
-        $catLastMod = !empty($cat['updated_at']) ? date('Y-m-d', strtotime($cat['updated_at'])) : null;
+        $catLastMod = null;
         foreach ($articles as $a) {
             if (($a['category_slug'] ?? '') === $cat['slug']) {
-                $catLastMod = date('Y-m-d', strtotime($a['updated_at'] ?? $a['published_at']));
-                break;
+                $aTime = (!empty($a['updated_at']) && $a['updated_at'] > ($a['published_at'] ?? ''))
+                    ? $a['updated_at']
+                    : ($a['published_at'] ?? $a['created_at'] ?? null);
+                if ($aTime) {
+                    $catLastMod = date('Y-m-d', strtotime($aTime));
+                    break;
+                }
             }
         }
-        $catLastMod = $catLastMod ?: date('Y-m-d');
+        $catLastMod = $catLastMod ?: (!empty($cat['created_at']) ? date('Y-m-d', strtotime($cat['created_at'])) : '2026-08-20');
     ?>
     <url>
         <loc><?= htmlspecialchars($catUrl, ENT_XML1, 'UTF-8') ?></loc>
@@ -86,9 +98,12 @@ echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
         if (isset($seenUrls[$articleUrl])) continue;
         $seenUrls[$articleUrl] = true;
 
-        // Accurate lastmod: actual updated_at or published_at
-        $rawTimestamp = !empty($art['updated_at']) ? $art['updated_at'] : $art['published_at'];
-        $lastmod = !empty($rawTimestamp) ? date('Y-m-d', strtotime($rawTimestamp)) : date('Y-m-d');
+        // Accurate lastmod: strictly actual content modification or original publication timestamp
+        $rawTimestamp = (!empty($art['updated_at']) && $art['updated_at'] > ($art['published_at'] ?? ''))
+            ? $art['updated_at']
+            : ($art['published_at'] ?? $art['created_at'] ?? null);
+        
+        $lastmod = !empty($rawTimestamp) ? date('Y-m-d', strtotime($rawTimestamp)) : '2026-08-20';
 
         // News Sitemap eligibility: Published within last 48 hours and in news categories
         $pubTimestamp = !empty($art['published_at']) ? strtotime($art['published_at']) : 0;

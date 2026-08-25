@@ -100,12 +100,11 @@ class ThumbnailService {
         ]);
 
         if (!empty($result['success'])) {
-            // Update article record
+            // Update article image paths without modifying content revision timestamp
             Database::update('articles', [
                 'featured_image' => $result['relative_path'],
                 'featured_image_alt' => $result['alt_text'],
-                'og_image' => $result['relative_path'],
-                'updated_at' => date('Y-m-d H:i:s')
+                'og_image' => $result['relative_path']
             ], 'id = :id', ['id' => $articleId]);
 
             Logger::info("Generated thumbnail for Article #{$articleId}", ['path' => $result['relative_path']]);
