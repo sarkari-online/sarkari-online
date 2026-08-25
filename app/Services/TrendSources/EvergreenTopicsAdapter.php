@@ -117,31 +117,55 @@ class EvergreenTopicsAdapter implements TrendSourceInterface {
             ],
 
             // =========================================================================
-            // PRIORITY 3: COLLEGE UPDATES & ADMISSIONS (IITs, NITs, Central Universities, CSAS)
+            // PRIORITY 3: COLLEGE UPDATES & ADMISSIONS (JoSAA, DU CSAS, MCC, UGC Norms)
             // =========================================================================
             [
-                'keyword' => 'Delhi University CSAS 2026: UG Admission Process, Simulated Ranks & Seat Allocation Rules',
-                'source' => 'University of Delhi',
-                'url' => 'https://admission.uod.ac.in',
-                'category_hint' => 'college-updates',
-                'trend_score' => 96,
-                'snippet' => 'Common Seat Allocation System guidelines, preference filling strategy, and spot admission rounds.'
-            ],
-            [
-                'keyword' => 'JoSAA 2026 Counselling: Complete Step-by-Step Choice Filling & Seat Acceptance Guide',
+                'keyword' => 'JoSAA 2026 Seat Allotment: Opening vs Closing Ranks, Freeze, Float, Slide Rules & Seat Matrix',
                 'source' => 'Joint Seat Allocation Authority (JoSAA)',
                 'url' => 'https://josaa.nic.in',
                 'category_hint' => 'college-updates',
-                'trend_score' => 97,
-                'snippet' => 'Centralised engineering seat allocation for 23 IITs, 31 NITs, 26 IIITs, and other government-funded institutes.'
+                'trend_score' => 98,
+                'snippet' => 'Centralised engineering seat allocation for 23 IITs, 31 NITs, 26 IIITs, opening-closing rank analysis, and seat acceptance guidelines.'
             ],
             [
-                'keyword' => 'MCC NEET UG Counselling 2026: All India Quota 15% Seat Allotment & Security Deposit Rules',
+                'keyword' => 'DU CSAS 2026: Delhi University UG Seat Allocation Phases, Spot Round & Document Verification Checklist',
+                'source' => 'University of Delhi',
+                'url' => 'https://admission.uod.ac.in',
+                'category_hint' => 'college-updates',
+                'trend_score' => 97,
+                'snippet' => 'Common Seat Allocation System guidelines, preference simulated ranks, acceptance deadlines, and physical document verification.'
+            ],
+            [
+                'keyword' => 'UGC College Fee Refund Policy 2026: 100% Refund Guidelines, Seat Cancellation Deadline and AICTE Norms',
+                'source' => 'University Grants Commission (UGC)',
+                'url' => 'https://ugc.ac.in',
+                'category_hint' => 'college-updates',
+                'trend_score' => 96,
+                'snippet' => 'Statutory fee refund timelines, zero deduction slabs, certificate withholding penalties, and student grievance portal.'
+            ],
+            [
+                'keyword' => 'MCC NEET UG 2026 Counselling: Round 1 & Round 2 All India Quota Seat Matrix and Security Deposit Refund Rules',
                 'source' => 'Medical Counselling Committee (MCC)',
                 'url' => 'https://mcc.nic.in',
                 'category_hint' => 'college-updates',
                 'trend_score' => 97,
-                'snippet' => 'AIQ, deemed, central universities, and AFMC MBBS/BDS online counselling and reporting rules.'
+                'snippet' => 'AIQ 15% government medical seats, deemed universities, free exit rules, and security deposit forfeiture norms.'
+            ],
+            [
+                'keyword' => 'CSAB Special Round 2026: Vacant Seats in NITs, IIITs, Eligibility and Security Deposit Refund Process',
+                'source' => 'Central Seat Allocation Board (CSAB)',
+                'url' => 'https://csab.nic.in',
+                'category_hint' => 'college-updates',
+                'trend_score' => 96,
+                'snippet' => 'Special round vacant seat matrix, fresh registration guidelines, and seat acceptance fee refund structure.'
+            ],
+            [
+                'keyword' => 'College Admission Gap Certificate 2026: Format, Stamp Paper Rules, Affidavit and Notary Guidelines',
+                'source' => 'Ministry of Education',
+                'url' => 'https://education.gov.in',
+                'category_hint' => 'college-updates',
+                'trend_score' => 95,
+                'snippet' => 'Standard gap year affidavit format, non-judicial stamp paper value, notary attestation, and university reporting rules.'
             ],
 
             // =========================================================================

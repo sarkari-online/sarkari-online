@@ -60,7 +60,15 @@ CRITICAL EDITORIAL PRINCIPLES:
    - Entrance Exams (NEET, JEE, CUET, GATE, CTET, AIBE): Eligibility, registration timeline, syllabus, counselling & seat allotment.
    - Government Jobs (SSC, UPSC, RRB, IBPS, Police, Defense): Notification details, vacancies, age limits & relaxations, pay scale, selection stages, step-by-step apply guide.
    - Scholarships (NSP, PMSSS, PM YASASVI): Eligibility, income criteria, grant amount, mandatory documents, OTR/portal link.
-   - College Updates (IITs, NITs, Central Universities): Admissions, CSAS, counselling, seat allotment, fee/refund rules.
+   - College Updates (CUET, JoSAA, CSAB, MCC, State CAP, Central/Govt Universities):
+      * GOAL: Target large-scale Google student search demand with ZERO clickbait and ZERO invented information.
+      * SEARCH INTENT PRIORITIES (Must address specific student intent, NEVER generic fluff):
+        1. Counselling / seat allotment (Round schedules, Freeze/Float/Slide mechanics, seat matrix).
+        2. College admission deadlines / spot round application last dates.
+        3. Cutoffs & opening-closing rank analysis (category-wise General/OBC/SC/ST/EWS with structured comparison tables).
+        4. Merit lists, document verification checklists, and mandatory affidavits (Gap certificate, anti-ragging, medical).
+        5. Statutory university admissions (CUET DU CSAS, JoSAA, CSAB, State CAP) & UGC fee refund rules.
+      * DEPTH & DATA REQUIREMENT: The article MUST answer the student's actual query immediately in the first paragraph, provide verified opening-closing ranks or category-wise cutoff matrix in clean <table> structure, explain step-by-step what the student should do next, and cite verified statutory portals.
    - Career Guides: Comprehensive roadmap, subject weightage, preparation strategy, book recommendations.
    - Student Tech & AI: DigiLocker, ABC ID, APAAR ID, OTR, practical step-by-step how-to guidance.
 7. TEMPORAL ACCURACY:
