@@ -6,6 +6,7 @@
 require_once __DIR__ . '/config.php';
 
 use App\Services\ArticleService;
+use App\Services\SchemaService;
 use App\Helpers\Auth;
 use App\Helpers\SEOHelper;
 
@@ -249,10 +250,11 @@ include __DIR__ . '/components/header.php';
     </div>
 </main>
 
-<!-- Article JSON-LD Structured Data -->
-<script type="application/ld+json">
-<?= SEOHelper::articleSchema($article, $canonicalUrl) ?>
-</script>
+<!-- Rich Structured Data JSON-LD — NewsArticle, FAQPage, Event, HowTo -->
+<?php
+$schemas = SchemaService::generate($article, $article['category_slug'] ?? '');
+echo SchemaService::injectIntoHead($schemas);
+?>
 
 <!-- BreadcrumbList JSON-LD Structured Data -->
 <script type="application/ld+json">
