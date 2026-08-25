@@ -14,6 +14,12 @@ Auth::requireAuth();
 $adminPageTitle = 'Live Traffic & Analytics';
 $adminPageKey = 'analytics';
 
+if (isset($_GET['action']) && $_GET['action'] === 'clear_data') {
+    \App\Database\Database::query("TRUNCATE TABLE page_views");
+    header('Location: ' . url('admin/analytics/?cleared=1'));
+    exit;
+}
+
 $range = $_GET['range'] ?? 'today';
 $summary = AnalyticsService::getDashboardSummary();
 $dailyTrend = AnalyticsService::getDailyTrend(14);
@@ -38,10 +44,15 @@ include dirname(__DIR__) . '/components/header.php';
         <p style="margin: 0.25rem 0 0; color: #64748b; font-size: 0.875rem;">100% In-house telemetry tracking genuine student visitors across India.</p>
     </div>
 
-    <!-- Time Range Switcher -->
-    <div style="display: flex; background: #e2e8f0; border-radius: 8px; padding: 3px; gap: 2px;">
-        <a href="?range=today" style="padding: 6px 14px; border-radius: 6px; font-size: 0.8125rem; font-weight: 700; text-decoration: none; <?= $range === 'today' ? 'background: #ffffff; color: #0f172a; box-shadow: 0 1px 2px rgba(0,0,0,0.08);' : 'color: #64748b;' ?>">Today</a>
-        <a href="?range=7days" style="padding: 6px 14px; border-radius: 6px; font-size: 0.8125rem; font-weight: 700; text-decoration: none; <?= $range === '7days' ? 'background: #ffffff; color: #0f172a; box-shadow: 0 1px 2px rgba(0,0,0,0.08);' : 'color: #64748b;' ?>">Past 7 Days</a>
+    <!-- Time Range & Reset Action -->
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <a href="?action=clear_data" onclick="return confirm('Clear all test traffic data and start fresh from 0?');" style="padding: 6px 12px; border-radius: 6px; font-size: 0.8125rem; font-weight: 600; text-decoration: none; background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5;">
+            Reset Test Data
+        </a>
+        <div style="display: flex; background: #e2e8f0; border-radius: 8px; padding: 3px; gap: 2px;">
+            <a href="?range=today" style="padding: 6px 14px; border-radius: 6px; font-size: 0.8125rem; font-weight: 700; text-decoration: none; <?= $range === 'today' ? 'background: #ffffff; color: #0f172a; box-shadow: 0 1px 2px rgba(0,0,0,0.08);' : 'color: #64748b;' ?>">Today</a>
+            <a href="?range=7days" style="padding: 6px 14px; border-radius: 6px; font-size: 0.8125rem; font-weight: 700; text-decoration: none; <?= $range === '7days' ? 'background: #ffffff; color: #0f172a; box-shadow: 0 1px 2px rgba(0,0,0,0.08);' : 'color: #64748b;' ?>">Past 7 Days</a>
+        </div>
     </div>
 </div>
 
