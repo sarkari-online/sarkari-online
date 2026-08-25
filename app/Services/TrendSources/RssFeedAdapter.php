@@ -67,6 +67,11 @@ class RssFeedAdapter implements TrendSourceInterface {
                         continue;
                     }
 
+                    // Strict Education & Recruitment Whitelist (Discard generic ministry PR, awards, speeches)
+                    if (!\App\Services\TrendService::isEducationRelevant($title, $snippet)) {
+                        continue;
+                    }
+
                     $resolvedCat = \App\Services\CategoryService::autoResolveCategory($title, $snippet);
                     $categoryHint = $resolvedCat['slug'] ?? 'career-guides';
 

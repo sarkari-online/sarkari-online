@@ -91,11 +91,11 @@ foreach ($allArticles as $art) {
 }
 
 // Also purge Hindi / irrelevant trends from trends table
-$allTrends = Database::fetchAll("SELECT id, keyword, snippet FROM trends");
+$allTrends = Database::fetchAll("SELECT id, keyword, raw_payload FROM trends");
 $purgedTrends = 0;
 foreach ($allTrends as $tr) {
-    $trHindi = preg_match('/[\x{0900}-\x{097F}]/u', $tr['keyword']) || preg_match('/[\x{0900}-\x{097F}]/u', $tr['snippet'] ?? '');
-    $trRel = TrendService::isEducationRelevant($tr['keyword'], $tr['snippet'] ?? '');
+    $trHindi = preg_match('/[\x{0900}-\x{097F}]/u', $tr['keyword']) || preg_match('/[\x{0900}-\x{097F}]/u', $tr['raw_payload'] ?? '');
+    $trRel = TrendService::isEducationRelevant($tr['keyword'], $tr['raw_payload'] ?? '');
     if ($trHindi || !$trRel) {
         Database::delete('trends', 'id = :id', ['id' => $tr['id']]);
         $purgedTrends++;
