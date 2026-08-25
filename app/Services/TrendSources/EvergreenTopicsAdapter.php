@@ -1,8 +1,8 @@
 <?php
 /**
  * EduPulse - High-Search Evergreen & Authority Topics Catalog
- * Provides verified, fact-grounded syllabus, cutoff, eligibility, and scholarship topics
- * covering all major national exams and recruitment cycles.
+ * Provides verified, fact-grounded high-search topics ordered strictly by student search intent:
+ * 1. Entrance Exams -> 2. Scholarships -> 3. College Updates -> 4. Career Guides -> 5. Student Technology
  */
 
 namespace App\Services\TrendSources;
@@ -18,162 +18,94 @@ class EvergreenTopicsAdapter implements TrendSourceInterface {
     }
 
     public function getSourceName(): string {
-        return 'High-Search Evergreen Guides';
+        return 'High-Search Intent Student Guides';
     }
 
     /**
      * Comprehensive catalog of top-searched Indian education, exam, and career topics
+     * Ordered strictly by student intent priority:
+     * 1. Entrance Exams -> 2. Scholarships -> 3. College Updates -> 4. Career Guides -> 5. Student Technology
      */
     private function getCatalog(): array {
         return [
-            // --- SSC Exams ---
+            // =========================================================================
+            // PRIORITY 1: ENTRANCE EXAMS (NEET UG/PG, JEE Main/Adv, CUET, GATE, CTET, AIBE)
+            // =========================================================================
             [
-                'keyword' => 'SSC CHSL 2026 Tier 1 Exam Pattern, Syllabus Breakdown & Subject-Wise Marks',
-                'source' => 'Staff Selection Commission (SSC)',
-                'url' => 'https://ssc.gov.in',
-                'category_hint' => 'government-jobs',
-                'trend_score' => 95,
-                'snippet' => 'Official examination syllabus, 100-question tier-1 structure, and topic weightage for SSC CHSL 2026.'
-            ],
-            [
-                'keyword' => 'SSC MTS 2026 Havaldar Notification: Eligibility, Age Limits & Selection Process',
-                'source' => 'Staff Selection Commission (SSC)',
-                'url' => 'https://ssc.gov.in',
-                'category_hint' => 'government-jobs',
-                'trend_score' => 94,
-                'snippet' => 'Multi-Tasking Staff and Havaldar recruitment guidelines, computer-based exam format, and PET/PST criteria.'
-            ],
-            [
-                'keyword' => 'SSC GD Constable 2026: State-Wise Vacancies, Physical Standards & Exam Blueprint',
-                'source' => 'Staff Selection Commission (SSC)',
-                'url' => 'https://ssc.gov.in',
-                'category_hint' => 'government-jobs',
-                'trend_score' => 96,
-                'snippet' => 'CAPF Constable recruitment eligibility, height-chest physical standards, and CBT syllabus for SSC GD 2026.'
-            ],
-
-            // --- Railway Exams ---
-            [
-                'keyword' => 'RRB Assistant Loco Pilot (ALP) 2026: CBT 1 & CBT 2 Exam Pattern and Psycho Test Guide',
-                'source' => 'Railway Recruitment Control Board (RRB)',
-                'url' => 'https://rrbcdg.gov.in',
-                'category_hint' => 'government-jobs',
-                'trend_score' => 95,
-                'snippet' => 'Railway ALP selection stages, technical trade syllabus for CBT 2 Part B, and qualifying marks breakdown.'
-            ],
-            [
-                'keyword' => 'RRB Group D 2026 Level 1 Posts: Physical Efficiency Test (PET) & Selection Rules',
-                'source' => 'Railway Recruitment Control Board (RRB)',
-                'url' => 'https://rrbcdg.gov.in',
-                'category_hint' => 'government-jobs',
-                'trend_score' => 96,
-                'snippet' => 'RRC Level-1 recruitment guidelines, 100-mark CBT syllabus, and gender-specific PET run-weight standards.'
-            ],
-            [
-                'keyword' => 'RRB Junior Engineer (JE) 2026: Technical Syllabus & Stage-Wise Selection Process',
-                'source' => 'Railway Recruitment Control Board (RRB)',
-                'url' => 'https://rrbcdg.gov.in',
-                'category_hint' => 'government-jobs',
-                'trend_score' => 94,
-                'snippet' => 'Railway engineering recruitment guidelines for Civil, Electrical, and Mechanical diplomas and degrees.'
-            ],
-
-            // --- Banking Exams ---
-            [
-                'keyword' => 'SBI PO 2026 Prelims & Mains Syllabus, Sectional Cutoff Rules and Group Exercise Pattern',
-                'source' => 'State Bank of India (SBI)',
-                'url' => 'https://sbi.co.in/web/careers',
-                'category_hint' => 'government-jobs',
-                'trend_score' => 96,
-                'snippet' => 'State Bank of India probationary officer selection blueprint, descriptive test format, and interview scoring.'
-            ],
-            [
-                'keyword' => 'IBPS Clerk 2026 State-Wise Vacancies, Prelims & Mains Pattern, and Local Language Test',
-                'source' => 'Institute of Banking Personnel Selection (IBPS)',
-                'url' => 'https://ibps.in',
-                'category_hint' => 'government-jobs',
-                'trend_score' => 95,
-                'snippet' => 'Common recruitment process for customer service associates across participating public sector banks.'
-            ],
-            [
-                'keyword' => 'RBI Grade B 2026 Officer Notification: Phase 1 & Phase 2 Syllabus and Eligibility Criteria',
-                'source' => 'Reserve Bank of India (RBI)',
-                'url' => 'https://opportunities.rbi.org.in',
-                'category_hint' => 'government-jobs',
-                'trend_score' => 95,
-                'snippet' => 'Central bank officer recruitment pattern, economic and social issues (ESI) syllabus, and finance management.'
-            ],
-
-            // --- Defense & Police Exams ---
-            [
-                'keyword' => 'UPSC NDA 2026: Mathematics & GAT Paper Pattern, Negative Marking, and SSB Interview Stages',
-                'source' => 'Union Public Service Commission (UPSC)',
-                'url' => 'https://upsc.gov.in',
+                'keyword' => 'NEET UG 2026 Registration, Eligibility Criteria, Marking Scheme and Exam Roadmap',
+                'source' => 'National Testing Agency (NTA)',
+                'url' => 'https://exams.nta.ac.in/NEET/',
                 'category_hint' => 'entrance-exams',
-                'trend_score' => 96,
-                'snippet' => 'National Defence Academy entrance guidelines, 900-mark written test format, and 5-day SSB interview protocol.'
+                'trend_score' => 98,
+                'snippet' => 'National Eligibility cum Entrance Test for undergraduate medical admissions across India.'
             ],
             [
-                'keyword' => 'UPSC CDS 2026: IMA, INA, AFA & OTA Syllabus, Eligibility and Subject Weightage',
-                'source' => 'Union Public Service Commission (UPSC)',
-                'url' => 'https://upsc.gov.in',
-                'category_hint' => 'entrance-exams',
-                'trend_score' => 95,
-                'snippet' => 'Combined Defence Services examination guidelines, English and General Knowledge curriculum, and math criteria.'
-            ],
-            [
-                'keyword' => 'AFCAT 2026 Air Force Common Admission Test: Flying & Ground Duty Branch Selection Process',
-                'source' => 'Indian Air Force (IAF)',
-                'url' => 'https://afcat.cdac.in',
-                'category_hint' => 'entrance-exams',
-                'trend_score' => 94,
-                'snippet' => 'Air Force officer entrance guidelines, online exam syllabus, and AFSB testing schedule.'
-            ],
-
-            // --- National Entrance Exams ---
-            [
-                'keyword' => 'JEE Main 2027: Physics, Chemistry & Mathematics Chapter-Wise Weightage & NTA Syllabus',
+                'keyword' => 'JEE Main 2026 Session 1 & 2: Eligibility, Exam Pattern and Official Roadmap',
                 'source' => 'National Testing Agency (NTA)',
                 'url' => 'https://jeemain.nta.ac.in',
-                'category_hint' => 'career-guides',
-                'trend_score' => 97,
-                'snippet' => 'Engineering entrance blueprint, high-yield NCERT topics, and numerical question distribution for JEE Main.'
+                'category_hint' => 'entrance-exams',
+                'trend_score' => 98,
+                'snippet' => 'Joint Entrance Examination for undergraduate engineering admissions at NITs, IIITs, and CFTIs.'
             ],
             [
-                'keyword' => 'CUET UG 2026: Section 1 Language, Domain Subjects & General Test Structure Explained',
+                'keyword' => 'CUET UG 2026: Section 1 Language, Domain Subjects & Central University Admission Process',
                 'source' => 'National Testing Agency (NTA)',
                 'url' => 'https://exams.nta.ac.in/CUET-UG/',
                 'category_hint' => 'entrance-exams',
                 'trend_score' => 97,
-                'snippet' => 'Common University Entrance Test guidelines, domain subject mapping, and central university admission criteria.'
+                'snippet' => 'Common University Entrance Test guidelines, domain subject selection, and central university admissions.'
             ],
             [
                 'keyword' => 'GATE 2027: Engineering Discipline-Wise Syllabus, General Aptitude and Virtual Calculator Rules',
                 'source' => 'Graduate Aptitude Test in Engineering (GATE)',
                 'url' => 'https://gate2026.iitkgp.ac.in',
                 'category_hint' => 'entrance-exams',
-                'trend_score' => 95,
+                'trend_score' => 96,
                 'snippet' => 'Postgraduate engineering entrance guidelines, PSU recruitment cutoff benchmarks, and marking scheme.'
             ],
-
-            // --- Teaching & Eligibility ---
             [
-                'keyword' => 'UGC NET 2026: Paper 1 Teaching Aptitude Syllabus, JRF Cutoff Percentiles & Validity',
-                'source' => 'National Testing Agency (NTA)',
-                'url' => 'https://ugcnet.nta.ac.in',
-                'category_hint' => 'exam-results',
+                'keyword' => 'AIBE 2026: Complete Guide to Bar Council of India Enrollment and Examination Process',
+                'source' => 'Bar Council of India (BCI)',
+                'url' => 'https://allindiabarexamination.com',
+                'category_hint' => 'entrance-exams',
                 'trend_score' => 95,
-                'snippet' => 'National Eligibility Test framework for Assistant Professorship and Junior Research Fellowship across 83 subjects.'
+                'snippet' => 'All India Bar Examination guidelines, certificate of practice rules, and qualifying percentiles.'
+            ],
+            [
+                'keyword' => 'CTET 2026: Paper 1 & Paper 2 Eligibility, Qualifying Marks and Central School Criteria',
+                'source' => 'Central Board of Secondary Education (CBSE)',
+                'url' => 'https://ctet.nic.in',
+                'category_hint' => 'entrance-exams',
+                'trend_score' => 96,
+                'snippet' => 'Central Teacher Eligibility Test certification guidelines, validity period, and minimum pass criteria.'
             ],
 
-            // --- Scholarships & Welfare ---
+            // =========================================================================
+            // PRIORITY 2: SCHOLARSHIPS & FINANCIAL AID (NSP, PMSSS, PM YASASVI, Post-Matric)
+            // =========================================================================
             [
-                'keyword' => 'PMSS Prime Minister Special Scholarship Scheme 2026: Eligibility & Financial Benefits',
-                'source' => 'AICTE / Prime Minister Scholarship Board',
+                'keyword' => 'National Scholarship Portal (NSP 2026-27): Fresh Registration, OTR Guide and Biometric Rules',
+                'source' => 'Ministry of Electronics and Information Technology (MeitY)',
+                'url' => 'https://scholarships.gov.in',
+                'category_hint' => 'scholarships',
+                'trend_score' => 98,
+                'snippet' => 'Central sector scholarship schemes, one-time registration protocol, and direct benefit transfer guidelines.'
+            ],
+            [
+                'keyword' => 'PM Yasasvi Scholarship Scheme 2026: Eligibility, Income Slabs and Top-Class Education Grants',
+                'source' => 'Ministry of Social Justice and Empowerment',
+                'url' => 'https://yet.nta.ac.in',
+                'category_hint' => 'scholarships',
+                'trend_score' => 96,
+                'snippet' => 'Scholarship scheme for OBC, EBC, and DNT students studying in designated top-class schools and colleges.'
+            ],
+            [
+                'keyword' => 'PMSSS 2026 Prime Minister Special Scholarship Scheme: AICTE Eligibility & Direct College Allotment',
+                'source' => 'All India Council for Technical Education (AICTE)',
                 'url' => 'https://www.aicte-india.org',
                 'category_hint' => 'scholarships',
-                'trend_score' => 94,
-                'snippet' => 'Technical and professional degree financial grants for wards of armed forces and paramilitary personnel.'
+                'trend_score' => 95,
+                'snippet' => 'Engineering, medical, and general degree scholarship grants for Jammu, Kashmir, and Ladakh youth.'
             ],
             [
                 'keyword' => 'Post Matric Scholarship for SC/ST/OBC Students 2026: Income Limits & State Portal Links',
@@ -184,14 +116,88 @@ class EvergreenTopicsAdapter implements TrendSourceInterface {
                 'snippet' => 'Government fee reimbursement guidelines, maintenance allowance slabs, and direct benefit transfer rules.'
             ],
 
-            // --- School Boards ---
+            // =========================================================================
+            // PRIORITY 3: COLLEGE UPDATES & ADMISSIONS (IITs, NITs, Central Universities, CSAS)
+            // =========================================================================
             [
-                'keyword' => 'CBSE Class 10 & 12 Sample Question Papers 2027: Marking Schemes Released at cbseacademic.nic.in',
-                'source' => 'Central Board of Secondary Education (CBSE)',
-                'url' => 'https://cbseacademic.nic.in',
-                'category_hint' => 'school-boards',
+                'keyword' => 'Delhi University CSAS 2026: UG Admission Process, Simulated Ranks & Seat Allocation Rules',
+                'source' => 'University of Delhi',
+                'url' => 'https://admission.uod.ac.in',
+                'category_hint' => 'college-updates',
                 'trend_score' => 96,
-                'snippet' => 'Official model question papers, case-study questions, and step-wise marking schemes for board exam preparation.'
+                'snippet' => 'Common Seat Allocation System guidelines, preference filling strategy, and spot admission rounds.'
+            ],
+            [
+                'keyword' => 'JoSAA 2026 Counselling: Complete Step-by-Step Choice Filling & Seat Acceptance Guide',
+                'source' => 'Joint Seat Allocation Authority (JoSAA)',
+                'url' => 'https://josaa.nic.in',
+                'category_hint' => 'college-updates',
+                'trend_score' => 97,
+                'snippet' => 'Centralised engineering seat allocation for 23 IITs, 31 NITs, 26 IIITs, and other government-funded institutes.'
+            ],
+            [
+                'keyword' => 'MCC NEET UG Counselling 2026: All India Quota 15% Seat Allotment & Security Deposit Rules',
+                'source' => 'Medical Counselling Committee (MCC)',
+                'url' => 'https://mcc.nic.in',
+                'category_hint' => 'college-updates',
+                'trend_score' => 97,
+                'snippet' => 'AIQ, deemed, central universities, and AFMC MBBS/BDS online counselling and reporting rules.'
+            ],
+
+            // =========================================================================
+            // PRIORITY 4: CAREER GUIDES & PREPARATION BLUEPRINTS (Syllabus & Weightage)
+            // =========================================================================
+            [
+                'keyword' => 'JEE Main 2027: Physics, Chemistry & Mathematics Chapter-Wise Weightage Analysis',
+                'source' => 'National Testing Agency (NTA)',
+                'url' => 'https://jeemain.nta.ac.in',
+                'category_hint' => 'career-guides',
+                'trend_score' => 97,
+                'snippet' => 'Engineering entrance blueprint, high-yield NCERT topics, and numerical question distribution for JEE Main.'
+            ],
+            [
+                'keyword' => 'NEET UG 2026 Biology: Chapter-Wise Weightage, Botany vs Zoology & High-Yield NCERT Units',
+                'source' => 'National Testing Agency (NTA)',
+                'url' => 'https://exams.nta.ac.in/NEET/',
+                'category_hint' => 'career-guides',
+                'trend_score' => 98,
+                'snippet' => 'Historical 360-mark biology analysis, genetics & ecology question breakdown, and NCERT revision plan.'
+            ],
+            [
+                'keyword' => 'SSC CGL Tier 1 Syllabus Breakdown, Subject-Wise Marks & Exam Strategy Guide',
+                'source' => 'Staff Selection Commission (SSC)',
+                'url' => 'https://ssc.gov.in',
+                'category_hint' => 'career-guides',
+                'trend_score' => 96,
+                'snippet' => 'Combined Graduate Level examination syllabus, section-wise marks distribution, and time management.'
+            ],
+
+            // =========================================================================
+            // PRIORITY 5: STUDENT TECH & DIGITAL SERVICES (DigiLocker, ABC, APAAR, OTR)
+            // =========================================================================
+            [
+                'keyword' => 'DigiLocker ABC ID Creation: Step-by-Step Guide for University & College Students',
+                'source' => 'Ministry of Education / Digital India',
+                'url' => 'https://www.abc.gov.in',
+                'category_hint' => 'student-technology',
+                'trend_score' => 96,
+                'snippet' => 'Academic Bank of Credits digital identity creation, credit transfer rules, and DigiLocker integration.'
+            ],
+            [
+                'keyword' => 'APAAR ID Card: Mandatory One Nation One Student ID Registration & DigiLocker Linking',
+                'source' => 'Ministry of Education',
+                'url' => 'https://apaar.education.gov.in',
+                'category_hint' => 'student-technology',
+                'trend_score' => 96,
+                'snippet' => 'Automated Permanent Academic Account Registry creation steps, school consent forms, and student benefits.'
+            ],
+            [
+                'keyword' => 'SSC One-Time Registration (OTR): Mandatory Live Photo, Signature & Document Upload Guide',
+                'source' => 'Staff Selection Commission (SSC)',
+                'url' => 'https://ssc.gov.in',
+                'category_hint' => 'student-technology',
+                'trend_score' => 96,
+                'snippet' => 'Staff Selection Commission new portal one-time registration protocol, application app, and live capture rules.'
             ]
         ];
     }

@@ -36,6 +36,47 @@ class PublishingService {
     }
 
     /**
+     * Daily Slot Breakdown:
+     * - Up to 3: Genuine official / student-impacting updates from verified sources.
+     * - Up to 2 additional slots: High student search-intent content in priority order:
+     *   Entrance Exams -> Scholarships -> College Updates -> Career Guides -> Student Technology.
+     * - Maximum 5 total / day (never a mandatory target).
+     */
+    public function getPublishedSlotCounts(): array {
+        $sql = "SELECT a.category_id, c.slug AS category_slug, a.source_name
+                FROM articles a
+                JOIN categories c ON a.category_id = c.id
+                WHERE DATE(a.published_at) = CURRENT_DATE
+                  AND a.ai_generated = 1
+                  AND a.status = 'published'";
+        $todayArticles = Database::fetchAll($sql);
+
+        $officialCount = 0;
+        $searchIntentCount = 0;
+        $searchIntentCategories = ['entrance-exams', 'scholarships', 'college-updates', 'career-guides', 'student-technology'];
+
+        foreach ($todayArticles as $row) {
+            $catSlug = $row['category_slug'] ?? '';
+            if (in_array($catSlug, ['exam-results', 'admit-cards', 'exam-dates', 'answer-keys', 'government-jobs'], true)) {
+                $officialCount++;
+            } elseif (in_array($catSlug, $searchIntentCategories, true)) {
+                $searchIntentCount++;
+            } else {
+                $officialCount++;
+            }
+        }
+
+        return [
+            'total' => count($todayArticles),
+            'official' => $officialCount,
+            'search_intent' => $searchIntentCount,
+            'max_total' => $this->dailyLimit, // 5
+            'max_official' => 3,
+            'max_search_intent' => 2
+        ];
+    }
+
+    /**
      * Check if daily automatic publishing quota is reached
      */
     public function isDailyLimitReached(): bool {
@@ -68,6 +109,21 @@ class PublishingService {
         }
 
         $reasons = [];
+
+        // Check 0: Daily Slot Quota (Max 5 total: up to 3 official + up to 2 search-intent)
+        $slotCounts = $this->getPublishedSlotCounts();
+        if ($slotCounts['total'] >= $slotCounts['max_total']) {
+            $reasons[] = "Maximum daily publishing quota ({$slotCounts['max_total']}/day) reached.";
+        }
+
+        $searchIntentCategories = ['entrance-exams', 'scholarships', 'college-updates', 'career-guides', 'student-technology'];
+        $isSearchIntent = in_array($article['category_slug'] ?? '', $searchIntentCategories, true);
+
+        if ($isSearchIntent && $slotCounts['search_intent'] >= 2 && $slotCounts['official'] >= 3) {
+            $reasons[] = "Daily search-intent slot quota (2/2) reached.";
+        } elseif (!$isSearchIntent && $slotCounts['official'] >= 3 && $slotCounts['search_intent'] >= 2) {
+            $reasons[] = "Daily official update slot quota (3/3) reached.";
+        }
 
         // Check 1: Strict Quality Score & Factual Routing Thresholds
         $score = (int)($article['quality_score'] ?? 0);
