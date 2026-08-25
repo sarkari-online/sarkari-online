@@ -199,7 +199,11 @@ class ArticleService {
      * Get all published articles for Sitemap generation
      */
     public static function getAllForSitemap(): array {
-        $sql = "SELECT slug, published_at, updated_at FROM articles WHERE status = 'published' ORDER BY published_at DESC";
+        $sql = "SELECT a.id, a.title, a.slug, a.published_at, a.updated_at, a.featured_image, a.category_id, c.slug AS category_slug 
+                FROM articles a 
+                JOIN categories c ON a.category_id = c.id 
+                WHERE a.status = 'published' 
+                ORDER BY a.published_at DESC";
         return Database::fetchAll($sql);
     }
 
