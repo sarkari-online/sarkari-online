@@ -60,8 +60,10 @@ echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
         $thumbUrl = !empty($art['featured_image']) ? url($art['featured_image']) : '';
         
         // Content body formatted for syndication with canonical attribution
-        $cleanContent = $art['content_html'] ?? $art['content'] ?? $excerpt;
-        $cleanContent = strip_tags($cleanContent, '<p><br><h2><h3><ul><ol><li><strong><em><table><thead><tbody><tr><th><td><blockquote><a>');
+        $rawBody = $art['content_html'] ?? $art['content'] ?? $excerpt;
+        $rawBody = preg_replace('/<head\b[^>]*>.*?<\/head>/is', '', $rawBody);
+        $rawBody = preg_replace('/<style\b[^>]*>.*?<\/style>/is', '', $rawBody);
+        $cleanContent = strip_tags($rawBody, '<p><br><h2><h3><ul><ol><li><strong><em><table><thead><tbody><tr><th><td><blockquote><a>');
         
         // Dynamic Category Hashtags for Twitter / Social Syndication
         $catSlug = $art['category_slug'] ?? '';
