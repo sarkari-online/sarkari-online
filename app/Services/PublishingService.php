@@ -434,7 +434,7 @@ class PublishingService {
                         'flagged_issues_count' => 0,
                         'reason' => $reason
                     ], JSON_UNESCAPED_UNICODE),
-                    'checker' => 'ai_source_verifier',
+                    'checker' => 'ai',
                     'checked_at' => date('Y-m-d H:i:s'),
                     'created_at' => date('Y-m-d H:i:s')
                 ]);
