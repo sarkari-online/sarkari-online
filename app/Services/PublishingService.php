@@ -16,7 +16,6 @@ use App\Services\GoogleIndexingService;
 use App\Services\IndexNowService;
 use App\Services\ThumbnailService;
 use App\Services\TrendService;
-use App\Services\TwitterService;
 use Exception;
 use Throwable;
 
@@ -353,11 +352,6 @@ class PublishingService {
         // 7. Real-Time IndexNow Notification (Microsoft Bing, Yahoo, Yandex, Naver)
         if (IndexNowService::isConfigured()) {
             IndexNowService::pingArticle($articleId);
-        }
-
-        // 8. Real-Time Twitter (X) Broadcast
-        if (TwitterService::isConfigured()) {
-            TwitterService::broadcastArticle($articleId);
         }
 
         return [
