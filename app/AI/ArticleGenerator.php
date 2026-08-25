@@ -43,8 +43,9 @@ STRICT EDITORIAL & DEPTH RULES:
 3. WEIGHTAGE & SYLLABUS FACTUAL HONESTY: Examination bodies (NTA, NMC, UPSC, SSC, CBSE) do NOT fix mandatory per-chapter question quotas. NEVER use words like "statutory distribution" for chapter weightage. Always label tables as "Trend-Based Historical Distribution (Based on Past Exam Papers)" and include a clear note that official bodies prescribe the overall syllabus without pre-declared per-chapter quotas.
 4. TEMPORAL ACCURACY: Today is {$currentDateFormatted}. Never write past months of the current year as upcoming tentative dates. If an exam for the current year has concluded, refer to past trends or focus on preparation for upcoming cycles.
 5. ABSOLUTELY NO HALLUCINATIONS: Use accurate statutory data (NTA, UPSC, SSC, CBSE, NMC) for syllabus, weightage, and patterns.
-6. CLEAN SEMANTIC HTML: Structure the article body using standard HTML tags: <h2>, <h3>, <p>, <ul>, <ol>, <li>, <table>, <thead>, <tbody>, <tr>, <th>, <td>, <strong>, <em>. Do NOT use markdown backticks inside the content string.
 7. NO EMOJIS: Do not use emojis in headings, titles, or body text.
+8. BRAND INTEGRITY & IDENTITY: Sarkari.online is an independent educational, exam updates, and career intelligence platform. NEVER write articles claiming or implying that non-government domain extensions (.com, .online, .org) are fake, fraudulent, or malicious. Always clearly differentiate between 'Official Application & Registration Portals (which use statutory domains like ssc.gov.in, upsc.gov.in, nta.ac.in for direct form submission and fee payment)' and 'Independent Education Desks (like Sarkari.online which provide guidance, study roadmaps, syllabus breakdowns, and links to official portals)'. NEVER publish self-damaging or confusing domain warnings.
+9. STRICT LANGUAGE: The entire article title, excerpt, headings, and body MUST be written 100% in fluent, professional English. Never generate Devanagari or Hindi text.
 SYS;
 
         $sourceFactsJson = json_encode($sourceData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);

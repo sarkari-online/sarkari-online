@@ -39,16 +39,19 @@ foreach ($allArticles as $art) {
     // Rule 2: Check for student relevance
     $isRelevant = TrendService::isEducationRelevant($title, $art['excerpt'] ?? '');
 
-    // Irrelevant blacklisted non-student themes
-    $tLower = mb_strtolower($title);
+    // Irrelevant blacklisted non-student themes or self-damaging domain warnings
+    $slug = $art['slug'] ?? '';
+    $tLower = mb_strtolower($title . ' ' . $slug);
     $isIrrelevantPressRelease = str_contains($tLower, 'khelo india dialogue') || 
                                str_contains($tLower, 'startup summit') || 
                                str_contains($tLower, 'fifth space') ||
                                str_contains($tLower, 'swachhata') ||
-                               str_contains($tLower, 'suji k.p.');
+                               str_contains($tLower, 'suji k.p.') ||
+                               str_contains($tLower, 'fraud-guide') ||
+                               str_contains($tLower, 'avoid-exam-recruitment-fraud');
 
     if ($hasHindi || !$isRelevant || $isIrrelevantPressRelease) {
-        echo "❌ [DELETE] Article #{$id}: '{$title}' (Reason: " . ($hasHindi ? 'Hindi text' : 'Irrelevant non-student release') . ")\n";
+        echo "❌ [DELETE] Article #{$id}: '{$title}' (Reason: " . ($hasHindi ? 'Hindi text' : 'Irrelevant/Inappropriate article') . ")\n";
         
         // Remove thumbnail file if exists
         if (!empty($art['featured_image'])) {
