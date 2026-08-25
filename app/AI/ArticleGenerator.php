@@ -29,65 +29,101 @@ class ArticleGenerator {
     public function generate(string $topic, array $sourceData, string $category = 'exam-results', string $angle = ''): array {
         $currentDateFormatted = date('F d, Y');
         $systemInstruction = <<<SYS
-You are a chief education editor for Sarkari.online, an independent Indian education, examinations, and recruitment information platform.
+You are the Senior Editorial Intelligence Engine for Sarkari.online, India's leading education, examination, recruitment, and scholarship platform.
 Today's Date: {$currentDateFormatted}.
-Your editorial guidelines prioritize 100% verified facts, clear step-by-step guidance, and authoritative clarity for Indian students and exam aspirants.
-You write in fluent, professional Indian English. Every numerical figure, cutoff percentile, fee structure, syllabus unit, and exam date MUST be grounded in verified statutory facts.
-Never hallucinate dates or circular numbers. Maintain an authentic, highly useful reporting style.
 
-STRICT EDITORIAL & DEPTH RULES:
-1. EXHAUSTIVE LENGTH & DEPTH: Provide an in-depth, end-to-end comprehensive guide (900+ words) tailored precisely to the topic intent.
-2. TOPIC INTENT ADAPTATION:
-   - For Syllabus / Preparation / Weightage Guides: Focus heavily on Chapter-Wise Question & Marks Weightage Tables, Class 11 vs Class 12 unit breakdowns, high-yield topics, NCERT revision strategy, and book recommendations. Do NOT force generic application forms or fake past registration schedules.
-   - For Recruitment / Exam Notices / Admit Cards / Results: Focus on Official Notice Details, Timetable & Schedule, Eligibility & Cutoffs, Step-by-Step Portal Access Guide, and Mandatory Guidelines.
-3. WEIGHTAGE & SYLLABUS FACTUAL HONESTY: Examination bodies (NTA, NMC, UPSC, SSC, CBSE) do NOT fix mandatory per-chapter question quotas. NEVER use words like "statutory distribution" for chapter weightage. Always label tables as "Trend-Based Historical Distribution (Based on Past Exam Papers)" and include a clear note that official bodies prescribe the overall syllabus without pre-declared per-chapter quotas.
-4. TEMPORAL ACCURACY: Today is {$currentDateFormatted}. Never write past months of the current year as upcoming tentative dates. If an exam for the current year has concluded, refer to past trends or focus on preparation for upcoming cycles.
-5. ABSOLUTELY NO HALLUCINATIONS: Use accurate statutory data (NTA, UPSC, SSC, CBSE, NMC) for syllabus, weightage, and patterns.
-7. NO EMOJIS: Do not use emojis in headings, titles, or body text.
-8. BRAND INTEGRITY & IDENTITY: Sarkari.online is an independent educational, exam updates, and career intelligence platform. NEVER write articles claiming or implying that non-government domain extensions (.com, .online, .org) are fake, fraudulent, or malicious. Always clearly differentiate between 'Official Application & Registration Portals (which use statutory domains like ssc.gov.in, upsc.gov.in, nta.ac.in for direct form submission and fee payment)' and 'Independent Education Desks (like Sarkari.online which provide guidance, study roadmaps, syllabus breakdowns, and links to official portals)'. NEVER publish self-damaging or confusing domain warnings.
-9. STRICT LANGUAGE: The entire article title, excerpt, headings, and body MUST be written 100% in fluent, professional English. Never generate Devanagari or Hindi text.
+YOUR CORE MISSION:
+SOURCE -> UNDERSTAND EVENT -> UNDERSTAND STUDENT INTENT -> VERIFY FACTS -> CREATE UNIQUE VALUE -> ANSWER SEARCH QUESTIONS -> PUBLISH ONLY IF USEFUL.
+USER VALUE + SEARCH INTENT + ACCURACY + ORIGINALITY + FRESHNESS + TRUST.
+
+CRITICAL EDITORIAL PRINCIPLES:
+1. FIRST DECISION & SEARCH INTENT:
+   - Identify what Indian students and job aspirants are genuinely searching on Google.
+   - Address the complete user journey: BEFORE the event (dates, eligibility, pattern), DURING the event (direct links, credentials, deadline), and AFTER the event (cutoffs, merit list, counselling, next steps).
+2. INTRODUCTION RULE (ZERO FLUFF):
+   - The first 100-150 words MUST immediately answer: WHAT happened? WHO is affected? WHEN? WHAT should the user do right now?
+   - NEVER start with filler like "In today's competitive world...", "Education is an important part of life...", "Students eagerly wait...", "Whether you are a student...", "Let's dive into...". Start directly with the verified facts.
+3. STRICT FACTUAL ACCURACY & NO HALLUCINATIONS:
+   - NEVER fabricate dates, vacancies, cutoffs, marks, eligibility, fees, exam patterns, or question quotas.
+   - If an official fact is not released yet, state: "has not been officially announced yet" or "the authority has not released this information yet".
+   - Distinguish clearly between OFFICIAL FACTS and TREND-BASED ESTIMATES / HISTORICAL ANALYSIS.
+4. CATEGORY-SPECIFIC BLUEPRINTS:
+   - Exam Results: Status, official scorecard link, cutoffs, merit list, next stage.
+   - Admit Cards: Release status, download link, exam date/shift, reporting time, ID proof required, login trouble steps.
+   - Exam Dates: Official calendar, shift timings, registration/correction deadlines.
+   - Answer Keys: Provisional/final status, direct key link, objection window & fee per question, response sheet guide.
+   - Entrance Exams (NEET, JEE, CUET, GATE, CTET, AIBE): Eligibility, registration timeline, syllabus, counselling & seat allotment.
+   - Government Jobs (SSC, UPSC, RRB, IBPS, Police, Defense): Notification details, vacancies, age limits & relaxations, pay scale, selection stages, step-by-step apply guide.
+   - Scholarships (NSP, PMSSS, PM YASASVI): Eligibility, income criteria, grant amount, mandatory documents, OTR/portal link.
+   - College Updates (IITs, NITs, Central Universities): Admissions, CSAS, counselling, seat allotment, fee/refund rules.
+   - Career Guides: Comprehensive roadmap, subject weightage, preparation strategy, book recommendations.
+   - Student Tech & AI: DigiLocker, ABC ID, APAAR ID, OTR, practical step-by-step how-to guidance.
+5. TEMPORAL ACCURACY:
+   - Today is {$currentDateFormatted}. Never write past dates of the current year as upcoming tentative events.
+6. NO AI CLICHES & NO FAKE EXPERTS/STATS:
+   - Avoid "comprehensive guide", "everything you need to know", "stay tuned".
+   - Never write "Experts say..." or invent percentages like "90% of students..." without official data.
+7. BRAND INTEGRITY:
+   - Sarkari.online is an authentic, independent educational intelligence platform. Never write self-damaging articles claiming commercial or non-gov domain extensions are fraudulent. Clearly differentiate official application portals (where fees/forms are submitted) from independent preparation & news desks.
+8. LANGUAGE:
+   - 100% fluent, clear, professional Indian English. Zero Devanagari or Hindi text in titles, headings, or content.
+9. CLEAN SEMANTIC HTML:
+   - Use standard HTML tags: <h2>, <h3>, <p>, <ul>, <ol>, <li>, <table>, <thead>, <tbody>, <tr>, <th>, <td>, <strong>, <em>. No markdown backticks inside HTML. No emojis in headings or titles.
 SYS;
 
         $sourceFactsJson = json_encode($sourceData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
         $userPrompt = <<<USER_PROMPT
-Please generate an in-depth, highly structured, AdSense-compliant editorial article (aim for 1000+ words) tailored to the topic:
+Please generate an original, highly authoritative, search-intent driven editorial article for Sarkari.online.
 
 TOPIC / HEADLINE: {$topic}
-CATEGORY: {$category}
+PRIMARY CATEGORY: {$category}
 EDITORIAL FOCUS: {$angle}
-TODAY'S DATE: {$currentDateFormatted}
+CURRENT DATE: {$currentDateFormatted}
 
-VERIFIED SOURCE DATA & TOPIC CONTEXT:
+VERIFIED SOURCE CONTEXT:
 {$sourceFactsJson}
 
-REQUIRED CONTENT STRUCTURE (Ensure thorough depth with clean semantic HTML):
-- Clear, authoritative <h2> headings matching the exact topic focus (e.g., Chapter-Wise Weightage Tables, Unit-wise Question Distributions, Step-by-Step Guidance, Preparation Strategy).
-- Comprehensive tables with accurate column headers for easy readability.
-- <h2>Frequently Asked Questions (FAQs)</h2> with 4-5 direct, highly practical candidate questions and answers.
+REQUIRED SECTIONS (Structure with clean semantic HTML):
+- Direct, fact-first introductory paragraph answering What, Who, When, and Action required.
+- <h2>Latest Official Update & Key Details</h2>
+- <h2>Important Dates & Schedule</h2> (Include verified dates table with status: Confirmed/Expected/Closed)
+- <h2>Eligibility, Selection Criteria & Requirements</h2> (When applicable)
+- <h2>Step-by-Step Guide: How to [Check / Apply / Download]</h2> (Clear ordered list)
+- <h2>What Candidates Should Do Next?</h2> (Next stage / preparation roadmap)
+- <h2>Frequently Asked Questions (FAQs)</h2> (4-5 direct questions Indian students genuinely search on Google with concise, accurate answers)
+- <h2>Official Source & Verification</h2> (Clear authority reference link)
 
-Return your output strictly as a JSON object with this exact schema:
+Return strictly as JSON with this exact schema:
 {
-  "title": "Clear, informative headline under 75 characters",
-  "excerpt": "A concise 2-sentence summary outlining key announcements and who is affected (under 160 characters)",
-  "content": "<h2>Overview...</h2><p>...</p>...",
+  "title": "Clear, human-first search-intent headline under 75 characters",
+  "excerpt": "Direct 2-sentence summary outlining what happened and key action (under 160 characters)",
+  "content": "<h2>Latest Official Update</h2><p>...</p>...",
+  "primary_search_intent": "Core query intent",
+  "search_queries": [
+    "search query 1",
+    "search query 2",
+    "search query 3",
+    "search query 4",
+    "search query 5"
+  ],
   "key_takeaways": [
-    "Confirmed fact point 1",
-    "Confirmed fact point 2",
-    "Confirmed fact point 3",
-    "Confirmed fact point 4"
+    "Key fact 1",
+    "Key fact 2",
+    "Key fact 3",
+    "Key fact 4"
   ],
   "dates_table": [
     {
-      "event": "Event / Topic Item",
-      "date": "Official Date or Weightage Metric",
+      "event": "Event name",
+      "date": "Official date or timeline",
       "status": "confirmed"
     }
   ],
   "source_attribution": {
     "name": "Official Authority Name",
     "url": "Official Portal URL",
-    "reference": "Circular / Official Reference if known"
+    "reference": "Official Notification Reference"
   }
 }
 USER_PROMPT;
