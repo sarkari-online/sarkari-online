@@ -3485,3 +3485,33 @@ html {
 
 
 
+
+/* Also Read Editorial Callout Card */
+.also-read-card, .see-also {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 18px;
+    margin: 24px 0;
+    background: #f8fafc;
+    border-left: 4px solid var(--color-primary, #1e3a8a);
+    border-radius: 0 8px 8px 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #1e293b;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+.also-read-card svg, .see-also svg {
+    flex-shrink: 0;
+    color: var(--color-primary, #1e3a8a);
+}
+.also-read-card a, .see-also a {
+    color: var(--color-primary, #1e3a8a);
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+.also-read-card a:hover, .see-also a:hover {
+    color: #0f172a;
+    text-decoration: underline;
+}

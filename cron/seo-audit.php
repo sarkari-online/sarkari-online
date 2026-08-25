@@ -23,6 +23,25 @@ Logger::info("Cron seo-audit started");
 $canonicalFixed = 0;
 $orphansFixed   = 0;
 $duplicatesFound = 0;
+$emojisCleaned  = 0;
+
+$svgIcon = '<svg class="also-read-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px;margin-right:6px;color:#0284c7;"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>';
+
+// ── 0. Clean old pin emojis (replace with professional SVG card) ────────────
+$existingArticles = Database::fetchAll("SELECT id, content FROM articles WHERE content LIKE '%📌%'");
+foreach ($existingArticles as $eArt) {
+    $cleanContent = preg_replace(
+        '/<p class="see-also">\s*📌\s*<strong>Also Read:<\/strong>\s*<a href="([^"]+)">([^<]+)<\/a><\/p>/iu',
+        '<div class="also-read-card" style="display:flex;align-items:center;gap:8px;padding:12px 16px;margin:20px 0;background:#f8fafc;border-left:4px solid #0284c7;border-radius:0 8px 8px 0;font-size:0.95rem;">' . $svgIcon . '<span><strong>Also Read:</strong> <a href="$1" style="color:#0284c7;font-weight:600;text-decoration:none;">$2</a></span></div>',
+        $eArt['content']
+    );
+    $cleanContent = str_replace('📌', '', $cleanContent);
+    if ($cleanContent !== $eArt['content']) {
+        Database::update('articles', ['content' => $cleanContent], 'id = :id', ['id' => $eArt['id']]);
+        $emojisCleaned++;
+        echo "  -> [EMOJI CLEANED] Article #{$eArt['id']}: Replaced pin emoji with professional SVG card\n";
+    }
+}
 
 // ── 1. Fix broken / missing canonical URLs ─────────────────────────────────
 $articles = Database::fetchAll(
@@ -79,7 +98,8 @@ foreach ($allArticles as $art) {
 
         if ($related) {
             $relatedUrl = url('article/' . $related['slug'] . '/');
-            $seeAlso = "\n<p class=\"see-also\">📌 <strong>Also Read:</strong> <a href=\"{$relatedUrl}\">{$related['title']}</a></p>";
+            $svgIcon = '<svg class="also-read-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px;margin-right:6px;color:#0284c7;"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>';
+            $seeAlso = "\n<div class=\"also-read-card\" style=\"display:flex;align-items:center;gap:8px;padding:12px 16px;margin:20px 0;background:#f8fafc;border-left:4px solid #0284c7;border-radius:0 8px 8px 0;font-size:0.95rem;\">{$svgIcon}<span><strong>Also Read:</strong> <a href=\"{$relatedUrl}\" style=\"color:#0284c7;font-weight:600;text-decoration:none;\">{$related['title']}</a></span></div>";
 
             // Inject at end of content if not already present
             if (!str_contains($art['content'], $related['slug'])) {
