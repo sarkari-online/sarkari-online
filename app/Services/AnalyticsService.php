@@ -15,11 +15,14 @@ use Throwable;
 
 class AnalyticsService {
 
-    // Configured excluded IP ranges (Owner Wi-Fi & Mobile networks, Docker subnets, Server loopbacks)
-    public const EXCLUDED_IP_PREFIXES = [
+    // Configured excluded IP ranges
+    public const OWNER_IP_PREFIXES = [
         '38.254.176.',  // Owner's Wi-Fi network subnet
         '152.58.87.',   // Owner's Mobile network subnet
-        '152.58.',      // Owner's Mobile network IP pool
+        '152.58.'       // Owner's Mobile network IP pool
+    ];
+
+    public const SYSTEM_IP_PREFIXES = [
         '127.0.0.1',
         '::1',
         '192.168.',
@@ -30,6 +33,23 @@ class AnalyticsService {
         '172.20.',
         '10.'
     ];
+
+    /**
+     * Check if owner Wi-Fi & Mobile IP filtering is currently enabled
+     */
+    public static function isOwnerFilteringEnabled(): bool {
+        return (string)SettingsService::get('analytics_filter_owner', '1') === '1';
+    }
+
+    /**
+     * Toggle owner IP filtering (Enable for production / Disable for testing)
+     */
+    public static function toggleOwnerFiltering(?bool $enable = null): bool {
+        $current = self::isOwnerFilteringEnabled();
+        $newVal = $enable !== null ? ($enable ? '1' : '0') : ($current ? '0' : '1');
+        SettingsService::set('analytics_filter_owner', $newVal, 'boolean', 'Filter Owner Wi-Fi and Mobile Traffic');
+        return $newVal === '1';
+    }
 
     /**
      * Get Client Real IP Address with Cloudflare/Proxy Support
@@ -59,11 +79,22 @@ class AnalyticsService {
      * Check if given IP address is excluded from analytics
      */
     public static function isExcludedIp(string $ip): bool {
-        foreach (self::EXCLUDED_IP_PREFIXES as $prefix) {
+        // If owner filtering is ON, exclude owner's Wi-Fi & Mobile network
+        if (self::isOwnerFilteringEnabled()) {
+            foreach (self::OWNER_IP_PREFIXES as $prefix) {
+                if (str_starts_with($ip, $prefix)) {
+                    return true;
+                }
+            }
+        }
+
+        // Always exclude server loopbacks & Docker bridge networks
+        foreach (self::SYSTEM_IP_PREFIXES as $prefix) {
             if (str_starts_with($ip, $prefix)) {
                 return true;
             }
         }
+
         return false;
     }
 
