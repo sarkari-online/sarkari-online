@@ -15,11 +15,17 @@ use Throwable;
 
 class AnalyticsService {
 
-    // Configured excluded IP ranges
-    public const OWNER_IP_PREFIXES = [
-        '38.254.176.',  // Owner's Wi-Fi network subnet
-        '152.58.87.',   // Owner's Mobile network subnet
-        '152.58.'       // Owner's Mobile network IP pool
+    // Wi-Fi Network IP Prefixes (Owner Broadband)
+    public const WIFI_IP_PREFIXES = [
+        '38.254.176.'
+    ];
+
+    // Mobile / Jio Network IP Prefixes (Owner Mobile Data & Private Relay)
+    public const MOBILE_IP_PREFIXES = [
+        '152.58.',
+        '152.57.',
+        '152.59.',
+        '20.1.1.'  // User mobile connection / proxy IP
     ];
 
     public const SYSTEM_IP_PREFIXES = [
@@ -35,19 +41,34 @@ class AnalyticsService {
     ];
 
     /**
-     * Check if owner Wi-Fi & Mobile IP filtering is currently enabled
+     * Check if Wi-Fi IP filtering is currently enabled
      */
-    public static function isOwnerFilteringEnabled(): bool {
-        return (string)SettingsService::get('analytics_filter_owner', '1') === '1';
+    public static function isWifiFilterEnabled(): bool {
+        return (string)SettingsService::get('analytics_filter_wifi', '1') === '1';
     }
 
     /**
-     * Toggle owner IP filtering (Enable for production / Disable for testing)
+     * Check if Mobile / Jio IP filtering is currently enabled
      */
-    public static function toggleOwnerFiltering(?bool $enable = null): bool {
-        $current = self::isOwnerFilteringEnabled();
-        $newVal = $enable !== null ? ($enable ? '1' : '0') : ($current ? '0' : '1');
-        SettingsService::set('analytics_filter_owner', $newVal, 'boolean', 'Filter Owner Wi-Fi and Mobile Traffic');
+    public static function isMobileFilterEnabled(): bool {
+        return (string)SettingsService::get('analytics_filter_mobile', '1') === '1';
+    }
+
+    /**
+     * Toggle Wi-Fi filter on/off
+     */
+    public static function toggleWifiFilter(): bool {
+        $newVal = self::isWifiFilterEnabled() ? '0' : '1';
+        SettingsService::set('analytics_filter_wifi', $newVal, 'boolean', 'Filter Owner Wi-Fi Traffic');
+        return $newVal === '1';
+    }
+
+    /**
+     * Toggle Mobile filter on/off
+     */
+    public static function toggleMobileFilter(): bool {
+        $newVal = self::isMobileFilterEnabled() ? '0' : '1';
+        SettingsService::set('analytics_filter_mobile', $newVal, 'boolean', 'Filter Owner Mobile Traffic');
         return $newVal === '1';
     }
 
@@ -65,9 +86,15 @@ class AnalyticsService {
         foreach ($headers as $header) {
             if (!empty($_SERVER[$header])) {
                 $ipList = explode(',', $_SERVER[$header]);
-                $ip = trim($ipList[0]);
-                if (filter_var($ip, FILTER_VALIDATE_IP)) {
-                    return $ip;
+                foreach ($ipList as $rawIp) {
+                    $ip = trim($rawIp);
+                    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                        return $ip;
+                    }
+                }
+                $fallback = trim($ipList[0]);
+                if (filter_var($fallback, FILTER_VALIDATE_IP)) {
+                    return $fallback;
                 }
             }
         }
@@ -79,16 +106,25 @@ class AnalyticsService {
      * Check if given IP address is excluded from analytics
      */
     public static function isExcludedIp(string $ip): bool {
-        // If owner filtering is ON, exclude owner's Wi-Fi & Mobile network
-        if (self::isOwnerFilteringEnabled()) {
-            foreach (self::OWNER_IP_PREFIXES as $prefix) {
+        // 1. Check Wi-Fi filter
+        if (self::isWifiFilterEnabled()) {
+            foreach (self::WIFI_IP_PREFIXES as $prefix) {
                 if (str_starts_with($ip, $prefix)) {
                     return true;
                 }
             }
         }
 
-        // Always exclude server loopbacks & Docker bridge networks
+        // 2. Check Mobile / Jio filter
+        if (self::isMobileFilterEnabled()) {
+            foreach (self::MOBILE_IP_PREFIXES as $prefix) {
+                if (str_starts_with($ip, $prefix)) {
+                    return true;
+                }
+            }
+        }
+
+        // 3. Always exclude server loopbacks & Docker bridge networks
         foreach (self::SYSTEM_IP_PREFIXES as $prefix) {
             if (str_starts_with($ip, $prefix)) {
                 return true;
@@ -110,7 +146,7 @@ class AnalyticsService {
 
             $ip = self::getClientIp();
 
-            // 2. Skip if from owner's Wi-Fi network
+            // 2. Skip if from excluded Wi-Fi or Mobile networks
             if (self::isExcludedIp($ip)) {
                 return;
             }
@@ -128,11 +164,27 @@ class AnalyticsService {
             $today = date('Y-m-d');
             $sessionHash = hash('sha256', $ip . '|' . $userAgent . '|' . $today);
 
-            // 5. Parse Referrer
+            $pageUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'sarkari.online') . $uri;
+
+            // 5. De-duplication: Ignore rapid reloads / double taps of the exact same page within 15 seconds
+            $recentCount = (int)Database::fetchColumn(
+                "SELECT COUNT(*) FROM page_views WHERE session_hash = :hash AND page_url = :url AND viewed_at >= :since",
+                [
+                    'hash'  => $sessionHash,
+                    'url'   => mb_substr($pageUrl, 0, 255),
+                    'since' => date('Y-m-d H:i:s', strtotime('-15 seconds'))
+                ]
+            );
+
+            if ($recentCount > 0) {
+                return; // Skip duplicate hit
+            }
+
+            // 6. Parse Referrer
             $rawReferrer = $_SERVER['HTTP_REFERER'] ?? '';
             $refType = self::classifyReferrer($rawReferrer);
 
-            // 6. Detect Device & Browser
+            // 7. Detect Device & Browser
             $deviceType = self::detectDevice($userAgent);
             $browser = self::detectBrowser($userAgent);
             $os = self::detectOS($userAgent);
