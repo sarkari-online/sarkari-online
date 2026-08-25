@@ -74,38 +74,38 @@ include dirname(__DIR__) . '/components/header.php';
 <!-- Independent Wi-Fi & Jio Mobile Toggle Control Panel -->
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
     <!-- Wi-Fi Toggle Card -->
-    <div style="background: <?= $wifiFilter ? '#f0fdf4' : '#fffbeb' ?>; border: 1px solid <?= $wifiFilter ? '#bbf7d0' : '#fde68a' ?>; border-radius: 10px; padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+    <div style="background: <?= $wifiFilter ? '#fef2f2' : '#f0fdf4' ?>; border: 1px solid <?= $wifiFilter ? '#fecaca' : '#bbf7d0' ?>; border-radius: 10px; padding: 1.15rem 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
         <div>
-            <div style="font-weight: 800; font-size: 0.9375rem; color: <?= $wifiFilter ? '#166534' : '#92400e' ?>; display: flex; align-items: center; gap: 6px;">
-                📶 Wi-Fi Network
-                <span style="font-size: 0.725rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: <?= $wifiFilter ? '#22c55e' : '#f59e0b' ?>; color: #ffffff;">
-                    <?= $wifiFilter ? 'EXCLUDED 🛡️' : 'TRACKING 🧪' ?>
+            <div style="font-weight: 800; font-size: 0.9375rem; color: <?= $wifiFilter ? '#991b1b' : '#166534' ?>; display: flex; align-items: center; gap: 8px;">
+                📶 Wi-Fi Tracking:
+                <span style="font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: <?= $wifiFilter ? '#ef4444' : '#22c55e' ?>; color: #ffffff;">
+                    <?= $wifiFilter ? '🔴 EXCLUDED (Not Counted)' : '🟢 INCLUDED (Tracking Active)' ?>
                 </span>
             </div>
-            <div style="font-size: 0.8125rem; color: #64748b; margin-top: 2px;">
-                IP Subnet: <code>38.254.176.x</code>
+            <div style="font-size: 0.8125rem; color: #64748b; margin-top: 4px;">
+                Network IP: <code>38.254.176.x</code>
             </div>
         </div>
-        <a href="?action=toggle_wifi" style="padding: 6px 14px; border-radius: 6px; font-weight: 700; font-size: 0.8125rem; text-decoration: none; background: #ffffff; border: 1px solid <?= $wifiFilter ? '#86efac' : '#fcd34d' ?>; color: <?= $wifiFilter ? '#15803d' : '#b45309' ?>; box-shadow: 0 1px 2px rgba(0,0,0,0.05); white-space: nowrap;">
-            <?= $wifiFilter ? '🧪 Test Wi-Fi' : '🛡️ Exclude Wi-Fi' ?>
+        <a href="?action=toggle_wifi" style="padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 0.8125rem; text-decoration: none; background: <?= $wifiFilter ? '#16a34a' : '#dc2626' ?>; color: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); white-space: nowrap;">
+            <?= $wifiFilter ? '🟢 Include (Track Me)' : '🔴 Exclude (Stop Tracking)' ?>
         </a>
     </div>
 
     <!-- Mobile / Jio Toggle Card -->
-    <div style="background: <?= $mobileFilter ? '#f0fdf4' : '#fffbeb' ?>; border: 1px solid <?= $mobileFilter ? '#bbf7d0' : '#fde68a' ?>; border-radius: 10px; padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+    <div style="background: <?= $mobileFilter ? '#fef2f2' : '#f0fdf4' ?>; border: 1px solid <?= $mobileFilter ? '#fecaca' : '#bbf7d0' ?>; border-radius: 10px; padding: 1.15rem 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
         <div>
-            <div style="font-weight: 800; font-size: 0.9375rem; color: <?= $mobileFilter ? '#166534' : '#92400e' ?>; display: flex; align-items: center; gap: 6px;">
-                📱 Jio / Mobile Network
-                <span style="font-size: 0.725rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: <?= $mobileFilter ? '#22c55e' : '#f59e0b' ?>; color: #ffffff;">
-                    <?= $mobileFilter ? 'EXCLUDED 🛡️' : 'TRACKING 🧪' ?>
+            <div style="font-weight: 800; font-size: 0.9375rem; color: <?= $mobileFilter ? '#991b1b' : '#166534' ?>; display: flex; align-items: center; gap: 8px;">
+                📱 Jio / Mobile Tracking:
+                <span style="font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: <?= $mobileFilter ? '#ef4444' : '#22c55e' ?>; color: #ffffff;">
+                    <?= $mobileFilter ? '🔴 EXCLUDED (Not Counted)' : '🟢 INCLUDED (Tracking Active)' ?>
                 </span>
             </div>
-            <div style="font-size: 0.8125rem; color: #64748b; margin-top: 2px;">
+            <div style="font-size: 0.8125rem; color: #64748b; margin-top: 4px;">
                 IPs: <code>152.58.x.x</code> &amp; <code>20.1.1.x</code>
             </div>
         </div>
-        <a href="?action=toggle_mobile" style="padding: 6px 14px; border-radius: 6px; font-weight: 700; font-size: 0.8125rem; text-decoration: none; background: #ffffff; border: 1px solid <?= $mobileFilter ? '#86efac' : '#fcd34d' ?>; color: <?= $mobileFilter ? '#15803d' : '#b45309' ?>; box-shadow: 0 1px 2px rgba(0,0,0,0.05); white-space: nowrap;">
-            <?= $mobileFilter ? '🧪 Test Jio/Mobile' : '🛡️ Exclude Jio/Mobile' ?>
+        <a href="?action=toggle_mobile" style="padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 0.8125rem; text-decoration: none; background: <?= $mobileFilter ? '#16a34a' : '#dc2626' ?>; color: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); white-space: nowrap;">
+            <?= $mobileFilter ? '🟢 Include (Track Me)' : '🔴 Exclude (Stop Tracking)' ?>
         </a>
     </div>
 </div>

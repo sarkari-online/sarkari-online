@@ -139,21 +139,22 @@ class AnalyticsService {
      */
     public static function track(?int $articleId = null, ?string $pageTitle = null, ?string $categorySlug = null): void {
         try {
-            // 1. Skip if authenticated as Admin
-            if (Auth::check()) {
+            $uri = $_SERVER['REQUEST_URI'] ?? '/';
+
+            // 1. Skip internal admin panel / asset / cron requests
+            if (str_starts_with($uri, '/admin') || str_starts_with($uri, '/assets') || str_starts_with($uri, '/uploads') || str_starts_with($uri, '/cron')) {
                 return;
             }
 
             $ip = self::getClientIp();
 
-            // 2. Skip if from excluded Wi-Fi or Mobile networks
+            // 2. Skip if IP is in active exclusion list (Wi-Fi / Mobile excluded)
             if (self::isExcludedIp($ip)) {
                 return;
             }
 
-            // 3. Skip internal admin / cron / asset requests
-            $uri = $_SERVER['REQUEST_URI'] ?? '/';
-            if (str_starts_with($uri, '/admin') || str_starts_with($uri, '/assets') || str_starts_with($uri, '/uploads')) {
+            // 3. If admin is logged in: skip only if both Wi-Fi & Mobile filters are actively excluding
+            if (Auth::check() && self::isWifiFilterEnabled() && self::isMobileFilterEnabled()) {
                 return;
             }
 
