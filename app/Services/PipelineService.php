@@ -125,23 +125,39 @@ class PipelineService {
             'gen_result' => $genResult
         ]);
 
-        // 7. Evaluate Safety Gates
+        // 7. Evaluate Safety Gates & Determine Target Status
         $safetyPass = $this->evaluateSafetyGates($factAudit, $rawPayload, $quality);
+        $finalScore = (int)$quality['total_score'];
 
-        // Determine target status
-        $finalScore = $quality['total_score'];
-        $finalStatus = 'draft';
+        $hasCriticalIssue = false;
+        if (!empty($factAudit['flagged_issues'])) {
+            foreach ($factAudit['flagged_issues'] as $issue) {
+                if (($issue['severity'] ?? '') === 'critical') {
+                    $hasCriticalIssue = true;
+                    break;
+                }
+            }
+        }
+        $allCriticalFactsVerified = ($factAudit['recommendation'] ?? '') === 'pass' && !$hasCriticalIssue && empty($factAudit['flagged_issues']);
 
-        if (!$safetyPass['pass']) {
+        // User Quality Routing Logic:
+        // - Any critical factual uncertainty -> Review regardless of score
+        // - Score >= 90 -> Auto-publish eligible
+        // - Score 80–89 -> Publish ONLY when all critical facts are verified, else Review
+        // - Score 70–79 -> Review
+        // - Score < 70 -> Reject
+        if (!$safetyPass['pass'] || $finalScore < 70) {
             $finalStatus = 'rejected';
-            Logger::warning("Article rejected by safety gate: " . implode(', ', $safetyPass['reasons']));
-        } elseif ($finalScore >= 90) {
-            // High quality review ready (publish ready)
+            Logger::warning("Article rejected (Score: {$finalScore}): " . implode(', ', $safetyPass['reasons']));
+        } elseif ($hasCriticalIssue || ($factAudit['recommendation'] ?? '') === 'needs_review' || ($factAudit['recommendation'] ?? '') === 'reject') {
             $finalStatus = 'review';
-        } elseif ($finalScore >= 80) {
+            Logger::info("Article routed to review queue due to factual uncertainty (Score: {$finalScore})");
+        } elseif ($finalScore >= 90 && $allCriticalFactsVerified) {
+            $finalStatus = 'review'; // In Review Queue marked as auto-publish eligible
+        } elseif ($finalScore >= 80 && $allCriticalFactsVerified) {
             $finalStatus = 'review';
         } elseif ($finalScore >= 70) {
-            $finalStatus = 'draft';
+            $finalStatus = 'review';
         } else {
             $finalStatus = 'rejected';
         }

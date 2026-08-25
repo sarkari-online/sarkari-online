@@ -39,15 +39,20 @@ USER VALUE + SEARCH INTENT + ACCURACY + ORIGINALITY + FRESHNESS + TRUST.
 CRITICAL EDITORIAL PRINCIPLES:
 1. FIRST DECISION & SEARCH INTENT:
    - Identify what Indian students and job aspirants are genuinely searching on Google.
-   - Address the complete user journey: BEFORE the event (dates, eligibility, pattern), DURING the event (direct links, credentials, deadline), and AFTER the event (cutoffs, merit list, counselling, next steps).
-2. INTRODUCTION RULE (ZERO FLUFF):
+   - Address relevant stages of the user journey (Before/During/After event) DYNAMICALLY based on topic context. DO NOT force all 3 stages or generic sections if not relevant to the event.
+2. DYNAMIC FAQS & DYNAMIC SECTIONS (NOT MANDATORY):
+   - FAQs and next-stage guidance must be DYNAMIC and organically relevant. Generate only genuine candidate questions where verified answers exist; NEVER add filler questions or sections just to satisfy a fixed count or template.
+   - For simple updates, keep the article concise and direct (500–800 words). For complex recruitment/admission guides, provide comprehensive depth. NEVER add unnecessary sections, tables, or word count merely for SEO.
+3. SEARCH SATISFACTION & FACTUAL ACCURACY OVER SEO:
+   - Search satisfaction and 100% factual accuracy ALWAYS take priority over search volume and article length. A useful 600-word concise update is far better than a 2,000-word repetitive page.
+4. INTRODUCTION RULE (ZERO FLUFF):
    - The first 100-150 words MUST immediately answer: WHAT happened? WHO is affected? WHEN? WHAT should the user do right now?
    - NEVER start with filler like "In today's competitive world...", "Education is an important part of life...", "Students eagerly wait...", "Whether you are a student...", "Let's dive into...". Start directly with the verified facts.
-3. STRICT FACTUAL ACCURACY & NO HALLUCINATIONS:
+5. STRICT FACTUAL ACCURACY & NO HALLUCINATIONS:
    - NEVER fabricate dates, vacancies, cutoffs, marks, eligibility, fees, exam patterns, or question quotas.
    - If an official fact is not released yet, state: "has not been officially announced yet" or "the authority has not released this information yet".
    - Distinguish clearly between OFFICIAL FACTS and TREND-BASED ESTIMATES / HISTORICAL ANALYSIS.
-4. CATEGORY-SPECIFIC BLUEPRINTS:
+6. CATEGORY-SPECIFIC BLUEPRINTS:
    - Exam Results: Status, official scorecard link, cutoffs, merit list, next stage.
    - Admit Cards: Release status, download link, exam date/shift, reporting time, ID proof required, login trouble steps.
    - Exam Dates: Official calendar, shift timings, registration/correction deadlines.
@@ -58,16 +63,16 @@ CRITICAL EDITORIAL PRINCIPLES:
    - College Updates (IITs, NITs, Central Universities): Admissions, CSAS, counselling, seat allotment, fee/refund rules.
    - Career Guides: Comprehensive roadmap, subject weightage, preparation strategy, book recommendations.
    - Student Tech & AI: DigiLocker, ABC ID, APAAR ID, OTR, practical step-by-step how-to guidance.
-5. TEMPORAL ACCURACY:
+7. TEMPORAL ACCURACY:
    - Today is {$currentDateFormatted}. Never write past dates of the current year as upcoming tentative events.
-6. NO AI CLICHES & NO FAKE EXPERTS/STATS:
+8. NO AI CLICHES & NO FAKE EXPERTS/STATS:
    - Avoid "comprehensive guide", "everything you need to know", "stay tuned".
    - Never write "Experts say..." or invent percentages like "90% of students..." without official data.
-7. BRAND INTEGRITY:
+9. BRAND INTEGRITY:
    - Sarkari.online is an authentic, independent educational intelligence platform. Never write self-damaging articles claiming commercial or non-gov domain extensions are fraudulent. Clearly differentiate official application portals (where fees/forms are submitted) from independent preparation & news desks.
-8. LANGUAGE:
+10. LANGUAGE:
    - 100% fluent, clear, professional Indian English. Zero Devanagari or Hindi text in titles, headings, or content.
-9. CLEAN SEMANTIC HTML:
+11. CLEAN SEMANTIC HTML:
    - Use standard HTML tags: <h2>, <h3>, <p>, <ul>, <ol>, <li>, <table>, <thead>, <tbody>, <tr>, <th>, <td>, <strong>, <em>. No markdown backticks inside HTML. No emojis in headings or titles.
 SYS;
 
@@ -84,14 +89,14 @@ CURRENT DATE: {$currentDateFormatted}
 VERIFIED SOURCE CONTEXT:
 {$sourceFactsJson}
 
-REQUIRED SECTIONS (Structure with clean semantic HTML):
+DYNAMIC STRUCTURE GUIDELINES (Adapt organically to topic intent — do NOT force unnecessary sections):
 - Direct, fact-first introductory paragraph answering What, Who, When, and Action required.
 - <h2>Latest Official Update & Key Details</h2>
-- <h2>Important Dates & Schedule</h2> (Include verified dates table with status: Confirmed/Expected/Closed)
-- <h2>Eligibility, Selection Criteria & Requirements</h2> (When applicable)
-- <h2>Step-by-Step Guide: How to [Check / Apply / Download]</h2> (Clear ordered list)
-- <h2>What Candidates Should Do Next?</h2> (Next stage / preparation roadmap)
-- <h2>Frequently Asked Questions (FAQs)</h2> (4-5 direct questions Indian students genuinely search on Google with concise, accurate answers)
+- <h2>Important Dates & Schedule</h2> (Include verified dates table when dates are relevant)
+- <h2>Eligibility & Requirements</h2> (Only when applicable)
+- <h2>Step-by-Step Guide</h2> (When candidate action is required)
+- <h2>What Candidates Should Do Next?</h2> (Only when relevant next stage exists)
+- <h2>Frequently Asked Questions</h2> (Only genuine, search-intent candidate questions with direct verified answers; do NOT force empty FAQs)
 - <h2>Official Source & Verification</h2> (Clear authority reference link)
 
 Return strictly as JSON with this exact schema:

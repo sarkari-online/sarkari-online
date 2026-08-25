@@ -69,25 +69,32 @@ class PublishingService {
 
         $reasons = [];
 
-        // Check 1: Quality Score threshold
+        // Check 1: Strict Quality Score & Factual Routing Thresholds
         $score = (int)($article['quality_score'] ?? 0);
-        if ($score < $this->minQualityScore) {
-            $reasons[] = "Quality score ({$score}/100) is below configured threshold ({$this->minQualityScore}).";
-        }
-
-        // Check 2: Fact check audit passed
         $latestCheck = Database::fetchOne(
             "SELECT * FROM article_checks WHERE article_id = :aid AND check_type IN ('factual_verification', 'quality_breakdown') ORDER BY id DESC LIMIT 1",
             ['aid' => $articleId]
         );
-        if ($latestCheck) {
-            $notes = json_decode($latestCheck['notes'] ?? '{}', true);
-            if (($notes['safety_gate']['pass'] ?? true) === false || ($notes['recommendation'] ?? '') === 'reject') {
-                $reasons[] = "Factual verification check failed.";
+        $notes = $latestCheck ? json_decode($latestCheck['notes'] ?? '{}', true) : [];
+        $hasCriticalFactIssue = !empty($notes['flagged_issues_count']) && (int)$notes['flagged_issues_count'] > 0;
+        $factPassed = ($notes['fact_recommendation'] ?? '') === 'pass' || ($notes['recommendation'] ?? '') === 'pass';
+
+        if ($hasCriticalFactIssue || ($notes['fact_recommendation'] ?? '') === 'reject' || ($notes['safety_gate']['pass'] ?? true) === false) {
+            $reasons[] = "Critical factual uncertainty detected; human editorial review is required.";
+        } elseif ($score >= 90) {
+            // Score 90+ auto-publish eligible if no critical issues
+        } elseif ($score >= 80) {
+            // Score 80-89: Publish ONLY when all critical facts are 100% verified
+            if (!$factPassed || $hasCriticalFactIssue) {
+                $reasons[] = "Score is {$score}/100; requires 100% verified facts without ambiguity for auto-publishing.";
             }
+        } elseif ($score >= 70) {
+            $reasons[] = "Score is {$score}/100 (70–79 bracket requires manual editorial review).";
+        } else {
+            $reasons[] = "Score ({$score}/100) is below minimum threshold (<70).";
         }
 
-        // Check 3: Source verification passed
+        // Check 2: Source verification passed
         if ((int)$article['source_verified'] !== 1 || empty($article['source_url']) || !filter_var($article['source_url'], FILTER_VALIDATE_URL)) {
             $reasons[] = "Verified official source URL is missing or invalid.";
         }
