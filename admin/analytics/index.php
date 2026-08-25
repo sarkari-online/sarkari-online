@@ -21,20 +21,20 @@ if (isset($_GET['action']) && $_GET['action'] === 'clear_data') {
 }
 
 if (isset($_GET['action']) && $_GET['action'] === 'toggle_wifi') {
-    AnalyticsService::toggleWifiFilter();
-    header('Location: ' . url('admin/analytics/?toggled=wifi'));
+    AnalyticsService::toggleWifiTracking();
+    header('Location: ' . url('admin/analytics/'));
     exit;
 }
 
 if (isset($_GET['action']) && $_GET['action'] === 'toggle_mobile') {
-    AnalyticsService::toggleMobileFilter();
-    header('Location: ' . url('admin/analytics/?toggled=mobile'));
+    AnalyticsService::toggleMobileTracking();
+    header('Location: ' . url('admin/analytics/'));
     exit;
 }
 
 $range = $_GET['range'] ?? 'today';
-$wifiFilter = AnalyticsService::isWifiFilterEnabled();
-$mobileFilter = AnalyticsService::isMobileFilterEnabled();
+$wifiTracking  = AnalyticsService::isWifiTrackingEnabled();   // true = counting my Wi-Fi
+$mobileTracking = AnalyticsService::isMobileTrackingEnabled(); // true = counting my Mobile
 $summary = AnalyticsService::getDashboardSummary();
 $dailyTrend = AnalyticsService::getDailyTrend(14);
 $topArticles = AnalyticsService::getTopArticles(10, $range);
@@ -74,38 +74,38 @@ include dirname(__DIR__) . '/components/header.php';
 <!-- Independent Wi-Fi & Jio Mobile Toggle Control Panel -->
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
     <!-- Wi-Fi Toggle Card -->
-    <div style="background: <?= $wifiFilter ? '#fef2f2' : '#f0fdf4' ?>; border: 1px solid <?= $wifiFilter ? '#fecaca' : '#bbf7d0' ?>; border-radius: 10px; padding: 1.15rem 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+    <div style="background: <?= $wifiTracking ? '#f0fdf4' : '#fef2f2' ?>; border: 1px solid <?= $wifiTracking ? '#bbf7d0' : '#fecaca' ?>; border-radius: 10px; padding: 1.15rem 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
         <div>
-            <div style="font-weight: 800; font-size: 0.9375rem; color: <?= $wifiFilter ? '#991b1b' : '#166534' ?>; display: flex; align-items: center; gap: 8px;">
+            <div style="font-weight: 800; font-size: 0.9375rem; color: <?= $wifiTracking ? '#166534' : '#991b1b' ?>; display: flex; align-items: center; gap: 8px;">
                 📶 Wi-Fi Tracking:
-                <span style="font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: <?= $wifiFilter ? '#ef4444' : '#22c55e' ?>; color: #ffffff;">
-                    <?= $wifiFilter ? '🔴 EXCLUDED (Not Counted)' : '🟢 INCLUDED (Tracking Active)' ?>
+                <span style="font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: <?= $wifiTracking ? '#22c55e' : '#ef4444' ?>; color: #ffffff;">
+                    <?= $wifiTracking ? '🟢 TRACKING ENABLED (Counting Me)' : '🔴 EXCLUDED (Not Counted)' ?>
                 </span>
             </div>
             <div style="font-size: 0.8125rem; color: #64748b; margin-top: 4px;">
                 Network IP: <code>38.254.176.x</code>
             </div>
         </div>
-        <a href="?action=toggle_wifi" style="padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 0.8125rem; text-decoration: none; background: <?= $wifiFilter ? '#16a34a' : '#dc2626' ?>; color: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); white-space: nowrap;">
-            <?= $wifiFilter ? '🟢 Include (Track Me)' : '🔴 Exclude (Stop Tracking)' ?>
+        <a href="?action=toggle_wifi" style="padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 0.8125rem; text-decoration: none; background: <?= $wifiTracking ? '#dc2626' : '#16a34a' ?>; color: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); white-space: nowrap;">
+            <?= $wifiTracking ? '🔴 Turn OFF (Exclude)' : '🟢 Turn ON (Track Me)' ?>
         </a>
     </div>
 
     <!-- Mobile / Jio Toggle Card -->
-    <div style="background: <?= $mobileFilter ? '#fef2f2' : '#f0fdf4' ?>; border: 1px solid <?= $mobileFilter ? '#fecaca' : '#bbf7d0' ?>; border-radius: 10px; padding: 1.15rem 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+    <div style="background: <?= $mobileTracking ? '#f0fdf4' : '#fef2f2' ?>; border: 1px solid <?= $mobileTracking ? '#bbf7d0' : '#fecaca' ?>; border-radius: 10px; padding: 1.15rem 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
         <div>
-            <div style="font-weight: 800; font-size: 0.9375rem; color: <?= $mobileFilter ? '#991b1b' : '#166534' ?>; display: flex; align-items: center; gap: 8px;">
+            <div style="font-weight: 800; font-size: 0.9375rem; color: <?= $mobileTracking ? '#166534' : '#991b1b' ?>; display: flex; align-items: center; gap: 8px;">
                 📱 Jio / Mobile Tracking:
-                <span style="font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: <?= $mobileFilter ? '#ef4444' : '#22c55e' ?>; color: #ffffff;">
-                    <?= $mobileFilter ? '🔴 EXCLUDED (Not Counted)' : '🟢 INCLUDED (Tracking Active)' ?>
+                <span style="font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: <?= $mobileTracking ? '#22c55e' : '#ef4444' ?>; color: #ffffff;">
+                    <?= $mobileTracking ? '🟢 TRACKING ENABLED (Counting Me)' : '🔴 EXCLUDED (Not Counted)' ?>
                 </span>
             </div>
             <div style="font-size: 0.8125rem; color: #64748b; margin-top: 4px;">
                 IPs: <code>152.58.x.x</code> &amp; <code>20.1.1.x</code>
             </div>
         </div>
-        <a href="?action=toggle_mobile" style="padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 0.8125rem; text-decoration: none; background: <?= $mobileFilter ? '#16a34a' : '#dc2626' ?>; color: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); white-space: nowrap;">
-            <?= $mobileFilter ? '🟢 Include (Track Me)' : '🔴 Exclude (Stop Tracking)' ?>
+        <a href="?action=toggle_mobile" style="padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 0.8125rem; text-decoration: none; background: <?= $mobileTracking ? '#dc2626' : '#16a34a' ?>; color: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); white-space: nowrap;">
+            <?= $mobileTracking ? '🔴 Turn OFF (Exclude)' : '🟢 Turn ON (Track Me)' ?>
         </a>
     </div>
 </div>

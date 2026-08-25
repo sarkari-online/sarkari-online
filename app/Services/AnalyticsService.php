@@ -41,35 +41,67 @@ class AnalyticsService {
     ];
 
     /**
-     * Check if Wi-Fi IP filtering is currently enabled
+     * Is Wi-Fi TRACKING enabled? (true = count my Wi-Fi hits)
+     * Default: false = do NOT count (excluded by default)
      */
-    public static function isWifiFilterEnabled(): bool {
-        return (string)SettingsService::get('analytics_filter_wifi', '1') === '1';
+    public static function isWifiTrackingEnabled(): bool {
+        return (string)SettingsService::get('analytics_track_wifi', '0') === '1';
     }
 
     /**
-     * Check if Mobile / Jio IP filtering is currently enabled
+     * Is Mobile/Jio TRACKING enabled? (true = count my Mobile hits)
+     * Default: false = do NOT count (excluded by default)
      */
-    public static function isMobileFilterEnabled(): bool {
-        return (string)SettingsService::get('analytics_filter_mobile', '1') === '1';
+    public static function isMobileTrackingEnabled(): bool {
+        return (string)SettingsService::get('analytics_track_mobile', '0') === '1';
     }
 
     /**
-     * Toggle Wi-Fi filter on/off
+     * Toggle Wi-Fi tracking ON/OFF
      */
-    public static function toggleWifiFilter(): bool {
-        $newVal = self::isWifiFilterEnabled() ? '0' : '1';
-        SettingsService::set('analytics_filter_wifi', $newVal, 'boolean', 'Filter Owner Wi-Fi Traffic');
+    public static function toggleWifiTracking(): bool {
+        $newVal = self::isWifiTrackingEnabled() ? '0' : '1';
+        SettingsService::set('analytics_track_wifi', $newVal, 'boolean', 'Track Owner Wi-Fi Traffic');
         return $newVal === '1';
     }
 
     /**
-     * Toggle Mobile filter on/off
+     * Toggle Mobile tracking ON/OFF
      */
-    public static function toggleMobileFilter(): bool {
-        $newVal = self::isMobileFilterEnabled() ? '0' : '1';
-        SettingsService::set('analytics_filter_mobile', $newVal, 'boolean', 'Filter Owner Mobile Traffic');
+    public static function toggleMobileTracking(): bool {
+        $newVal = self::isMobileTrackingEnabled() ? '0' : '1';
+        SettingsService::set('analytics_track_mobile', $newVal, 'boolean', 'Track Owner Mobile Traffic');
         return $newVal === '1';
+    }
+
+    /**
+     * Check if an IP belongs to owner's Wi-Fi network
+     */
+    public static function isOwnerWifi(string $ip): bool {
+        foreach (self::WIFI_IP_PREFIXES as $prefix) {
+            if (str_starts_with($ip, $prefix)) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Check if an IP belongs to owner's Mobile/Jio network
+     */
+    public static function isOwnerMobile(string $ip): bool {
+        foreach (self::MOBILE_IP_PREFIXES as $prefix) {
+            if (str_starts_with($ip, $prefix)) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Check if an IP is a system/server IP (always block these)
+     */
+    public static function isSystemIp(string $ip): bool {
+        foreach (self::SYSTEM_IP_PREFIXES as $prefix) {
+            if (str_starts_with($ip, $prefix)) return true;
+        }
+        return false;
     }
 
     /**
@@ -103,58 +135,42 @@ class AnalyticsService {
     }
 
     /**
-     * Check if given IP address is excluded from analytics
-     */
-    public static function isExcludedIp(string $ip): bool {
-        // 1. Check Wi-Fi filter
-        if (self::isWifiFilterEnabled()) {
-            foreach (self::WIFI_IP_PREFIXES as $prefix) {
-                if (str_starts_with($ip, $prefix)) {
-                    return true;
-                }
-            }
-        }
-
-        // 2. Check Mobile / Jio filter
-        if (self::isMobileFilterEnabled()) {
-            foreach (self::MOBILE_IP_PREFIXES as $prefix) {
-                if (str_starts_with($ip, $prefix)) {
-                    return true;
-                }
-            }
-        }
-
-        // 3. Always exclude server loopbacks & Docker bridge networks
-        foreach (self::SYSTEM_IP_PREFIXES as $prefix) {
-            if (str_starts_with($ip, $prefix)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
      * Track a public page view
+     * Core Logic:
+     *  - System IPs (server/Docker): ALWAYS blocked
+     *  - Owner Wi-Fi IP: blocked UNLESS Wi-Fi Tracking is ENABLED by admin toggle
+     *  - Owner Mobile IP: blocked UNLESS Mobile Tracking is ENABLED by admin toggle  
+     *  - All other IPs: always tracked (real visitors)
+     *  - Admin login: does NOT block tracking anymore
      */
     public static function track(?int $articleId = null, ?string $pageTitle = null, ?string $categorySlug = null): void {
         try {
             $uri = $_SERVER['REQUEST_URI'] ?? '/';
 
-            // 1. Skip internal admin panel / asset / cron requests
-            if (str_starts_with($uri, '/admin') || str_starts_with($uri, '/assets') || str_starts_with($uri, '/uploads') || str_starts_with($uri, '/cron')) {
+            // Always skip admin panel, assets, uploads, cron requests
+            if (
+                str_starts_with($uri, '/admin') ||
+                str_starts_with($uri, '/assets') ||
+                str_starts_with($uri, '/uploads') ||
+                str_starts_with($uri, '/cron')
+            ) {
                 return;
             }
 
             $ip = self::getClientIp();
 
-            // 2. Skip if IP is in active exclusion list (Wi-Fi / Mobile excluded)
-            if (self::isExcludedIp($ip)) {
+            // Always block server/Docker internal IPs
+            if (self::isSystemIp($ip)) {
                 return;
             }
 
-            // 3. If admin is logged in: skip only if both Wi-Fi & Mobile filters are actively excluding
-            if (Auth::check() && self::isWifiFilterEnabled() && self::isMobileFilterEnabled()) {
+            // Owner Wi-Fi: block UNLESS toggle says "ENABLED (Track Me)"
+            if (self::isOwnerWifi($ip) && !self::isWifiTrackingEnabled()) {
+                return;
+            }
+
+            // Owner Mobile/Jio: block UNLESS toggle says "ENABLED (Track Me)"
+            if (self::isOwnerMobile($ip) && !self::isMobileTrackingEnabled()) {
                 return;
             }
 
