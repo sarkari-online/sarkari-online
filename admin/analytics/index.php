@@ -26,6 +26,7 @@ $dailyTrend = AnalyticsService::getDailyTrend(14);
 $topArticles = AnalyticsService::getTopArticles(10, $range);
 $sources = AnalyticsService::getTrafficSources($range);
 $devices = AnalyticsService::getDeviceBreakdown($range);
+$recentVisitors = AnalyticsService::getRecentVisitorLogs(25);
 
 // Calculate max views for trend bar scaling
 $maxDailyViews = 1;
@@ -245,6 +246,62 @@ include dirname(__DIR__) . '/components/header.php';
             <?php endif; ?>
         </div>
     </div>
+</div>
+
+<!-- Real-Time Live Visitor Log Table (with IP Addresses) -->
+<div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+    <div style="padding: 1rem 1.25rem; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
+        <div style="font-size: 1rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #22c55e; animation: pulse 2s infinite;"></span>
+            🌐 Live Visitor Stream (Real IP Addresses &amp; Activity)
+        </div>
+        <span style="font-size: 0.75rem; color: #64748b; font-weight: 600;">Showing last 25 real-time hits</span>
+    </div>
+
+    <?php if (empty($recentVisitors)): ?>
+        <div style="padding: 2.5rem; text-align: center; color: #94a3b8; font-size: 0.875rem;">
+            No live visitors in stream yet. As real students browse Sarkari.online, their IP addresses, devices, and exact pages will stream here in real-time.
+        </div>
+    <?php else: ?>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+                <thead>
+                    <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; text-align: left; font-size: 0.75rem; color: #64748b; text-transform: uppercase;">
+                        <th style="padding: 10px 14px;">Time</th>
+                        <th style="padding: 10px 14px;">IP Address</th>
+                        <th style="padding: 10px 14px;">Page Visited</th>
+                        <th style="padding: 10px 14px;">Source</th>
+                        <th style="padding: 10px 14px;">Device / Browser</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($recentVisitors as $v): ?>
+                        <tr style="border-bottom: 1px solid #f1f5f9;">
+                            <td style="padding: 10px 14px; color: #64748b; font-size: 0.8125rem; white-space: nowrap;">
+                                <?= date('h:i:s A', strtotime($v['viewed_at'])) ?>
+                            </td>
+                            <td style="padding: 10px 14px; font-weight: 700; font-family: monospace; color: #0284c7;">
+                                <?= e($v['ip_address']) ?>
+                            </td>
+                            <td style="padding: 10px 14px; max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <a href="<?= e($v['page_url']) ?>" target="_blank" style="color: #0f172a; text-decoration: none; font-weight: 600;">
+                                    <?= e($v['page_title'] ?: $v['page_url']) ?>
+                                </a>
+                            </td>
+                            <td style="padding: 10px 14px;">
+                                <span style="background: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; color: #334155;">
+                                    <?= e(ucfirst($v['referrer_type'])) ?>
+                                </span>
+                            </td>
+                            <td style="padding: 10px 14px; color: #64748b; font-size: 0.8125rem;">
+                                <?= e($v['os'] ?? 'OS') ?> • <?= e($v['browser'] ?? 'Browser') ?> (<?= e(ucfirst($v['device_type'])) ?>)
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    <?php endif; ?>
 </div>
 
 <style>

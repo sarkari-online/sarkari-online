@@ -254,6 +254,23 @@ class AnalyticsService {
     }
 
     /**
+     * Get Real-Time Recent Visitor Activity Logs (with IP Address, Device, Page, Time)
+     */
+    public static function getRecentVisitorLogs(int $limit = 30): array {
+        self::ensureTableExists();
+
+        $sql = "SELECT p.id, p.ip_address, p.page_url, p.page_title, p.referrer_type, p.referrer,
+                       p.device_type, p.browser, p.os, p.viewed_at, a.slug
+                FROM page_views p
+                LEFT JOIN articles a ON p.article_id = a.id
+                WHERE p.is_bot = 0
+                ORDER BY p.viewed_at DESC
+                LIMIT " . (int)$limit;
+
+        return Database::fetchAll($sql);
+    }
+
+    /**
      * Get Traffic Sources Breakdown
      */
     public static function getTrafficSources(string $range = '7days'): array {
