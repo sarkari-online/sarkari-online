@@ -49,7 +49,7 @@ include dirname(__DIR__) . '/components/header.php';
 <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px 16px; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; font-size: 0.875rem; color: #166534;">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; color: #16a34a;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
     <div>
-        <strong>Accuracy Filter Active:</strong> Your Wi-Fi network subnet (<code>38.254.176.x</code>), local traffic, and logged-in admin browser sessions are <strong>100% excluded</strong> from this data. Only real external visitors are counted.
+        <strong>Accuracy Filter Active:</strong> Your Wi-Fi (<code>38.254.176.x</code>), Mobile Network (<code>152.58.x.x</code>), and logged-in admin browser sessions are <strong>100% excluded</strong> from this data. Only real external students &amp; visitors are counted.
     </div>
 </div>
 

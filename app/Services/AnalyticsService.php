@@ -15,9 +15,11 @@ use Throwable;
 
 class AnalyticsService {
 
-    // Configured excluded IP ranges (e.g. Owner Wi-Fi network)
+    // Configured excluded IP ranges (Owner Wi-Fi & Mobile networks)
     public const EXCLUDED_IP_PREFIXES = [
-        '38.254.176.', // Owner's Wi-Fi network subnet
+        '38.254.176.',  // Owner's Wi-Fi network subnet
+        '152.58.87.',   // Owner's Mobile network subnet
+        '152.58.',      // Owner's Mobile network IP pool
         '127.0.0.1',
         '::1',
         '192.168.'
