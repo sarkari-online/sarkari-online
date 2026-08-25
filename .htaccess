@@ -16,6 +16,8 @@
     RewriteRule ^feed\.xml$ feed.php [L,QSA]
     RewriteRule ^rss\.xml$ feed.php [L,QSA]
     RewriteRule ^rss/?$ feed.php [L,QSA]
+    RewriteRule ^pinterest-feed/?$ pinterest-feed.php [L,QSA]
+    RewriteRule ^pinterest-feed\.xml$ pinterest-feed.php [L,QSA]
     RewriteRule ^article/([a-zA-Z0-9_-]+)/?$ article.php?slug=$1 [L,QSA]
     RewriteRule ^category/([a-zA-Z0-9_-]+)/?$ category.php?slug=$1 [L,QSA]
     RewriteRule ^search/?$ search.php [L,QSA]
