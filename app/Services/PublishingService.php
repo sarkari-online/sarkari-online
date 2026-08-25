@@ -247,6 +247,10 @@ class PublishingService {
 
         Database::update('articles', $updateFields, 'id = :id', ['id' => $articleId]);
 
+        // Regenerate thumbnail with exact current publication date stamp
+        $thumbnailService = new ThumbnailService();
+        $thumbnailService->generateForArticle($articleId);
+
         // 4. Update associated trend status to 'published'
         if (!empty($article['trend_id'])) {
             TrendService::markStatus((int)$article['trend_id'], 'published', [

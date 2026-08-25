@@ -62,12 +62,20 @@ class RssFeedAdapter implements TrendSourceInterface {
                     $pubDate = !empty($item->pubDate) ? date('Y-m-d H:i:s', strtotime((string)$item->pubDate)) : (!empty($item->updated) ? date('Y-m-d H:i:s', strtotime((string)$item->updated)) : date('Y-m-d H:i:s'));
                     $snippet = trim((string)($item->description ?? $item->summary ?? ''));
 
+                    // Strict English Only (Skip any Devanagari / Hindi items)
+                    if (preg_match('/[\x{0900}-\x{097F}]/u', $title) || preg_match('/[\x{0900}-\x{097F}]/u', $snippet)) {
+                        continue;
+                    }
+
+                    $resolvedCat = \App\Services\CategoryService::autoResolveCategory($title, $snippet);
+                    $categoryHint = $resolvedCat['slug'] ?? 'career-guides';
+
                     $results[] = [
                         'keyword' => $title,
                         'source' => $this->getSourceId(),
                         'url' => $link ?: null,
                         'trend_score' => 80,
-                        'category_hint' => $this->inferCategoryHint($title . ' ' . $snippet),
+                        'category_hint' => $categoryHint,
                         'snippet' => strip_tags($snippet),
                         'detected_at' => $pubDate,
                         'raw_payload' => [

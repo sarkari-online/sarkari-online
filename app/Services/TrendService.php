@@ -122,9 +122,19 @@ class TrendService {
      * Comprehensive qualification gate before AI analysis
      */
     public static function isQualified(array $trendData): array {
-        $keyword = $trendData['keyword'] ?? '';
-        if (mb_strlen(trim($keyword)) < 4) {
+        $keyword = trim($trendData['keyword'] ?? '');
+        if (mb_strlen($keyword) < 4) {
             return ['qualified' => false, 'reason' => 'Keyword too short.'];
+        }
+
+        // 1. Strict English Only Gate (Reject Devanagari / Hindi script)
+        if (preg_match('/[\x{0900}-\x{097F}]/u', $keyword) || preg_match('/[\x{0900}-\x{097F}]/u', $trendData['snippet'] ?? '')) {
+            return ['qualified' => false, 'reason' => 'Non-English (Devanagari/Hindi) text rejected. Sarkari.online is strictly 100% English.'];
+        }
+
+        // 2. Strict Education & Recruitment Relevance Gate
+        if (!self::isEducationRelevant($keyword, $trendData['snippet'] ?? '')) {
+            return ['qualified' => false, 'reason' => 'Topic rejected: Not relevant to student exams, results, recruitments, or scholarships.'];
         }
 
         if (self::existsAsTrend($keyword)) {
@@ -141,6 +151,32 @@ class TrendService {
         }
 
         return ['qualified' => true, 'reason' => 'Passed qualification checks.'];
+    }
+
+    /**
+     * Check if a keyword is strictly relevant to Indian education, examinations, and recruitment
+     */
+    public static function isEducationRelevant(string $keyword, string $snippet = ''): bool {
+        $text = mb_strtolower($keyword . ' ' . $snippet);
+        $coreKeywords = [
+            'exam', 'recruitment', 'vacancy', 'vacancies', 'admit card', 'result', 'cutoff', 'cut off', 'merit list',
+            'counselling', 'counseling', 'scholarship', 'fellowship', 'syllabus', 'answer key', 'eligibility',
+            'notification', 'datesheet', 'date sheet', 'timetable', 'hall ticket', 'application', 'registration',
+            'ssc', 'upsc', 'nta', 'neet', 'jee', 'gate', 'ctet', 'cbse', 'ibps', 'rrb', 'railway',
+            'police', 'bsf', 'crpf', 'itbp', 'cisf', 'navy', 'army', 'air force', 'ugc', 'cuet',
+            'digilocker', 'apaar', 'abc id', 'pmsss', 'nsp', 'aibe', 'bar council', 'clat', 'cat', 'aiims',
+            'degree', 'admission', 'allotment', 'seat', 'selection process', 'paper 1', 'paper 2', 'tier 1', 'tier 2',
+            'post matric', 'pre matric', 'scholarships', 'b.ed', 'd.el.ed', 'tet', 'uptet', 'htet', 'reet',
+            'direct recruitment', 'bharti', 'sarkari naukri', 'officer', 'constable', 'inspector', 'assistant',
+            'bci enrollment', 'industry-academia', 'phd funding', 'stipend', 'grant'
+        ];
+
+        foreach ($coreKeywords as $kw) {
+            if (str_contains($text, $kw)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
