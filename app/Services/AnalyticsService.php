@@ -15,17 +15,17 @@ use Throwable;
 
 class AnalyticsService {
 
-    // Wi-Fi Network IP Prefixes (Owner Broadband)
+    // Wi-Fi Network IP Prefixes (Owner Broadband - Permanently Excluded)
     public const WIFI_IP_PREFIXES = [
         '38.254.176.'
     ];
 
-    // Mobile / Jio Network IP Prefixes (Owner Mobile Data & Private Relay)
+    // Mobile / Jio Network IP Prefixes (Owner Mobile Data & Private Relay - Permanently Excluded)
     public const MOBILE_IP_PREFIXES = [
         '152.58.',
         '152.57.',
         '152.59.',
-        '20.1.1.'  // User mobile connection / proxy IP
+        '20.1.1.'
     ];
 
     public const SYSTEM_IP_PREFIXES = [
@@ -41,66 +41,24 @@ class AnalyticsService {
     ];
 
     /**
-     * Is Wi-Fi TRACKING enabled? (true = count my Wi-Fi hits)
-     * Default: false = do NOT count (excluded by default)
+     * Check if given IP address is excluded from analytics
      */
-    public static function isWifiTrackingEnabled(): bool {
-        return (string)SettingsService::get('analytics_track_wifi', '0') === '1';
-    }
-
-    /**
-     * Is Mobile/Jio TRACKING enabled? (true = count my Mobile hits)
-     * Default: false = do NOT count (excluded by default)
-     */
-    public static function isMobileTrackingEnabled(): bool {
-        return (string)SettingsService::get('analytics_track_mobile', '0') === '1';
-    }
-
-    /**
-     * Toggle Wi-Fi tracking ON/OFF
-     */
-    public static function toggleWifiTracking(): bool {
-        $newVal = self::isWifiTrackingEnabled() ? '0' : '1';
-        SettingsService::set('analytics_track_wifi', $newVal, 'boolean', 'Track Owner Wi-Fi Traffic');
-        return $newVal === '1';
-    }
-
-    /**
-     * Toggle Mobile tracking ON/OFF
-     */
-    public static function toggleMobileTracking(): bool {
-        $newVal = self::isMobileTrackingEnabled() ? '0' : '1';
-        SettingsService::set('analytics_track_mobile', $newVal, 'boolean', 'Track Owner Mobile Traffic');
-        return $newVal === '1';
-    }
-
-    /**
-     * Check if an IP belongs to owner's Wi-Fi network
-     */
-    public static function isOwnerWifi(string $ip): bool {
+    public static function isExcludedIp(string $ip): bool {
+        // 1. Owner Wi-Fi
         foreach (self::WIFI_IP_PREFIXES as $prefix) {
             if (str_starts_with($ip, $prefix)) return true;
         }
-        return false;
-    }
 
-    /**
-     * Check if an IP belongs to owner's Mobile/Jio network
-     */
-    public static function isOwnerMobile(string $ip): bool {
+        // 2. Owner Mobile / Jio
         foreach (self::MOBILE_IP_PREFIXES as $prefix) {
             if (str_starts_with($ip, $prefix)) return true;
         }
-        return false;
-    }
 
-    /**
-     * Check if an IP is a system/server IP (always block these)
-     */
-    public static function isSystemIp(string $ip): bool {
+        // 3. Server loopbacks & Docker bridge networks
         foreach (self::SYSTEM_IP_PREFIXES as $prefix) {
             if (str_starts_with($ip, $prefix)) return true;
         }
+
         return false;
     }
 
@@ -136,18 +94,16 @@ class AnalyticsService {
 
     /**
      * Track a public page view
-     * Core Logic:
-     *  - System IPs (server/Docker): ALWAYS blocked
-     *  - Owner Wi-Fi IP: blocked UNLESS Wi-Fi Tracking is ENABLED by admin toggle
-     *  - Owner Mobile IP: blocked UNLESS Mobile Tracking is ENABLED by admin toggle  
-     *  - All other IPs: always tracked (real visitors)
-     *  - Admin login: does NOT block tracking anymore
      */
     public static function track(?int $articleId = null, ?string $pageTitle = null, ?string $categorySlug = null): void {
         try {
-            $uri = $_SERVER['REQUEST_URI'] ?? '/';
+            // 1. Skip if authenticated as Admin
+            if (Auth::check()) {
+                return;
+            }
 
-            // Always skip admin panel, assets, uploads, cron requests
+            // 2. Skip internal admin panel / assets / uploads / cron requests
+            $uri = $_SERVER['REQUEST_URI'] ?? '/';
             if (
                 str_starts_with($uri, '/admin') ||
                 str_starts_with($uri, '/assets') ||
@@ -159,18 +115,8 @@ class AnalyticsService {
 
             $ip = self::getClientIp();
 
-            // Always block server/Docker internal IPs
-            if (self::isSystemIp($ip)) {
-                return;
-            }
-
-            // Owner Wi-Fi: block UNLESS toggle says "ENABLED (Track Me)"
-            if (self::isOwnerWifi($ip) && !self::isWifiTrackingEnabled()) {
-                return;
-            }
-
-            // Owner Mobile/Jio: block UNLESS toggle says "ENABLED (Track Me)"
-            if (self::isOwnerMobile($ip) && !self::isMobileTrackingEnabled()) {
+            // 3. Skip if IP belongs to owner Wi-Fi, Mobile or Server systems
+            if (self::isExcludedIp($ip)) {
                 return;
             }
 
