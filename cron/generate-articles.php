@@ -40,6 +40,19 @@ try {
         }
     }
 
+    // Automatically sweep and publish any qualified review queue articles up to daily limit
+    $pubService = new \App\Services\PublishingService();
+    if (!$pubService->isDailyLimitReached()) {
+        $pubResult = $pubService->processPublishQueue($maxPerRun);
+        if (!empty($pubResult['items'])) {
+            foreach ($pubResult['items'] as $pItem) {
+                if (!empty($pItem['success'])) {
+                    echo "  -> Auto-Published Review Article #{$pItem['article_id']}: '{$pItem['title']}'\n";
+                }
+            }
+        }
+    }
+
     $elapsed = round(microtime(true) - $startTime, 2);
     echo "[" . date('Y-m-d H:i:s') . "] Completed: {$generatedCount} generated, {$failedCount} failed in {$elapsed}s.\n";
     Logger::info("Cron generate-articles finished", [

@@ -224,7 +224,19 @@ class PipelineService {
             ])
         ]);
 
-        Logger::info("Pipeline successfully generated Article #{$articleId} (Status: {$finalStatus}, Quality Score: {$finalScore}) for Trend #{$trendId}");
+        // 12. Instant Autonomous Live Publishing for Qualified Articles
+        $publishingService = new PublishingService();
+        $canPub = $publishingService->canPublish($articleId);
+
+        if ($canPub['can_publish']) {
+            $pubResult = $publishingService->publish($articleId);
+            if (!empty($pubResult['success'])) {
+                $finalStatus = 'published';
+                Logger::info("Article #{$articleId} automatically published LIVE instantly during pipeline generation!");
+            }
+        }
+
+        Logger::info("Pipeline successfully completed Article #{$articleId} (Final Status: {$finalStatus}, Quality Score: {$finalScore}) for Trend #{$trendId}");
 
         return [
             'success' => true,
