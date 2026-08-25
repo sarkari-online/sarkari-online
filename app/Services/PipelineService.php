@@ -17,6 +17,7 @@ use App\Database\Database;
 use App\Helpers\Env;
 use App\Helpers\Logger;
 use App\Helpers\Sanitizer;
+use App\Services\WebVitalsService;
 use Exception;
 use Throwable;
 
@@ -213,6 +214,22 @@ class PipelineService {
             $finalStatus = 'draft';
             Database::update('articles', ['status' => 'draft'], 'id = :id', ['id' => $articleId]);
             Logger::warning("Article #{$articleId} downgraded to draft because thumbnail generation failed.");
+        }
+
+        // 10b. Core Web Vitals Pre-Check & Auto-Fix (alt tags, lazy loading, noopener, heading check)
+        $vitalsCheck = WebVitalsService::check([
+            'content'           => $linking['linked_content'],
+            'title'             => $polished['edited_title'],
+            'featured_image'    => null,
+            'featured_image_alt'=> null
+        ]);
+        if (!empty($vitalsCheck['fixed_content']) && $vitalsCheck['fixes_applied'] > 0) {
+            $linking['linked_content'] = $vitalsCheck['fixed_content'];
+            Database::update('articles', ['content' => $vitalsCheck['fixed_content']], 'id = :id', ['id' => $articleId]);
+            Logger::info("Article #{$articleId}: WebVitals auto-fixed {$vitalsCheck['fixes_applied']} HTML issues.");
+        }
+        if (!empty($vitalsCheck['issues'])) {
+            Logger::info("Article #{$articleId} WebVitals issues: " . implode(' | ', $vitalsCheck['issues']));
         }
 
         // 11. Update Trend Status to 'generated'

@@ -3,3 +3,8 @@
 */20 * * * * cd /var/www/html && php cron/analyze-trends.php >> /var/www/html/storage/logs/cron.log 2>&1
 */30 * * * * cd /var/www/html && php cron/generate-articles.php >> /var/www/html/storage/logs/cron.log 2>&1
 */45 * * * * cd /var/www/html && php cron/publish-articles.php >> /var/www/html/storage/logs/cron.log 2>&1
+
+# SEO Automation Suite
+0 3 * * * cd /var/www/html && php cron/content-freshness.php >> /var/www/html/storage/logs/cron.log 2>&1
+0 4 * * * cd /var/www/html && php cron/seo-audit.php >> /var/www/html/storage/logs/cron.log 2>&1
+0 2 * * 0 cd /var/www/html && php cron/link-health.php >> /var/www/html/storage/logs/cron.log 2>&1
