@@ -26,7 +26,7 @@ $cardCatColor = $article['category_color'] ?? '#1e3a8a';
                 <?= e($cardCatName) ?>
             </a>
             <span class="meta-dot"></span>
-            <span><?= format_date($article['published_at'] ?? 'now') ?></span>
+            <time datetime="<?= e($article['published_at'] ?? '') ?>" class="notranslate"><?= format_date($article['published_at'] ?? 'now') ?></time>
         </div>
 
         <h3 class="article-card-title">
@@ -42,7 +42,7 @@ $cardCatColor = $article['category_color'] ?? '#1e3a8a';
         <?php endif; ?>
 
         <div class="card-footer-meta">
-            <span><?= icon('clock', 'icon-sm') ?> <?= e($article['read_time'] ?? '3 min read') ?></span>
+            <span class="notranslate"><?= icon('clock', 'icon-sm') ?> <?= e($article['read_time'] ?? '3 min read') ?></span>
             <a href="<?= url('article/' . $article['slug'] . '/') ?>" class="btn btn-sm btn-outline">
                 Read Update <?= icon('chevron-right', 'icon-sm') ?>
             </a>

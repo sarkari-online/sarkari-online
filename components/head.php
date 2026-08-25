@@ -145,6 +145,11 @@ if (!$isAdminSession):
         <link rel="preload" as="image" href="<?= e($lcpImagePreload) ?>" fetchpriority="high">
     <?php endif; ?>
 
+    <!-- Multi-Platform Fonts: Inter + Noto Sans Devanagari with swap -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
+
     <!-- Critical CSS Reset: Prevent Giant Icon Flash & Layout Shifts (CLS = 0) -->
     <style>
     svg.icon{width:1em;height:1em;display:inline-block;vertical-align:middle;max-width:24px;max-height:24px}
@@ -154,7 +159,7 @@ if (!$isAdminSession):
     svg.icon-lg{width:24px;height:24px}
     svg.icon-xl{width:32px;height:32px}
     *,*::before,*::after{box-sizing:border-box}
-    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f8fafc;color:#0f172a}
+    body{margin:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans Devanagari","Noto Sans",Arial,sans-serif;background:#f8fafc;color:#0f172a}
     img{max-width:100%;height:auto;display:block}
     .goog-te-banner-frame,iframe.skiptranslate,.VIpgJd-ZVi9od-aZ2wEe-wOHMyf,.VIpgJd-ZVi9od-ORHb-OEVmcb{display:none!important;visibility:hidden!important;height:0!important;width:0!important}
     body{top:0!important}

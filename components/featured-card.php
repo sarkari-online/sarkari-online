@@ -39,10 +39,10 @@ if (!isset($featured) || !isset($secondary)) {
                     <?= e($featCatName) ?>
                 </a>
                 <span class="meta-dot"></span>
-                <span><?= format_date($featured['published_at'] ?? 'now') ?></span>
+                <time datetime="<?= e($featured['published_at'] ?? '') ?>" class="notranslate"><?= format_date($featured['published_at'] ?? 'now') ?></time>
                 <?php if (!empty($featured['updated_at'])): ?>
                     <span class="meta-dot"></span>
-                    <span class="badge badge-live" style="font-size: 0.685rem;">Updated <?= time_ago($featured['updated_at']) ?></span>
+                    <span class="badge badge-live notranslate" style="font-size: 0.685rem;">Updated <?= time_ago($featured['updated_at']) ?></span>
                 <?php endif; ?>
             </div>
 
@@ -58,7 +58,7 @@ if (!isset($featured) || !isset($secondary)) {
 
             <div class="card-footer-meta">
                 <span class="card-author"><?= icon('user', 'icon-sm') ?> <?= e($featured['author'] ?? $featured['author_username'] ?? 'Sarkari.online Editorial') ?></span>
-                <span><?= icon('clock', 'icon-sm') ?> <?= e($featured['read_time'] ?? '4 min read') ?></span>
+                <span class="notranslate"><?= icon('clock', 'icon-sm') ?> <?= e($featured['read_time'] ?? '4 min read') ?></span>
             </div>
         </div>
     </article>
@@ -96,7 +96,7 @@ if (!isset($featured) || !isset($secondary)) {
                             <?= e($itemCatName) ?>
                         </a>
                         <span class="meta-dot"></span>
-                        <span style="color: var(--text-muted); font-size: 0.75rem;"><?= format_date($item['published_at'] ?? 'now') ?></span>
+                        <time datetime="<?= e($item['published_at'] ?? '') ?>" class="notranslate" style="color: var(--text-muted); font-size: 0.75rem;"><?= format_date($item['published_at'] ?? 'now') ?></time>
                     </div>
                     <h3 class="compact-row-title">
                         <a href="<?= url('article/' . $item['slug'] . '/') ?>">
@@ -107,7 +107,7 @@ if (!isset($featured) || !isset($secondary)) {
                         <p class="compact-row-excerpt"><?= e(truncate_text($item['excerpt'], 75)) ?></p>
                     <?php endif; ?>
                     <div class="compact-row-footer">
-                        <span><?= icon('clock', 'icon-sm') ?> <?= e($item['read_time'] ?? '3 min read') ?></span>
+                        <span class="notranslate"><?= icon('clock', 'icon-sm') ?> <?= e($item['read_time'] ?? '3 min read') ?></span>
                         <a href="<?= url('article/' . $item['slug'] . '/') ?>" class="compact-read-more">
                             Read Notice <?= icon('chevron-right', 'icon-xs') ?>
                         </a>

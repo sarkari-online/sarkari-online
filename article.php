@@ -138,7 +138,7 @@ include __DIR__ . '/components/header.php';
                             </div>
                         </div>
 
-                        <div class="byline-dates">
+                        <div class="byline-dates notranslate">
                             <span>Published: <strong><?= format_date($article['original_published_at'] ?? $article['published_at'] ?? $article['created_at'], true) ?></strong></span>
                             <?php if (!empty($article['updated_at']) && $article['updated_at'] > ($article['original_published_at'] ?? $article['published_at'] ?? $article['created_at'])): ?>
                                 <span class="byline-last-updated" style="color: #b91c1c; font-weight: 600; background: #fef2f2; padding: 2px 8px; border-radius: 4px; border: 1px solid #fecaca;">
