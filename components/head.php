@@ -27,6 +27,12 @@ $metaAuthorVal = !empty($metaAuthor) ? $metaAuthor : 'Sarkari.online Editorial D
 $ogTitleVal = !empty($ogTitle) ? $ogTitle : $metaTitle;
 $ogDescVal = !empty($ogDescription) ? $ogDescription : $metaDesc;
 $ogImageVal = !empty($ogImage) ? (str_starts_with($ogImage, 'http') ? $ogImage : url($ogImage)) : url('assets/images/default-share.jpg');
+// Autonomous In-House Real-Time Traffic Telemetry
+\App\Services\AnalyticsService::track(
+    isset($article['id']) ? (int)$article['id'] : null,
+    $metaTitle ?? null,
+    isset($category['slug']) ? $category['slug'] : null
+);
 ?>
 <!DOCTYPE html>
 <html lang="en-IN">

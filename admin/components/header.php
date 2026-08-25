@@ -180,6 +180,9 @@ $adminPageTitle = $adminPageTitle ?? 'Admin Dashboard';
             <a href="<?= url('admin/') ?>" class="admin-nav-item <?= ($adminPageKey ?? '') === 'dashboard' ? 'active' : '' ?>">
                 <?= icon('layers') ?> Dashboard
             </a>
+            <a href="<?= url('admin/analytics/') ?>" class="admin-nav-item <?= ($adminPageKey ?? '') === 'analytics' ? 'active' : '' ?>" style="color: #38bdf8;">
+                <?= icon('trending-up') ?> Live Traffic &amp; Visitors
+            </a>
             <a href="<?= url('admin/articles/') ?>" class="admin-nav-item <?= ($adminPageKey ?? '') === 'articles' ? 'active' : '' ?>">
                 <?= icon('file-text') ?> Articles
             </a>
