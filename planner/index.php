@@ -1,7 +1,7 @@
 <?php
 /**
  * Sarkari.online - Standalone Keyword Volume & Search Intelligence Planner
- * Private Standalone Tool: IP Protected (Strict Owner Network Only) + Robots Disallowed
+ * Ultra-Clean Light Theme UI & Private IP Protected Tool
  */
 
 // 1. Strict IP Whitelist Guard (Owner Network Only)
@@ -15,16 +15,16 @@ $isOwnerIp = str_starts_with($clientIp, '38.254.176.')
     || str_starts_with($clientIp, '20.1.1.')
     || in_array($clientIp, ['127.0.0.1', '::1', 'localhost'], true);
 
-// Optional fallback access via secret key query parameter ?key=sarkari_secret_planner
+// Fallback access via secret key ?key=sarkari_secret_planner
 $secretKey = $_GET['key'] ?? '';
 if (!$isOwnerIp && $secretKey !== 'sarkari_secret_planner') {
     http_response_code(403);
     header('Content-Type: text/html; charset=utf-8');
-    echo '<!DOCTYPE html><html><head><title>403 Forbidden</title><style>body{font-family:sans-serif;background:#0f172a;color:#94a3b8;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;text-align:center;}h1{color:#f87171;font-size:2rem;margin-bottom:0.5rem;}p{font-size:1rem;color:#64748b;}</style></head><body><div><h1>403 Forbidden</h1><p>Private Internal Utility — Access Restricted.</p></div></body></html>';
+    echo '<!DOCTYPE html><html><head><title>403 Forbidden</title><style>body{font-family:sans-serif;background:#f8fafc;color:#475569;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;text-align:center;}h1{color:#e11d48;font-size:2rem;margin-bottom:0.5rem;}p{font-size:1rem;color:#64748b;}</style></head><body><div><h1>403 Forbidden</h1><p>Private Internal Tool — Access Restricted.</p></div></body></html>';
     exit;
 }
 
-// 2. Load Core Configuration for Gemini & Helpers
+// 2. Load Core Configuration & Services
 require_once dirname(__DIR__) . '/config.php';
 use App\Services\KeywordPlannerService;
 
@@ -40,7 +40,7 @@ if (!empty($query)) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sarkari.online — Keyword Intelligence &amp; Volume Planner</title>
+    <title>Keyword Intelligence Planner — Sarkari.online</title>
     <!-- Strict De-indexing Directives -->
     <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
     <meta name="googlebot" content="noindex, nofollow">
@@ -48,96 +48,110 @@ if (!empty($query)) {
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-body: #0a0f1d;
-            --bg-card: #131b2e;
-            --bg-card-hover: #18233c;
-            --border-color: #1e293b;
-            --primary: #38bdf8;
-            --primary-glow: rgba(56, 189, 248, 0.25);
-            --accent: #f59e0b;
-            --success: #10b981;
-            --danger: #ef4444;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --border-color: #e2e8f0;
+            --border-subtle: #f1f5f9;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --primary-light: #eff6ff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --text-light: #94a3b8;
+            --success: #059669;
+            --success-bg: #ecfdf5;
+            --warning: #d97706;
+            --warning-bg: #fffbeb;
+            --danger: #dc2626;
+            --danger-bg: #fef2f2;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
-        body { background: var(--bg-body); color: var(--text-main); line-height: 1.5; padding-bottom: 4rem; }
+        body { background: var(--bg-body); color: var(--text-main); line-height: 1.5; padding-bottom: 4rem; -webkit-font-smoothing: antialiased; }
         .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
         
         /* Navbar */
-        .navbar { background: rgba(10, 15, 29, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-color); padding: 1rem 0; position: sticky; top: 0; z-index: 50; }
+        .navbar { background: #ffffff; border-bottom: 1px solid var(--border-color); padding: 0.9rem 0; position: sticky; top: 0; z-index: 50; box-shadow: var(--shadow-sm); }
         .nav-inner { display: flex; align-items: center; justify-content: space-between; }
-        .logo { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: #fff; font-weight: 800; font-size: 1.15rem; }
+        .logo { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; color: var(--text-main); font-weight: 800; font-size: 1.15rem; }
+        .logo-icon { background: #eff6ff; color: var(--primary); width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; border: 1px solid #bfdbfe; }
         .logo span { color: var(--primary); }
-        .badge-ip { background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399; padding: 0.35rem 0.85rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 6px; }
-        .badge-ip-dot { width: 7px; height: 7px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981; }
+        .badge-ip { background: var(--success-bg); border: 1px solid #a7f3d0; color: var(--success); padding: 0.35rem 0.85rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+        .badge-ip-dot { width: 7px; height: 7px; border-radius: 50%; background: #10b981; }
 
-        /* Search Hero */
-        .hero { padding: 3rem 0 2rem; text-align: center; }
-        .hero h1 { font-size: 2.25rem; font-weight: 800; margin-bottom: 0.5rem; background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .hero p { color: var(--text-muted); font-size: 1rem; max-width: 600px; margin: 0 auto 2rem; }
+        /* Hero Search Area */
+        .hero { padding: 3.5rem 0 2.5rem; text-align: center; }
+        .hero-badge { display: inline-flex; align-items: center; gap: 6px; background: #eff6ff; border: 1px solid #bfdbfe; color: var(--primary); font-size: 0.8125rem; font-weight: 700; padding: 0.35rem 0.85rem; border-radius: 20px; margin-bottom: 1rem; }
+        .hero h1 { font-size: 2.25rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+        .hero p { color: var(--text-muted); font-size: 1.05rem; max-width: 620px; margin: 0 auto 2rem; }
 
-        .search-box-wrap { max-width: 750px; margin: 0 auto 1.5rem; position: relative; }
-        .search-form { display: flex; gap: 0.5rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 0.4rem 0.5rem; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35); transition: border-color 0.2s, box-shadow 0.2s; }
-        .search-form:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); }
-        .search-input { flex: 1; background: transparent; border: none; outline: none; color: #fff; font-size: 1.05rem; font-weight: 600; padding: 0.75rem 1rem; }
-        .search-input::placeholder { color: #64748b; font-weight: 400; }
-        .search-btn { background: var(--primary); color: #0a0f1d; border: none; outline: none; border-radius: 10px; font-weight: 800; font-size: 0.95rem; padding: 0 1.75rem; cursor: pointer; transition: background 0.2s, transform 0.1s; }
-        .search-btn:hover { background: #7dd3fc; }
+        .search-box-wrap { max-width: 760px; margin: 0 auto 1.5rem; }
+        .search-form { display: flex; gap: 0.5rem; background: #ffffff; border: 2px solid #cbd5e1; border-radius: 14px; padding: 0.4rem 0.5rem; box-shadow: var(--shadow-lg); transition: all 0.2s; }
+        .search-form:focus-within { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12); }
+        .search-input { flex: 1; background: transparent; border: none; outline: none; color: var(--text-main); font-size: 1.05rem; font-weight: 600; padding: 0.75rem 1rem; }
+        .search-input::placeholder { color: var(--text-light); font-weight: 400; }
+        .search-btn { background: var(--primary); color: #ffffff; border: none; outline: none; border-radius: 10px; font-weight: 700; font-size: 0.95rem; padding: 0 1.75rem; cursor: pointer; transition: background 0.15s, transform 0.1s; }
+        .search-btn:hover { background: var(--primary-hover); }
         .search-btn:active { transform: scale(0.98); }
 
-        /* Quick Pills */
+        /* Quick Search Pills */
         .quick-pills { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; }
-        .quick-pill { background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); color: #94a3b8; text-decoration: none; padding: 0.35rem 0.85rem; border-radius: 20px; font-size: 0.8125rem; font-weight: 600; transition: all 0.15s; }
-        .quick-pill:hover { background: rgba(56, 189, 248, 0.1); border-color: var(--primary); color: var(--primary); }
+        .quick-pill { background: #ffffff; border: 1px solid var(--border-color); color: var(--text-muted); text-decoration: none; padding: 0.35rem 0.85rem; border-radius: 20px; font-size: 0.8125rem; font-weight: 600; transition: all 0.15s; box-shadow: var(--shadow-sm); }
+        .quick-pill:hover { background: var(--primary-light); border-color: #bfdbfe; color: var(--primary); }
 
-        /* Metric Grid */
+        /* Metric KPI Cards */
         .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; margin-bottom: 2rem; }
-        .metric-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 1.5rem; position: relative; overflow: hidden; }
-        .metric-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--primary), transparent); }
+        .metric-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 1.5rem; box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
+        .metric-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--primary); }
+        .metric-card.accent-green::before { background: var(--success); }
+        .metric-card.accent-amber::before { background: var(--warning); }
+        .metric-card.accent-purple::before { background: #8b5cf6; }
         .metric-label { font-size: 0.8125rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.5rem; }
-        .metric-val { font-size: 2.25rem; font-weight: 800; color: #fff; line-height: 1.1; margin-bottom: 0.35rem; }
-        .metric-sub { font-size: 0.8125rem; color: #64748b; font-weight: 500; }
+        .metric-val { font-size: 2.25rem; font-weight: 800; color: var(--text-main); line-height: 1.1; margin-bottom: 0.35rem; letter-spacing: -0.02em; }
+        .metric-sub { font-size: 0.8125rem; color: var(--text-muted); font-weight: 500; }
 
         /* Competition Badges */
-        .badge-comp { display: inline-flex; align-items: center; gap: 6px; padding: 0.35rem 0.85rem; border-radius: 8px; font-weight: 800; font-size: 0.875rem; }
-        .badge-comp-low { background: rgba(16, 185, 129, 0.15); color: #34d399; }
-        .badge-comp-med { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
-        .badge-comp-high { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+        .badge-comp { display: inline-flex; align-items: center; gap: 6px; padding: 0.35rem 0.85rem; border-radius: 8px; font-weight: 800; font-size: 0.8125rem; }
+        .badge-comp-low { background: var(--success-bg); color: var(--success); border: 1px solid #a7f3d0; }
+        .badge-comp-med { background: var(--warning-bg); color: var(--warning); border: 1px solid #fde68a; }
+        .badge-comp-high { background: var(--danger-bg); color: var(--danger); border: 1px solid #fecaca; }
 
         /* Chart Card */
-        .chart-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 1.75rem; margin-bottom: 2rem; }
+        .chart-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 1.75rem; margin-bottom: 2rem; box-shadow: var(--shadow-md); }
         .chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
-        .chart-title { font-size: 1.15rem; font-weight: 800; color: #fff; }
-        .bar-chart-container { display: flex; align-items: flex-end; gap: 1rem; height: 200px; padding: 1rem 0 0; border-bottom: 1px solid var(--border-color); }
+        .chart-title { font-size: 1.15rem; font-weight: 800; color: var(--text-main); }
+        .bar-chart-container { display: flex; align-items: flex-end; gap: 1rem; height: 180px; padding: 1rem 0 0; border-bottom: 1px solid var(--border-color); }
         .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; gap: 0.5rem; }
-        .bar-fill { width: 100%; background: linear-gradient(180deg, var(--primary) 0%, rgba(56, 189, 248, 0.3) 100%); border-radius: 6px 6px 0 0; transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1); min-height: 8px; position: relative; }
-        .bar-fill:hover { background: linear-gradient(180deg, #7dd3fc 0%, rgba(125, 211, 252, 0.5) 100%); }
-        .bar-fill:hover::after { content: attr(data-val); position: absolute; top: -30px; left: 50%; transform: translateX(-50%); background: #000; color: #fff; font-size: 0.75rem; font-weight: 700; padding: 3px 7px; border-radius: 5px; white-space: nowrap; }
-        .bar-label { font-size: 0.75rem; color: #64748b; font-weight: 600; margin-top: 0.5rem; }
+        .bar-fill { width: 100%; background: linear-gradient(180deg, #3b82f6 0%, #93c5fd 100%); border-radius: 6px 6px 0 0; transition: height 0.5s ease-out; min-height: 8px; position: relative; }
+        .bar-fill:hover { background: linear-gradient(180deg, #1d4ed8 0%, #60a5fa 100%); }
+        .bar-fill:hover::after { content: attr(data-val); position: absolute; top: -30px; left: 50%; transform: translateX(-50%); background: #0f172a; color: #ffffff; font-size: 0.75rem; font-weight: 700; padding: 3px 8px; border-radius: 5px; white-space: nowrap; box-shadow: var(--shadow-md); }
+        .bar-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-top: 0.5rem; }
 
         /* Table Card */
-        .table-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 1.75rem; overflow: hidden; }
+        .table-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 1.75rem; overflow: hidden; box-shadow: var(--shadow-md); }
         .table-wrap { overflow-x: auto; margin-top: 1rem; }
         table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
-        th { padding: 0.85rem 1rem; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); border-bottom: 1px solid var(--border-color); }
-        td { padding: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.04); color: #cbd5e1; font-weight: 500; }
-        tr:hover td { background: var(--bg-card-hover); color: #fff; }
-        .btn-copy { background: rgba(255, 255, 255, 0.08); color: #e2e8f0; border: none; padding: 0.35rem 0.75rem; border-radius: 6px; font-weight: 700; font-size: 0.75rem; cursor: pointer; transition: background 0.15s; }
-        .btn-copy:hover { background: var(--primary); color: #0a0f1d; }
+        th { padding: 0.85rem 1rem; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); border-bottom: 2px solid var(--border-color); background: #f8fafc; }
+        td { padding: 1rem; border-bottom: 1px solid var(--border-subtle); color: var(--text-main); font-weight: 500; }
+        tr:hover td { background: #f8fafc; }
+        .btn-copy { background: #f1f5f9; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.35rem 0.75rem; border-radius: 6px; font-weight: 700; font-size: 0.75rem; cursor: pointer; transition: all 0.15s; }
+        .btn-copy:hover { background: var(--primary); color: #ffffff; border-color: var(--primary); }
 
-        /* Autocomplete Pills */
-        .suggestions-box { margin-top: 1.25rem; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+        /* Google Autocomplete Pills */
+        .suggestions-box { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
         .suggestions-title { font-size: 0.8125rem; font-weight: 700; color: var(--text-muted); margin-right: 0.5rem; }
     </style>
 </head>
 <body>
 
-    <!-- Navbar -->
+    <!-- Top Navbar -->
     <nav class="navbar">
         <div class="container nav-inner">
             <a href="<?= url('planner/') ?>" class="logo">
-                <span>⚡</span> Sarkari Keyword Planner
+                <div class="logo-icon">📊</div>
+                Sarkari <span>Keyword Planner</span>
             </a>
             <div class="badge-ip">
                 <span class="badge-ip-dot"></span>
@@ -147,10 +161,13 @@ if (!empty($query)) {
     </nav>
 
     <div class="container">
-        <!-- Hero Search -->
+        <!-- Hero Search Section -->
         <div class="hero">
-            <h1>Google Search Volume &amp; Keyword Planner</h1>
-            <p>Direct Google Search intent metrics, monthly search volumes, competition indexes, and related high-traffic search queries.</p>
+            <div class="hero-badge">
+                <span>⚡</span> Google Keyword Volume &amp; Search Intent Tool
+            </div>
+            <h1>Search Volume &amp; Traffic Estimator</h1>
+            <p>Direct Google Search intent metrics, monthly search volume benchmarks, competition scores, and related high-value student queries.</p>
 
             <div class="search-box-wrap">
                 <form action="<?= url('planner/') ?>" method="POST" class="search-form">
@@ -161,7 +178,7 @@ if (!empty($query)) {
 
             <!-- Quick Suggestions -->
             <div class="quick-pills">
-                <span style="font-size: 0.8125rem; color: #64748b; font-weight: 600; align-self: center;">Popular:</span>
+                <span style="font-size: 0.8125rem; color: var(--text-muted); font-weight: 600; align-self: center;">Popular:</span>
                 <a href="?q=NEET+UG+2026" class="quick-pill">NEET UG 2026</a>
                 <a href="?q=JEE+Main+2026" class="quick-pill">JEE Main 2026</a>
                 <a href="?q=UPSC+CSE+Notification" class="quick-pill">UPSC CSE 2026</a>
@@ -174,40 +191,40 @@ if (!empty($query)) {
         <?php if ($results): ?>
             <!-- Results Section -->
             <div style="margin-bottom: 2rem;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
                     <div>
-                        <h2 style="font-size: 1.5rem; font-weight: 800; color: #fff;">
+                        <h2 style="font-size: 1.65rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em;">
                             "<?= e($results['keyword']) ?>"
                         </h2>
-                        <span style="font-size: 0.8125rem; color: #64748b;">Target Country: India (gl=IN) &bull; Verified Google Demand Telemetry</span>
+                        <span style="font-size: 0.8125rem; color: var(--text-muted);">Target: Google Search India (gl=IN) &bull; Verified Google Demand Telemetry</span>
                     </div>
-                    <div style="display: flex; gap: 0.5rem;">
+                    <div>
                         <span class="badge-comp <?= $results['competition'] === 'LOW' ? 'badge-comp-low' : ($results['competition'] === 'HIGH' ? 'badge-comp-high' : 'badge-comp-med') ?>">
                             <?= e($results['competition']) ?> COMPETITION (<?= $results['competition_index'] ?>/100)
                         </span>
                     </div>
                 </div>
 
-                <!-- 4 KPI Cards -->
+                <!-- 4 Metric KPI Cards -->
                 <div class="metrics-grid">
                     <div class="metric-card">
                         <div class="metric-label">Avg. Monthly Searches</div>
-                        <div class="metric-val" style="color: #38bdf8;"><?= $results['monthly_searches_formatted'] ?></div>
+                        <div class="metric-val" style="color: var(--primary);"><?= $results['monthly_searches_formatted'] ?></div>
                         <div class="metric-sub"><?= number_format($results['monthly_searches']) ?> exact searches / month</div>
                     </div>
-                    <div class="metric-card">
+                    <div class="metric-card accent-amber">
                         <div class="metric-label">Search Intent Type</div>
-                        <div class="metric-val" style="color: #f59e0b; font-size: 1.75rem;"><?= e($results['search_intent']) ?></div>
+                        <div class="metric-val" style="color: var(--warning); font-size: 1.75rem;"><?= e($results['search_intent']) ?></div>
                         <div class="metric-sub">Direct student search behavior pattern</div>
                     </div>
-                    <div class="metric-card">
+                    <div class="metric-card accent-green">
                         <div class="metric-label">Top of Page Bid (Low Range)</div>
-                        <div class="metric-val" style="color: #34d399;">₹<?= number_format($results['cpc_low'], 2) ?></div>
-                        <div class="metric-sub">Estimated minimum CPC</div>
+                        <div class="metric-val" style="color: var(--success);">₹<?= number_format($results['cpc_low'], 2) ?></div>
+                        <div class="metric-sub">Estimated minimum advertiser bid</div>
                     </div>
-                    <div class="metric-card">
+                    <div class="metric-card accent-purple">
                         <div class="metric-label">Top of Page Bid (High Range)</div>
-                        <div class="metric-val" style="color: #a78bfa;">₹<?= number_format($results['cpc_high'], 2) ?></div>
+                        <div class="metric-val" style="color: #7c3aed;">₹<?= number_format($results['cpc_high'], 2) ?></div>
                         <div class="metric-sub">Commercial advertiser value</div>
                     </div>
                 </div>
@@ -219,7 +236,7 @@ if (!empty($query)) {
                 <div class="chart-card">
                     <div class="chart-header">
                         <div class="chart-title">📊 12-Month Search Volume Trend (Seasonality Breakdown)</div>
-                        <span style="font-size: 0.8125rem; color: #64748b;">Sept 2025 – Aug 2026 Historical Curve</span>
+                        <span style="font-size: 0.8125rem; color: var(--text-muted);">Sept 2025 – Aug 2026 Historical Curve</span>
                     </div>
                     <div class="bar-chart-container">
                         <?php foreach ($results['monthly_trend'] as $idx => $vol): 
@@ -237,10 +254,10 @@ if (!empty($query)) {
                 <!-- Live Google Suggest Pills -->
                 <?php if (!empty($results['google_suggestions'])): ?>
                     <div class="chart-card" style="padding: 1.25rem 1.75rem;">
-                        <div class="suggestions-box" style="margin: 0;">
+                        <div class="suggestions-box">
                             <span class="suggestions-title">⚡ Google Autocomplete Expansions:</span>
                             <?php foreach ($results['google_suggestions'] as $sug): ?>
-                                <a href="?q=<?= urlencode($sug) ?>" class="quick-pill" style="border-radius: 8px;">
+                                <a href="?q=<?= urlencode($sug) ?>" class="quick-pill">
                                     🔍 <?= e($sug) ?>
                                 </a>
                             <?php endforeach; ?>
@@ -251,11 +268,11 @@ if (!empty($query)) {
                 <!-- Related High-Traffic Keyword Opportunities Table -->
                 <?php if (!empty($results['related_ideas'])): ?>
                     <div class="table-card" style="margin-top: 2rem;">
-                        <div style="display: flex; align-items: center; justify-content: space-between;">
-                            <h3 style="font-size: 1.15rem; font-weight: 800; color: #fff;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+                            <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main);">
                                 💡 Related High-Intent Keyword Opportunities
                             </h3>
-                            <span style="font-size: 0.8125rem; color: #64748b;">Top Related Student Searches</span>
+                            <span style="font-size: 0.8125rem; color: var(--text-muted);">Top Related Student Searches</span>
                         </div>
                         <div class="table-wrap">
                             <table>
@@ -278,23 +295,23 @@ if (!empty($query)) {
                                         $intent = is_array($idea) ? ($idea['intent'] ?? 'Informational') : 'Informational';
                                     ?>
                                         <tr>
-                                            <td style="font-weight: 700; color: #fff;">
-                                                <a href="?q=<?= urlencode($kw) ?>" style="color: #38bdf8; text-decoration: none;">
+                                            <td style="font-weight: 700; color: var(--text-main);">
+                                                <a href="?q=<?= urlencode($kw) ?>" style="color: var(--primary); text-decoration: none;">
                                                     <?= e($kw) ?>
                                                 </a>
                                             </td>
                                             <td>
-                                                <strong style="color: #f8fafc;"><?= number_format($vol) ?></strong>
-                                                <span style="font-size: 0.75rem; color: #64748b;">/ mo</span>
+                                                <strong><?= number_format($vol) ?></strong>
+                                                <span style="font-size: 0.75rem; color: var(--text-muted);">/ mo</span>
                                             </td>
                                             <td>
                                                 <span class="badge-comp <?= $comp === 'LOW' ? 'badge-comp-low' : ($comp === 'HIGH' ? 'badge-comp-high' : 'badge-comp-med') ?>" style="padding: 2px 8px; font-size: 0.75rem;">
                                                     <?= e($comp) ?>
                                                 </span>
                                             </td>
-                                            <td>₹<?= number_format($cpc, 2) ?></td>
+                                            <td style="font-weight: 600;">₹<?= number_format($cpc, 2) ?></td>
                                             <td>
-                                                <span style="background: rgba(255,255,255,0.06); padding: 3px 8px; border-radius: 6px; font-size: 0.75rem;">
+                                                <span style="background: #f1f5f9; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">
                                                     <?= e($intent) ?>
                                                 </span>
                                             </td>
