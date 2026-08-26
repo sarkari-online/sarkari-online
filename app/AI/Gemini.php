@@ -99,7 +99,7 @@ class Gemini {
             ];
         }
 
-        $modelsToTry = array_unique([$this->model, 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro']);
+        $modelsToTry = array_unique([$this->model, 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash']);
         $attempt = 0;
         $lastError = '';
         $tokensUsed = 0;
@@ -129,8 +129,15 @@ class Gemini {
                         ];
                     }
 
-                    // Handle rate limit (429) or server error (503) or not found (404) -> switch to next model or backoff
                     $lastError = "Gemini API HTTP {$httpCode} on model {$currentModel}: " . substr($rawBody ?: 'Server issue', 0, 200);
+
+                    // If model not found (404), skip retries and immediately try next model
+                    if ($httpCode === 404) {
+                        Logger::warning("Gemini model {$currentModel} returned 404; switching to next fallback model.");
+                        break;
+                    }
+
+                    // Handle rate limit (429) or server error (503) -> backoff
                     $backoffSeconds = ($httpCode === 429) ? (4 + ($try * 2)) : 2;
                     Logger::warning("Gemini API attempt {$attempt} failed on {$currentModel} (HTTP {$httpCode}). Retrying in {$backoffSeconds}s...", ['stage' => $stage]);
                     sleep($backoffSeconds);
