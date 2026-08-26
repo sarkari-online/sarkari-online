@@ -155,7 +155,7 @@ class AutoCronService {
 
     private static function runAnalyze(): void {
         Logger::info('AutoCron: Starting analyze-trends');
-        $maxPerRun = (int)Env::get('MAX_TRENDS_PER_RUN', 10);
+        $maxPerRun = 2; // Smart Pacing: Analyze max 2 topics per cycle to conserve API
         $minScore  = (int)Env::get('MIN_TREND_SCORE', 60);
         $pendingTrends = TrendService::getPendingForAnalysis($maxPerRun);
 
@@ -220,10 +220,31 @@ class AutoCronService {
     }
 
     private static function runGenerate(): void {
-        Logger::info('AutoCron: Starting generate-articles');
-        $maxPerRun = (int)Env::get('MAX_TRENDS_PER_RUN', 5);
-        $pipeline  = new PipelineService();
-        $pipeline->processApprovedTrends($maxPerRun);
+        Logger::info('AutoCron: Checking generation pipeline');
+
+        $publishingService = new PublishingService();
+
+        // Guard 1: If today's daily limit (5/day) is already reached, do NOT consume API
+        if ($publishingService->isDailyLimitReached()) {
+            Logger::info('AutoCron generate: Daily publishing quota (5/day) is full. Sleeping generation until midnight to save API tokens.');
+            return;
+        }
+
+        // Guard 2: If Review Queue already has >= 2 pending drafts, pause generation (no queue pile-up)
+        try {
+            $pendingDrafts = (int)Database::fetchValue("SELECT COUNT(*) FROM articles WHERE status IN ('draft', 'pending_review')");
+            if ($pendingDrafts >= 2) {
+                Logger::info("AutoCron generate: {$pendingDrafts} drafts already in Review Queue. Pausing generation until current drafts are published.");
+                return;
+            }
+        } catch (Throwable $e) {
+            // ignore
+        }
+
+        // Smart Pacing: Generate max 1 article per cycle
+        Logger::info('AutoCron: Generating 1 approved article...');
+        $pipeline = new PipelineService();
+        $pipeline->processApprovedTrends(1);
     }
 
     private static function runPublish(): void {
