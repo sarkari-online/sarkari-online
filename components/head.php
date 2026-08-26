@@ -89,8 +89,8 @@ if (!$isAdminSession):
     <link rel="canonical" href="<?= e($metaCanonical) ?>">
 
     <!-- Crawling & Indexation Directives -->
-    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
-    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="robots" content="<?= e($metaRobots ?? 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1') ?>">
+    <meta name="googlebot" content="<?= e($metaRobots ?? 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1') ?>">
     <!-- Google Search Console Ownership Verification -->
     <meta name="google-site-verification" content="tbEauc4I8_zvPJ8zJOf_YA3-40UtKAZNRxgo881ZLiY">
 
@@ -130,16 +130,17 @@ if (!$isAdminSession):
     <meta name="twitter:image" content="<?= e($ogImageVal) ?>">
     <meta name="twitter:site" content="@SarkariOnline">
     <meta name="twitter:creator" content="@SarkariOnline">
-    <!-- Multi-Device Favicons & PWA Icons (Google Search Standard Compliant) -->
+
+    <!-- Multi-Device Favicons & PWA Icons (Google Search Standard 48px Multiple Compliant) -->
     <link rel="icon" type="image/x-icon" href="<?= url('favicon.ico') ?>">
     <link rel="shortcut icon" type="image/x-icon" href="<?= url('favicon.ico') ?>">
-    <link rel="icon" type="image/png" sizes="16x16" href="<?= asset('favicon-16x16.png') ?>">
-    <link rel="icon" type="image/png" sizes="32x32" href="<?= asset('favicon-32x32.png') ?>">
-    <link rel="icon" type="image/png" sizes="48x48" href="<?= asset('favicon-48x48.png') ?>">
-    <link rel="icon" type="image/png" sizes="96x96" href="<?= asset('favicon-96x96.png') ?>">
-    <link rel="icon" type="image/png" sizes="192x192" href="<?= asset('favicon-192x192.png') ?>">
-    <link rel="apple-touch-icon" sizes="180x180" href="<?= asset('apple-touch-icon.png') ?>">
-    <link rel="manifest" href="<?= asset('site.webmanifest') ?>">
+    <link rel="icon" type="image/png" sizes="48x48" href="<?= url('assets/favicon-48x48.png') ?>">
+    <link rel="icon" type="image/png" sizes="96x96" href="<?= url('assets/favicon-96x96.png') ?>">
+    <link rel="icon" type="image/png" sizes="192x192" href="<?= url('assets/favicon-192x192.png') ?>">
+    <link rel="icon" type="image/png" sizes="32x32" href="<?= url('assets/favicon-32x32.png') ?>">
+    <link rel="icon" type="image/png" sizes="16x16" href="<?= url('assets/favicon-16x16.png') ?>">
+    <link rel="apple-touch-icon" sizes="180x180" href="<?= url('assets/apple-touch-icon.png') ?>">
+    <link rel="manifest" href="<?= url('assets/site.webmanifest') ?>">
     <meta name="theme-color" content="#1e3a8a">
     <!-- Core Web Vitals Resource Hints & Preconnects -->
     <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>

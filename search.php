@@ -25,10 +25,11 @@ $articles = $searchData['items'];
 $total = $searchData['total'];
 $totalPages = $searchData['total_pages'];
 
-// SEO Setup
+// SEO Setup: Prevent indexing of internal search results (Google Search Quality Guideline)
 $pageTitle = !empty($query) ? 'Search results for "' . $query . '"' : 'Search All Education Updates';
 $pageDesc = 'Search across verified notifications for NEET, JEE, UPSC, SSC, state board results, admit cards, and scholarships.';
-$canonicalUrl = url('search/?q=' . urlencode($query));
+$canonicalUrl = url('search/');
+$metaRobots = 'noindex, follow';
 $ogType = 'website';
 
 $crumbs = [
