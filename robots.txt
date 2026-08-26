@@ -22,7 +22,6 @@ Disallow: /*?s=*
 
 # Disallow Internal & Protected Directories
 Disallow: /admin/
-Disallow: /planner/
 Disallow: /api/
 Disallow: /app/
 Disallow: /cron/
