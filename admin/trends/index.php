@@ -23,8 +23,11 @@ if (isset($_GET['pipeline_executed'])) {
 }
 
 if (isset($_GET['action']) && $_GET['action'] === 'run_pipeline_now') {
-    \App\Services\AutoCronService::executeBackgroundJobs(['fetch', 'analyze', 'generate', 'publish']);
     header('Location: ' . url('admin/trends/?pipeline_executed=1'));
+    if (function_exists('fastcgi_finish_request')) {
+        fastcgi_finish_request();
+    }
+    \App\Services\AutoCronService::executeBackgroundJobs(['fetch', 'analyze', 'generate', 'publish']);
     exit;
 }
 
