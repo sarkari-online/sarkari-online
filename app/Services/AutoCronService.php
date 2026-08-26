@@ -26,6 +26,11 @@ class AutoCronService {
     private const INTERVAL_PUBLISH   = 300;   // 5 mins
 
     public static function checkAndRun(): void {
+        // Strict Guard: ONLY execute in CLI background daemon (NEVER on web requests)
+        if (php_sapi_name() !== 'cli') {
+            return;
+        }
+
         try {
             $lockDir = dirname(__DIR__, 2) . '/storage/cache';
             if (!is_dir($lockDir)) {
