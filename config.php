@@ -206,6 +206,7 @@ const NAV_LINKS = [
     ['label' => 'Exam Dates', 'url' => 'category/exam-dates/'],
     ['label' => 'Govt Jobs', 'url' => 'category/government-jobs/'],
     ['label' => 'Scholarships', 'url' => 'category/scholarships/'],
+    ['label' => 'College Updates', 'url' => 'category/college-updates/'],
     ['label' => 'Entrance', 'url' => 'category/entrance-exams/'],
     ['label' => 'Career Guides', 'url' => 'category/career-guides/'],
     ['label' => 'Tech & AI', 'url' => 'category/student-technology/']

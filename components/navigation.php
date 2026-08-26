@@ -15,8 +15,9 @@ $primaryNavLinks = [
 ];
 
 $moreNavLinks = [
-    ['label' => 'Career Guides', 'url' => 'category/career-guides/', 'icon' => 'trending-up', 'desc' => 'Syllabus, Exam Patterns & Roadmaps'],
+    ['label' => 'College Updates', 'url' => 'category/college-updates/', 'icon' => 'book-open', 'desc' => 'UGC Norms, PhD Admissions & College Cutoffs'],
     ['label' => 'Entrance Exams', 'url' => 'category/entrance-exams/', 'icon' => 'compass', 'desc' => 'NEET, JEE, CTET & State CETs'],
+    ['label' => 'Career Guides', 'url' => 'category/career-guides/', 'icon' => 'trending-up', 'desc' => 'Syllabus, Exam Patterns & Roadmaps'],
     ['label' => 'Student Tech & AI', 'url' => 'category/student-technology/', 'icon' => 'cpu', 'desc' => 'NSDC, Free Cloud & AI Certifications']
 ];
 
