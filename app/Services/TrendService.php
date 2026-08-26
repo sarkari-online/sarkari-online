@@ -78,7 +78,7 @@ class TrendService {
         $since = date('Y-m-d H:i:s', strtotime("-{$days} days"));
 
         $existing = Database::fetchOne(
-            "SELECT id FROM trends WHERE normalized_hash = :hash AND detected_at >= :since LIMIT 1",
+            "SELECT id FROM trends WHERE normalized_hash = :hash AND status IN ('detected', 'analyzing', 'approved', 'generated', 'published') AND detected_at >= :since LIMIT 1",
             ['hash' => $hash, 'since' => $since]
         );
 

@@ -114,6 +114,43 @@ class AutoCronService {
         $service = new TrendService();
         $count = count($service->fetchAllSources(10));
         Logger::info("AutoCron fetch completed: {$count} trends ingested");
+
+        // Self-Healing Replenisher: When breaking news is slow, replenish high-search evergreen topics
+        self::replenishEvergreenQueue();
+    }
+
+    private static function replenishEvergreenQueue(): void {
+        try {
+            $pendingCount = (int)Database::fetchValue("SELECT COUNT(*) FROM trends WHERE status IN ('detected', 'approved')");
+            if ($pendingCount < 3) {
+                $adapter = new \App\Services\TrendSources\EvergreenTopicsAdapter();
+                $evergreenList = $adapter->fetch(5);
+                foreach ($evergreenList as $item) {
+                    if (!TrendService::existsAsArticle($item['keyword'])) {
+                        $hash = TrendService::normalizedHash($item['keyword']);
+                        $existing = Database::fetchOne("SELECT id, status FROM trends WHERE normalized_hash = :hash LIMIT 1", ['hash' => $hash]);
+                        if ($existing) {
+                            if ($existing['status'] === 'rejected' || $existing['status'] === 'detected') {
+                                TrendService::markStatus((int)$existing['id'], 'detected');
+                            }
+                        } else {
+                            Database::insert('trends', [
+                                'keyword' => $item['keyword'],
+                                'normalized_hash' => $hash,
+                                'source' => $item['source'],
+                                'url' => $item['url'],
+                                'trend_score' => $item['trend_score'],
+                                'category_hint' => $item['category_hint'],
+                                'status' => 'detected',
+                                'raw_payload' => json_encode($item['raw_payload'] ?? [])
+                            ]);
+                        }
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            Logger::warning('AutoCron: replenishEvergreenQueue error: ' . $e->getMessage());
+        }
     }
 
     private static function runAnalyze(): void {
