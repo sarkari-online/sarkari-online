@@ -18,6 +18,16 @@ $adminPageKey = 'trends';
 $message = null;
 $messageType = 'success';
 
+if (isset($_GET['pipeline_executed'])) {
+    $message = "⚡ Full Auto-Pilot Pipeline Executed: Scanned authority sources, evaluated AI viability, generated articles, and updated publishing queue!";
+}
+
+if (isset($_GET['action']) && $_GET['action'] === 'run_pipeline_now') {
+    \App\Services\AutoCronService::executeBackgroundJobs(['fetch', 'analyze', 'generate', 'publish']);
+    header('Location: ' . url('admin/trends/?pipeline_executed=1'));
+    exit;
+}
+
 // Process Actions (Approve / Reject / Reset)
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     if (!CSRF::verify($_POST['csrf_token'] ?? '')) {
@@ -78,9 +88,14 @@ include dirname(__DIR__) . '/components/header.php';
             <?= icon('trending-up', 'icon-lg') ?>
         </div>
         <div style="flex: 1;">
-            <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0 0 0.4rem 0; color: #ffffff;">
-                Sarkari.online Trends Engine &amp; Topic Discovery Hub
-            </h2>
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 0.4rem;">
+                <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: #ffffff;">
+                    Sarkari.online Trends Engine &amp; Topic Discovery Hub
+                </h2>
+                <a href="?action=run_pipeline_now" style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; border-radius: 8px; font-weight: 700; font-size: 0.8125rem; text-decoration: none; background: #0284c7; color: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.15); transition: background 0.2s;" onmouseover="this.style.background='#0369a1'" onmouseout="this.style.background='#0284c7'">
+                    ⚡ Run Pipeline Now
+                </a>
+            </div>
             <p style="font-size: 0.9rem; color: #cbd5e1; line-height: 1.6; margin: 0 0 0.85rem 0;">
                 Ye page Sarkari.online ka <strong>AI Radar</strong> hai. Jab bhi NTA, UPSC, SSC, CBSE, ya MCC ke official portals par koi naya notification ya circular aata hai, system use yahan <strong>Trend</strong> ke roop me record karta hai.
             </p>
