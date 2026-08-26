@@ -7,6 +7,18 @@
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/app/Data/MockData.php';
 
+// Strict Router Guard: If a non-existent URL is rewritten to index.php, return real HTTP 404 page
+$requestUri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+$cleanPath = trim($requestUri, '/');
+if (str_starts_with($cleanPath, 'automation')) {
+    $cleanPath = trim(substr($cleanPath, 10), '/');
+}
+
+if (!empty($cleanPath) && $cleanPath !== 'index.php') {
+    require __DIR__ . '/404.php';
+    exit;
+}
+
 use App\Services\ArticleService;
 use App\Services\CategoryService;
 use App\Services\TrendService;
