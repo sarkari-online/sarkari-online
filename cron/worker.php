@@ -1,8 +1,11 @@
 <?php
 /**
  * Sarkari.online - 24/7 Autonomous Background Daemon Worker
- * Runs continuously in background under Supervisord.
- * Automatically ticks every 60 seconds to fetch trends, generate articles, and publish live.
+ * Runs under Supervisord. Every 60s directly executes the pipeline
+ * (fetch -> analyze -> generate -> publish) based on schedule intervals.
+ *
+ * NOTE: Calls AutoCronService::checkAndRun() which in CLI mode
+ * directly executes tasks (no shutdown_function workaround needed).
  */
 
 if (php_sapi_name() !== 'cli') {
@@ -17,21 +20,24 @@ use App\Helpers\Logger;
 echo "[" . date('Y-m-d H:i:s') . "] 🚀 Sarkari.online 24/7 Background Daemon Worker Started...\n";
 Logger::info("Sarkari.online 24/7 Background Daemon Worker Started");
 
-// Ensure memory limit for long-running daemon
 ini_set('memory_limit', '512M');
 set_time_limit(0);
+ignore_user_abort(true);
 
 $cycle = 0;
 
 while (true) {
     $cycle++;
+    $ts = date('Y-m-d H:i:s');
+    echo "[{$ts}] Worker tick #{$cycle}...\n";
+
     try {
+        // checkAndRun() in CLI mode directly executes all due tasks in-process
         AutoCronService::checkAndRun();
     } catch (\Throwable $e) {
         Logger::error("Worker cycle #{$cycle} error: " . $e->getMessage());
-        echo "[" . date('Y-m-d H:i:s') . "] Cycle error: " . $e->getMessage() . "\n";
+        echo "[{$ts}] Error on cycle #{$cycle}: " . $e->getMessage() . "\n";
     }
 
-    // Sleep for 60 seconds before next schedule check
     sleep(60);
 }

@@ -114,7 +114,8 @@ class TrendService {
      */
     public static function isAllowedCategory(?string $categoryHint): bool {
         if (empty($categoryHint)) return true; // Will be analyzed by AI
-        $allowed = array_map('trim', explode(',', (string)Env::get('ALLOWED_CATEGORIES', 'exam-results,admit-cards,exam-dates,government-jobs,higher-education,school-boards,scholarships,career-guides,student-technology')));
+        $allowed = array_map('trim', explode(',', (string)Env::get('ALLOWED_CATEGORIES', 'exam-results,admit-cards,exam-dates,government-jobs,higher-education,school-boards,scholarships,career-guides,student-technology,entrance-exams,college-updates')));
+
         return in_array($categoryHint, $allowed, true);
     }
 

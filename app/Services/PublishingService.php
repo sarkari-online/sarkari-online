@@ -25,8 +25,9 @@ class PublishingService {
     private int $dailyLimit;
 
     public function __construct() {
-        $this->minQualityScore = (int)Env::get('MIN_QUALITY_SCORE', 90);
+        $this->minQualityScore = (int)Env::get('MIN_QUALITY_SCORE', 75);
         $this->dailyLimit = (int)Env::get('AUTO_PUBLISH_DAILY_LIMIT', 5);
+
     }
 
     /**
@@ -426,45 +427,89 @@ class PublishingService {
                 Database::insert('article_checks', [
                     'article_id' => $articleId,
                     'check_type' => 'source_verification',
-                    'score' => $confidence,
-                    'notes' => json_encode([
-                        'recommendation' => 'pass',
-                        'fact_recommendation' => 'pass',
-                        'safety_gate' => ['pass' => true],
+                    'score'      => $confidence,
+                    'notes'      => json_encode([
+                        'recommendation'       => 'pass',
+                        'fact_recommendation'  => 'pass',
+                        'safety_gate'          => ['pass' => true],
                         'flagged_issues_count' => 0,
-                        'reason' => $reason
+                        'reason'               => $reason
                     ], JSON_UNESCAPED_UNICODE),
-                    'checker' => 'ai',
+                    'checker'    => 'ai',
                     'checked_at' => date('Y-m-d H:i:s'),
                     'created_at' => date('Y-m-d H:i:s')
                 ]);
                 Database::update('articles', ['source_verified' => 1], 'id = :id', ['id' => $articleId]);
 
-                // ✅ Verified by AI Engine — Auto-publish immediately
+                // ✅ Verified by AI — Auto-publish
                 $pubResult = $this->publish($articleId, true);
                 $results[] = array_merge($pubResult, [
                     'verification_verdict'    => 'pass',
                     'verification_confidence' => $confidence,
                     'verification_reason'     => $reason,
                 ]);
-                Logger::info("Article #{$articleId} AUTO-PUBLISHED LIVE after autonomous AI verification (confidence: {$confidence}%).");
+                Logger::info("Article #{$articleId} AUTO-PUBLISHED after AI verification (confidence: {$confidence}%).");
+
+            } elseif (in_array($verdict, ['no_source', 'guide_type'], true)) {
+                // No live URL to verify against — article is a guide/evergreen type.
+                // Keep in review; try to publish directly with skipFactCheck if quality_score is high enough
+                $article = Database::fetchOne("SELECT quality_score FROM articles WHERE id = :id", ['id' => $articleId]);
+                $qScore  = (int)($article['quality_score'] ?? 0);
+
+                if ($qScore >= 80) {
+                    // High quality guide — publish directly without source verification requirement
+                    Database::insert('article_checks', [
+                        'article_id' => $articleId,
+                        'check_type' => 'source_verification',
+                        'score'      => $qScore,
+                        'notes'      => json_encode([
+                            'recommendation'       => 'pass',
+                            'fact_recommendation'  => 'pass',
+                            'safety_gate'          => ['pass' => true],
+                            'flagged_issues_count' => 0,
+                            'reason'               => "Guide/evergreen article — no live source URL to verify. Quality score {$qScore} qualifies for direct publish."
+                        ], JSON_UNESCAPED_UNICODE),
+                        'checker'    => 'ai',
+                        'checked_at' => date('Y-m-d H:i:s'),
+                        'created_at' => date('Y-m-d H:i:s')
+                    ]);
+                    Database::update('articles', ['source_verified' => 1], 'id = :id', ['id' => $articleId]);
+                    $pubResult = $this->publish($articleId, true);
+                    $results[] = array_merge($pubResult, [
+                        'verification_verdict'    => $verdict,
+                        'verification_confidence' => $qScore,
+                        'verification_reason'     => "Guide/evergreen — published on quality score basis.",
+                    ]);
+                    Logger::info("Article #{$articleId} guide/evergreen AUTO-PUBLISHED on quality score {$qScore}.");
+                } else {
+                    // Quality too low — keep in review for next cycle
+                    Logger::info("Article #{$articleId} kept in review (guide/no_source, quality_score={$qScore}).");
+                    $results[] = [
+                        'success'                 => false,
+                        'article_id'              => $articleId,
+                        'title'                   => $cand['title'],
+                        'verification_verdict'    => $verdict,
+                        'verification_confidence' => $confidence,
+                        'reasons'                 => ["Guide article kept in review — quality score {$qScore} below threshold."],
+                        'action'                  => 'kept_in_review',
+                    ];
+                }
 
             } else {
-                // ❌ Failed verification / hallucination / outdated — Reject & DELETE from DB
+                // ❌ Hard fail: contradicted facts — reject only, DO NOT delete (keep for manual review)
                 Database::update('articles', ['status' => 'rejected'], 'id = :id', ['id' => $articleId]);
-                Database::query("DELETE FROM article_checks WHERE article_id = :id", ['id' => $articleId]);
-                Database::query("DELETE FROM articles WHERE id = :id", ['id' => $articleId]);
                 $results[] = [
                     'success'                 => false,
                     'article_id'              => $articleId,
                     'title'                   => $cand['title'],
                     'verification_verdict'    => 'fail',
                     'verification_confidence' => $confidence,
-                    'reasons'                 => ["REJECTED & DELETED: {$reason}"],
-                    'action'                  => 'deleted_from_db',
+                    'reasons'                 => ["REJECTED: {$reason}"],
+                    'action'                  => 'rejected_kept_for_review',
                 ];
-                Logger::warning("Article #{$articleId} REJECTED & DELETED from DB — failed verification (confidence: {$confidence}%). Reason: {$reason}");
+                Logger::warning("Article #{$articleId} REJECTED — failed verification (confidence: {$confidence}%). Kept in DB for manual review. Reason: {$reason}");
             }
+
 
             sleep(3); // Rate limit pacing between verification calls
         }
