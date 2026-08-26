@@ -42,7 +42,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         }
 
         // 2. Email Notification
-        $to = 'official.sarkarionline@gmail.com';
+        $to = \App\Services\SettingsService::get('EDITORIAL_CONTACT_EMAIL', 'official.sarkarionline@gmail.com');
         $emailSubject = "[Sarkari.online Inquiry] {$inquiryType} from " . strip_tags($senderName);
 
         $emailBody = "<html><body style='font-family: Arial, sans-serif; line-height: 1.6; color: #1e293b; max-width: 600px; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;'>";
@@ -142,7 +142,8 @@ include __DIR__ . '/components/header.php';
                     <h4 style="margin-bottom: 0.25rem;">Official Editorial &amp; Grievance Communication</h4>
                     <p style="font-size: 0.935rem; color: var(--text-muted); line-height: 1.6;">
                         For news tips, factual corrections, official press releases, and statutory grievance redressal:<br>
-                        <a href="mailto:official.sarkarionline@gmail.com" style="color: var(--color-primary); font-weight: 600; font-size: 1.05rem; text-decoration: none;">official.sarkarionline@gmail.com</a>
+                        <?php $contactEmailVal = \App\Services\SettingsService::get('EDITORIAL_CONTACT_EMAIL', 'official.sarkarionline@gmail.com'); ?>
+                        <a href="mailto:<?= e($contactEmailVal) ?>" style="color: var(--color-primary); font-weight: 600; font-size: 1.05rem; text-decoration: none;"><?= e($contactEmailVal) ?></a>
                     </p>
                 </div>
             </div>

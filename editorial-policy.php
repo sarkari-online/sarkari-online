@@ -63,7 +63,8 @@ include __DIR__ . '/components/header.php';
                     When an official body amends an exam schedule, alters answer key challenges, or issues a revised merit list, we update the original report immediately. We clearly append an <em>"Updated [Date &amp; Time]"</em> indicator and detail the nature of the update.
                 </p>
                 <p>
-                    To report an error, readers can email <a href="mailto:official.sarkarionline@gmail.com">official.sarkarionline@gmail.com</a> with supporting official links.
+                    <?php $contactEmailVal = \App\Services\SettingsService::get('EDITORIAL_CONTACT_EMAIL', 'official.sarkarionline@gmail.com'); ?>
+                    To report an error, readers can email <a href="mailto:<?= e($contactEmailVal) ?>"><?= e($contactEmailVal) ?></a> with supporting official links.
                 </p>
             </div>
         </article>

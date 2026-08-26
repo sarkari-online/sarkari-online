@@ -60,7 +60,8 @@ include __DIR__ . '/components/header.php';
 
                 <h2>Contact the Editorial Desk</h2>
                 <p>
-                    For news tips, factual corrections, or institutional press releases, visit our <a href="<?= url('contact/') ?>">Contact &amp; Grievance Page</a> or write to our editorial desk at <code>official.sarkarionline@gmail.com</code>.
+                    <?php $contactEmailVal = \App\Services\SettingsService::get('EDITORIAL_CONTACT_EMAIL', 'official.sarkarionline@gmail.com'); ?>
+                    For news tips, factual corrections, or institutional press releases, visit our <a href="<?= url('contact/') ?>">Contact &amp; Grievance Page</a> or write to our editorial desk at <a href="mailto:<?= e($contactEmailVal) ?>"><code><?= e($contactEmailVal) ?></code></a>.
                 </p>
             </div>
         </article>

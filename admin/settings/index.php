@@ -27,7 +27,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         $dailyLimit = max(1, min(50, (int)($_POST['auto_publish_daily_limit'] ?? 5)));
         $maxTrends = max(1, min(20, (int)($_POST['max_trends_per_run'] ?? 5)));
         $minTrendScore = max(50, min(100, (int)($_POST['min_trend_score'] ?? 75)));
-        $contactEmail = Sanitizer::email($_POST['contact_email'] ?? 'editorial@edupulse.in');
+        $contactEmail = Sanitizer::email($_POST['contact_email'] ?? 'official.sarkarionline@gmail.com');
 
         SettingsService::set('MIN_QUALITY_SCORE', $minQuality, 'integer', 'Minimum quality score required for auto-publishing');
         SettingsService::set('AUTO_PUBLISH_DAILY_LIMIT', $dailyLimit, 'integer', 'Maximum automatic articles published per day');
@@ -43,7 +43,7 @@ $curMinQuality = (int)SettingsService::get('MIN_QUALITY_SCORE', Env::get('MIN_QU
 $curDailyLimit = (int)SettingsService::get('AUTO_PUBLISH_DAILY_LIMIT', Env::get('AUTO_PUBLISH_DAILY_LIMIT', 5));
 $curMaxTrends = (int)SettingsService::get('MAX_TRENDS_PER_RUN', Env::get('MAX_TRENDS_PER_RUN', 5));
 $curMinTrendScore = (int)SettingsService::get('MIN_TREND_SCORE', Env::get('MIN_TREND_SCORE', 75));
-$curContactEmail = (string)SettingsService::get('EDITORIAL_CONTACT_EMAIL', 'editorial@edupulse.in');
+$curContactEmail = (string)SettingsService::get('EDITORIAL_CONTACT_EMAIL', 'official.sarkarionline@gmail.com');
 
 include dirname(__DIR__) . '/components/header.php';
 ?>
