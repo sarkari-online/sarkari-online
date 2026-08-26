@@ -44,6 +44,10 @@ $curDailyLimit = (int)SettingsService::get('AUTO_PUBLISH_DAILY_LIMIT', Env::get(
 $curMaxTrends = (int)SettingsService::get('MAX_TRENDS_PER_RUN', Env::get('MAX_TRENDS_PER_RUN', 5));
 $curMinTrendScore = (int)SettingsService::get('MIN_TREND_SCORE', Env::get('MIN_TREND_SCORE', 75));
 $curContactEmail = (string)SettingsService::get('EDITORIAL_CONTACT_EMAIL', 'official.sarkarionline@gmail.com');
+if (empty($curContactEmail) || str_contains($curContactEmail, 'edupulse.in')) {
+    $curContactEmail = 'official.sarkarionline@gmail.com';
+    SettingsService::set('EDITORIAL_CONTACT_EMAIL', $curContactEmail, 'string', 'Editorial desk contact email');
+}
 
 include dirname(__DIR__) . '/components/header.php';
 ?>
