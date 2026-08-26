@@ -5,6 +5,9 @@
 require_once dirname(__DIR__, 2) . '/config.php';
 App\Helpers\Auth::requireAuth();
 
+// Autonomous Self-Healing Background Cron Worker
+\App\Services\AutoCronService::checkAndRun();
+
 $user = App\Helpers\Auth::user();
 $adminPageTitle = $adminPageTitle ?? 'Admin Dashboard';
 ?>

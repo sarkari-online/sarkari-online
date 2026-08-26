@@ -15,7 +15,7 @@ if [ -n "$DB_HOST" ]; then
     done
 
     if [ $count -ge $max_retries ]; then
-        echo "⚠️ Warning: Database connection timed out. Propceeding anyway..."
+        echo "⚠️ Warning: Database connection timed out. Proceeding anyway..."
     else
         echo "✅ Database connection established!"
 
@@ -34,6 +34,15 @@ fi
 mkdir -p /var/www/html/storage/logs /var/www/html/storage/cache /var/www/html/storage/generated /var/www/html/uploads
 chown -R www-data:www-data /var/www/html/storage /var/www/html/uploads
 chmod -R 775 /var/www/html/storage /var/www/html/uploads
+
+# Fix Alpine Linux crond crontab file permissions (Must be 0600 root:root)
+if [ -f "/etc/crontabs/root" ]; then
+    chmod 0600 /etc/crontabs/root
+    chown root:root /etc/crontabs/root
+fi
+
+# Export all container environment variables for background cron jobs
+env > /etc/environment 2>/dev/null || true
 
 echo "⚡ Starting Supervisord (PHP-FPM, Nginx, Crond)..."
 exec /usr/bin/supervisord -n -c /etc/supervisord.conf

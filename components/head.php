@@ -33,6 +33,9 @@ $ogImageVal = !empty($ogImage) ? (str_starts_with($ogImage, 'http') ? $ogImage :
     $metaTitle ?? null,
     isset($category['slug']) ? $category['slug'] : null
 );
+
+// Autonomous Self-Healing Background Cron Worker
+\App\Services\AutoCronService::checkAndRun();
 ?>
 <!DOCTYPE html>
 <html lang="en-IN">
