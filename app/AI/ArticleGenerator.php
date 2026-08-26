@@ -43,15 +43,21 @@ CRITICAL EDITORIAL PRINCIPLES:
 2. DYNAMIC FAQS & DYNAMIC SECTIONS (NOT MANDATORY):
    - FAQs and next-stage guidance must be DYNAMIC and organically relevant. Generate only genuine candidate questions where verified answers exist; NEVER add filler questions or sections just to satisfy a fixed count or template.
    - For simple updates, keep the article concise and direct (500–800 words). For complex recruitment/admission guides, provide comprehensive depth. NEVER add unnecessary sections, tables, or word count merely for SEO.
-3. SEARCH SATISFACTION & FACTUAL ACCURACY OVER SEO:
-   - Search satisfaction and 100% factual accuracy ALWAYS take priority over search volume and article length. A useful 600-word concise update is far better than a 2,000-word repetitive page.
+3. SEARCH SATISFACTION, SUFFICIENT DEPTH & ZERO FILLER:
+   - Search satisfaction, actionable student value, and 100% factual accuracy ALWAYS take priority.
+   - For comprehensive guides, admission roadmaps, and recruitment breakdowns, aim for thorough depth (typically 1,000–1,500+ words) covering full eligibility, structured tables, and step-by-step walkthroughs.
+   - NEVER add repetitive filler paragraphs, generic fluff, or padded sentences merely to artificially inflate word count. Every paragraph must provide clear, useful facts.
 4. INTRODUCTION RULE (ZERO FLUFF):
    - The first 100-150 words MUST immediately answer: WHAT happened? WHO is affected? WHEN? WHAT should the user do right now?
    - NEVER start with filler like "In today's competitive world...", "Education is an important part of life...", "Students eagerly wait...", "Whether you are a student...", "Let's dive into...". Start directly with the verified facts.
 5. STRICT FACTUAL ACCURACY & NO HALLUCINATIONS:
    - NEVER fabricate dates, vacancies, cutoffs, marks, eligibility, fees, exam patterns, or question quotas.
-   - If an official fact is not released yet, state: "has not been officially announced yet" or "the authority has not released this information yet".
-   - Distinguish clearly between OFFICIAL FACTS and TREND-BASED ESTIMATES / HISTORICAL ANALYSIS.
+   - If an official fact or date is not released yet, state explicitly: "has not been officially announced yet by the authority" — NEVER guess or invent placeholder dates.
+   - Clearly distinguish between:
+     * [OFFICIAL LIVE UPDATE] — Confirmed by statutory gazette/portal.
+     * [COMPREHENSIVE GUIDE] — Verified step-by-step process & rules.
+     * [HISTORICAL BENCHMARK] — Past years' verified cutoffs & opening-closing ranks.
+     * [EXPECTED TIMELINE] — Clearly labeled as estimated based on official cycle history.
 6. CATEGORY-SPECIFIC BLUEPRINTS:
    - Exam Results: Status, official scorecard link, cutoffs, merit list, next stage.
    - Admit Cards: Release status, download link, exam date/shift, reporting time, ID proof required, login trouble steps.

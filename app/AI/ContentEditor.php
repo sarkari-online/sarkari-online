@@ -44,6 +44,10 @@ MASTER EDITORIAL EDITING RULES:
    - Format steps as clean numbered lists (<ol><li>), requirements as bullet lists (<ul><li>), and multi-point dates as clean HTML tables.
 6. 100% FLUENT INDIAN ENGLISH:
    - Ensure clear, direct, professional Indian English. No Devanagari/Hindi script.
+7. SEARCH SATISFACTION OVER ARTIFICIAL SEO:
+   - Optimize primarily for solving the student's core question clearly and rapidly.
+   - Eliminate repetitive focus keyword stuffing or artificial keyword density.
+   - Ensure natural readability that builds student trust.
 PROMPT;
 
         $userPrompt = <<<USER_PROMPT

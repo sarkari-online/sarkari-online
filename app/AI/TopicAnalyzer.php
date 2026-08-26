@@ -34,19 +34,25 @@ TAXONOMY CATEGORIES AVAILABLE:
 - exam-results (Scorecards, rank lists, merit lists, marksheets)
 - admit-cards (Hall tickets, exam city slips, release notices)
 - exam-dates (Schedules, timetables, postponement/revision notices)
+- entrance-exams (NEET UG/PG, JEE Main/Adv, CUET, GATE, CTET, AIBE, CAT, CLAT registration & blueprints)
 - government-jobs (UPSC, SSC, State PSC, Bank, Defence, Railway recruitment)
-- higher-education (Admissions, counselling, college cutoffs, university updates)
+- college-updates (JoSAA, CSAB, DU CSAS, UGC fee refund & norms, university admissions, college cutoffs)
 - school-boards (CBSE, ICSE, State Boards 10th/12th updates)
-- scholarships (Government & institutional financial aids, youth fellowships, student fee waivers)
-- career-guides (Preparation strategies, subject roadmaps, career paths)
-- student-technology (EdTech tools, AI for learning, NSDC & Skill India programs, free Cloud/AI certification initiatives, government youth digital upskilling)
+- scholarships (NSP, PMSSS, PM YASASVI, institutional financial aids, student fee waivers)
+- career-guides (Preparation strategies, subject roadmaps, syllabus breakdowns)
+- student-technology (DigiLocker, ABC ID, APAAR ID, SSC OTR, EdTech & Free Skilling)
 
 CRITICAL RULES:
-1. Prioritize actionable student information (official dates, direct portal instructions, eligibility criteria, registration steps).
-2. Avoid low-value clickbait rumors (e.g., unofficial "likely today" speculation without authority notice).
-3. If similar articles already exist, assess duplicate risk. Only recommend publishing if there is a genuine new update.
-4. TEMPORAL FRESHNESS & RELEVANCE: Current operating year is 2026. Strictly REJECT (publish_recommendation: false) any old, expired historical exam/recruitment cycles (e.g., 2024, 2023, 2022, 2021). Only approve active 2026/2027 ongoing cycles.
-5. NATIONAL SKILLING & TECH EMPOWERMENT: Proactively APPROVE (publish_recommendation: true) under 'student-technology' or 'scholarships' any national skill development initiatives (NSDC, Skill India, PMKVY), Free Cloud/AI certifications (AWS, Microsoft, Google, NASSCOM), and government-backed digital learning programs offering concrete career value to Indian students.
+1. OFFICIAL SOURCES VS DEMAND SIGNALS:
+   - Official statutory portals (.gov.in, .nic.in, .ac.in) are the primary factual authority.
+   - Google Trends RSS represents user search demand signal only — ground truth must be verified against official authority.
+2. GENUINE STUDENT VALUE OVER QUOTA:
+   - Prioritize actionable student information (official dates, direct portal instructions, eligibility criteria, registration steps).
+   - Never recommend publishing merely to meet daily quotas. Only approve if genuine, useful, non-trivial information exists for students.
+3. Avoid low-value clickbait rumors (e.g., unofficial "likely today" speculation without authority notice).
+4. If similar articles already exist, assess duplicate risk. Only recommend publishing if there is a genuine new update.
+5. TEMPORAL FRESHNESS & RELEVANCE: Current operating year is 2026. Strictly REJECT (publish_recommendation: false) any old, expired historical exam/recruitment cycles (e.g., 2024, 2023, 2022, 2021). Only approve active 2026/2027 ongoing cycles.
+6. NATIONAL SKILLING & TECH EMPOWERMENT: Proactively APPROVE (publish_recommendation: true) under 'student-technology' or 'scholarships' any national skill development initiatives (NSDC, Skill India, PMKVY), Free Cloud/AI certifications (AWS, Microsoft, Google, NASSCOM), and government-backed digital learning programs offering concrete career value to Indian students.
 PROMPT;
 
         $existingList = empty($existingArticles) ? "None" : implode("\n- ", array_map(function($a) {
