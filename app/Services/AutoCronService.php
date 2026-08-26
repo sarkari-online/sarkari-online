@@ -20,10 +20,10 @@ use Throwable;
 
 class AutoCronService {
 
-    private const INTERVAL_FETCH     = 900;   // 15 mins
-    private const INTERVAL_ANALYZE   = 1200;  // 20 mins
-    private const INTERVAL_GENERATE  = 1800;  // 30 mins
-    private const INTERVAL_PUBLISH   = 2700;  // 45 mins
+    private const INTERVAL_FETCH     = 180;   // 3 mins
+    private const INTERVAL_ANALYZE   = 120;   // 2 mins
+    private const INTERVAL_GENERATE  = 240;   // 4 mins
+    private const INTERVAL_PUBLISH   = 300;   // 5 mins
 
     public static function checkAndRun(): void {
         try {
