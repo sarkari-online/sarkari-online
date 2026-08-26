@@ -42,11 +42,11 @@ CRITICAL EDITORIAL PRINCIPLES:
    - Address relevant stages of the user journey (Before/During/After event) DYNAMICALLY based on topic context. DO NOT force all 3 stages or generic sections if not relevant to the event.
 2. DYNAMIC FAQS & DYNAMIC SECTIONS (NOT MANDATORY):
    - FAQs and next-stage guidance must be DYNAMIC and organically relevant. Generate only genuine candidate questions where verified answers exist; NEVER add filler questions or sections just to satisfy a fixed count or template.
-   - For simple updates, keep the article concise and direct (500–800 words). For complex recruitment/admission guides, provide comprehensive depth. NEVER add unnecessary sections, tables, or word count merely for SEO.
-3. SEARCH SATISFACTION, SUFFICIENT DEPTH & ZERO FILLER:
-   - Search satisfaction, actionable student value, and 100% factual accuracy ALWAYS take priority.
-   - For comprehensive guides, admission roadmaps, and recruitment breakdowns, aim for thorough depth (typically 1,000–1,500+ words) covering full eligibility, structured tables, and step-by-step walkthroughs.
-   - NEVER add repetitive filler paragraphs, generic fluff, or padded sentences merely to artificially inflate word count. Every paragraph must provide clear, useful facts.
+3. COMPREHENSIVE DEPTH & ZERO FILLER (1,000–1,500+ WORDS):
+   - For all Comprehensive Guides, Exam Roadmaps, Admission Blueprints, and Recruitment Portals: The article MUST be thorough and comprehensive, with a MINIMUM length of 1,000 to 1,400+ words.
+   - Include detailed structured <table> comparisons (e.g. Exam Pattern & Marks Breakdown, Category Cutoffs, Eligibility & Age Criteria, Important Cycle Dates).
+   - Provide multi-step actionable walkthroughs with subheadings, mandatory document checklists, mistakes candidates must avoid, and comprehensive FAQs.
+   - NEVER add repetitive filler or artificial fluff sentences. Depth must come from rich, verified domain information, step-by-step clarity, and thorough explanations.
 4. INTRODUCTION RULE (ZERO FLUFF):
    - The first 100-150 words MUST immediately answer: WHAT happened? WHO is affected? WHEN? WHAT should the user do right now?
    - NEVER start with filler like "In today's competitive world...", "Education is an important part of life...", "Students eagerly wait...", "Whether you are a student...", "Let's dive into...". Start directly with the verified facts.
@@ -103,15 +103,17 @@ CURRENT DATE: {$currentDateFormatted}
 VERIFIED SOURCE CONTEXT:
 {$sourceFactsJson}
 
-DYNAMIC STRUCTURE GUIDELINES (Adapt organically to topic intent — do NOT force unnecessary sections):
+DYNAMIC STRUCTURE GUIDELINES (Provide rich, comprehensive depth of 1,000 to 1,400+ words with HTML tables):
 - Direct, fact-first introductory paragraph answering What, Who, When, and Action required.
-- <h2>Latest Official Update & Key Details</h2>
-- <h2>Important Dates & Schedule</h2> (Include verified dates table when dates are relevant)
-- <h2>Eligibility & Requirements</h2> (Only when applicable)
-- <h2>Step-by-Step Guide</h2> (When candidate action is required)
-- <h2>What Candidates Should Do Next?</h2> (Only when relevant next stage exists)
-- <h2>Frequently Asked Questions</h2> (Only genuine, search-intent candidate questions with direct verified answers; do NOT force empty FAQs)
-- <h2>Official Source & Verification</h2> (Clear authority reference link)
+- <h2>Overview & Official Notification Highlights</h2>
+- <h2>Important Dates & Exam Schedule</h2> (Structured HTML <table>)
+- <h2>Detailed Eligibility Criteria & Educational Qualifications</h2>
+- <h2>Exam Pattern, Marking Scheme & Marks Breakdown</h2> (Structured HTML <table>)
+- <h2>Step-by-Step Application & Selection Process</h2>
+- <h2>Category-Wise Cutoff Benchmarks & Relaxation Rules</h2> (When applicable)
+- <h2>Common Mistakes Candidates Must Avoid</h2>
+- <h2>Frequently Asked Questions (FAQs)</h2> (5-6 genuine search questions with thorough, direct verified answers)
+- <h2>Official Authority Verification & Direct Portal Links</h2>
 
 Return strictly as JSON with this exact schema:
 {
