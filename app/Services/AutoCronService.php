@@ -24,6 +24,7 @@ class AutoCronService {
     private const INTERVAL_ANALYZE   = 120;   // 2 mins
     private const INTERVAL_GENERATE  = 240;   // 4 mins
     private const INTERVAL_PUBLISH   = 300;   // 5 mins
+    private const INTERVAL_BACKLINKS = 14400; // 4 hours
 
     public static function checkAndRun(): void {
         // Strict Guard: ONLY execute in CLI background daemon (NEVER on web requests)
@@ -54,6 +55,9 @@ class AutoCronService {
             }
             if (($now - ($state['publish'] ?? 0)) >= self::INTERVAL_PUBLISH) {
                 $tasksDue[] = 'publish';
+            }
+            if (($now - ($state['backlinks'] ?? 0)) >= self::INTERVAL_BACKLINKS) {
+                $tasksDue[] = 'backlinks';
             }
 
             if (empty($tasksDue)) {
@@ -102,10 +106,23 @@ class AutoCronService {
                     case 'publish':
                         self::runPublish();
                         break;
+                    case 'backlinks':
+                        self::runBacklinks();
+                        break;
                 }
             } catch (Throwable $e) {
                 Logger::error("AutoCron task '{$task}' failed: " . $e->getMessage());
             }
+        }
+    }
+
+    private static function runBacklinks(): void {
+        Logger::info('AutoCron: Starting High-DA Backlink Syndication');
+        try {
+            $service = new BacklinkService();
+            $service->syndicateLatest(2);
+        } catch (Throwable $e) {
+            Logger::error('AutoCron Backlink error: ' . $e->getMessage());
         }
     }
 
