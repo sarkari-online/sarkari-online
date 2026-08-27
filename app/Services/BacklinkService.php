@@ -132,12 +132,14 @@ Target Link: {$targetUrl}
 Category Link: {$categoryUrl}
 Homepage Link: {$siteUrl}
 
-RULES FOR HIGH-QUALITY CONTEXTUAL BACKLINKING:
-1. Write a complete, comprehensive 700 to 950 word educational guide/analysis in Markdown.
+RULES FOR HIGH-QUALITY KEYWORD-RICH CONTEXTUAL BACKLINKING:
+1. Write a complete, comprehensive 750 to 1,000 word educational guide/analysis in Markdown.
 2. DO NOT simply copy the original article; write a fresh, authoritative perspective addressing student preparation, official rules, guidelines, and key actionable advice.
-3. Naturally embed 2 to 3 organic contextual hyperlinks back to Sarkari.online:
-   - Primary Anchor: Link to {$targetUrl} using natural contextual anchor text (e.g. "[verified notification & guidelines on Sarkari.online]({$targetUrl})" or "[official breakdown on Sarkari.online]({$targetUrl})").
-   - Category / Resource Anchor: Link to {$categoryUrl} or {$siteUrl} using natural anchor text (e.g. "[comprehensive examination updates]({$categoryUrl})" or "[Sarkari.online information network]({$siteUrl})").
+3. KEYWORD ANCHOR TEXT STRATEGY (CRITICAL FOR SEO RANKING):
+   - Place hyperlinks directly on high-intent target keywords and semantic search phrases (NEVER use generic boilerplate like 'click here' or repetitive 'on Sarkari.online' tags).
+   - Primary Keyword Anchor: Link to {$targetUrl} using the EXACT topic search phrase (e.g. "[{$art['title']}]({$targetUrl})" or specific long-tail keywords like "[official application eligibility & dates]({$targetUrl})").
+   - Secondary Resource Anchor: Link to {$categoryUrl} or {$siteUrl} using category entity keywords (e.g. "[verified {$art['category_name']} portals]({$categoryUrl})" or "[national examination alert directory]({$siteUrl})").
+   - Anchor texts must read 100% naturally within surrounding editorial sentences.
 4. Include clean Markdown subheadings (##, ###), bullet points, and actionable takeaways.
 5. Choose up to 4 tags (lowercase, alphanumeric only, e.g. ["education", "career", "admissions", "india"]).
 
