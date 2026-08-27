@@ -60,6 +60,21 @@ set_error_handler(function (int $errno, string $errstr, string $errfile, int $er
     return true;
 });
 
+// 5b. Self-Healing Storage & Uploads Bootstrapper (Auto-Ensures 0777 Permissions)
+foreach ([
+    __DIR__ . '/storage/logs',
+    __DIR__ . '/storage/cache',
+    __DIR__ . '/storage/generated',
+    __DIR__ . '/uploads/thumbnails'
+] as $dir) {
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0777, true);
+    }
+    if (!is_writable($dir)) {
+        @chmod($dir, 0777);
+    }
+}
+
 set_exception_handler(function (Throwable $e) {
     App\Helpers\Logger::critical("Uncaught Exception: " . $e->getMessage(), [
         'file' => $e->getFile(),

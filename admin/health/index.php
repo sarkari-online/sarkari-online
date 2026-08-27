@@ -31,7 +31,7 @@ try {
 // 2. Gemini API Engine Check
 $geminiStatus = ['name' => 'Gemini AI Client', 'status' => 'pass', 'details' => ''];
 $apiKey = Env::get('GEMINI_API_KEY', '');
-$model = Env::get('GEMINI_MODEL', 'gemini-1.5-flash');
+$model = Env::get('GEMINI_MODEL', 'gemini-3.7-flash');
 if (empty($apiKey) || $apiKey === 'your_actual_gemini_api_key_here') {
     $geminiStatus['status'] = 'warn';
     $geminiStatus['details'] = "API Key not configured in .env. System running on simulated / mock telemetry mode.";
@@ -62,7 +62,10 @@ $dirsToCheck = [
 $unwritable = [];
 foreach ($dirsToCheck as $label => $path) {
     if (!is_dir($path)) {
-        @mkdir($path, 0755, true);
+        @mkdir($path, 0777, true);
+    }
+    if (!is_writable($path)) {
+        @chmod($path, 0777);
     }
     if (!is_writable($path)) {
         $unwritable[] = $label;
@@ -72,7 +75,7 @@ if (!empty($unwritable)) {
     $storageStatus['status'] = 'fail';
     $storageStatus['details'] = "Directories not writable: " . implode(', ', $unwritable);
 } else {
-    $storageStatus['details'] = "All 4 core directories (logs, cache, generated, thumbnails) are writable (0755).";
+    $storageStatus['details'] = "All 4 core directories (logs, cache, generated, thumbnails) are writable (0777).";
 }
 
 // 5. Dynamic Sitemap Health Check
