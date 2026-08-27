@@ -42,54 +42,48 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         goto render_page;
     }
 
-    // LAYER 3: Google reCAPTCHA v3 Server-Side Verification
+    // LAYER 3: Google reCAPTCHA v3 Server-Side Verification via cURL
     if (!empty($recaptchaSecretKey)) {
         $recaptchaToken = trim($_POST['g-recaptcha-response'] ?? '');
-        if (empty($recaptchaToken)) {
-            $errorMessage = 'reCAPTCHA verification failed. Please try again.';
-            goto render_page;
-        }
-        $verifyUrl = 'https://www.google.com/recaptcha/api/siteverify';
-        $verifyData = http_build_query([
-            'secret'   => $recaptchaSecretKey,
-            'response' => $recaptchaToken,
-            'remoteip' => $_SERVER['REMOTE_ADDR'] ?? ''
-        ]);
-        $verifyCtx = stream_context_create(['http' => [
-            'method'  => 'POST',
-            'header'  => "Content-Type: application/x-www-form-urlencoded\r\n",
-            'content' => $verifyData,
-            'timeout' => 5
-        ]]);
-        $verifyResult = @file_get_contents($verifyUrl, false, $verifyCtx);
-        $verifyJson   = $verifyResult ? json_decode($verifyResult, true) : [];
-        $captchaOk    = ($verifyJson['success'] ?? false) === true;
-        $captchaScore = (float)($verifyJson['score'] ?? 0);
-        if (!$captchaOk || $captchaScore < $recaptchaMinScore) {
-            $errorMessage = 'Automated submission detected. Please try again.';
-            goto render_page;
+        if (!empty($recaptchaToken)) {
+            $ch = curl_init('https://www.google.com/recaptcha/api/siteverify');
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST           => true,
+                CURLOPT_POSTFIELDS     => http_build_query([
+                    'secret'   => $recaptchaSecretKey,
+                    'response' => $recaptchaToken,
+                    'remoteip' => $_SERVER['REMOTE_ADDR'] ?? ''
+                ]),
+                CURLOPT_TIMEOUT        => 8,
+                CURLOPT_SSL_VERIFYPEER => false
+            ]);
+            $verifyResult = curl_exec($ch);
+            curl_close($ch);
+
+            $verifyJson   = $verifyResult ? json_decode($verifyResult, true) : [];
+            $captchaOk    = ($verifyJson['success'] ?? false) === true;
+            $captchaScore = (float)($verifyJson['score'] ?? 0);
+
+            // Reject only if Google explicitly marks it as a failed bot (score < minScore)
+            if ($verifyResult && (!$captchaOk || $captchaScore < $recaptchaMinScore)) {
+                $errorMessage = 'Security verification flagged this submission as automated. Please try again.';
+                goto render_page;
+            }
         }
     }
 
-    // LAYER 4: Block Docker-internal & private network IPs
+    // LAYER 4: Rate Limiting — max 5 per IP per hour
     $clientIp = !empty($_SERVER['HTTP_X_FORWARDED_FOR'])
         ? trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0])
         : ($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0');
-    foreach (['172.', '10.', '192.168.', '127.', '::1'] as $privateRange) {
-        if (str_starts_with($clientIp, $privateRange)) {
-            $messageSent = true; // Silently discard internal IPs
-            goto render_page;
-        }
-    }
-
-    // LAYER 4: Rate Limiting — max 3 per IP per hour
     $cacheDir = dirname(__FILE__) . '/storage/cache';
     if (!is_dir($cacheDir)) { @mkdir($cacheDir, 0777, true); }
     $rateLimitFile = $cacheDir . '/contact_rate_' . md5($clientIp) . '.json';
     $rateData = file_exists($rateLimitFile) ? (json_decode(@file_get_contents($rateLimitFile), true) ?: []) : [];
     $rateData = array_values(array_filter($rateData, fn($ts) => $ts > (time() - 3600)));
-    if (count($rateData) >= 3) {
-        $errorMessage = 'Too many submissions. Please try again after an hour.';
+    if (count($rateData) >= 5) {
+        $errorMessage = 'Too many submissions from this IP. Please try again after an hour.';
         goto render_page;
     }
     $rateData[] = time();
@@ -127,7 +121,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 'subject' => $inquiryType,
                 'article_url' => $articleUrl ?: null,
                 'message' => $senderMessage,
-                'ip_address' => $_SERVER['REMOTE_ADDR'] ?? 'Unknown',
+                'ip_address' => $clientIp,
                 'status' => 'unread',
                 'created_at' => date('Y-m-d H:i:s')
             ]);
