@@ -27,23 +27,33 @@ class BacklinkService {
      * Syndicate up to $limit recent published articles to Dev.to
      */
     public function syndicateLatest(int $limit = 2): array {
-        $history = $this->loadHistory();
-        $today = date('Y-m-d');
-        $todayCount = 0;
+        $lockFile = dirname(__DIR__, 2) . '/storage/cache/backlink_syndication.lock';
+        $fp = @fopen($lockFile, 'c+');
+        if (!$fp || !@flock($fp, LOCK_EX | LOCK_NB)) {
+            Logger::info("BacklinkService: Another syndication process is already running. Exiting to prevent duplicates.");
+            return ['status' => 'locked', 'items' => []];
+        }
 
-        foreach ($history as $item) {
-            if (str_starts_with($item['published_at'] ?? '', $today)) {
-                $todayCount++;
+        try {
+            $history = $this->loadHistory();
+            $today = date('Y-m-d');
+            $todayCount = 0;
+
+            foreach ($history as $item) {
+                if (str_starts_with($item['published_at'] ?? '', $today)) {
+                    $todayCount++;
+                }
             }
-        }
 
-        if ($todayCount >= 2) {
-            Logger::info("BacklinkService: Daily syndication quota (2/day) already reached.");
-            return ['status' => 'quota_reached', 'today_published' => $todayCount, 'items' => []];
-        }
+            if ($todayCount >= 2) {
+                Logger::info("BacklinkService: Daily syndication quota (strictly 2/day) already reached.");
+                @flock($fp, LOCK_UN);
+                @fclose($fp);
+                return ['status' => 'quota_reached', 'today_published' => $todayCount, 'items' => []];
+            }
 
-        $allowedSlots = 2 - $todayCount;
-        $maxToProcess = min($limit, $allowedSlots);
+            $allowedSlots = 2 - $todayCount;
+            $maxToProcess = min($limit, $allowedSlots);
 
         // Fetch recent published articles that have not yet been syndicated
         $articles = Database::fetchAll(
@@ -94,6 +104,12 @@ class BacklinkService {
             'syndicated_count' => count($syndicated),
             'items' => $syndicated
         ];
+        } finally {
+            if ($fp) {
+                @flock($fp, LOCK_UN);
+                @fclose($fp);
+            }
+        }
     }
 
     /**
