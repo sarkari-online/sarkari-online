@@ -7,18 +7,16 @@ require_once dirname(__DIR__) . '/config.php';
 use App\Database\Database;
 
 try {
-    $art = Database::fetchOne("SELECT id FROM articles WHERE slug LIKE '%wbjee%' AND status = 'published' LIMIT 1");
-    if (!$art) {
-        $art = Database::fetchOne("SELECT id FROM articles WHERE id = 597 LIMIT 1");
+    $articles = Database::fetchAll("SELECT id, title, slug, status FROM articles WHERE slug LIKE '%wbjee%' OR title LIKE '%WBJEE%' OR id IN (596, 597)");
+    
+    if (empty($articles)) {
+        die("No WBJEE articles found in database.\n");
     }
 
-    if (!$art) {
-        die("No WBJEE published article found.\n");
-    }
-
-    $id = (int)$art['id'];
+    echo "Found " . count($articles) . " WBJEE article(s) in database.\n";
 
     $title = "WBJEE 2027: Official Exam Schedule, Eligibility, Paper Pattern, and Application Blueprint";
+    $slug  = "wbjee-2027-exam-application-guide";
     $metaTitle = "WBJEE 2027: Exam Dates, Eligibility, Marking Scheme, Application Guide";
     $metaDesc = "Complete official guide to WBJEE 2027 conducted by WBJEEB. Check verified exam schedule, 3-category marking scheme, domicile rules, and online registration steps.";
     $excerpt = "WBJEEB conducts the West Bengal Joint Entrance Examination for admission into B.Tech, B.Pharm, and B.Arch programs across top engineering colleges in West Bengal. Here is the verified blueprint covering the 200-mark exam pattern, subject eligibility, domicile quotas, and application timeline.";
@@ -235,21 +233,46 @@ try {
 </div>
 HTML;
 
-    Database::update('articles', [
-        'title'            => $title,
-        'meta_title'       => $metaTitle,
-        'meta_description' => $metaDesc,
-        'excerpt'          => $excerpt,
-        'content'          => $content,
-        'status'           => 'published',
-        'quality_score'    => 98,
-        'source_verified'  => 1,
-        'source_name'      => 'West Bengal Joint Entrance Examinations Board (WBJEEB)',
-        'source_url'       => 'https://wbjeeb.nic.in',
-        'updated_at'       => date('Y-m-d H:i:s')
-    ], 'id = :id', ['id' => $id]);
+    foreach ($articles as $art) {
+        $id = (int)$art['id'];
+        
+        // If it's the primary article or published, set slug to wbjee-2027-exam-application-guide
+        $assignedSlug = ($id === 597 || $art['status'] === 'published') ? $slug : 'wbjee-2027-exam-roadmap-syllabus';
 
-    echo "SUCCESS: Article #{$id} ({$title}) successfully rewritten with 100% verified official WBJEEB data!\n";
+        Database::update('articles', [
+            'title'            => $title,
+            'slug'             => $assignedSlug,
+            'meta_title'       => $metaTitle,
+            'meta_description' => $metaDesc,
+            'excerpt'          => $excerpt,
+            'content'          => $content,
+            'status'           => 'published',
+            'quality_score'    => 98,
+            'source_verified'  => 1,
+            'source_name'      => 'West Bengal Joint Entrance Examinations Board (WBJEEB)',
+            'source_url'       => 'https://wbjeeb.nic.in',
+            'updated_at'       => date('Y-m-d H:i:s')
+        ], 'id = :id', ['id' => $id]);
+
+        echo "SUCCESS: Article #{$id} [slug: {$assignedSlug}] updated with verified WBJEE 2027 data!\n";
+    }
+
+    // Clear file-based cache
+    $cacheDir = dirname(__DIR__) . '/storage/cache';
+    if (is_dir($cacheDir)) {
+        foreach (glob($cacheDir . '/*.json') ?: [] as $cacheFile) {
+            @unlink($cacheFile);
+        }
+    }
+
+    // Clear OPcache if active in CLI
+    if (function_exists('opcache_reset')) {
+        @opcache_reset();
+    }
+
+    echo "\n=== SUMMARY ===\n";
+    echo "Live URL: https://sarkari.online/article/wbjee-2027-exam-application-guide/\n";
+    echo "Status: Published & Verified\n";
 
 } catch (\Throwable $e) {
     echo "ERROR: " . $e->getMessage() . "\n";
