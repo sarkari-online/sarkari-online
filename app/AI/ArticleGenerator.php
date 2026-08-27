@@ -77,8 +77,11 @@ CRITICAL EDITORIAL PRINCIPLES:
       * DEPTH & DATA REQUIREMENT: The article MUST answer the student's actual query immediately in the first paragraph, provide verified opening-closing ranks or category-wise cutoff matrix in clean <table> structure, explain step-by-step what the student should do next, and cite verified statutory portals.
    - Career Guides: Comprehensive roadmap, subject weightage, preparation strategy, book recommendations.
    - Student Tech & AI: DigiLocker, ABC ID, APAAR ID, OTR, practical step-by-step how-to guidance.
-7. TEMPORAL ACCURACY:
-   - Today is {$currentDateFormatted}. Never write past dates of the current year as upcoming tentative events.
+7. TEMPORAL ACCURACY & ACADEMIC YEAR LOGIC:
+   - Today is {$currentDateFormatted}.
+   - In the second half of the year (July to December 2026): Spring entrance exams (WBJEE, JEE Main, NEET, GATE, CUET) for 2026 have already concluded earlier this year.
+   - For Upcoming Application & Exam Guides written in late 2026: Target the UPCOMING academic cycle (e.g. 2027 Session: Notification in late 2026, Exam in early/mid 2027).
+   - If writing about the current 2026 cycle in late 2026: Focus exclusively on Centralised Counselling, Seat Allotment, Rank Cutoffs, and Decentralised Spot Admissions. NEVER present past exam dates as upcoming events!
 8. NO AI CLICHES & NO FAKE EXPERTS/STATS:
    - Avoid "comprehensive guide", "everything you need to know", "stay tuned".
    - Never write "Experts say..." or invent percentages like "90% of students..." without official data.
