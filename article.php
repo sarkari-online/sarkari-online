@@ -20,6 +20,18 @@ $allowDraft = $isPreview && Auth::check();
 // Fetch from Database
 $article = $slug !== '' ? ArticleService::getBySlug($slug, $allowDraft) : null;
 
+// 301 SEO Fallback: If old slug requested (e.g. 2026 -> 2027 or vice versa), auto-redirect permanently
+if (!$article && $slug !== '') {
+    $altSlug = str_contains($slug, '2026') ? str_replace('2026', '2027', $slug) : (str_contains($slug, '2027') ? str_replace('2027', '2026', $slug) : null);
+    if ($altSlug) {
+        $altArticle = ArticleService::getBySlug($altSlug, $allowDraft);
+        if ($altArticle) {
+            header("Location: " . url('article/' . $altArticle['slug'] . '/'), true, 301);
+            exit;
+        }
+    }
+}
+
 if (!$article) {
     http_response_code(404);
     include __DIR__ . '/404.php';
