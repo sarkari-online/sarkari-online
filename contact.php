@@ -17,6 +17,11 @@ $crumbs = [
 $messageSent = false;
 $errorMessage = '';
 
+// Google reCAPTCHA v3 Keys
+$recaptchaSiteKey   = \App\Helpers\Env::get('RECAPTCHA_SITE_KEY', '');
+$recaptchaSecretKey = \App\Helpers\Env::get('RECAPTCHA_SECRET_KEY', '');
+$recaptchaMinScore  = (float)\App\Helpers\Env::get('RECAPTCHA_MIN_SCORE', '0.5');
+
 // Time-based form token (changes every 10 minutes)
 $formToken = hash('sha256', date('Y-m-d H:i', time() - (time() % 600)) . 'sarkari_contact_secret_2026');
 
@@ -37,7 +42,36 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         goto render_page;
     }
 
-    // LAYER 3: Block Docker-internal & private network IPs
+    // LAYER 3: Google reCAPTCHA v3 Server-Side Verification
+    if (!empty($recaptchaSecretKey)) {
+        $recaptchaToken = trim($_POST['g-recaptcha-response'] ?? '');
+        if (empty($recaptchaToken)) {
+            $errorMessage = 'reCAPTCHA verification failed. Please try again.';
+            goto render_page;
+        }
+        $verifyUrl = 'https://www.google.com/recaptcha/api/siteverify';
+        $verifyData = http_build_query([
+            'secret'   => $recaptchaSecretKey,
+            'response' => $recaptchaToken,
+            'remoteip' => $_SERVER['REMOTE_ADDR'] ?? ''
+        ]);
+        $verifyCtx = stream_context_create(['http' => [
+            'method'  => 'POST',
+            'header'  => "Content-Type: application/x-www-form-urlencoded\r\n",
+            'content' => $verifyData,
+            'timeout' => 5
+        ]]);
+        $verifyResult = @file_get_contents($verifyUrl, false, $verifyCtx);
+        $verifyJson   = $verifyResult ? json_decode($verifyResult, true) : [];
+        $captchaOk    = ($verifyJson['success'] ?? false) === true;
+        $captchaScore = (float)($verifyJson['score'] ?? 0);
+        if (!$captchaOk || $captchaScore < $recaptchaMinScore) {
+            $errorMessage = 'Automated submission detected. Please try again.';
+            goto render_page;
+        }
+    }
+
+    // LAYER 4: Block Docker-internal & private network IPs
     $clientIp = !empty($_SERVER['HTTP_X_FORWARDED_FOR'])
         ? trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0])
         : ($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0');
@@ -207,10 +241,41 @@ include __DIR__ . '/components/header.php';
                         <textarea id="contact-message" name="message" class="form-textarea" placeholder="Please describe your query or provide verified official source links for corrections..." required></textarea>
                     </div>
 
-                    <button type="submit" class="btn btn-primary" style="padding: 0.75rem 1.75rem;">
+                    <!-- reCAPTCHA v3 hidden token field -->
+                    <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-response">
+
+                    <button type="submit" id="contact-submit-btn" class="btn btn-primary" style="padding: 0.75rem 1.75rem;">
                         Send Message <?= icon('chevron-right', 'icon-sm') ?>
                     </button>
+
+                    <?php if (!empty($recaptchaSiteKey)): ?>
+                    <p style="font-size:0.78rem; color: var(--text-muted); margin-top: 0.75rem;">
+                        This site is protected by Google reCAPTCHA.
+                        <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" style="color: var(--color-primary);">Privacy Policy</a> &amp;
+                        <a href="https://policies.google.com/terms" target="_blank" rel="noopener" style="color: var(--color-primary);">Terms of Service</a> apply.
+                    </p>
+                    <?php endif; ?>
                 </form>
+
+                <?php if (!empty($recaptchaSiteKey)): ?>
+                <!-- Load reCAPTCHA v3 JS -->
+                <script src="https://www.google.com/recaptcha/api.js?render=<?= e($recaptchaSiteKey) ?>"></script>
+                <script>
+                document.getElementById('contact-submit-btn').addEventListener('click', function(e) {
+                    e.preventDefault();
+                    var form = this.closest('form');
+                    var btn  = this;
+                    btn.disabled = true;
+                    btn.textContent = 'Verifying...';
+                    grecaptcha.ready(function() {
+                        grecaptcha.execute('<?= e($recaptchaSiteKey) ?>', {action: 'contact_submit'}).then(function(token) {
+                            document.getElementById('g-recaptcha-response').value = token;
+                            form.submit();
+                        });
+                    });
+                });
+                </script>
+                <?php endif; ?>
 
                 <div style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0.5rem;">
                     <h4 style="margin-bottom: 0.25rem;">Official Editorial &amp; Grievance Communication</h4>
