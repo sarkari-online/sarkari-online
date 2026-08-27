@@ -17,12 +17,72 @@ $crumbs = [
 $messageSent = false;
 $errorMessage = '';
 
+// Time-based form token (changes every 10 minutes)
+$formToken = hash('sha256', date('Y-m-d H:i', time() - (time() % 600)) . 'sarkari_contact_secret_2026');
+
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+
+    // LAYER 1: Honeypot — invisible field bots fill, humans don't
+    if (!empty($_POST['website'] ?? '')) {
+        $messageSent = true; // Silently discard
+        goto render_page;
+    }
+
+    // LAYER 2: Time-based CSRF Token check
+    $submittedToken = trim($_POST['_token'] ?? '');
+    $validToken     = hash('sha256', date('Y-m-d H:i', time() - (time() % 600)) . 'sarkari_contact_secret_2026');
+    $prevToken      = hash('sha256', date('Y-m-d H:i', (time() - 600) - ((time() - 600) % 600)) . 'sarkari_contact_secret_2026');
+    if ($submittedToken !== $validToken && $submittedToken !== $prevToken) {
+        $errorMessage = 'Invalid session. Please refresh the page and try again.';
+        goto render_page;
+    }
+
+    // LAYER 3: Block Docker-internal & private network IPs
+    $clientIp = !empty($_SERVER['HTTP_X_FORWARDED_FOR'])
+        ? trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0])
+        : ($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0');
+    foreach (['172.', '10.', '192.168.', '127.', '::1'] as $privateRange) {
+        if (str_starts_with($clientIp, $privateRange)) {
+            $messageSent = true; // Silently discard internal IPs
+            goto render_page;
+        }
+    }
+
+    // LAYER 4: Rate Limiting — max 3 per IP per hour
+    $cacheDir = dirname(__FILE__) . '/storage/cache';
+    if (!is_dir($cacheDir)) { @mkdir($cacheDir, 0777, true); }
+    $rateLimitFile = $cacheDir . '/contact_rate_' . md5($clientIp) . '.json';
+    $rateData = file_exists($rateLimitFile) ? (json_decode(@file_get_contents($rateLimitFile), true) ?: []) : [];
+    $rateData = array_values(array_filter($rateData, fn($ts) => $ts > (time() - 3600)));
+    if (count($rateData) >= 3) {
+        $errorMessage = 'Too many submissions. Please try again after an hour.';
+        goto render_page;
+    }
+    $rateData[] = time();
+    @file_put_contents($rateLimitFile, json_encode($rateData));
+
+    // LAYER 5: Content Spam Validation
     $senderName    = trim($_POST['name'] ?? '');
     $senderEmail   = trim($_POST['email'] ?? '');
     $inquiryType   = trim($_POST['subject'] ?? 'General Query');
     $articleUrl    = trim($_POST['article_url'] ?? '');
     $senderMessage = trim($_POST['message'] ?? '');
+
+    // Reject random alphanumeric bot names (no spaces, 8+ chars of gibberish)
+    if (preg_match('/^[a-zA-Z0-9]{8,}$/', $senderName) && !str_contains($senderName, ' ')) {
+        $messageSent = true; // Silently discard
+        goto render_page;
+    }
+    // Reject gibberish messages (no spaces = random payload)
+    if (!str_contains($senderMessage, ' ') && strlen($senderMessage) > 5) {
+        $messageSent = true; // Silently discard
+        goto render_page;
+    }
+    // Reject spam link injection (more than 3 URLs)
+    if (substr_count($senderMessage, 'http') > 3) {
+        $errorMessage = 'Your message contains too many external links. Please simplify.';
+        goto render_page;
+    }
 
     if (!empty($senderName) && !empty($senderEmail) && !empty($senderMessage) && filter_var($senderEmail, FILTER_VALIDATE_EMAIL)) {
         // 1. Save to Database for Admin Inquiries & Leads Panel
@@ -75,6 +135,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     }
 }
 
+render_page:
 include __DIR__ . '/components/head.php';
 include __DIR__ . '/components/header.php';
 ?>
@@ -98,8 +159,21 @@ include __DIR__ . '/components/header.php';
                 </div>
             <?php endif; ?>
 
+            <?php if (!empty($errorMessage)): ?>
+                <div class="info-callout" style="background-color: #fef2f2; border-left-color: #ef4444; color: #b91c1c; margin-bottom: 2rem;">
+                    <div><strong>Error:</strong> <?= e($errorMessage) ?></div>
+                </div>
+            <?php endif; ?>
+
             <div class="static-page-content">
                 <form action="<?= url('contact/') ?>" method="POST">
+                    <!-- CSRF Token (time-based, rotates every 10 min) -->
+                    <input type="hidden" name="_token" value="<?= e($formToken) ?>">
+                    <!-- Honeypot: hidden from humans, bots fill this — auto-rejected -->
+                    <div style="position:absolute;left:-9999px;top:-9999px;opacity:0;height:0;overflow:hidden;" aria-hidden="true">
+                        <label for="hp_website">Leave this empty</label>
+                        <input type="text" id="hp_website" name="website" value="" tabindex="-1" autocomplete="off">
+                    </div>
                     <div class="contact-form-grid">
                         <div class="form-group">
                             <label for="contact-name" class="form-label">Your Full Name *</label>
