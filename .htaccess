@@ -6,9 +6,20 @@
     RewriteEngine On
     RewriteBase /automation/
 
-    # Security: Deny direct access to sensitive directories
-    RewriteRule ^(app|storage|cron|database)/ - [F,L,NC]
-    RewriteRule ^config\.php$ - [F,L,NC]
+    # Security: Deny direct access to sensitive directories and system folders
+    RewriteRule ^(\.git|\.env|app|storage|cron|database|scripts|scratch)/ - [F,L,NC]
+    RewriteRule ^(config\.php|composer\.(json|lock))$ - [F,L,NC]
+
+    # Block direct access to all sensitive file extensions (.sql, .env, .log, .sh, .lock)
+    <FilesMatch "\.(env|sql|log|sh|lock|json|bak|config)$">
+        <IfModule mod_authz_core.c>
+            Require all denied
+        </IfModule>
+        <IfModule !mod_authz_core.c>
+            Order allow,deny
+            Deny from all
+        </IfModule>
+    </FilesMatch>
 
     # Clean URLs for Public Pages
     RewriteRule ^sitemap\.xml$ sitemap.php [L,QSA]
