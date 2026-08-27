@@ -67,14 +67,14 @@ try {
 </div>
 
 <h2>Expected WBJEE 2027 Admission Cycle &amp; Timeline</h2>
-<p>Based on the standard statutory timeline observed by the board, the entrance examination is typically scheduled for the fourth Sunday of May. Below is the verified schedule outline for the upcoming academic session:</p>
+<p>Based on the standard statutory timeline observed by the board, the entrance examination is typically scheduled for the <strong>last Sunday of May</strong>. Below is the verified schedule outline based on the established admission pattern (subject to final confirmation in the official information bulletin):</p>
 
 <div class="table-responsive">
 <table class="table table-bordered">
 <thead>
 <tr>
 <th>Admission Event</th>
-<th>Official Timeline</th>
+<th>Official Timeline (Expected)</th>
 <th>Status</th>
 </tr>
 </thead>
@@ -208,7 +208,7 @@ try {
 <ul>
 <li>100% Home State quota seats in Government Engineering Colleges.</li>
 <li>Statutory caste reservations (SC, ST, OBC-A, OBC-B, EWS, PwD).</li>
-<li>Tuition Fee Waiver (TFW) scheme providing full academic fee exemptions for meritorious students with family income under &amp;dollar;3,00,000 / &amp;dollar;2,50,000 per annum.</li>
+<li>Tuition Fee Waiver (TFW) scheme providing full academic fee exemption for meritorious students whose total annual family income is under <strong>₹2,50,000 per annum</strong>.</li>
 </ul>
 </li>
 </ul>

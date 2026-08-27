@@ -91,6 +91,13 @@ CRITICAL EDITORIAL PRINCIPLES:
    - 100% fluent, clear, professional Indian English. Zero Devanagari or Hindi text in titles, headings, or content.
 11. CLEAN SEMANTIC HTML:
    - Use standard HTML tags: <h2>, <h3>, <p>, <ul>, <ol>, <li>, <table>, <thead>, <tbody>, <tr>, <th>, <td>, <strong>, <em>. No markdown backticks inside HTML. No emojis in headings or titles.
+12. CURRENCY & NUMERIC INTEGRITY:
+   - Always use strictly the Indian Rupee symbol "₹" for all Indian exam fees, scholarships, and family income limits. NEVER use "$" or "USD" in Indian context.
+   - Never write conflicting figures for the same statutory threshold (e.g. state single verified income limit like "₹2,50,000 per annum" rather than conflicting multiple numbers).
+13. STRICT INTERNAL CONSISTENCY:
+   - Table data, paragraph text, H1 heading, meta title, and descriptions MUST 100% match. Never state "fourth Sunday" in text and "Last Sunday" in tables; maintain absolute uniform terminology throughout the article.
+14. FACTUAL SOURCING & TIMELINE LABELS:
+   - If an upcoming future notification is not yet officially released by the authority, explicitly label timelines as "Expected timeline based on established statutory pattern, subject to official notification release".
 SYS;
 
         $sourceFactsJson = json_encode($sourceData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
