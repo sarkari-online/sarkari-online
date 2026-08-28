@@ -12,6 +12,6 @@ dirs=(
 for dir in "${dirs[@]}"; do
     mkdir -p "$dir" 2>/dev/null
     chown -R www-data:www-data "$dir" 2>/dev/null
-    chmod -R 775 "$dir" 2>/dev/null
+    chmod -R 777 "$dir" 2>/dev/null
 done
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Permissions healed successfully."
