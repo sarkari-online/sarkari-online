@@ -255,6 +255,15 @@ HTML;
         ], 'id = :id', ['id' => $id]);
 
         echo "SUCCESS: Article #{$id} [slug: {$assignedSlug}] updated with verified WBJEE 2027 data!\n";
+
+        // Auto-regenerate 2027 branded thumbnail image
+        try {
+            $thumbService = new \App\Services\ThumbnailService();
+            $thumb = $thumbService->generateForArticle($id);
+            echo "  -> Fresh WBJEE 2027 Thumbnail Generated: " . ($thumb['relative_path'] ?? '') . "\n";
+        } catch (\Throwable $te) {
+            echo "  -> Thumbnail note: " . $te->getMessage() . "\n";
+        }
     }
 
     // Clear file-based cache
