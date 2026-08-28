@@ -60,19 +60,12 @@ set_error_handler(function (int $errno, string $errstr, string $errfile, int $er
     return true;
 });
 
-// 5b. Self-Healing Storage & Uploads Bootstrapper (Auto-Ensures 0777 Permissions)
-foreach ([
-    __DIR__ . '/storage/logs',
-    __DIR__ . '/storage/cache',
-    __DIR__ . '/storage/generated',
-    __DIR__ . '/uploads/thumbnails'
-] as $dir) {
-    if (!is_dir($dir)) {
-        @mkdir($dir, 0777, true);
-    }
-    if (!is_writable($dir)) {
-        @chmod($dir, 0777);
-    }
+// 5b. Storage Directory Verification (Fast check without blocking chmod loop)
+if (!is_dir(__DIR__ . '/storage/logs')) {
+    @mkdir(__DIR__ . '/storage/logs', 0775, true);
+    @mkdir(__DIR__ . '/storage/cache', 0775, true);
+    @mkdir(__DIR__ . '/storage/generated', 0775, true);
+    @mkdir(__DIR__ . '/uploads/thumbnails', 0775, true);
 }
 
 set_exception_handler(function (Throwable $e) {
