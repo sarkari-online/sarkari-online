@@ -44,6 +44,11 @@ $basePath = ($scriptDir === '/' || $scriptDir === '.') ? '' : rtrim($scriptDir, 
 define('SITE_URL', App\Helpers\Env::get('APP_URL', $protocol . $host . $basePath));
 define('BASE_PATH', $basePath);
 
+// 4b. Active Autonomous Web Application Firewall (WAF) & Security Shield
+if (php_sapi_name() !== 'cli') {
+    App\Helpers\Firewall::inspect();
+}
+
 // 5. Global Error & Exception Handlers
 error_reporting(E_ALL);
 ini_set('display_errors', APP_DEBUG ? '1' : '0');
