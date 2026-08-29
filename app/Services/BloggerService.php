@@ -220,29 +220,48 @@ EDITORIAL REQUIREMENTS:
    - Example anchor keywords:
      * "<a href=\"{$canonicalUrl}\" target=\"_blank\">complete official notification PDF and direct application link on Sarkari.online</a>"
      * "<a href=\"{$canonicalUrl}\" target=\"_blank\">detailed subject-wise syllabus and cutoff matrix at Sarkari.online</a>"
-5. STRICT HTML TAGS ONLY: Use <h2>, <h3>, <p>, <ul>, <ol>, <li>, <table>, <thead>, <tbody>, <tr>, <th>, <td>, <strong>, <em>, <a>. No markdown code blocks.
+5. STRICT HTML TAGS ONLY: Use <h2>, <h3>, <p>, <ul>, <ol>, <li>, <table>, <thead>, <tbody>, <tr>, <th>, <td>, <strong>, <em>, <a>. Do NOT output markdown code blocks (no ```html).
 
-Output strictly valid JSON in this exact structure:
-{
-  "title": "A compelling, original blog headline distinct from original title",
-  "content": "Full HTML body content (without image tag, will be prepended automatically)"
-}
+OUTPUT FORMAT:
+On the very first line, write:
+TITLE: [Your compelling blog headline here]
+
+Then on the lines below it, write the full HTML article body directly.
 PROMPT;
 
         try {
-            $gemini = new Gemini('gemini-3.7-flash');
-            $aiResponse = $gemini->generateJson($prompt, [
+            $gemini = new Gemini();
+            $aiResponse = $gemini->generate($prompt, [
                 'stage' => 'blogger_syndication',
                 'temperature' => 0.2
             ]);
 
-            if (!empty($aiResponse['title']) && !empty($aiResponse['content'])) {
-                // Prepend high-res thumbnail banner image
-                $fullContent = $imageHtml . "\n" . $aiResponse['content'];
-                return [
-                    'title'   => $aiResponse['title'],
-                    'content' => $fullContent
-                ];
+            $rawText = trim($aiResponse['text'] ?? '');
+            if (!empty($rawText)) {
+                $lines = explode("\n", $rawText);
+                $title = "Complete Guide: " . $articleTitle;
+                $bodyLines = [];
+
+                foreach ($lines as $i => $line) {
+                    if ($i === 0 && stripos($line, 'TITLE:') === 0) {
+                        $title = trim(substr($line, 6));
+                    } else {
+                        $bodyLines[] = $line;
+                    }
+                }
+
+                $bodyHtml = trim(implode("\n", $bodyLines));
+                // Remove any accidental markdown backticks
+                $bodyHtml = preg_replace('/^```(?:html)?\s*/i', '', $bodyHtml);
+                $bodyHtml = preg_replace('/\s*```$/', '', $bodyHtml);
+
+                if (strlen($bodyHtml) > 500) {
+                    $fullContent = $imageHtml . "\n" . $bodyHtml;
+                    return [
+                        'title'   => $title,
+                        'content' => $fullContent
+                    ];
+                }
             }
         } catch (Throwable $e) {
             Logger::error("Gemini Blogger generation error: " . $e->getMessage());
