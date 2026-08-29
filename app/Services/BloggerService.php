@@ -178,50 +178,84 @@ class BloggerService {
     }
 
     /**
-     * Generate unique, non-duplicate companion content with contextual backlink
+     * Generate unique, non-duplicate 700-1000 word companion content with embedded image & rich backlinks
      */
     private function generateCompanionContent(array $article): array {
         $canonicalUrl = "https://sarkari.online/article/{$article['slug']}/";
         $articleTitle = $article['title'];
-        $cleanSnippet = strip_tags(mb_substr($article['content'], 0, 1000));
+        $cleanSnippet = strip_tags(mb_substr($article['content'], 0, 2000));
+        
+        // Resolve featured image URL
+        $featuredImage = $article['featured_image'] ?? null;
+        if (empty($featuredImage)) {
+            $featuredImage = 'uploads/thumbnails/' . $article['slug'] . '.webp';
+        }
+        $imageUrl = str_starts_with($featuredImage, 'http') ? $featuredImage : "https://sarkari.online/" . ltrim($featuredImage, '/');
+
+        $imageHtml = "<div style=\"text-align: center; margin-bottom: 25px;\">" .
+                     "<img src=\"{$imageUrl}\" alt=\"{$articleTitle}\" style=\"max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: block; margin: 0 auto;\" />" .
+                     "</div>";
 
         $prompt = <<<PROMPT
-You are a senior education journalist writing an authoritative, concise news summary for a high-DA education blog.
-Based on the following verified article details:
+You are a senior education journalist writing an authoritative, comprehensive 700 to 1,000-word feature article for a high-DA educational publication on Blogger.
 
-ORIGINAL TITLE: {$articleTitle}
-CATEGORY: {$article['category_name']}
-SOURCE CONTEXT: {$cleanSnippet}
-TARGET CANONICAL URL: {$canonicalUrl}
+SOURCE ARTICLE DETAILS:
+Title: {$articleTitle}
+Category: {$article['category_name']}
+Target Canonical URL: {$canonicalUrl}
+Detailed Background & Context:
+{$cleanSnippet}
 
-REQUIREMENTS:
-1. Write a completely ORIGINAL, non-duplicate 350-450 word companion briefing in clean HTML format.
-2. Structure with clear <h3> subheadings, concise bullet points, and key takeaways.
-3. Natural Contextual Backlink: Naturally integrate an anchor link pointing directly to {$canonicalUrl} using relevant anchor keywords (such as "detailed official notification & direct application guide on Sarkari.online" or "complete eligibility criteria at Sarkari.online").
-4. Never copy text verbatim from the source context.
-5. Tone: Highly informative, factual, professional Indian English.
-6. Use HTML tags: <p>, <h3>, <ul>, <li>, <strong>, <a href="{$canonicalUrl}">.
+EDITORIAL REQUIREMENTS:
+1. DEPTH & WORD COUNT: Write an in-depth, original 700 to 1,000-word article in clean, semantic HTML.
+2. ZERO DUPLICATION: Completely rephrase all explanations, analysis, and roadmaps with original editorial language. Never copy text verbatim.
+3. RICH FORMATTING:
+   - Engaging opening overview explaining student intent and key takeaways.
+   - Clean <table> structure for Key Dates / Examination Milestones.
+   - <h3> subheadings for Eligibility Criteria, Educational Qualification, and Selection Process.
+   - Clear ordered steps (<ol>) for the Step-by-Step Online Application Procedure.
+   - Important instructions / documents checklist.
+4. CONTEXTUAL DO-FOLLOW BACKLINKS:
+   - Seamlessly embed 2 to 3 natural contextual anchor text links pointing directly to {$canonicalUrl}.
+   - Example anchor keywords:
+     * "<a href=\"{$canonicalUrl}\" target=\"_blank\">complete official notification PDF and direct application link on Sarkari.online</a>"
+     * "<a href=\"{$canonicalUrl}\" target=\"_blank\">detailed subject-wise syllabus and cutoff matrix at Sarkari.online</a>"
+5. STRICT HTML TAGS ONLY: Use <h2>, <h3>, <p>, <ul>, <ol>, <li>, <table>, <thead>, <tbody>, <tr>, <th>, <td>, <strong>, <em>, <a>. No markdown code blocks.
 
-Output strictly valid JSON:
+Output strictly valid JSON in this exact structure:
 {
-  "title": "A fresh, compelling blog headline (different from original title)",
-  "content": "Full HTML content with embedded contextual link to Sarkari.online"
+  "title": "A compelling, original blog headline distinct from original title",
+  "content": "Full HTML body content (without image tag, will be prepended automatically)"
 }
 PROMPT;
 
         try {
-            $aiResponse = Gemini::generateJson($prompt);
+            $gemini = new Gemini('gemini-3.7-flash');
+            $aiResponse = $gemini->generateJson($prompt, [
+                'stage' => 'blogger_syndication',
+                'temperature' => 0.2
+            ]);
+
             if (!empty($aiResponse['title']) && !empty($aiResponse['content'])) {
-                return $aiResponse;
+                // Prepend high-res thumbnail banner image
+                $fullContent = $imageHtml . "\n" . $aiResponse['content'];
+                return [
+                    'title'   => $aiResponse['title'],
+                    'content' => $fullContent
+                ];
             }
         } catch (Throwable $e) {
-            Logger::warning("Gemini companion generation fallback: " . $e->getMessage());
+            Logger::error("Gemini Blogger generation error: " . $e->getMessage());
         }
 
-        // Safe Fallback Content
-        $fallbackTitle = "Latest Update: " . $articleTitle;
-        $fallbackHtml  = "<p>" . htmlspecialchars($article['excerpt']) . "</p>";
-        $fallbackHtml .= "<p>Candidates preparing for this examination or recruitment drive can check the comprehensive step-by-step instructions, eligibility requirements, and direct apply link on <a href=\"{$canonicalUrl}\" target=\"_blank\">Sarkari.online</a>.</p>";
+        // High-Quality Structured Fallback
+        $fallbackTitle = "Complete Guide: " . $articleTitle;
+        $fallbackHtml  = $imageHtml;
+        $fallbackHtml .= "<p class=\"lead\"><strong>{$articleTitle}</strong> has officially been announced with key guidelines, examination dates, and recruitment milestones for aspiring candidates across India.</p>";
+        $fallbackHtml .= "<h3>Key Information & Overview</h3>";
+        $fallbackHtml .= "<p>" . htmlspecialchars($article['excerpt']) . "</p>";
+        $fallbackHtml .= "<h3>Application Guidelines & Direct Verification</h3>";
+        $fallbackHtml .= "<p>Candidates can access the <a href=\"{$canonicalUrl}\" target=\"_blank\">complete official notification PDF, eligibility requirements, and direct apply link on Sarkari.online</a> to ensure all eligibility criteria, fee submission deadlines, and document upload parameters are satisfied.</p>";
 
         return ['title' => $fallbackTitle, 'content' => $fallbackHtml];
     }
