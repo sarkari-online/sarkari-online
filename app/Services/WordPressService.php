@@ -36,6 +36,18 @@ class WordPressService
         $this->accessToken = (string) Env::get('WORDPRESS_ACCESS_TOKEN', '');
         $this->blogId      = (string) Env::get('WORDPRESS_BLOG_ID', '257038678');
         $this->blogUrl     = rtrim((string) Env::get('WORDPRESS_BLOG_URL', 'https://sarkarionlinealert.wordpress.com'), '/');
+
+        // Fallback: read from storage/cache/wp_credentials.json if .env token missing
+        if (empty($this->accessToken)) {
+            $cacheFile = dirname(__DIR__, 2) . '/storage/cache/wp_credentials.json';
+            if (file_exists($cacheFile)) {
+                $creds = json_decode(file_get_contents($cacheFile), true) ?? [];
+                $this->accessToken = $creds['WORDPRESS_ACCESS_TOKEN'] ?? '';
+                $this->blogId      = $creds['WORDPRESS_BLOG_ID']      ?? $this->blogId;
+                $this->blogUrl     = rtrim($creds['WORDPRESS_BLOG_URL'] ?? $this->blogUrl, '/');
+            }
+        }
+
         $this->stateFile   = dirname(__DIR__, 2) . '/storage/cache/wordpress_syndicated.json';
         $this->apiBase     = "https://public-api.wordpress.com/rest/v1.1/sites/{$this->blogId}";
     }
