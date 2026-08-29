@@ -19,15 +19,7 @@ use App\Helpers\Logger;
 
 echo "[" . date('Y-m-d H:i:s') . "] 🚀 WordPress.com Syndication Pipeline starting...\n";
 
-// ── Step 1: Verify token is configured ─────────────────────────────
-$token = \App\Helpers\Env::get('WORDPRESS_ACCESS_TOKEN', '');
-if (empty($token)) {
-    echo "❌ WORDPRESS_ACCESS_TOKEN not set in .env — aborting.\n";
-    exit(1);
-}
-echo "✅ WordPress token loaded (" . strlen($token) . " chars)\n";
-
-// ── Step 2: DB sanity check ─────────────────────────────────────────
+// ── Step 1: DB sanity check ─────────────────────────────────────────
 try {
     $count = \App\Database\Database::fetchColumn("SELECT COUNT(*) FROM articles WHERE status = 'published'");
     echo "✅ DB connected — {$count} published articles available\n";
