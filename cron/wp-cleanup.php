@@ -10,7 +10,7 @@ use App\Database\Database;
 use App\Helpers\Env;
 
 // 1. Create DB table for syndication history
-Database::execute("CREATE TABLE IF NOT EXISTS syndication_log (
+Database::query("CREATE TABLE IF NOT EXISTS syndication_log (
     id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     platform      VARCHAR(50)  NOT NULL DEFAULT 'wordpress',
     article_id    INT UNSIGNED NOT NULL,

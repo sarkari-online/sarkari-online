@@ -60,6 +60,19 @@ class WordPressService
             throw new \RuntimeException('WordPress access token not found in .env or credentials cache.');
         }
 
+        // ── Ensure table exists ──────────────────────────────────────
+        Database::query("CREATE TABLE IF NOT EXISTS syndication_log (
+            id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            platform      VARCHAR(50)  NOT NULL DEFAULT 'wordpress',
+            article_id    INT UNSIGNED NOT NULL,
+            platform_post_id VARCHAR(100) DEFAULT NULL,
+            platform_url  TEXT         DEFAULT NULL,
+            article_title VARCHAR(500) DEFAULT NULL,
+            created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_platform_article (platform, article_id),
+            INDEX idx_platform_date    (platform, created_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
         // ── Daily quota check via DB ──────────────────────────────────
         $today      = date('Y-m-d');
         $todayCount = (int) Database::fetchColumn(
@@ -103,11 +116,13 @@ class WordPressService
                 $result = $this->publishPost($art);
                 if (!empty($result['url'])) {
                     // Save to DB — survives docker cp!
-                    Database::execute(
-                        "INSERT INTO syndication_log (platform, article_id, platform_post_id, platform_url, article_title)
-                         VALUES ('wordpress', ?, ?, ?, ?)",
-                        [$artId, $result['post_id'], $result['url'], $art['title']]
-                    );
+                    Database::insert('syndication_log', [
+                        'platform'         => 'wordpress',
+                        'article_id'       => $artId,
+                        'platform_post_id' => $result['post_id'],
+                        'platform_url'     => $result['url'],
+                        'article_title'    => $art['title']
+                    ]);
                     $record = [
                         'article_id'    => $artId,
                         'title'         => $art['title'],
