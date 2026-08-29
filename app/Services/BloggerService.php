@@ -120,6 +120,16 @@ class BloggerService {
      */
     public function syndicateLatest(int $limit = 1): array {
         $history = $this->loadHistory();
+
+        // STRICT SAFETY: Max 1 article per day to Blogger (Zero Duplicates)
+        $today = date('Y-m-d');
+        foreach ($history as $h) {
+            if (!empty($h['syndicated_at']) && str_starts_with($h['syndicated_at'], $today)) {
+                Logger::info("Blogger: Daily limit of 1 post already reached for today ({$today}).");
+                return [];
+            }
+        }
+
         $syndicatedIds = array_column($history, 'article_id');
 
         $sql = "SELECT a.id, a.title, a.slug, a.excerpt, a.content, a.featured_image, c.name AS category_name, c.slug AS category_slug
@@ -178,18 +188,20 @@ class BloggerService {
     }
 
     /**
-     * Generate unique, non-duplicate 700-1000 word companion content with embedded image & rich backlinks
+     * Generate unique, non-duplicate 700-1000 word companion content with embedded PNG image & rich backlinks
      */
     private function generateCompanionContent(array $article): array {
         $canonicalUrl = "https://sarkari.online/article/{$article['slug']}/";
         $articleTitle = $article['title'];
         $cleanSnippet = strip_tags(mb_substr($article['content'], 0, 2000));
         
-        // Resolve featured image URL
+        // Resolve featured image URL — convert to PNG for Blogger compatibility
         $featuredImage = $article['featured_image'] ?? null;
         if (empty($featuredImage)) {
             $catPrefix = !empty($article['category_slug']) ? $article['category_slug'] . '/' : '';
-            $featuredImage = 'uploads/thumbnails/' . $catPrefix . $article['slug'] . '.webp';
+            $featuredImage = 'uploads/thumbnails/' . $catPrefix . $article['slug'] . '.png';
+        } else {
+            $featuredImage = preg_replace('/\.webp$/i', '.png', $featuredImage);
         }
         $imageUrl = str_starts_with($featuredImage, 'http') ? $featuredImage : "https://sarkari.online/" . ltrim($featuredImage, '/');
 

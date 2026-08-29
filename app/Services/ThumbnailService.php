@@ -220,8 +220,10 @@ class ThumbnailService {
         imagefilledrectangle($img, 860, 480, 1100, 535, imagecolorallocatealpha($img, 255, 255, 255, 110));
         $this->drawText($img, 18, 0, 885, 514, $mutedTextColor, "Date: " . $dateStr, false);
 
-        // 7. Save as WebP
+        // 7. Save as WebP (for fast web loading) and PNG (for Google Blogger & social crawlers)
         $saved = imagewebp($img, $fullPath, 85);
+        $pngPath = preg_replace('/\.webp$/i', '.png', $fullPath);
+        imagepng($img, $pngPath, 6);
         unset($img);
 
         if (!$saved || !file_exists($fullPath)) {
