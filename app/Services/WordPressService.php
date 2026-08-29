@@ -60,92 +60,106 @@ class WordPressService
             throw new \RuntimeException('WordPress access token not found in .env or credentials cache.');
         }
 
-        // ── Ensure table exists ──────────────────────────────────────
-        Database::query("CREATE TABLE IF NOT EXISTS syndication_log (
-            id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            platform      VARCHAR(50)  NOT NULL DEFAULT 'wordpress',
-            article_id    INT UNSIGNED NOT NULL,
-            platform_post_id VARCHAR(100) DEFAULT NULL,
-            platform_url  TEXT         DEFAULT NULL,
-            article_title VARCHAR(500) DEFAULT NULL,
-            created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            INDEX idx_platform_article (platform, article_id),
-            INDEX idx_platform_date    (platform, created_at)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
-
-        // ── Daily quota check via DB ──────────────────────────────────
-        $today      = date('Y-m-d');
-        $todayCount = (int) Database::fetchColumn(
-            "SELECT COUNT(*) FROM syndication_log WHERE platform = 'wordpress' AND DATE(created_at) = ?",
-            [$today]
-        );
-
-        if ($todayCount >= $limit) {
-            Logger::info("WordPressService: Daily quota ({$limit}/day) already reached ({$todayCount} published today).");
-            return ['status' => 'quota_reached', 'items' => []];
+        // ── Concurrency Guard: Only 1 process at a time ───────────────
+        $lockFile = dirname(__DIR__, 2) . '/storage/cache/wordpress_syndication.lock';
+        $fp = @fopen($lockFile, 'c+');
+        if (!$fp || !@flock($fp, LOCK_EX | LOCK_NB)) {
+            Logger::info("WordPressService: Another syndication process is currently active. Exiting.");
+            return ['status' => 'locked', 'items' => []];
         }
 
-        $allowedSlots = $limit - $todayCount;
+        try {
+            // ── Ensure table exists ──────────────────────────────────
+            Database::query("CREATE TABLE IF NOT EXISTS syndication_log (
+                id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                platform      VARCHAR(50)  NOT NULL DEFAULT 'wordpress',
+                article_id    INT UNSIGNED NOT NULL,
+                platform_post_id VARCHAR(100) DEFAULT NULL,
+                platform_url  TEXT         DEFAULT NULL,
+                article_title VARCHAR(500) DEFAULT NULL,
+                created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_platform_article (platform, article_id),
+                INDEX idx_platform_date    (platform, created_at)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
-        // ── Already syndicated article IDs ───────────────────────────
-        $syndicatedIds = Database::fetchAll(
-            "SELECT article_id FROM syndication_log WHERE platform = 'wordpress'"
-        );
-        $syndicatedIds = array_column($syndicatedIds, 'article_id');
+            // ── Daily quota check via DB ──────────────────────────────
+            $today      = date('Y-m-d');
+            $todayCount = (int) Database::fetchColumn(
+                "SELECT COUNT(*) FROM syndication_log WHERE platform = 'wordpress' AND DATE(created_at) = ?",
+                [$today]
+            );
 
-        $articles = Database::fetchAll(
-            "SELECT a.id, a.title, a.slug, a.excerpt, a.content,
-                    a.featured_image, a.published_at,
-                    c.name AS category_name, c.slug AS category_slug
-             FROM articles a
-             JOIN categories c ON a.category_id = c.id
-             WHERE a.status = 'published'
-             ORDER BY a.published_at DESC
-             LIMIT 20"
-        );
-
-        $syndicated = [];
-
-        foreach ($articles as $art) {
-            if (count($syndicated) >= $allowedSlots) break;
-
-            $artId = (int) $art['id'];
-            if (in_array($artId, $syndicatedIds, true)) continue;
-
-            try {
-                $result = $this->publishPost($art);
-                if (!empty($result['url'])) {
-                    // Save to DB — survives docker cp!
-                    Database::insert('syndication_log', [
-                        'platform'         => 'wordpress',
-                        'article_id'       => $artId,
-                        'platform_post_id' => $result['post_id'],
-                        'platform_url'     => $result['url'],
-                        'article_title'    => $art['title']
-                    ]);
-                    $record = [
-                        'article_id'    => $artId,
-                        'title'         => $art['title'],
-                        'sarkari_url'   => url('article/' . $art['slug'] . '/'),
-                        'wordpress_url' => $result['url'],
-                        'wp_post_id'    => $result['post_id'],
-                        'syndicated_at' => date('Y-m-d H:i:s'),
-                    ];
-                    $syndicated[] = $record;
-                    Logger::info("WordPressService: Published Article #{$artId} → {$result['url']}");
-                }
-            } catch (Throwable $e) {
-                Logger::error("WordPressService failed on Article #{$artId}: " . $e->getMessage());
+            if ($todayCount >= $limit) {
+                Logger::info("WordPressService: Daily quota ({$limit}/day) already reached ({$todayCount} published today).");
+                return ['status' => 'quota_reached', 'items' => []];
             }
 
-            sleep(3);
-        }
+            $allowedSlots = $limit - $todayCount;
 
-        return [
-            'status'           => 'success',
-            'syndicated_count' => count($syndicated),
-            'items'            => $syndicated,
-        ];
+            // ── Already syndicated article IDs ───────────────────────
+            $syndicatedIds = Database::fetchAll(
+                "SELECT article_id FROM syndication_log WHERE platform = 'wordpress'"
+            );
+            $syndicatedIds = array_column($syndicatedIds, 'article_id');
+            $excludeClause = empty($syndicatedIds) ? '' : 'AND a.id NOT IN (' . implode(',', array_map('intval', $syndicatedIds)) . ')';
+
+            // ── Fetch STRICTLY $allowedSlots (max 2) articles ────────
+            $articles = Database::fetchAll(
+                "SELECT a.id, a.title, a.slug, a.excerpt, a.content,
+                        a.featured_image, a.published_at,
+                        c.name AS category_name, c.slug AS category_slug
+                 FROM articles a
+                 JOIN categories c ON a.category_id = c.id
+                 WHERE a.status = 'published' {$excludeClause}
+                 ORDER BY a.published_at DESC
+                 LIMIT " . (int)$allowedSlots
+            );
+
+            $syndicated = [];
+
+            foreach ($articles as $art) {
+                $artId = (int) $art['id'];
+
+                try {
+                    $result = $this->publishPost($art);
+                    if (!empty($result['url'])) {
+                        // Save to DB immediately
+                        Database::insert('syndication_log', [
+                            'platform'         => 'wordpress',
+                            'article_id'       => $artId,
+                            'platform_post_id' => $result['post_id'],
+                            'platform_url'     => $result['url'],
+                            'article_title'    => $art['title']
+                        ]);
+                        $record = [
+                            'article_id'    => $artId,
+                            'title'         => $art['title'],
+                            'sarkari_url'   => url('article/' . $art['slug'] . '/'),
+                            'wordpress_url' => $result['url'],
+                            'wp_post_id'    => $result['post_id'],
+                            'syndicated_at' => date('Y-m-d H:i:s'),
+                        ];
+                        $syndicated[] = $record;
+                        Logger::info("WordPressService: Published Article #{$artId} → {$result['url']}");
+                    }
+                } catch (Throwable $e) {
+                    Logger::error("WordPressService failed on Article #{$artId}: " . $e->getMessage());
+                }
+
+                sleep(3);
+            }
+
+            return [
+                'status'           => 'success',
+                'syndicated_count' => count($syndicated),
+                'items'            => $syndicated,
+            ];
+        } finally {
+            if ($fp) {
+                @flock($fp, LOCK_UN);
+                @fclose($fp);
+            }
+        }
     }
 
     /* ---------------------------------------------------------------
