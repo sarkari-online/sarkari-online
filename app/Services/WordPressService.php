@@ -48,7 +48,6 @@ class WordPressService
             }
         }
 
-        $this->stateFile   = dirname(__DIR__, 2) . '/storage/cache/wordpress_syndicated.json';
         $this->apiBase     = "https://public-api.wordpress.com/rest/v1.1/sites/{$this->blogId}";
     }
 
@@ -58,26 +57,28 @@ class WordPressService
     public function syndicateLatest(int $limit = 2): array
     {
         if (empty($this->accessToken)) {
-            throw new \RuntimeException('WORDPRESS_ACCESS_TOKEN is not set in .env');
+            throw new \RuntimeException('WordPress access token not found in .env or credentials cache.');
         }
 
-        $history       = $this->loadHistory();
-        $today         = date('Y-m-d');
-        $todayCount    = 0;
-
-        foreach ($history as $h) {
-            if (str_starts_with($h['syndicated_at'] ?? '', $today)) {
-                $todayCount++;
-            }
-        }
+        // ── Daily quota check via DB ──────────────────────────────────
+        $today      = date('Y-m-d');
+        $todayCount = (int) Database::fetchColumn(
+            "SELECT COUNT(*) FROM syndication_log WHERE platform = 'wordpress' AND DATE(created_at) = ?",
+            [$today]
+        );
 
         if ($todayCount >= $limit) {
-            Logger::info("WordPressService: Daily quota ({$limit}/day) already reached.");
+            Logger::info("WordPressService: Daily quota ({$limit}/day) already reached ({$todayCount} published today).");
             return ['status' => 'quota_reached', 'items' => []];
         }
 
-        $allowedSlots   = $limit - $todayCount;
-        $syndicatedIds  = array_column($history, 'article_id');
+        $allowedSlots = $limit - $todayCount;
+
+        // ── Already syndicated article IDs ───────────────────────────
+        $syndicatedIds = Database::fetchAll(
+            "SELECT article_id FROM syndication_log WHERE platform = 'wordpress'"
+        );
+        $syndicatedIds = array_column($syndicatedIds, 'article_id');
 
         $articles = Database::fetchAll(
             "SELECT a.id, a.title, a.slug, a.excerpt, a.content,
@@ -101,6 +102,12 @@ class WordPressService
             try {
                 $result = $this->publishPost($art);
                 if (!empty($result['url'])) {
+                    // Save to DB — survives docker cp!
+                    Database::execute(
+                        "INSERT INTO syndication_log (platform, article_id, platform_post_id, platform_url, article_title)
+                         VALUES ('wordpress', ?, ?, ?, ?)",
+                        [$artId, $result['post_id'], $result['url'], $art['title']]
+                    );
                     $record = [
                         'article_id'    => $artId,
                         'title'         => $art['title'],
@@ -109,7 +116,6 @@ class WordPressService
                         'wp_post_id'    => $result['post_id'],
                         'syndicated_at' => date('Y-m-d H:i:s'),
                     ];
-                    $history[]    = $record;
                     $syndicated[] = $record;
                     Logger::info("WordPressService: Published Article #{$artId} → {$result['url']}");
                 }
@@ -119,8 +125,6 @@ class WordPressService
 
             sleep(3);
         }
-
-        $this->saveHistory($history);
 
         return [
             'status'           => 'success',
