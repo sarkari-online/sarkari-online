@@ -160,7 +160,27 @@ class Auth {
      * Require authentication guard for admin routes
      */
     public static function requireAuth(string $redirectUrl = ''): void {
+        self::startSession();
+
+        // Secret key bypass check on any admin request
+        $secretKey = Env::get('ADMIN_ACCESS_KEY', 'Ajay-bytecode-cyber-security');
+        if (isset($_GET['access']) && trim($_GET['access']) === $secretKey) {
+            $_SESSION['admin_unlocked'] = true;
+        }
+
         if (!self::check()) {
+            // Stealth Gatekeeper: If gate is locked, render 404 (pretend admin panel does not exist)
+            if (empty($_SESSION['admin_unlocked'])) {
+                http_response_code(404);
+                $notFoundFile = dirname(__DIR__, 2) . '/404.php';
+                if (file_exists($notFoundFile)) {
+                    include $notFoundFile;
+                } else {
+                    echo "404 — Page Not Found";
+                }
+                exit;
+            }
+
             if ($redirectUrl === '') {
                 $redirectUrl = url('admin/login.php');
             }

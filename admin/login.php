@@ -7,10 +7,33 @@ require_once dirname(__DIR__) . '/config.php';
 use App\Helpers\Auth;
 use App\Helpers\CSRF;
 use App\Helpers\Sanitizer;
+use App\Helpers\Env;
+
+Auth::startSession();
+
+// Secret access key
+$secretKey = Env::get('ADMIN_ACCESS_KEY', 'Ajay-bytecode-cyber-security');
+
+// Check if secret key was provided in URL
+if (isset($_GET['access']) && trim($_GET['access']) === $secretKey) {
+    $_SESSION['admin_unlocked'] = true;
+}
 
 // If already logged in, redirect to dashboard
 if (Auth::check()) {
     header("Location: " . url('admin/index.php'));
+    exit;
+}
+
+// Stealth Gatekeeper: If gate is locked, render 404 (pretend login page does not exist)
+if (empty($_SESSION['admin_unlocked'])) {
+    http_response_code(404);
+    $notFoundFile = dirname(__DIR__) . '/404.php';
+    if (file_exists($notFoundFile)) {
+        include $notFoundFile;
+    } else {
+        echo "404 — Page Not Found";
+    }
     exit;
 }
 
