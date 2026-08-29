@@ -122,7 +122,7 @@ class BloggerService {
         $history = $this->loadHistory();
         $syndicatedIds = array_column($history, 'article_id');
 
-        $sql = "SELECT a.id, a.title, a.slug, a.excerpt, a.content, c.name AS category_name
+        $sql = "SELECT a.id, a.title, a.slug, a.excerpt, a.content, a.featured_image, c.name AS category_name, c.slug AS category_slug
                 FROM articles a
                 JOIN categories c ON a.category_id = c.id
                 WHERE a.status = 'published'
@@ -188,7 +188,8 @@ class BloggerService {
         // Resolve featured image URL
         $featuredImage = $article['featured_image'] ?? null;
         if (empty($featuredImage)) {
-            $featuredImage = 'uploads/thumbnails/' . $article['slug'] . '.webp';
+            $catPrefix = !empty($article['category_slug']) ? $article['category_slug'] . '/' : '';
+            $featuredImage = 'uploads/thumbnails/' . $catPrefix . $article['slug'] . '.webp';
         }
         $imageUrl = str_starts_with($featuredImage, 'http') ? $featuredImage : "https://sarkari.online/" . ltrim($featuredImage, '/');
 
