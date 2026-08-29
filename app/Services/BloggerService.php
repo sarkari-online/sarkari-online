@@ -118,15 +118,17 @@ class BloggerService {
     /**
      * Syndicate the latest published Sarkari.online article to Blogger
      */
-    public function syndicateLatest(int $limit = 1): array {
-        $history = $this->loadHistory();
+    public function syndicateLatest(int $limit = 1, bool $force = false): array {
+        $history = $force ? [] : $this->loadHistory();
 
-        // STRICT SAFETY: Max 1 article per day to Blogger (Zero Duplicates)
-        $today = date('Y-m-d');
-        foreach ($history as $h) {
-            if (!empty($h['syndicated_at']) && str_starts_with($h['syndicated_at'], $today)) {
-                Logger::info("Blogger: Daily limit of 1 post already reached for today ({$today}).");
-                return [];
+        if (!$force) {
+            // STRICT SAFETY: Max 1 article per day to Blogger (Zero Duplicates)
+            $today = date('Y-m-d');
+            foreach ($history as $h) {
+                if (!empty($h['syndicated_at']) && str_starts_with($h['syndicated_at'], $today)) {
+                    Logger::info("Blogger: Daily limit of 1 post already reached for today ({$today}).");
+                    return [];
+                }
             }
         }
 

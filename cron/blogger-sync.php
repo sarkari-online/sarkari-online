@@ -16,8 +16,9 @@ use App\Helpers\Logger;
 echo "[" . date('Y-m-d H:i:s') . "] 🚀 Starting Blogger Syndication Pipeline...\n";
 
 try {
+    $force = in_array('--force', $argv ?? []);
     $service = new BloggerService();
-    $results = $service->syndicateLatest(1);
+    $results = $service->syndicateLatest(1, $force);
 
     if (empty($results)) {
         echo "No new articles pending syndication to Blogger.\n";
