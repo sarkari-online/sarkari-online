@@ -75,9 +75,10 @@ class SourceVerifier {
         $lower = strtolower($title);
         $guidePatterns = [
             'guide', 'complete guide', 'recruitment guide', 'preparation guide',
-            'syllabus', 'weightage', 'chapter-wise', 'how to', 'roadmap',
+            'syllabus', 'weightage', 'chapter-wise', 'how to', 'how-to', 'roadmap',
             'career guide', 'best books', 'strategy', 'tips', 'exam pattern',
-            'eligibility', 'selection process', 'overview'
+            'eligibility', 'selection process', 'overview', 'download', 'registration',
+            'otr', 'biometric', 'portal', 'scheme', 'scholarship', 'card', 'id'
         ];
         foreach ($guidePatterns as $p) {
             if (str_contains($lower, $p)) return 'guide';

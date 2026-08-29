@@ -1,14 +1,16 @@
 <?php
 /**
- * EduPulse - High-Search Evergreen & Authority Topics Catalog
- * Provides verified, fact-grounded high-search topics ordered strictly by student search intent:
- * 1. Entrance Exams -> 2. Scholarships -> 3. College Updates -> 4. Career Guides -> 5. Student Technology
+ * Sarkari.online - High-Search Evergreen & Authority Topics Catalog
+ * Provides verified, factual high-demand student search topics:
+ * Default Mix: ~70% Student Technology & AI, ~30% Scholarships & Financial Aid,
+ * with flexibility for other high-demand educational queries.
  */
 
 namespace App\Services\TrendSources;
 
 use App\Services\TrendService;
 use App\Helpers\Logger;
+use App\AI\Gemini;
 use Throwable;
 
 class EvergreenTopicsAdapter implements TrendSourceInterface {
@@ -22,243 +24,405 @@ class EvergreenTopicsAdapter implements TrendSourceInterface {
     }
 
     /**
-     * Comprehensive catalog of top-searched Indian education, exam, and career topics
-     * Ordered strictly by student intent priority:
-     * 1. Entrance Exams -> 2. Scholarships -> 3. College Updates -> 4. Career Guides -> 5. Student Technology
+     * Authoritative catalog of high-demand Indian student topics
+     * Default mix: ~70% Student Technology & AI | ~30% Scholarships & Financial Aid | Verified Educational How-To
      */
     private function getCatalog(): array {
         return [
             // =========================================================================
-            // PRIORITY 1: ENTRANCE EXAMS (NEET UG/PG, JEE Main/Adv, CUET, GATE, CTET, AIBE)
+            // CATEGORY 1: STUDENT TECHNOLOGY & DIGITAL IDENTITY (~70% Default Focus)
             // =========================================================================
             [
-                'keyword' => 'NEET UG 2026 Registration, Eligibility Criteria, Marking Scheme and Exam Roadmap',
-                'source' => 'National Testing Agency (NTA)',
-                'url' => 'https://exams.nta.ac.in/NEET/',
-                'category_hint' => 'entrance-exams',
-                'trend_score' => 98,
-                'snippet' => 'National Eligibility cum Entrance Test for undergraduate medical admissions across India.'
-            ],
-            [
-                'keyword' => 'JEE Main 2026 Session 1 & 2: Eligibility, Exam Pattern and Official Roadmap',
-                'source' => 'National Testing Agency (NTA)',
-                'url' => 'https://jeemain.nta.ac.in',
-                'category_hint' => 'entrance-exams',
-                'trend_score' => 98,
-                'snippet' => 'Joint Entrance Examination for undergraduate engineering admissions at NITs, IIITs, and CFTIs.'
-            ],
-            [
-                'keyword' => 'CUET UG 2026: Section 1 Language, Domain Subjects & Central University Admission Process',
-                'source' => 'National Testing Agency (NTA)',
-                'url' => 'https://exams.nta.ac.in/CUET-UG/',
-                'category_hint' => 'entrance-exams',
+                'keyword' => 'DigiLocker ABC ID Creation: Academic Bank of Credits Registration and University Mapping',
+                'source' => 'Ministry of Electronics and Information Technology (MeitY)',
+                'url' => 'https://www.abc.gov.in',
+                'category_hint' => 'student-technology',
                 'trend_score' => 97,
-                'snippet' => 'Common University Entrance Test guidelines, domain subject selection, and central university admissions.'
+                'snippet' => 'Official protocol for creating Academic Bank of Credits digital identity, credit accumulation under NEP 2020, and linking with DigiLocker.'
             ],
             [
-                'keyword' => 'GATE 2027: Engineering Discipline-Wise Syllabus, General Aptitude and Virtual Calculator Rules',
-                'source' => 'Graduate Aptitude Test in Engineering (GATE)',
-                'url' => 'https://gate2026.iitkgp.ac.in',
-                'category_hint' => 'entrance-exams',
+                'keyword' => 'APAAR ID Card Download: One Nation One Student ID Registration and School Consent Guide',
+                'source' => 'Ministry of Education',
+                'url' => 'https://apaar.education.gov.in',
+                'category_hint' => 'student-technology',
+                'trend_score' => 97,
+                'snippet' => 'Automated Permanent Academic Account Registry 12-digit student ID creation, parent consent guidelines, and DigiLocker card download.'
+            ],
+            [
+                'keyword' => 'DigiLocker CBSE Certificate Download: Class 10 and 12 Digital Marksheet and Passing Certificate',
+                'source' => 'Central Board of Secondary Education (CBSE)',
+                'url' => 'https://digilocker.gov.in',
+                'category_hint' => 'student-technology',
                 'trend_score' => 96,
-                'snippet' => 'Postgraduate engineering entrance guidelines, PSU recruitment cutoff benchmarks, and marking scheme.'
+                'snippet' => 'Step-by-step procedure to pull legally valid digitally signed CBSE marksheet, migration certificate, and passing document from DigiLocker repository.'
             ],
             [
-                'keyword' => 'AIBE 2026: Complete Guide to Bar Council of India Enrollment and Examination Process',
-                'source' => 'Bar Council of India (BCI)',
-                'url' => 'https://allindiabarexamination.com',
-                'category_hint' => 'entrance-exams',
-                'trend_score' => 95,
-                'snippet' => 'All India Bar Examination guidelines, certificate of practice rules, and qualifying percentiles.'
-            ],
-            [
-                'keyword' => 'CTET 2026: Paper 1 & Paper 2 Eligibility, Qualifying Marks and Central School Criteria',
+                'keyword' => 'DigiLocker CTET Qualifying Certificate: Mark Statement Download and Security PIN Guide',
                 'source' => 'Central Board of Secondary Education (CBSE)',
                 'url' => 'https://ctet.nic.in',
-                'category_hint' => 'entrance-exams',
+                'category_hint' => 'student-technology',
+                'trend_score' => 95,
+                'snippet' => 'How candidates can access encrypted digital CTET eligibility certificate and marks statement via DigiLocker credentials and Aadhaar mapping.'
+            ],
+            [
+                'keyword' => 'Academic Bank of Credits (ABC): Multiple Entry and Exit Policy Credit Transfer Rules',
+                'source' => 'University Grants Commission (UGC)',
+                'url' => 'https://www.abc.gov.in',
+                'category_hint' => 'student-technology',
+                'trend_score' => 95,
+                'snippet' => 'UGC guidelines for credit redemption, inter-university transfer, validity period of academic credits, and digital transcript verification.'
+            ],
+            [
+                'keyword' => 'SSC One-Time Registration (OTR): Mandatory Live Photo Capture and Document Specification Guide',
+                'source' => 'Staff Selection Commission (SSC)',
+                'url' => 'https://ssc.gov.in',
+                'category_hint' => 'student-technology',
                 'trend_score' => 96,
-                'snippet' => 'Central Teacher Eligibility Test certification guidelines, validity period, and minimum pass criteria.'
+                'snippet' => 'Staff Selection Commission official portal one-time registration protocol, webcam live photograph capture rules, and signature specifications.'
+            ],
+            [
+                'keyword' => 'UPSC One-Time Registration (OTR): Profile Creation, Lifetime Registration and Modification Rules',
+                'source' => 'Union Public Service Commission (UPSC)',
+                'url' => 'https://upsconline.nic.in',
+                'category_hint' => 'student-technology',
+                'trend_score' => 96,
+                'snippet' => 'UPSC OTR portal registration guide, mandatory documents, one-time profile modification window, and examination application linking.'
+            ],
+            [
+                'keyword' => 'SWAYAM NPTEL Course Registration: Credit Transfer, Online Exam Enrollment and Certification',
+                'source' => 'Ministry of Education',
+                'url' => 'https://swayam.gov.in',
+                'category_hint' => 'student-technology',
+                'trend_score' => 94,
+                'snippet' => 'Guidelines for enrolling in free MOOCs courses on SWAYAM, credit transfer to college degrees under UGC regulations, and proctored exam fees.'
+            ],
+            [
+                'keyword' => 'National Digital Library of India (NDLI): Free Student Membership, Academic Books and Research Access',
+                'source' => 'IIT Kharagpur / Ministry of Education',
+                'url' => 'https://ndl.iitkgp.ac.in',
+                'category_hint' => 'student-technology',
+                'trend_score' => 93,
+                'snippet' => 'Accessing millions of digitized textbooks, university question papers, video lectures, and research publications for free across India.'
+            ],
+            [
+                'keyword' => 'Cyber Security Essentials for Students: Identifying Fake Job Portals, Exam Phishing and Scam Notices',
+                'source' => 'Indian Computer Emergency Response Team (CERT-In)',
+                'url' => 'https://www.cert-in.org.in',
+                'category_hint' => 'student-technology',
+                'trend_score' => 94,
+                'snippet' => 'Recognizing unauthorized clone portals of SSC/UPSC, checking official gov.in SSL certificates, and reporting cyber recruitment fraud on national portal.'
+            ],
+            [
+                'keyword' => 'National Apprenticeship Training Scheme (NATS 2.0): Student Registration, Industry Placement and Stipend Rules',
+                'source' => 'Ministry of Education',
+                'url' => 'https://nats.education.gov.in',
+                'category_hint' => 'student-technology',
+                'trend_score' => 95,
+                'snippet' => 'Portal registration procedure for engineering, diploma, and general stream graduates, direct benefit transfer (DBT) stipend rules, and employer contract.'
+            ],
+            [
+                'keyword' => 'National Apprenticeship Promotion Scheme (NAPS): Candidate Registration and Trade Apprenticeship Guide',
+                'source' => 'Ministry of Skill Development and Entrepreneurship',
+                'url' => 'https://www.apprenticeshipindia.gov.in',
+                'category_hint' => 'student-technology',
+                'trend_score' => 94,
+                'snippet' => 'Step-by-step portal onboarding for ITI and 10th pass candidates, industry apprenticeship vacancies, and monthly government co-funding stipend.'
+            ],
+            [
+                'keyword' => 'Digital India Internship Scheme: Eligibility, Application Process and Monthly Stipend Guidelines',
+                'source' => 'Ministry of Electronics and Information Technology (MeitY)',
+                'url' => 'https://www.meity.gov.in',
+                'category_hint' => 'student-technology',
+                'trend_score' => 94,
+                'snippet' => 'MeitY official summer and winter internship guidelines, selection criteria for B.Tech and MCA students, and certificate of completion.'
+            ],
+            [
+                'keyword' => 'AI Tools in Academic Learning: Ethical Use, Prompt Engineering for Exam Revision and Research Verification',
+                'source' => 'National Institute of Open Schooling (NIOS)',
+                'url' => 'https://www.nios.ac.in',
+                'category_hint' => 'student-technology',
+                'trend_score' => 93,
+                'snippet' => 'Constructive and responsible utilization of AI study assistants for competitive exam question analysis, study scheduling, and citation verification.'
+            ],
+            [
+                'keyword' => 'National Career Service (NCS) Portal: Jobseeker Registration, Skill Assessment and Govt Jobs Mapping',
+                'source' => 'Ministry of Labour and Employment',
+                'url' => 'https://www.ncs.gov.in',
+                'category_hint' => 'student-technology',
+                'trend_score' => 94,
+                'snippet' => 'Free government employment exchange registration, career counseling access, digital employment fairs, and state job vacancy alerts.'
             ],
 
             // =========================================================================
-            // PRIORITY 2: SCHOLARSHIPS & FINANCIAL AID (NSP, PMSSS, PM YASASVI, Post-Matric)
+            // CATEGORY 2: SCHOLARSHIPS & FINANCIAL AID (~30% Default Focus)
             // =========================================================================
             [
-                'keyword' => 'National Scholarship Portal (NSP 2026-27): Fresh Registration, OTR Guide and Biometric Rules',
+                'keyword' => 'National Scholarship Portal (NSP): One-Time Registration (OTR), Face Auth and Aadhaar Biometric Guide',
                 'source' => 'Ministry of Electronics and Information Technology (MeitY)',
                 'url' => 'https://scholarships.gov.in',
                 'category_hint' => 'scholarships',
                 'trend_score' => 98,
-                'snippet' => 'Central sector scholarship schemes, one-time registration protocol, and direct benefit transfer guidelines.'
+                'snippet' => 'Mandatory OTR app face authentication protocol, biometric verification at CSC centers, and direct benefit transfer guidelines for NSP schemes.'
             ],
             [
-                'keyword' => 'PM Yasasvi Scholarship Scheme 2026: Eligibility, Income Slabs and Top-Class Education Grants',
+                'keyword' => 'Post Matric Scholarship for SC and ST Students: Income Slabs, State Portal Links and DBT Verification',
+                'source' => 'Ministry of Social Justice and Empowerment',
+                'url' => 'https://scholarships.gov.in',
+                'category_hint' => 'scholarships',
+                'trend_score' => 97,
+                'snippet' => 'Annual family income ceiling of Rs 2.5 lakh, tuition fee reimbursement rules, maintenance allowance schedule, and state portal linking.'
+            ],
+            [
+                'keyword' => 'Post Matric Scholarship for OBC, EBC and DNT Students: Scheme Guidelines and Document Checklist',
+                'source' => 'Ministry of Social Justice and Empowerment',
+                'url' => 'https://socialjustice.gov.in',
+                'category_hint' => 'scholarships',
+                'trend_score' => 96,
+                'snippet' => 'Central assistance for other backward classes in higher education, income criteria of Rs 2.5 lakh, required certificates, and institution verification.'
+            ],
+            [
+                'keyword' => 'Central Sector Scheme of Scholarship for College and University Students (CSSS): Cutoffs and Renewal Rules',
+                'source' => 'Department of Higher Education',
+                'url' => 'https://scholarships.gov.in',
+                'category_hint' => 'scholarships',
+                'trend_score' => 96,
+                'snippet' => 'Top 20th percentile board cutoff criteria, Rs 12,000 to Rs 20,000 annual disbursement for graduation/post-graduation, and 50% marks renewal rule.'
+            ],
+            [
+                'keyword' => 'PM Yasasvi Scholarship Scheme: Top-Class Education Grants for OBC, EBC and DNT Students',
                 'source' => 'Ministry of Social Justice and Empowerment',
                 'url' => 'https://yet.nta.ac.in',
                 'category_hint' => 'scholarships',
                 'trend_score' => 96,
-                'snippet' => 'Scholarship scheme for OBC, EBC, and DNT students studying in designated top-class schools and colleges.'
+                'snippet' => 'Financial grants covering full college tuition and living allowances for students admitted to notified top-class institutions across India.'
             ],
             [
-                'keyword' => 'PMSSS 2026 Prime Minister Special Scholarship Scheme: AICTE Eligibility & Direct College Allotment',
+                'keyword' => 'PMSSS Prime Minister Special Scholarship Scheme: AICTE J&K and Ladakh Engineering and Degree Grants',
                 'source' => 'All India Council for Technical Education (AICTE)',
                 'url' => 'https://www.aicte-india.org',
                 'category_hint' => 'scholarships',
                 'trend_score' => 95,
-                'snippet' => 'Engineering, medical, and general degree scholarship grants for Jammu, Kashmir, and Ladakh youth.'
+                'snippet' => 'Academic fee up to Rs 1.25 lakh and annual maintenance grant of Rs 1 lakh for students from Jammu, Kashmir, and Ladakh studying in AICTE colleges.'
             ],
             [
-                'keyword' => 'Post Matric Scholarship for SC/ST/OBC Students 2026: Income Limits & State Portal Links',
-                'source' => 'Ministry of Social Justice and Empowerment',
+                'keyword' => 'AICTE Pragati Scholarship for Girls: Degree and Diploma Eligibility, Rs 50,000 Annual Financial Grant',
+                'source' => 'All India Council for Technical Education (AICTE)',
+                'url' => 'https://www.aicte-india.org',
+                'category_hint' => 'scholarships',
+                'trend_score' => 96,
+                'snippet' => 'Scholarship for female students entering technical degree or diploma programs, family income under Rs 8 lakh, and direct bank account disbursement.'
+            ],
+            [
+                'keyword' => 'AICTE Saksham Scholarship: Financial Aid and Allowance for Differently-Abled Technical Degree Students',
+                'source' => 'All India Council for Technical Education (AICTE)',
+                'url' => 'https://www.aicte-india.org',
+                'category_hint' => 'scholarships',
+                'trend_score' => 94,
+                'snippet' => 'Rs 50,000 annual scholarship for students with 40% or more disability entering AICTE approved technical institutes.'
+            ],
+            [
+                'keyword' => 'AICTE Swanath Scholarship: Support for Orphans, Wards of Armed Forces and COVID-19 Affected Youth',
+                'source' => 'All India Council for Technical Education (AICTE)',
+                'url' => 'https://www.aicte-india.org',
+                'category_hint' => 'scholarships',
+                'trend_score' => 94,
+                'snippet' => 'Financial grants of Rs 50,000 per annum for degree and diploma students pursuing technical courses under the Swanath rehabilitation scheme.'
+            ],
+            [
+                'keyword' => 'Ishan Uday Special Scholarship for North Eastern Region (NER): UGC Grants and Selection Guidelines',
+                'source' => 'University Grants Commission (UGC)',
+                'url' => 'https://www.ugc.gov.in',
+                'category_hint' => 'scholarships',
+                'trend_score' => 94,
+                'snippet' => '10,000 annual scholarships for students with domicile of NE region admitted to first year undergraduate programs, Rs 5,400 to Rs 7,800 monthly.'
+            ],
+            [
+                'keyword' => 'DST INSPIRE Fellowship: Eligibility Criteria, Selection and Financial Support for Research Scholars',
+                'source' => 'Department of Science and Technology (DST)',
+                'url' => 'https://online-inspire.gov.in',
+                'category_hint' => 'scholarships',
+                'trend_score' => 94,
+                'snippet' => 'Fellowship for university 1st rankers and top 1% basic science students pursuing doctoral studies, monthly stipend and research contingency grants.'
+            ],
+            [
+                'keyword' => 'Begum Hazrat Mahal National Scholarship: Financial Aid for Meritorious Minority Girls',
+                'source' => 'Maulana Azad Education Foundation (MAEF)',
                 'url' => 'https://scholarships.gov.in',
                 'category_hint' => 'scholarships',
-                'trend_score' => 95,
-                'snippet' => 'Government fee reimbursement guidelines, maintenance allowance slabs, and direct benefit transfer rules.'
+                'trend_score' => 93,
+                'snippet' => 'Financial assistance for female students from minority communities in classes 9 to 12 with family income under Rs 2 lakh per annum.'
             ],
 
             // =========================================================================
-            // PRIORITY 3: COLLEGE UPDATES & ADMISSIONS (JoSAA, DU CSAS, MCC, UGC Norms)
+            // CATEGORY 3: HIGH-DEMAND EDUCATIONAL INTENT (Override Category)
             // =========================================================================
             [
-                'keyword' => 'JoSAA 2026 Seat Allotment: Opening vs Closing Ranks, Freeze, Float, Slide Rules & Seat Matrix',
-                'source' => 'Joint Seat Allocation Authority (JoSAA)',
-                'url' => 'https://josaa.nic.in',
-                'category_hint' => 'college-updates',
-                'trend_score' => 98,
-                'snippet' => 'Centralised engineering seat allocation for 23 IITs, 31 NITs, 26 IIITs, opening-closing rank analysis, and seat acceptance guidelines.'
-            ],
-            [
-                'keyword' => 'DU CSAS 2026: Delhi University UG Seat Allocation Phases, Spot Round & Document Verification Checklist',
-                'source' => 'University of Delhi',
-                'url' => 'https://admission.uod.ac.in',
-                'category_hint' => 'college-updates',
-                'trend_score' => 97,
-                'snippet' => 'Common Seat Allocation System guidelines, preference simulated ranks, acceptance deadlines, and physical document verification.'
-            ],
-            [
-                'keyword' => 'UGC College Fee Refund Policy 2026: 100% Refund Guidelines, Seat Cancellation Deadline and AICTE Norms',
+                'keyword' => 'UGC College Fee Refund Policy: Deadlines, Zero Deduction Rules and Student Grievance Redressal',
                 'source' => 'University Grants Commission (UGC)',
                 'url' => 'https://ugc.ac.in',
                 'category_hint' => 'college-updates',
                 'trend_score' => 96,
-                'snippet' => 'Statutory fee refund timelines, zero deduction slabs, certificate withholding penalties, and student grievance portal.'
+                'snippet' => 'Mandatory statutory refund timelines, full fee refund with zero deduction on timely seat cancellation, and penalties for certificate withholding.'
             ],
             [
-                'keyword' => 'MCC NEET UG 2026 Counselling: Round 1 & Round 2 All India Quota Seat Matrix and Security Deposit Refund Rules',
-                'source' => 'Medical Counselling Committee (MCC)',
-                'url' => 'https://mcc.nic.in',
-                'category_hint' => 'college-updates',
-                'trend_score' => 97,
-                'snippet' => 'AIQ 15% government medical seats, deemed universities, free exit rules, and security deposit forfeiture norms.'
-            ],
-            [
-                'keyword' => 'CSAB Special Round 2026: Vacant Seats in NITs, IIITs, Eligibility and Security Deposit Refund Process',
-                'source' => 'Central Seat Allocation Board (CSAB)',
-                'url' => 'https://csab.nic.in',
-                'category_hint' => 'college-updates',
-                'trend_score' => 96,
-                'snippet' => 'Special round vacant seat matrix, fresh registration guidelines, and seat acceptance fee refund structure.'
-            ],
-            [
-                'keyword' => 'College Admission Gap Certificate 2026: Format, Stamp Paper Rules, Affidavit and Notary Guidelines',
+                'keyword' => 'College Admission Gap Certificate: Standard Format, Stamp Paper Rules and Notary Affidavit Guidelines',
                 'source' => 'Ministry of Education',
                 'url' => 'https://education.gov.in',
                 'category_hint' => 'college-updates',
                 'trend_score' => 95,
-                'snippet' => 'Standard gap year affidavit format, non-judicial stamp paper value, notary attestation, and university reporting rules.'
-            ],
-
-            // =========================================================================
-            // PRIORITY 4: CAREER GUIDES & PREPARATION BLUEPRINTS (Syllabus & Weightage)
-            // =========================================================================
-            [
-                'keyword' => 'JEE Main 2027: Physics, Chemistry & Mathematics Chapter-Wise Weightage Analysis',
-                'source' => 'National Testing Agency (NTA)',
-                'url' => 'https://jeemain.nta.ac.in',
-                'category_hint' => 'career-guides',
-                'trend_score' => 97,
-                'snippet' => 'Engineering entrance blueprint, high-yield NCERT topics, and numerical question distribution for JEE Main.'
+                'snippet' => 'Official gap year explanation format on non-judicial stamp paper, essential declarations for college admissions, and notary verification norms.'
             ],
             [
-                'keyword' => 'NEET UG 2026 Biology: Chapter-Wise Weightage, Botany vs Zoology & High-Yield NCERT Units',
-                'source' => 'National Testing Agency (NTA)',
-                'url' => 'https://exams.nta.ac.in/NEET/',
-                'category_hint' => 'career-guides',
-                'trend_score' => 98,
-                'snippet' => 'Historical 360-mark biology analysis, genetics & ecology question breakdown, and NCERT revision plan.'
+                'keyword' => 'Anti-Ragging Undertaking: Mandatory Online Affidavit Registration and Reference Number on antiragging.in',
+                'source' => 'University Grants Commission (UGC)',
+                'url' => 'https://www.antiragging.in',
+                'category_hint' => 'college-updates',
+                'trend_score' => 95,
+                'snippet' => 'Mandatory online anti-ragging declaration for university enrollment, step-by-step form submission, and student acknowledgment slip generation.'
             ],
             [
-                'keyword' => 'SSC CGL Tier 1 Syllabus Breakdown, Subject-Wise Marks & Exam Strategy Guide',
-                'source' => 'Staff Selection Commission (SSC)',
-                'url' => 'https://ssc.gov.in',
-                'category_hint' => 'career-guides',
-                'trend_score' => 96,
-                'snippet' => 'Combined Graduate Level examination syllabus, section-wise marks distribution, and time management.'
-            ],
-
-            // =========================================================================
-            // PRIORITY 5: STUDENT TECH & DIGITAL SERVICES (DigiLocker, ABC, APAAR, OTR)
-            // =========================================================================
-            [
-                'keyword' => 'DigiLocker ABC ID Creation: Step-by-Step Guide for University & College Students',
-                'source' => 'Ministry of Education / Digital India',
-                'url' => 'https://www.abc.gov.in',
-                'category_hint' => 'student-technology',
-                'trend_score' => 96,
-                'snippet' => 'Academic Bank of Credits digital identity creation, credit transfer rules, and DigiLocker integration.'
-            ],
-            [
-                'keyword' => 'APAAR ID Card: Mandatory One Nation One Student ID Registration & DigiLocker Linking',
-                'source' => 'Ministry of Education',
-                'url' => 'https://apaar.education.gov.in',
-                'category_hint' => 'student-technology',
-                'trend_score' => 96,
-                'snippet' => 'Automated Permanent Academic Account Registry creation steps, school consent forms, and student benefits.'
-            ],
-            [
-                'keyword' => 'SSC One-Time Registration (OTR): Mandatory Live Photo, Signature & Document Upload Guide',
-                'source' => 'Staff Selection Commission (SSC)',
-                'url' => 'https://ssc.gov.in',
-                'category_hint' => 'student-technology',
-                'trend_score' => 96,
-                'snippet' => 'Staff Selection Commission new portal one-time registration protocol, application app, and live capture rules.'
+                'keyword' => 'Migration Certificate vs Transfer Certificate: Key Differences, Issuance Process and Validity Rules',
+                'source' => 'Central Board of Secondary Education (CBSE)',
+                'url' => 'https://cbse.gov.in',
+                'category_hint' => 'college-updates',
+                'trend_score' => 94,
+                'snippet' => 'Clear distinction between board migration certificates and school/college transfer certificates, document requirements, and university submission rules.'
             ]
         ];
     }
 
+    /**
+     * Fetch unaddressed high-intent topics.
+     * Evaluates static catalog first; if exhausted, dynamically consults AI for genuine student search topics.
+     * If no qualified candidates pass verification, safely returns an empty array (0 items).
+     */
     public function fetch(int $limit = 5): array {
         $results = [];
 
         try {
             $catalog = $this->getCatalog();
 
+            // 1. Evaluate Pre-Curated Catalog First
             foreach ($catalog as $item) {
                 if (count($results) >= $limit) break;
 
-                // Check if this evergreen topic already exists in trends or articles
+                // Deduplication: Skip if already exists as trend or article
                 if (TrendService::existsAsTrend($item['keyword']) || TrendService::existsAsArticle($item['keyword'])) {
                     continue;
                 }
 
                 $results[] = [
-                    'keyword' => $item['keyword'],
-                    'source' => $item['source'],
-                    'url' => $item['url'],
-                    'trend_score' => $item['trend_score'],
+                    'keyword'       => $item['keyword'],
+                    'source'        => $item['source'],
+                    'url'           => $item['url'],
+                    'trend_score'   => $item['trend_score'],
                     'category_hint' => $item['category_hint'],
-                    'snippet' => $item['snippet'],
-                    'detected_at' => date('Y-m-d H:i:s'),
-                    'raw_payload' => [
+                    'snippet'       => $item['snippet'],
+                    'detected_at'   => date('Y-m-d H:i:s'),
+                    'raw_payload'   => [
                         'source_type' => 'evergreen_official',
-                        'authority' => $item['source'],
-                        'url' => $item['url']
+                        'authority'   => $item['source'],
+                        'url'         => $item['url']
                     ]
                 ];
             }
+
+            // 2. If catalog slots remain unfilled, attempt dynamic search-intent discovery via AI
+            if (count($results) < $limit) {
+                $needed = $limit - count($results);
+                $dynamicItems = $this->discoverDynamicDemandTopics($needed);
+
+                foreach ($dynamicItems as $dItem) {
+                    if (count($results) >= $limit) break;
+
+                    // Must pass qualification (English only, education relevant, deduplication, valid category)
+                    $qualification = TrendService::isQualified($dItem);
+                    if (!$qualification['qualified']) {
+                        continue;
+                    }
+
+                    $results[] = $dItem;
+                }
+            }
+
         } catch (Throwable $e) {
             Logger::warning('EvergreenTopicsAdapter fetch error: ' . $e->getMessage());
         }
 
+        // Return qualified items. If none qualify, returns empty array (0 items) without forcing artificial entries.
         return $results;
+    }
+
+    /**
+     * AI-Assisted Dynamic Demand Topic Discovery
+     * Queries Gemini to identify authentic, unaddressed student search queries.
+     * Enforces ~70% student-technology / ~30% scholarships default mix, allowing genuine demand overrides.
+     */
+    private function discoverDynamicDemandTopics(int $count = 3): array {
+        try {
+            $gemini = new Gemini();
+            $prompt = <<<PROMPT
+You are a Search Intent Specialist for Indian education.
+Generate {$count} real, highly practical search queries that Indian students are actively looking up on Google right now.
+
+FOCUS BALANCE (Default Mix):
+- ~70% on Student Technology, Digital Identity & Tools (e.g. DigiLocker, APAAR ID, Academic Bank of Credits, OTR portals, official government skill schemes like NATS, PMKVY, SWAYAM, or practical student tech).
+- ~30% on National / State Scholarships & Financial Aid (e.g. NSP Portal, Post-Matric, AICTE schemes, Merit grants).
+- If there is stronger genuine search demand in other existing categories (e.g. university admission documents, anti-ragging, gap certificate), you may include it.
+
+STRICT CRITERIA:
+1. Must be in 100% English.
+2. Must address a concrete, real problem or procedural guide (How-to, documents required, error solving).
+3. Must link to an authentic government statutory authority or official portal (e.g., MeitY, UGC, AICTE, MeitY DigiLocker, Ministry of Education, scholarships.gov.in).
+4. No clickbait, no fictitious schemes, no invented dates.
+
+OUTPUT FORMAT (Valid JSON Array of objects only):
+[
+  {
+    "keyword": "Precise, descriptive topic headline under 75 characters",
+    "source": "Official authority name (e.g. Ministry of Education, MeitY, UGC)",
+    "url": "https://official.gov.in/url",
+    "category_hint": "student-technology or scholarships or college-updates",
+    "trend_score": 95,
+    "snippet": "Brief factual summary of what the guide covers."
+  }
+]
+PROMPT;
+
+            $response = $gemini->generateJson($prompt, ['stage' => 'evergreen_discovery', 'temperature' => 0.3]);
+            $items = $response['data'] ?? [];
+
+            if (!is_array($items)) {
+                return [];
+            }
+
+            $valid = [];
+            foreach ($items as $item) {
+                if (empty($item['keyword']) || empty($item['source']) || empty($item['category_hint'])) {
+                    continue;
+                }
+
+                $valid[] = [
+                    'keyword'       => trim((string)$item['keyword']),
+                    'source'        => trim((string)$item['source']),
+                    'url'           => filter_var($item['url'] ?? '', FILTER_VALIDATE_URL) ?: 'https://india.gov.in',
+                    'trend_score'   => (int)($item['trend_score'] ?? 92),
+                    'category_hint' => trim((string)$item['category_hint']),
+                    'snippet'       => trim((string)($item['snippet'] ?? '')),
+                    'detected_at'   => date('Y-m-d H:i:s'),
+                    'raw_payload'   => [
+                        'source_type' => 'evergreen_ai_discovered',
+                        'authority'   => trim((string)$item['source']),
+                        'url'         => $item['url'] ?? 'https://india.gov.in'
+                    ]
+                ];
+            }
+
+            return $valid;
+
+        } catch (Throwable $e) {
+            Logger::warning('Evergreen dynamic discovery failed: ' . $e->getMessage());
+            return [];
+        }
     }
 }

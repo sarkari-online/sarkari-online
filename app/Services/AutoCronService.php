@@ -138,10 +138,15 @@ class AutoCronService {
 
     private static function replenishEvergreenQueue(): void {
         try {
-            $pendingCount = (int)Database::fetchValue("SELECT COUNT(*) FROM trends WHERE status IN ('detected', 'approved')");
-            if ($pendingCount < 3) {
+            // Check specifically for pending evergreen/search-intent topics in the pipeline
+            $pendingCount = (int)Database::fetchValue(
+                "SELECT COUNT(*) FROM trends 
+                 WHERE status IN ('detected', 'approved') 
+                   AND (source LIKE '%evergreen%' OR category_hint IN ('student-technology', 'scholarships', 'college-updates', 'career-guides'))"
+            );
+            if ($pendingCount < 2) {
                 $adapter = new \App\Services\TrendSources\EvergreenTopicsAdapter();
-                $evergreenList = $adapter->fetch(5);
+                $evergreenList = $adapter->fetch(3);
                 foreach ($evergreenList as $item) {
                     if (!TrendService::existsAsArticle($item['keyword'])) {
                         $hash = TrendService::normalizedHash($item['keyword']);
