@@ -236,14 +236,31 @@ PROMPT;
             ? $featImg
             : 'https://sarkari.online/' . ltrim($featImg, '/');
 
-        // Add thumbnail at top of content
-        $featuredHtml = '<figure class="wp-block-image size-large">'
-            . '<img src="' . htmlspecialchars($imageUrl) . '" alt="' . htmlspecialchars($postTitle) . '" '
-            . 'style="max-width:100%;height:auto;border-radius:8px;" />'
-            . '<figcaption>' . htmlspecialchars($postTitle) . ' — Sarkari.online</figcaption>'
-            . '</figure>' . "\n\n";
+        // Add full-width thumbnail at top of content with modern card shadow
+        $badge = '<div style="display:inline-block;background:#eff6ff;color:#1d4ed8;font-size:12px;font-weight:700;letter-spacing:0.5px;padding:6px 14px;border-radius:20px;text-transform:uppercase;margin-bottom:16px;border:1px solid #bfdbfe;">📌 Verified Educational Alert</div>';
 
-        $fullContent = $featuredHtml . $bodyHtml;
+        $featuredHtml = $badge . "\n"
+            . '<div style="margin-bottom:28px;border-radius:12px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.09);border:1px solid #e2e8f0;">'
+            . '<img src="' . htmlspecialchars($imageUrl) . '" alt="' . htmlspecialchars($postTitle) . '" '
+            . 'style="width:100%;height:auto;display:block;" />'
+            . '</div>' . "\n\n";
+
+        // Modern high-converting CTA card at the bottom
+        $ctaHtml = "\n\n"
+            . '<div style="margin:40px 0 20px;padding:28px;background:linear-gradient(180deg,#f8fafc 0%,#f1f5f9 100%);border:1px solid #cbd5e1;border-radius:14px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.04);">'
+            . '<h3 style="margin:0 0 10px;font-size:20px;color:#0f172a;font-weight:700;">Official Notification & Application Portal</h3>'
+            . '<p style="margin:0 0 18px;color:#475569;font-size:14.5px;line-height:1.5;">Access verified guidelines, official exam dates, eligibility criteria, and direct application links directly on Sarkari.online.</p>'
+            . '<a href="' . htmlspecialchars($canonicalUrl) . '" target="_blank" rel="dofollow" '
+            . 'style="display:inline-block;background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 100%);color:#ffffff!important;font-size:15px;font-weight:700;padding:13px 30px;border-radius:8px;text-decoration:none;box-shadow:0 4px 14px rgba(37,99,235,0.35);transition:all 0.2s;">'
+            . 'View Full Guide on Sarkari.online &rarr;'
+            . '</a>'
+            . '</div>';
+
+        $fullContent = '<div style="max-width:880px;margin:0 auto;font-size:16.5px;line-height:1.8;color:#1e293b;">'
+            . $featuredHtml
+            . $bodyHtml
+            . $ctaHtml
+            . '</div>';
 
         // ── Step 4: Build SEO-optimised Yoast/Jetpack meta ───────────
         $postMeta = [
@@ -314,46 +331,54 @@ PROMPT;
      * ------------------------------------------------------------- */
     private function markdownToHtml(string $md): string
     {
-        // Headers
-        $md = preg_replace('/^### (.+)$/m', '<h3>$1</h3>', $md);
-        $md = preg_replace('/^## (.+)$/m',  '<h2>$1</h2>', $md);
-        $md = preg_replace('/^# (.+)$/m',   '<h1>$1</h1>', $md);
+        // Headings with modern accents
+        $md = preg_replace('/^### (.+)$/m', '<h3 style="color:#1e293b;font-size:20px;font-weight:700;margin:28px 0 12px;">$1</h3>', $md);
+        $md = preg_replace('/^## (.+)$/m',  '<h2 style="color:#0f172a;font-size:24px;font-weight:800;border-left:5px solid #2563eb;padding-left:14px;margin:36px 0 16px;">$1</h2>', $md);
+        $md = preg_replace('/^# (.+)$/m',   '<h1 style="color:#0f172a;font-size:28px;font-weight:900;margin:20px 0 18px;">$1</h1>', $md);
 
         // Bold / Italic
-        $md = preg_replace('/\*\*(.+?)\*\*/', '<strong>$1</strong>', $md);
+        $md = preg_replace('/\*\*(.+?)\*\*/', '<strong style="color:#0f172a;font-weight:700;">$1</strong>', $md);
         $md = preg_replace('/\*(.+?)\*/',     '<em>$1</em>',         $md);
 
-        // Links
-        $md = preg_replace('/\[([^\]]+)\]\(([^)]+)\)/', '<a href="$2" target="_blank" rel="dofollow">$1</a>', $md);
+        // Links with attractive blue accents
+        $md = preg_replace('/\[([^\]]+)\]\(([^)]+)\)/', '<a href="$2" target="_blank" rel="dofollow" style="color:#2563eb;font-weight:600;text-decoration:underline;text-underline-offset:3px;">$1</a>', $md);
 
         // Bullet lists
         $md = preg_replace_callback('/^(\- .+\n?)+/m', function ($m) {
-            $items = preg_replace('/^- (.+)/m', '<li>$1</li>', trim($m[0]));
-            return "<ul>\n{$items}\n</ul>\n";
+            $items = preg_replace('/^- (.+)/m', '<li style="margin-bottom:8px;">$1</li>', trim($m[0]));
+            return "<ul style=\"padding-left:24px;margin:18px 0 24px;line-height:1.75;\">\n{$items}\n</ul>\n";
         }, $md);
 
         // Ordered lists
         $md = preg_replace_callback('/^(\d+\. .+\n?)+/m', function ($m) {
-            $items = preg_replace('/^\d+\. (.+)/m', '<li>$1</li>', trim($m[0]));
-            return "<ol>\n{$items}\n</ol>\n";
+            $items = preg_replace('/^\d+\. (.+)/m', '<li style="margin-bottom:8px;">$1</li>', trim($m[0]));
+            return "<ol style=\"padding-left:24px;margin:18px 0 24px;line-height:1.75;\">\n{$items}\n</ol>\n";
         }, $md);
 
-        // Tables (GFM)
+        // Tables (GFM) - Styled Modern Card Table
         $md = preg_replace_callback('/(\|.+\|\n)+/m', function ($m) {
             $rows  = array_filter(explode("\n", trim($m[0])));
-            $html  = '<table style="width:100%;border-collapse:collapse;">';
+            $html  = '<div style="overflow-x:auto;margin:28px 0;border-radius:10px;border:1px solid #e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,0.03);">'
+                   . '<table style="width:100%;border-collapse:collapse;font-size:15px;text-align:left;">';
             $first = true;
+            $rowIdx = 0;
             foreach ($rows as $row) {
                 if (preg_match('/^\|[-| ]+\|$/', trim($row))) continue;
                 $cells = array_map('trim', explode('|', trim($row, '| ')));
                 if ($first) {
-                    $html .= '<thead><tr>' . implode('', array_map(fn($c) => "<th style=\"border:1px solid #ddd;padding:8px;background:#f5f5f5;\">$c</th>", $cells)) . '</tr></thead><tbody>';
+                    $html .= '<thead><tr style="background:#1e3a8a;color:#ffffff;">'
+                           . implode('', array_map(fn($c) => "<th style=\"padding:12px 16px;font-weight:700;letter-spacing:0.3px;\">$c</th>", $cells))
+                           . '</tr></thead><tbody>';
                     $first = false;
                 } else {
-                    $html .= '<tr>' . implode('', array_map(fn($c) => "<td style=\"border:1px solid #ddd;padding:8px;\">$c</td>", $cells)) . '</tr>';
+                    $bg = ($rowIdx % 2 === 0) ? '#ffffff' : '#f8fafc';
+                    $html .= "<tr style=\"background:{$bg};border-top:1px solid #e2e8f0;\">"
+                           . implode('', array_map(fn($c) => "<td style=\"padding:11px 16px;color:#334155;\">$c</td>", $cells))
+                           . '</tr>';
+                    $rowIdx++;
                 }
             }
-            return $html . '</tbody></table>' . "\n";
+            return $html . '</tbody></table></div>' . "\n";
         }, $md);
 
         // Paragraphs
@@ -362,10 +387,10 @@ PROMPT;
         foreach ($blocks as $block) {
             $block = trim($block);
             if (empty($block)) continue;
-            if (preg_match('/^<(h[1-6]|ul|ol|table|figure)/', $block)) {
+            if (preg_match('/^<(h[1-6]|ul|ol|table|div|figure)/', $block)) {
                 $html .= $block . "\n";
             } else {
-                $html .= '<p>' . nl2br($block) . "</p>\n";
+                $html .= '<p style="margin:0 0 18px;line-height:1.8;">' . nl2br($block) . "</p>\n";
             }
         }
 
