@@ -68,6 +68,30 @@ class PipelineService {
             return ['success' => false, 'trend_id' => $trendId, 'error' => 'Similar article already exists in publication library.'];
         }
 
+        // Intelligently auto-resolve correct category from keyword
+        $autoCat = CategoryService::autoResolveCategory($trend['keyword'], '', $trend['category_hint'] ?? null);
+        $categorySlug = $autoCat['slug'] ?? 'entrance-exams';
+        $categoryId = (int)($autoCat['id'] ?? 5);
+
+        // Guard: Prevent burning Gemini API tokens if today's slot for this category type is already full
+        $pubService = new PublishingService();
+        if ($pubService->isDailyLimitReached()) {
+            Logger::info("Daily publishing quota (5/day) reached. Skipping generation for Trend #{$trendId} to conserve Gemini API tokens.");
+            return ['success' => false, 'trend_id' => $trendId, 'error' => 'Daily publishing quota reached.'];
+        }
+
+        $slotCounts = $pubService->getPublishedSlotCounts();
+        $searchIntentCategories = ['entrance-exams', 'scholarships', 'college-updates', 'career-guides', 'student-technology'];
+        $isSearchIntent = in_array($categorySlug, $searchIntentCategories, true);
+
+        if ($isSearchIntent && $slotCounts['search_intent'] >= $slotCounts['max_search_intent']) {
+            Logger::info("Daily search-intent/evergreen quota ({$slotCounts['max_search_intent']}/day) is full. Holding Trend #{$trendId} for tomorrow to conserve Gemini API tokens.");
+            return ['success' => false, 'trend_id' => $trendId, 'error' => 'Daily evergreen quota full. Topic held for tomorrow.'];
+        } elseif (!$isSearchIntent && $slotCounts['official'] >= $slotCounts['max_official']) {
+            Logger::info("Daily official quota ({$slotCounts['max_official']}/day) is full. Holding Trend #{$trendId} for tomorrow to conserve Gemini API tokens.");
+            return ['success' => false, 'trend_id' => $trendId, 'error' => 'Daily official quota full. Topic held for tomorrow.'];
+        }
+
         Logger::info("Starting content generation pipeline for Trend #{$trendId}: '{$trend['keyword']}'");
 
         // Parse raw payload / source information
@@ -78,11 +102,6 @@ class PipelineService {
                 $rawPayload = $decoded;
             }
         }
-
-        // Intelligently auto-resolve correct category from keyword
-        $autoCat = CategoryService::autoResolveCategory($trend['keyword'], '', $trend['category_hint'] ?? null);
-        $categorySlug = $autoCat['slug'] ?? 'entrance-exams';
-        $categoryId = (int)($autoCat['id'] ?? 5);
 
         $sourceData = [
             'keyword' => $trend['keyword'],

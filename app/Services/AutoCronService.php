@@ -252,11 +252,11 @@ class AutoCronService {
             return;
         }
 
-        // Guard 2: If Review Queue already has >= 2 pending drafts, pause generation (no queue pile-up)
+        // Guard 2: Lean Review Queue — If Review Queue has >= 1 pending draft, pause generation (no queue pile-up)
         try {
-            $pendingDrafts = (int)Database::fetchValue("SELECT COUNT(*) FROM articles WHERE status IN ('draft', 'pending_review')");
-            if ($pendingDrafts >= 2) {
-                Logger::info("AutoCron generate: {$pendingDrafts} drafts already in Review Queue. Pausing generation until current drafts are published.");
+            $pendingDrafts = (int)Database::fetchValue("SELECT COUNT(*) FROM articles WHERE status IN ('draft', 'pending_review', 'review')");
+            if ($pendingDrafts >= 1) {
+                Logger::info("AutoCron generate: {$pendingDrafts} draft already in Review Queue. Pausing generation until current draft is published.");
                 return;
             }
         } catch (Throwable $e) {
