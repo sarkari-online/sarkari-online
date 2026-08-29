@@ -59,7 +59,6 @@ class BloggerService {
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
 
         $data = json_decode($response, true);
         if ($httpCode !== 200 || empty($data['access_token'])) {
@@ -99,7 +98,6 @@ class BloggerService {
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
 
         $data = json_decode($response, true);
         if ($httpCode !== 200 || empty($data['id'])) {
