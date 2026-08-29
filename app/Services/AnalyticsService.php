@@ -102,13 +102,14 @@ class AnalyticsService {
                 return;
             }
 
-            // 2. Skip internal admin panel / assets / uploads / cron requests
+            // 2. Skip internal admin panel / assets / uploads / cron / well-known requests
             $uri = $_SERVER['REQUEST_URI'] ?? '/';
             if (
                 str_starts_with($uri, '/admin') ||
                 str_starts_with($uri, '/assets') ||
                 str_starts_with($uri, '/uploads') ||
-                str_starts_with($uri, '/cron')
+                str_starts_with($uri, '/cron') ||
+                str_starts_with($uri, '/.well-known')
             ) {
                 return;
             }
