@@ -1,31 +1,48 @@
 <?php
 /**
- * Sarkari.online - Article Category Reclassifier
- * Re-scans all existing published articles and maps them to their accurate category taxonomy.
+ * Sarkari.online - Taxonomy Auto-Reclassifier
+ * Ensures articles with "Scholarship", "Admit Card", "Result", "Jobs" match their true category.
  */
-
 require_once dirname(__DIR__) . '/config.php';
-
 use App\Database\Database;
 use App\Services\CategoryService;
-use App\Helpers\Logger;
 
-echo "[" . date('Y-m-d H:i:s') . "] Starting Category Reclassification...\n";
+echo "Running Taxonomy Auto-Reclassifier...\n";
 
 try {
-    $articles = Database::fetchAll("SELECT id, title, content, category_id FROM articles WHERE status = 'published'");
-    $updatedCount = 0;
+    $articles = Database::fetchAll("SELECT id, title, slug, category_id FROM articles WHERE status = 'published'");
+    $correctedCount = 0;
 
     foreach ($articles as $art) {
-        $resolvedCat = CategoryService::autoResolveCategory($art['title'], $art['content'] ?? '');
-        if ($resolvedCat && (int)$art['category_id'] !== (int)$resolvedCat['id']) {
-            Database::update('articles', ['category_id' => $resolvedCat['id']], 'id = :id', ['id' => $art['id']]);
-            echo "Article #{$art['id']} ('{$art['title']}') moved to '{$resolvedCat['name']}' (ID: {$resolvedCat['id']})\n";
-            $updatedCount++;
+        $id = (int)$art['id'];
+        $title = $art['title'];
+        $currentCatId = (int)$art['category_id'];
+
+        $resolvedCat = CategoryService::autoResolveCategory($title);
+        $correctCatId = (int)($resolvedCat['id'] ?? $currentCatId);
+
+        if ($correctCatId !== $currentCatId) {
+            Database::update('articles', [
+                'category_id' => $correctCatId,
+                'updated_at'  => date('Y-m-d H:i:s')
+            ], 'id = :id', ['id' => $id]);
+
+            echo "  [FIXED] Article #{$id} '{$title}'\n";
+            echo "          Category ID {$currentCatId} -> {$correctCatId} ({$resolvedCat['name']})\n";
+            $correctedCount++;
         }
     }
 
-    echo "[" . date('Y-m-d H:i:s') . "] Finished: {$updatedCount} articles reclassified.\n";
+    echo "Finished: {$correctedCount} article(s) reclassified.\n";
+
+    // Clear cache
+    $cacheDir = dirname(__DIR__) . '/storage/cache';
+    if (is_dir($cacheDir)) {
+        foreach (glob($cacheDir . '/*.json') ?: [] as $f) {
+            @unlink($f);
+        }
+    }
+
 } catch (\Throwable $e) {
     echo "Error: " . $e->getMessage() . "\n";
 }
