@@ -23,9 +23,37 @@ class Gemini {
 
     public function __construct(?string $model = null) {
         $this->apiKey = (string)Env::get('GEMINI_API_KEY', '');
-        $this->model = $model ?: (string)Env::get('GEMINI_MODEL', 'gemini-3.7-flash');
+        $this->model = $model ?: (string)Env::get('GEMINI_MODEL', 'gemini-3.5-flash-lite');
         $this->timeout = (int)Env::get('GEMINI_TIMEOUT', 90);
-        $this->maxRetries = (int)Env::get('GEMINI_MAX_RETRIES', 4);
+        $this->maxRetries = (int)Env::get('GEMINI_MAX_RETRIES', 3);
+    }
+
+    /**
+     * Check if Gemini Circuit Breaker is active (rate limit cooldown)
+     */
+    public static function isCircuitBreakerActive(): bool {
+        try {
+            $val = Database::fetchValue("SELECT value FROM settings WHERE `key` = 'gemini_circuit_breaker_until' LIMIT 1");
+            if ($val && (int)$val > time()) {
+                return true;
+            }
+        } catch (Throwable $e) {}
+        return false;
+    }
+
+    /**
+     * Trip circuit breaker for a given number of seconds
+     */
+    public static function setCircuitBreaker(int $seconds = 60, string $reason = ''): void {
+        $until = time() + $seconds;
+        try {
+            Database::query(
+                "INSERT INTO settings (`key`, `value`, `updated_at`) VALUES ('gemini_circuit_breaker_until', :val, NOW())
+                 ON DUPLICATE KEY UPDATE `value` = :val, `updated_at` = NOW()",
+                ['val' => (string)$until]
+            );
+            Logger::warning("Gemini Circuit Breaker ACTIVATED for {$seconds}s until " . date('Y-m-d H:i:s', $until) . ". Reason: {$reason}");
+        } catch (Throwable $e) {}
     }
 
     /**
@@ -67,6 +95,15 @@ class Gemini {
             throw new Exception($err);
         }
 
+        // Circuit Breaker check: don't hammer Google if we are in rate limit cooldown
+        if (self::isCircuitBreakerActive()) {
+            $val = (int)Database::fetchValue("SELECT value FROM settings WHERE `key` = 'gemini_circuit_breaker_until' LIMIT 1");
+            $rem = max(1, $val - time());
+            $err = "Gemini API circuit breaker is active (cooldown). Please wait {$rem}s before retrying.";
+            $this->logOperation($stage, $articleId, $trendId, $prompt, '', 0, false, $err);
+            throw new Exception($err);
+        }
+
         $url = "https://generativelanguage.googleapis.com/v1beta/models/{$this->model}:generateContent?key=" . urlencode($this->apiKey);
 
         $payload = [
@@ -99,7 +136,8 @@ class Gemini {
             ];
         }
 
-        $modelsToTry = array_unique([$this->model, 'gemini-3.7-flash', 'gemini-3.6-flash', 'gemini-3.5-flash']);
+        // Active Google Gemini models in 2026
+        $modelsToTry = array_unique(array_filter([$this->model, 'gemini-3.5-flash-lite', 'gemini-3.5-flash', 'gemini-3.6-flash']));
         $attempt = 0;
         $lastError = '';
         $tokensUsed = 0;
@@ -107,7 +145,7 @@ class Gemini {
         foreach ($modelsToTry as $currentModel) {
             $url = "https://generativelanguage.googleapis.com/v1beta/models/{$currentModel}:generateContent?key=" . urlencode($this->apiKey);
             
-            for ($try = 1; $try <= 3; $try++) {
+            for ($try = 1; $try <= 2; $try++) {
                 $attempt++;
                 try {
                     $response = $this->executeCurl($url, $payload);
@@ -131,16 +169,27 @@ class Gemini {
 
                     $lastError = "Gemini API HTTP {$httpCode} on model {$currentModel}: " . substr($rawBody ?: 'Server issue', 0, 200);
 
-                    // If model not found (404), skip retries and immediately try next model
+                    // If model not found (404), skip retries on this model and try next model
                     if ($httpCode === 404) {
-                        Logger::warning("Gemini model {$currentModel} returned 404; switching to next fallback model.");
+                        Logger::warning("Gemini model {$currentModel} returned 404; switching to next model.");
                         break;
                     }
 
-                    // Handle rate limit (429) or server error (503) -> backoff
-                    $backoffSeconds = ($httpCode === 429) ? (4 + ($try * 2)) : 2;
-                    Logger::warning("Gemini API attempt {$attempt} failed on {$currentModel} (HTTP {$httpCode}). Retrying in {$backoffSeconds}s...", ['stage' => $stage]);
-                    sleep($backoffSeconds);
+                    // Handle rate limit (429) -> Activate Circuit Breaker and STOP trying further models
+                    if ($httpCode === 429) {
+                        $retrySeconds = 60;
+                        if (preg_match('/retry in ([0-9.]+)s/i', $rawBody, $m)) {
+                            $retrySeconds = (int)ceil((float)$m[1]) + 5;
+                        } elseif (str_contains(strtolower($rawBody), 'quota exceeded') || str_contains(strtolower($rawBody), 'check your plan')) {
+                            $retrySeconds = 900; // 15 mins for daily quota
+                        }
+                        self::setCircuitBreaker($retrySeconds, "HTTP 429 Rate Limit on {$currentModel}");
+                        $lastError = "Gemini API HTTP 429: Rate limit cooldown active for {$retrySeconds}s.";
+                        break 2; // Exit BOTH loops immediately — all models share the same quota pool!
+                    }
+
+                    // Server error (500/503) -> brief wait
+                    sleep(2);
 
                 } catch (Throwable $e) {
                     $lastError = $e->getMessage();

@@ -20,11 +20,51 @@ use Throwable;
 
 class AutoCronService {
 
-    private const INTERVAL_FETCH     = 180;   // 3 mins
-    private const INTERVAL_ANALYZE   = 120;   // 2 mins
-    private const INTERVAL_GENERATE  = 240;   // 4 mins
-    private const INTERVAL_PUBLISH   = 300;   // 5 mins
+    private const INTERVAL_FETCH     = 900;   // 15 mins
+    private const INTERVAL_ANALYZE   = 600;   // 10 mins
+    private const INTERVAL_GENERATE  = 900;   // 15 mins
+    private const INTERVAL_PUBLISH   = 900;   // 15 mins
     private const INTERVAL_BACKLINKS = 14400; // 4 hours
+
+    /**
+     * Fetch schedule state from database with file fallback
+     */
+    private static function getScheduleState(): array {
+        try {
+            $dbVal = Database::fetchValue("SELECT value FROM settings WHERE `key` = 'cron_schedule_state' LIMIT 1");
+            if (!empty($dbVal)) {
+                $decoded = json_decode($dbVal, true);
+                if (is_array($decoded)) return $decoded;
+            }
+        } catch (Throwable $e) {}
+
+        $stateFile = dirname(__DIR__, 2) . '/storage/cache/cron_schedule_state.json';
+        if (file_exists($stateFile)) {
+            return json_decode(@file_get_contents($stateFile), true) ?: [];
+        }
+        return [];
+    }
+
+    /**
+     * Persist schedule state in database (immune to filesystem permission issues)
+     */
+    private static function saveScheduleState(array $state): void {
+        try {
+            Database::query(
+                "INSERT INTO settings (`key`, `value`, `updated_at`) VALUES ('cron_schedule_state', :val, NOW())
+                 ON DUPLICATE KEY UPDATE `value` = :val, `updated_at` = NOW()",
+                ['val' => json_encode($state)]
+            );
+        } catch (Throwable $e) {}
+
+        try {
+            $lockDir = dirname(__DIR__, 2) . '/storage/cache';
+            if (!is_dir($lockDir)) {
+                @mkdir($lockDir, 0775, true);
+            }
+            @file_put_contents($lockDir . '/cron_schedule_state.json', json_encode($state, JSON_PRETTY_PRINT));
+        } catch (Throwable $e) {}
+    }
 
     public static function checkAndRun(): void {
         // Strict Guard: ONLY execute in CLI background daemon (NEVER on web requests)
@@ -33,13 +73,7 @@ class AutoCronService {
         }
 
         try {
-            $lockDir = dirname(__DIR__, 2) . '/storage/cache';
-            if (!is_dir($lockDir)) {
-                @mkdir($lockDir, 0775, true);
-            }
-
-            $stateFile = $lockDir . '/cron_schedule_state.json';
-            $state = file_exists($stateFile) ? (json_decode(file_get_contents($stateFile), true) ?: []) : [];
+            $state = self::getScheduleState();
 
             $now = time();
             $tasksDue = [];
@@ -68,18 +102,13 @@ class AutoCronService {
             foreach ($tasksDue as $t) {
                 $state[$t] = $now;
             }
-            @file_put_contents($stateFile, json_encode($state, JSON_PRETTY_PRINT));
+            self::saveScheduleState($state);
 
-            if (php_sapi_name() === 'cli') {
-                // In CLI daemon — execute directly in same process
-                self::executeBackgroundJobs($tasksDue);
-            } else {
-                // In web context — defer execution after HTTP response is sent
-                register_shutdown_function([self::class, 'executeBackgroundJobs'], $tasksDue);
-            }
+            // In CLI daemon — execute directly in same process
+            self::executeBackgroundJobs($tasksDue);
 
         } catch (Throwable $e) {
-            // Silently ignore to protect web request
+            // Silently ignore to protect daemon
         }
     }
 
@@ -233,8 +262,12 @@ class AutoCronService {
                     Logger::info("AutoCron: Trend #{$trendId} REJECTED (score: {$priorityScore})");
                 }
             } catch (Throwable $e) {
-                TrendService::markStatus($trendId, 'detected'); // reset to retry next cycle
                 Logger::error("AutoCron analyze trend #{$trendId} error: " . $e->getMessage());
+                TrendService::markStatus($trendId, 'detected'); // reset to retry next cycle
+                if (str_contains(strtolower($e->getMessage()), 'circuit breaker') || str_contains(strtolower($e->getMessage()), 'quota') || str_contains(strtolower($e->getMessage()), '429')) {
+                    Logger::warning("AutoCron analyze halted: AI rate-limit/quota circuit breaker tripped.");
+                    break; // STOP analyzing further trends this cycle!
+                }
             }
 
             sleep(2); // rate limit pacing
