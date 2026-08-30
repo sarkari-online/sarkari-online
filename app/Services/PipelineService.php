@@ -110,7 +110,8 @@ class PipelineService {
 
         // Fetch Grounded Statutory Facts & Shift Matrix from Official Portals
         $factFetcher = new AuthorityFactFetcherService();
-        $verifiedFacts = $factFetcher->fetchFactsForTopic($trend['keyword'], $categorySlug, $trend['url'] ?? '');
+        $snippet = $rawPayload['snippet'] ?? ($trend['category_hint'] ?? '');
+        $verifiedFacts = $factFetcher->fetchFactsForTopic($trend['keyword'], $categorySlug, $trend['url'] ?? '', $snippet);
 
         $sourceData = [
             'keyword' => $trend['keyword'],

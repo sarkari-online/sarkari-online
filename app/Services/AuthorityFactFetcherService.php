@@ -59,6 +59,20 @@ class AuthorityFactFetcherService {
     public static function resolveAuthority(string $topic, string $sourceUrl = ''): array {
         $lower = strtolower($topic . ' ' . $sourceUrl);
 
+        // State Admission & CET Cells (High Priority)
+        if (str_contains($lower, 'mht cet') || str_contains($lower, 'mahacet') || str_contains($lower, 'cap round')) {
+            return ['name' => 'State Common Entrance Test Cell, Maharashtra', 'portal' => 'https://cetcell.mahacet.org'];
+        }
+        if (str_contains($lower, 'rajasthan neet') || str_contains($lower, 'neetrajasthan')) {
+            return ['name' => 'State Medical & Dental Counselling Board, Rajasthan', 'portal' => 'https://ug.neetrajasthan.com'];
+        }
+        if (str_contains($lower, 'csir') || str_contains($lower, 'csirnet')) {
+            return ['name' => 'Council of Scientific and Industrial Research (CSIR / NTA)', 'portal' => 'https://csirnet.nta.nic.in'];
+        }
+        if (str_contains($lower, 'icar') || str_contains($lower, 'aieea')) {
+            return ['name' => 'Indian Council of Agricultural Research (ICAR / NTA)', 'portal' => 'https://icar.nta.nic.in'];
+        }
+
         // State Boards & Specific State Commissions (High Priority to prevent false UPSC/SSC fallback)
         if (str_contains($lower, 'hpbose') || str_contains($lower, 'himachal')) return self::$authorityPortals['hpbose'];
         if (str_contains($lower, 'kpsc') || str_contains($lower, 'karnataka') || str_contains($lower, 'kas ')) return self::$authorityPortals['kpsc'];
@@ -149,13 +163,16 @@ class AuthorityFactFetcherService {
      * @param string $sourceUrl Source or portal URL if available
      * @return array Verified factual package ready for ArticleGenerator
      */
-    public function fetchFactsForTopic(string $topic, string $category = 'entrance-exams', string $sourceUrl = ''): array {
+    public function fetchFactsForTopic(string $topic, string $category = 'entrance-exams', string $sourceUrl = '', string $snippet = ''): array {
         $authority = self::resolveAuthority($topic, $sourceUrl);
         $portalText = $this->fetchPortalText($authority['portal']);
         $currentDate = date('F d, Y');
         $currentYear = (int)date('Y');
 
         $contextPrompt = "STATUTORY AUTHORITY: " . $authority['name'] . " (" . $authority['portal'] . ")\n";
+        if (!empty($snippet)) {
+            $contextPrompt .= "NEWS WIRE & DISPATCH DETAILS:\n" . mb_substr($snippet, 0, 1500) . "\n";
+        }
         if (!empty($portalText)) {
             $contextPrompt .= "REAL-TIME PORTAL CONTENT:\n" . mb_substr($portalText, 0, 2500) . "\n";
         }
@@ -173,12 +190,19 @@ CRITICAL RULES:
 0. AUTHORITY PURITY:
    - You MUST attribute facts STRICTLY and ONLY to {$authority['name']} ({$authority['portal']}).
    - NEVER confuse or attribute state boards, armed forces, banking, or schools to UPSC or any other unrelated agency!
-1. CONFIRMED VS PENDING DATES:
-   - If an official exam date, result date, or admit card release date is gazetted/confirmed by {$authority['name']}, state the exact date.
-   - If an official date is NOT officially released yet, you MUST state explicitly: "To Be Announced (TBA)" or "Awaiting Official Gazette Notification". NEVER invent or guess dates!
-2. SHIFT TIMINGS MATRIX:
-   - If exact shifts are confirmed: Provide Shift Name, Reporting Window, Gate Closure Cutoff, Exam Hours, Duration/Format.
-   - If it is an upcoming cycle (e.g. 2027) or notification is awaited: State "Reporting & Gate Closure will be announced in official Hall Ticket / Notification by {$authority['name']}".
+1. CONFIRMED EVENT DATES & TIMETABLE (ZERO OMISSION):
+   - You MUST extract and specify all EXACT event dates mentioned in the topic, news wire, or official portal.
+   - For Counselling / CAP Rounds / Seat Allotments (e.g. MHT CET CAP Round 4, NEET UG Counselling):
+     You MUST state the exact dates for:
+     * Option Entry / Preference Filling Window (e.g. August 30 to September 1, 2026, 11:59 PM).
+     * Provisional Seat Allotment Result Date (e.g. September 3, 2026).
+     * Seat Acceptance & Self-Verification Window (e.g. September 4 to 7, 2026).
+     * Physical Reporting & Document Submission Deadline at Allotted Colleges (e.g. September 7, 2026, by 5:00 PM).
+   - For Examinations: State Shift Name, Reporting Window, Gate Closure Cutoff, Exam Hours.
+   - For Recruitment: State Application start, last date, fee cutoff.
+   - NEVER leave dates as vague or generic when specific dates are present in the news/authority cycle!
+2. SHIFT TIMINGS & EVENT MATRIX:
+   - Provide structured event schedule: Stage Name, Start Date, End Date, Strict Cutoff Time, and Action Required.
    - Gate Closure Cutoff Time: Detail strict zero-tolerance entry closure (e.g. 30 to 45 mins prior to exam or exact time).
    - Total Duration (e.g. 210 Minutes) & Question Count / Negative Marking scheme.
 3. MANDATORY DOCUMENTS CHECKLIST:

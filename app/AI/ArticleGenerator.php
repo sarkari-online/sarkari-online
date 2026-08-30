@@ -130,14 +130,10 @@ VERIFIED SOURCE CONTEXT:
 DYNAMIC STRUCTURE GUIDELINES (Provide rich, comprehensive depth of 1,000 to 1,400+ words with HTML tables):
 - Direct, fact-first introductory paragraph answering What, Who, When, and Action required.
 - <h2>Overview & Official Notification Highlights</h2>
-- <h2>Official Examination Shift Timings & Gate Closure Schedule</h2> (Structured HTML <table> with Shift, Reporting Window, Gate Closure Cutoff, Exam Hours, Duration/Format)
-- <h2>Important Dates & Official Schedule</h2> (Structured HTML <table> with confirmed dates or TBA)
-- <h2>Detailed Eligibility Criteria & Educational Qualifications</h2>
-- <h2>Exam Pattern, Marking Scheme & Marks Breakdown</h2> (Structured HTML <table>)
-- <h2>Mandatory Documents to Carry to the Examination Centre</h2> (Original Photo ID proofs, admit card photo rules)
-- <h2>Official Dress Code & Barred Items Protocol</h2> (Allowed clothes/footwear, prohibited electronic gadgets)
-- <h2>Step-by-Step Application & Selection Process</h2>
-- <h2>Common Mistakes Candidates Must Avoid</h2>
+- <h2>Official Schedule, Key Dates & Cutoff Deadlines</h2> (MANDATORY HTML <table>: If this is an exam, list Shift Timings, Reporting, and Gate Close Cutoff. If this is a Counselling/CAP Admission/Registration round, list Option Entry Start/End Dates, Allotment Date, Seat Acceptance Window, and Physical Reporting Deadlines with exact cutoff hours.)
+- <h2>Detailed Eligibility Criteria & Required Qualifications</h2>
+- <h2>Step-by-Step Procedure & Online Candidate Instructions</h2> (Clear actionable steps for option form filling, document verification, or registration)
+- <h2>Mandatory Documents Checklist</h2> (Original Photo ID proofs, mark sheets, allotment letters, caste/domicile certificates)
 - <h2>Frequently Asked Questions (FAQs)</h2> (5-6 genuine search questions with thorough, direct verified answers)
 - <h2>Official Authority Verification & Direct Portal Links</h2>
 
