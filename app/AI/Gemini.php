@@ -23,7 +23,13 @@ class Gemini {
 
     public function __construct(?string $model = null) {
         $this->apiKey = (string)Env::get('GEMINI_API_KEY', '');
-        $this->model = $model ?: (string)Env::get('GEMINI_MODEL', 'gemini-3.5-flash-lite');
+
+        $dbModel = null;
+        try {
+            $dbModel = Database::fetchValue("SELECT value FROM settings WHERE `key` = 'gemini_model' LIMIT 1");
+        } catch (Throwable $e) {}
+
+        $this->model = $model ?: ($dbModel ?: (string)Env::get('GEMINI_MODEL', 'gemini-3.5-flash-lite'));
         $this->timeout = (int)Env::get('GEMINI_TIMEOUT', 90);
         $this->maxRetries = (int)Env::get('GEMINI_MAX_RETRIES', 3);
     }

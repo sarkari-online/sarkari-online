@@ -10,6 +10,12 @@ use App\Helpers\Sanitizer;
 
 Auth::requireAuth();
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'clear_errors') {
+    Database::query("DELETE FROM ai_logs WHERE success = 0");
+    header('Location: ' . url('admin/ai-logs/'));
+    exit;
+}
+
 $adminPageTitle = 'AI Operations & Audit Logs';
 $adminPageKey = 'ai_logs';
 
@@ -70,11 +76,18 @@ include dirname(__DIR__) . '/components/header.php';
             Full telemetry, token usage, prompt summaries, and failure diagnostics across all AI stages.
         </p>
     </div>
-    <div style="display: flex; gap: 0.5rem;">
+    <div style="display: flex; gap: 0.5rem; align-items: center;">
         <a href="<?= url('admin/ai-logs/') ?>" class="btn btn-sm <?= $statusFilter === '' ? 'btn-primary' : 'btn-outline' ?>">All</a>
+        <a href="<?= url('admin/ai-logs/?status=success') ?>" class="btn btn-sm <?= $statusFilter === 'success' ? 'btn-primary' : 'btn-outline' ?>" style="color: #16a34a;">Success Only</a>
         <a href="<?= url('admin/ai-logs/?status=failed') ?>" class="btn btn-sm <?= $statusFilter === 'failed' ? 'btn-primary' : 'btn-outline' ?>" style="color: var(--color-danger);">
             Failures Only (<?= $failedCalls ?>)
         </a>
+        <?php if ($failedCalls > 0): ?>
+        <form method="POST" style="display: inline; margin: 0;" onsubmit="return confirm('Clear all <?= $failedCalls ?> historical failed call logs?');">
+            <input type="hidden" name="action" value="clear_errors">
+            <button type="submit" class="btn btn-sm btn-outline" style="color: var(--text-muted); font-size: 0.75rem;">Clear Failed Logs</button>
+        </form>
+        <?php endif; ?>
     </div>
 </div>
 
