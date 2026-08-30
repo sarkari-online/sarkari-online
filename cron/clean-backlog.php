@@ -37,8 +37,17 @@ Database::query("
 $approvedCountAfter = (int)Database::fetchValue("SELECT COUNT(*) FROM trends WHERE status = 'approved'");
 echo "   ✓ Approved queue reset! New Approved Count: {$approvedCountAfter} (CLEAN)\n\n";
 
-// 2. Reject repetitive old detected guides (like PMKVY, NATS, OTR guides already covered)
-echo "2. Cleaning repetitive detected topics...\n";
+// 2. Reject repetitive old detected guides and delete political/celebrity junk
+echo "2. Cleaning repetitive detected topics and deleting non-educational junk...\n";
+Database::query("
+    DELETE FROM trends 
+    WHERE LOWER(keyword) LIKE '%mamata banerjee%' 
+       OR LOWER(keyword) LIKE '%rahul gandhi%' 
+       OR LOWER(keyword) LIKE '%narendra modi%' 
+       OR LOWER(keyword) LIKE '%cricket%' 
+       OR LOWER(keyword) LIKE '%movie%'
+");
+
 $repetitiveKeywords = ['pmkvy', 'nats student', 'praagti', 'saksham', 'swanath', 'mobile otp not received', 'marksheet verification not matching', 'abc id creation', 'apaar id card download'];
 $cleanedDetected = 0;
 

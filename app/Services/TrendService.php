@@ -244,6 +244,20 @@ class TrendService {
             return ['qualified' => false, 'reason' => 'Topic rejected: Not relevant to student exams, results, recruitments, or scholarships.'];
         }
 
+        // 3. Blacklist: Political figures, entertainment, sports, crime, and non-educational noise
+        $blacklist = [
+            'mamata banerjee', 'rahul gandhi', 'narendra modi', 'arvind kejriwal', 'amit shah', 'yogi adityanath',
+            'bjp', 'congress', 'tmc', 'aap', 'election', 'minister', 'parliament', 'mla', 'mp speech',
+            'cricket', 'ipl', 'bcci', 'match', 'scorecard today live', 'wicket', 'cinema', 'movie', 'box office',
+            'trailer', 'song', 'actor', 'actress', 'bollywood', 'hollywood', 'murder', 'accident', 'arrested'
+        ];
+        $lowerKw = mb_strtolower($keyword);
+        foreach ($blacklist as $bl) {
+            if (str_contains($lowerKw, $bl)) {
+                return ['qualified' => false, 'reason' => "Topic rejected: Matches blacklisted non-education entity '{$bl}'."];
+            }
+        }
+
         if (self::existsAsTrend($keyword)) {
             return ['qualified' => false, 'reason' => 'Duplicate trend already recorded recently.'];
         }
@@ -264,25 +278,27 @@ class TrendService {
      * Check if a keyword is strictly relevant to Indian education, examinations, and recruitment
      */
     public static function isEducationRelevant(string $keyword, string $snippet = ''): bool {
-        $text = mb_strtolower($keyword . ' ' . $snippet);
-        $coreKeywords = [
+        $kwLower = mb_strtolower($keyword);
+        $coreExamTerms = [
             'exam', 'recruitment', 'vacancy', 'vacancies', 'admit card', 'result', 'cutoff', 'cut off', 'merit list',
             'counselling', 'counseling', 'scholarship', 'fellowship', 'syllabus', 'answer key', 'eligibility',
             'notification', 'datesheet', 'date sheet', 'timetable', 'hall ticket', 'application', 'registration',
             'ssc', 'upsc', 'nta', 'neet', 'jee', 'gate', 'ctet', 'cbse', 'ibps', 'rrb', 'railway',
             'police', 'bsf', 'crpf', 'itbp', 'cisf', 'navy', 'army', 'air force', 'ugc', 'cuet',
-            'digilocker', 'apaar', 'abc id', 'pmsss', 'nsp', 'aibe', 'bar council', 'clat', 'cat', 'aiims',
+            'digilocker', 'apaar', 'abc id', 'pmsss', 'nsp', 'aibe', 'clat', 'cat', 'aiims',
             'degree', 'admission', 'allotment', 'seat', 'selection process', 'paper 1', 'paper 2', 'tier 1', 'tier 2',
             'post matric', 'pre matric', 'scholarships', 'b.ed', 'd.el.ed', 'tet', 'uptet', 'htet', 'reet',
-            'direct recruitment', 'bharti', 'sarkari naukri', 'officer', 'constable', 'inspector', 'assistant',
-            'bci enrollment', 'industry-academia', 'phd funding', 'stipend', 'grant'
+            'direct recruitment', 'bharti', 'sarkari naukri', 'constable', 'inspector', 'assistant professor',
+            'bci enrollment', 'phd funding', 'stipend'
         ];
 
-        foreach ($coreKeywords as $kw) {
-            if (str_contains($text, $kw)) {
+        // The KEYWORD ITSELF must contain an exam/job intent term
+        foreach ($coreExamTerms as $kw) {
+            if (str_contains($kwLower, $kw)) {
                 return true;
             }
         }
+
         return false;
     }
 
