@@ -134,14 +134,27 @@ class TrendService {
     }
 
     /**
-     * Check if a trend qualifies as an Official Breaking Alert
+     * Check if a trend qualifies as a TRUE Official Breaking Alert
      */
     public static function isOfficialBreaking(array $trend): bool {
         $source = strtolower($trend['source'] ?? '');
         $keyword = strtolower($trend['keyword'] ?? '');
-        $score = (int)($trend['trend_score'] ?? 0);
+        $raw = is_array($trend['raw_payload'] ?? null) ? json_encode($trend['raw_payload']) : strtolower((string)($trend['raw_payload'] ?? ''));
 
-        $officialSources = ['nta', 'nbems', 'natboard', 'upsc', 'ssc', 'cbse', 'rrb', 'ibps', 'sbi', 'indian statutory portals', 'ministry'];
+        // Strictly reject evergreen catalog or guides
+        if (str_contains($source, 'evergreen') || str_contains($source, 'guide') || str_contains($raw, 'evergreen')) {
+            return false;
+        }
+
+        // Strictly reject troubleshooting / how-to / problem resolution queries
+        $guideWords = ['not received', 'otp', 'solution', 'error fix', 'how to', 'strategy', 'tips', 'not matching', 'troubleshoot', 'step-by-step', 'what to do', 'guide'];
+        foreach ($guideWords as $gw) {
+            if (str_contains($keyword, $gw)) {
+                return false;
+            }
+        }
+
+        $officialSources = ['nta', 'nbems', 'natboard', 'upsc', 'ssc', 'cbse', 'rrb', 'ibps', 'sbi', 'indian statutory portals', 'ministry of education', 'kpsc', 'bpsc', 'uppsc', 'hpbose'];
         $isOfficial = false;
         foreach ($officialSources as $os) {
             if (str_contains($source, $os)) {
@@ -150,21 +163,24 @@ class TrendService {
             }
         }
 
+        if (!$isOfficial) {
+            return false;
+        }
+
         $breakingKeywords = [
             'notification released', 'notification out', 'vacancies', 'apply online', 'application starts',
             'admit card out', 'admit card released', 'hall ticket', 'exam date announced', 'schedule released',
-            'result declared', 'answer key released', 'merit list out', 'counselling schedule'
+            'result declared', 'answer key released', 'merit list out', 'counselling schedule', 'datesheet released',
+            'scorecard out', 'cut off marks released'
         ];
 
-        $hasBreakingIntent = false;
         foreach ($breakingKeywords as $bk) {
             if (str_contains($keyword, $bk)) {
-                $hasBreakingIntent = true;
-                break;
+                return true;
             }
         }
 
-        return ($isOfficial && $hasBreakingIntent) || $score >= 95;
+        return false;
     }
 
     /**
@@ -293,6 +309,24 @@ class TrendService {
                     if ($trendId) {
                         $item['id'] = $trendId;
                         $recorded[] = $item;
+
+                        // 🔴 INSTANT AUTO-PUBLISH FOR OFFICIAL BREAKING NOTICES:
+                        // Real breaking news never sits in the 'detected' queue — it generates and publishes immediately!
+                        if (self::isOfficialBreaking($item)) {
+                            Logger::info("🔴 Official Breaking Notice Ingested: '{$item['keyword']}'. Triggering INSTANT fast-track publishing!");
+                            try {
+                                self::markStatus($trendId, 'approved', ['trend_score' => 99]);
+                                $pipeline = new PipelineService();
+                                $gen = $pipeline->generateFromTrend($trendId);
+                                if (!empty($gen['success']) && !empty($gen['article_id'])) {
+                                    $pubService = new PublishingService();
+                                    $pubService->publish((int)$gen['article_id']);
+                                    Logger::info("🔴 Official Breaking Notice published live immediately as Article #{$gen['article_id']}");
+                                }
+                            } catch (Throwable $e) {
+                                Logger::error("Failed to instant publish breaking trend #{$trendId}: " . $e->getMessage());
+                            }
+                        }
                     }
                 }
             } catch (Throwable $e) {
