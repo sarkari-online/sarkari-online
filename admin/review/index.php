@@ -77,6 +77,16 @@ include dirname(__DIR__) . '/components/header.php';
     </div>
 </div>
 
+<?php if (!empty($_GET['started'])): ?>
+    <div style="background:#ecfdf5; border:1px solid #a7f3d0; border-radius:8px; padding:0.95rem 1.25rem; margin-bottom:1.25rem; color:#065f46; font-size:0.875rem; display:flex; align-items:center; justify-content:space-between;">
+        <div>
+            <strong>⚡ Article Generation Initiated!</strong>
+            <div style="margin-top:0.25rem; color:#047857;">Verified facts are being gathered. The draft will appear below shortly and will automatically publish live within ~3-5 minutes once verified.</div>
+        </div>
+        <a href="<?= url('admin/review/') ?>" class="btn btn-sm btn-outline" style="border-color:#10b981; color:#065f46; background:#fff;">Refresh</a>
+    </div>
+<?php endif; ?>
+
 <?php if ($message): ?>
     <div style="background:<?= $messageType === 'success' ? '#ecfdf5' : ($messageType === 'danger' ? '#fef2f2' : '#fff7ed') ?>; border:1px solid <?= $messageType === 'success' ? '#a7f3d0' : ($messageType === 'danger' ? '#fecaca' : '#fed7aa') ?>; border-radius:8px; padding:0.85rem 1rem; margin-bottom:1.25rem; color:<?= $messageType === 'success' ? '#065f46' : ($messageType === 'danger' ? '#991b1b' : '#92400e') ?>; font-weight:600; font-size:0.875rem;">
         <?= e($message) ?>

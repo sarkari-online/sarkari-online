@@ -38,15 +38,15 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 try {
                     TrendService::markStatus($trendId, 'approved', ['trend_score' => 99]);
                     
-                    // Asynchronously dispatch to CLI worker to prevent HTTP timeout
+                    // Asynchronously dispatch to CLI worker to generate into Review Queue
                     $cliScript = dirname(__DIR__, 2) . '/cron/publish-single.php';
                     $cmd = "php " . escapeshellarg($cliScript) . " " . (int)$trendId . " > /dev/null 2>&1 &";
                     @exec($cmd);
 
-                    $message = "⚡ Background Generation Started for Trend #{$trendId}! Verified statutory article will be published live in ~30 seconds.";
-                    $messageType = "success";
+                    header('Location: ' . url('admin/review/?started=' . $trendId));
+                    exit;
                 } catch (\Throwable $e) {
-                    $message = "Error publishing trend: " . $e->getMessage();
+                    $message = "Error initiating article review: " . $e->getMessage();
                     $messageType = "danger";
                 }
             } elseif ($action === 'approve') {
