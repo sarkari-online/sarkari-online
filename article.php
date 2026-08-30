@@ -151,13 +151,11 @@ include __DIR__ . '/components/header.php';
                             </div>
                         </div>
 
-                        <div class="byline-dates notranslate">
+                        <div class="byline-dates notranslate" style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
                             <span>Published: <strong><?= format_date($article['original_published_at'] ?? $article['published_at'] ?? $article['created_at'], true) ?></strong></span>
-                            <?php if (!empty($article['updated_at']) && $article['updated_at'] > ($article['original_published_at'] ?? $article['published_at'] ?? $article['created_at'])): ?>
-                                <span class="byline-last-updated" style="color: #b91c1c; font-weight: 600; background: #fef2f2; padding: 2px 8px; border-radius: 4px; border: 1px solid #fecaca;">
-                                    Last Updated: <?= format_date($article['updated_at'], true) ?>
-                                </span>
-                            <?php endif; ?>
+                            <span class="byline-last-updated" style="color: #15803d; font-weight: 600; background: #f0fdf4; padding: 2px 10px; border-radius: 4px; border: 1px solid #bbf7d0; display: inline-flex; align-items: center; gap: 4px;">
+                                <?= icon('clock', 'icon-xs') ?> Last Updated: <strong><?= format_date($article['updated_at'] ?? $article['published_at'] ?? $article['created_at'], true) ?></strong>
+                            </span>
                         </div>
                     </div>
 
@@ -177,6 +175,7 @@ include __DIR__ . '/components/header.php';
                 <!-- Article Body Content -->
                 <div class="article-body-content">
                     <?php
+                    $relatedArticles = ArticleService::getRelated((int)$article['id'], (int)($article['category_id'] ?? 0), 3);
                     $renderedContent = $article['content_html'] ?? $article['content'] ?? '';
                     
                     // Sanitize any legacy local URLs
@@ -202,9 +201,53 @@ include __DIR__ . '/components/header.php';
                         };
                         return '<td><span class="' . $class . '">' . htmlspecialchars($rawStatus) . '</span></td>';
                     }, $renderedContent);
+
+                    // Contextual In-Content "Also Read:" Callout Box (after 2nd paragraph)
+                    if (!empty($relatedArticles[0])) {
+                        $firstRel = $relatedArticles[0];
+                        $alsoReadCallout = '<div class="also-read-callout" style="margin: 1.5rem 0; padding: 1rem 1.25rem; background: #f8fafc; border-left: 4px solid var(--color-primary, #1e3a8a); border-radius: 0 8px 8px 0; font-size: 0.95rem;">'
+                            . '<span style="font-weight: 800; color: var(--color-primary, #1e3a8a); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">📌 ALSO READ:</span>'
+                            . '<a href="' . e(url('article/' . $firstRel['slug'] . '/')) . '" style="color: #1e293b; font-weight: 700; text-decoration: underline; text-underline-offset: 3px;">' . e($firstRel['title']) . '</a>'
+                            . '</div>';
+
+                        $pIndex = 0;
+                        $injected = false;
+                        $renderedContent = preg_replace_callback('/<\/p>/i', function($m) use (&$pIndex, &$injected, $alsoReadCallout) {
+                            $pIndex++;
+                            if ($pIndex === 2 && !$injected) {
+                                $injected = true;
+                                return '</p>' . $alsoReadCallout;
+                            }
+                            return $m[0];
+                        }, $renderedContent);
+                    }
                     ?>
                     <?= $renderedContent ?>
                 </div>
+
+                <!-- Also Read / Related Articles Grid -->
+                <?php if (!empty($relatedArticles)): ?>
+                    <section class="related-articles-section" style="margin: 2.5rem 0 1.5rem; padding: 1.5rem; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+                        <h3 style="font-size: 1.15rem; font-weight: 800; color: #0f172a; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <?= icon('book-open', 'icon-sm') ?> Also Read: Related Educational Updates &amp; Guides
+                        </h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+                            <?php foreach ($relatedArticles as $rel): ?>
+                                <a href="<?= e(url('article/' . $rel['slug'] . '/')) ?>" style="display: block; padding: 1rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; box-shadow: 0 1px 3px rgba(0,0,0,0.05);" class="related-article-card">
+                                    <span style="font-size: 0.7rem; font-weight: 700; color: <?= e($rel['category_color'] ?? '#1e3a8a') ?>; text-transform: uppercase; display: block; margin-bottom: 0.35rem;">
+                                        <?= e($rel['category_name'] ?? 'Education') ?>
+                                    </span>
+                                    <h4 style="font-size: 0.875rem; font-weight: 700; color: #1e293b; line-height: 1.4; margin: 0 0 0.5rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                        <?= e($rel['title']) ?>
+                                    </h4>
+                                    <span style="font-size: 0.75rem; color: #64748b;">
+                                        <?= format_date($rel['updated_at'] ?? $rel['published_at']) ?>
+                                    </span>
+                                </a>
+                            <?php endforeach; ?>
+                        </div>
+                    </section>
+                <?php endif; ?>
 
                 <!-- Official Source Verification Box -->
                 <?php if (!empty($sourceName)): ?>

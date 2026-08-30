@@ -69,6 +69,27 @@ class ArticleService {
     }
 
     /**
+     * Get related published articles for 'Also Read' sections
+     */
+    public static function getRelated(int $articleId, ?int $categoryId = null, int $limit = 3): array {
+        $params = ['aid' => $articleId];
+        $sql = "SELECT a.id, a.title, a.slug, a.featured_image, a.published_at, a.updated_at,
+                       c.name AS category_name, c.slug AS category_slug, c.color AS category_color
+                FROM articles a
+                LEFT JOIN categories c ON a.category_id = c.id
+                WHERE a.id != :aid AND a.status = 'published'";
+
+        if (!empty($categoryId)) {
+            $sql .= " ORDER BY (a.category_id = :cid) DESC, a.published_at DESC LIMIT " . (int)$limit;
+            $params['cid'] = $categoryId;
+        } else {
+            $sql .= " ORDER BY a.published_at DESC LIMIT " . (int)$limit;
+        }
+
+        return Database::fetchAll($sql, $params);
+    }
+
+    /**
      * Get paginated articles for a category archive
      */
     public static function getByCategory(string $categorySlug, int $page = 1, int $perPage = 6): array {
