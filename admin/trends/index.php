@@ -35,26 +35,16 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             $messageType = 'success';
         } elseif ($trendId > 0) {
             if ($action === 'publish_now') {
-                @set_time_limit(180);
                 try {
                     TrendService::markStatus($trendId, 'approved', ['trend_score' => 99]);
-                    $pipeline = new PipelineService();
-                    $res = $pipeline->generateFromTrend($trendId, true);
-                    if (!empty($res['success']) && !empty($res['article_id'])) {
-                        $articleId = (int)$res['article_id'];
-                        $pubService = new PublishingService();
-                        $pubRes = $pubService->publish($articleId);
-                        if (!empty($pubRes['success'])) {
-                            header('Location: ' . url('admin/articles/?published=1&new_id=' . $articleId));
-                            exit;
-                        } else {
-                            header('Location: ' . url('admin/review/?held=1&id=' . $articleId));
-                            exit;
-                        }
-                    } else {
-                        $message = "Generation failed: " . ($res['error'] ?? 'Unknown error');
-                        $messageType = "danger";
-                    }
+                    
+                    // Asynchronously dispatch to CLI worker to prevent HTTP timeout
+                    $cliScript = dirname(__DIR__, 2) . '/cron/publish-single.php';
+                    $cmd = "php " . escapeshellarg($cliScript) . " " . (int)$trendId . " > /dev/null 2>&1 &";
+                    @exec($cmd);
+
+                    $message = "⚡ Background Generation Started for Trend #{$trendId}! Verified statutory article will be published live in ~30 seconds.";
+                    $messageType = "success";
                 } catch (\Throwable $e) {
                     $message = "Error publishing trend: " . $e->getMessage();
                     $messageType = "danger";
