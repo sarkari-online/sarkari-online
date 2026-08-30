@@ -4,6 +4,9 @@
  * Environment loader, database connection, exception/error handling, and view helpers.
  */
 
+// 0. Timezone Configuration (Strict Indian Standard Time)
+date_default_timezone_set('Asia/Kolkata');
+
 // 1. PSR-4 Style Lightweight Class Autoloader
 spl_autoload_register(function (string $class) {
     $prefix = 'App\\';

@@ -39,6 +39,7 @@ class Database {
 
             try {
                 self::$instance = new PDO($dsn, $username, $password, $options);
+                self::$instance->exec("SET time_zone = '+05:30'");
             } catch (PDOException $e) {
                 // If database doesn't exist yet, attempt creation
                 if (str_contains($e->getMessage(), 'Unknown database') || $e->getCode() === 1049) {

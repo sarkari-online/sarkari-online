@@ -152,10 +152,20 @@ include __DIR__ . '/components/header.php';
                         </div>
 
                         <div class="byline-dates notranslate" style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
-                            <span>Published: <strong><?= format_date($article['original_published_at'] ?? $article['published_at'] ?? $article['created_at'], true) ?></strong></span>
+                            <?php
+                            $publishedTimestamp = strtotime($article['original_published_at'] ?? $article['published_at'] ?? $article['created_at']);
+                            $updatedTimestamp = !empty($article['updated_at']) ? strtotime($article['updated_at']) : $publishedTimestamp;
+                            // Ensure updated_at is never displayed earlier than published_at
+                            if ($updatedTimestamp < $publishedTimestamp) {
+                                $updatedTimestamp = $publishedTimestamp;
+                            }
+                            ?>
+                            <span>Published: <strong><?= date('d M Y, h:i A', $publishedTimestamp) ?> IST</strong></span>
+                            <?php if ($updatedTimestamp > $publishedTimestamp + 120): ?>
                             <span class="byline-last-updated" style="color: #15803d; font-weight: 600; background: #f0fdf4; padding: 2px 10px; border-radius: 4px; border: 1px solid #bbf7d0; display: inline-flex; align-items: center; gap: 4px;">
-                                <?= icon('clock', 'icon-xs') ?> Last Updated: <strong><?= format_date($article['updated_at'] ?? $article['published_at'] ?? $article['created_at'], true) ?></strong>
+                                <?= icon('clock', 'icon-xs') ?> Last Updated: <strong><?= date('d M Y, h:i A', $updatedTimestamp) ?> IST</strong>
                             </span>
+                            <?php endif; ?>
                         </div>
                     </div>
 
