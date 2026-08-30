@@ -21,7 +21,10 @@ class RssFeedAdapter implements TrendSourceInterface {
         $this->sourceId = $sourceId;
         $this->sourceName = $sourceName;
         $this->feedUrls = !empty($feedUrls) ? $feedUrls : [
-            'https://pib.gov.in/RssMain.aspx?ModId=6', // PIB Education & Skill Dev RSS
+            'https://feeds.feedburner.com/ndtvnews-education',
+            'https://timesofindia.indiatimes.com/rssfeeds/913168846.cms',
+            'https://indianexpress.com/section/education/feed/',
+            'https://pib.gov.in/RssMain.aspx?ModId=6',
         ];
         $this->timeout = (int)Env::get('TRENDS_FETCH_TIMEOUT', 15);
     }

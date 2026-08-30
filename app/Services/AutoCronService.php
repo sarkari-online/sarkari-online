@@ -160,44 +160,11 @@ class AutoCronService {
         $service = new TrendService();
         $count = count($service->fetchAllSources(10));
         Logger::info("AutoCron fetch completed: {$count} trends ingested");
-
-        // Self-Healing Replenisher: When breaking news is slow, replenish high-search evergreen topics
-        self::replenishEvergreenQueue();
     }
 
     private static function replenishEvergreenQueue(): void {
-        try {
-            // Check specifically for pending evergreen/search-intent topics in the pipeline
-            $pendingCount = (int)Database::fetchValue(
-                "SELECT COUNT(*) FROM trends 
-                 WHERE status IN ('detected', 'approved') 
-                   AND (source LIKE '%evergreen%' OR category_hint IN ('student-technology', 'scholarships', 'college-updates', 'career-guides'))"
-            );
-            if ($pendingCount < 2) {
-                $adapter = new \App\Services\TrendSources\EvergreenTopicsAdapter();
-                $evergreenList = $adapter->fetch(3);
-                foreach ($evergreenList as $item) {
-                    if (!TrendService::existsAsArticle($item['keyword']) && !TrendService::isRecentlyCovered($item['keyword'], 30)) {
-                        $hash = TrendService::normalizedHash($item['keyword']);
-                        $existing = Database::fetchOne("SELECT id, status FROM trends WHERE normalized_hash = :hash LIMIT 1", ['hash' => $hash]);
-                        if (!$existing) {
-                            Database::insert('trends', [
-                                'keyword' => $item['keyword'],
-                                'normalized_hash' => $hash,
-                                'source' => $item['source'],
-                                'url' => $item['url'],
-                                'trend_score' => $item['trend_score'],
-                                'category_hint' => $item['category_hint'],
-                                'status' => 'detected',
-                                'raw_payload' => json_encode($item['raw_payload'] ?? [])
-                            ]);
-                        }
-                    }
-                }
-            }
-        } catch (\Throwable $e) {
-            Logger::warning('AutoCron: replenishEvergreenQueue error: ' . $e->getMessage());
-        }
+        // Disabled: Rely strictly on real-time statutory notices and exam news
+        return;
     }
 
     private static function runAnalyze(): void {

@@ -28,12 +28,11 @@ class TrendService {
         if (!empty($adapters)) {
             $this->adapters = $adapters;
         } else {
-            // Default built-in source adapters
+            // Default built-in source adapters: Live Official Portals, Exam RSS Feeds, and Google Trends
             $this->adapters = [
-                new GoogleTrendsAdapter(),
-                new RssFeedAdapter(),
                 new OfficialSourcesAdapter(),
-                new EvergreenTopicsAdapter()
+                new RssFeedAdapter(),
+                new GoogleTrendsAdapter()
             ];
         }
     }

@@ -38,32 +38,28 @@ $approvedCountAfter = (int)Database::fetchValue("SELECT COUNT(*) FROM trends WHE
 echo "   ✓ Approved queue reset! New Approved Count: {$approvedCountAfter} (CLEAN)\n\n";
 
 // 2. Reject repetitive old detected guides and delete political/celebrity junk
-echo "2. Cleaning repetitive detected topics and deleting non-educational junk...\n";
+echo "2. Purging repetitive DigiLocker/APAAR and non-educational junk...\n";
 Database::query("
     DELETE FROM trends 
-    WHERE LOWER(keyword) LIKE '%mamata banerjee%' 
-       OR LOWER(keyword) LIKE '%rahul gandhi%' 
-       OR LOWER(keyword) LIKE '%narendra modi%' 
-       OR LOWER(keyword) LIKE '%cricket%' 
-       OR LOWER(keyword) LIKE '%movie%'
+    WHERE LOWER(keyword) LIKE '%digilocker%' 
+       OR LOWER(keyword) LIKE '%apaar%' 
+       OR LOWER(keyword) LIKE '%abc id%' 
+       OR LOWER(keyword) LIKE '%pmkvy%' 
+       OR LOWER(keyword) LIKE '%nats%' 
+       OR LOWER(keyword) LIKE '%otr%' 
+       OR LOWER(keyword) LIKE '%aadhaar%'
+       OR LOWER(keyword) LIKE '%pragati scholarship%'
+       OR LOWER(keyword) LIKE '%saksham scholarship%'
+       OR LOWER(keyword) LIKE '%swanath scholarship%'
+       OR LOWER(keyword) LIKE '%mamata%'
 ");
 
-$repetitiveKeywords = ['pmkvy', 'nats student', 'praagti', 'saksham', 'swanath', 'mobile otp not received', 'marksheet verification not matching', 'abc id creation', 'apaar id card download'];
-$cleanedDetected = 0;
+echo "   ✓ Purged repetitive topics.\n\n";
 
-foreach ($repetitiveKeywords as $rk) {
-    $rows = Database::fetchAll("SELECT id FROM trends WHERE status = 'detected' AND LOWER(keyword) LIKE :pattern", ['pattern' => "%{$rk}%"]);
-    foreach ($rows as $r) {
-        TrendService::markStatus((int)$r['id'], 'rejected');
-        $cleanedDetected++;
-    }
-}
-echo "   ✓ Cleaned {$cleanedDetected} repetitive detected topics.\n\n";
-
-// 3. Ingest Fresh Real-Time Trends from Official Statutory Portals & Google Trends
-echo "3. Ingesting fresh real-time notices from statutory portals...\n";
+// 3. Ingest Fresh Real-Time Trends from Official Statutory Portals & Live Education RSS Feeds
+echo "3. Ingesting fresh real-time notices from statutory portals and news feeds...\n";
 $trendService = new TrendService();
-$newTrends = $trendService->fetchAllSources(8);
+$newTrends = $trendService->fetchAllSources(10);
 echo "   ✓ Successfully ingested " . count($newTrends) . " fresh real-time notices into Detected queue!\n\n";
 
 // Final Status Summary
