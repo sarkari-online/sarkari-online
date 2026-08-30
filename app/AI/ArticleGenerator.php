@@ -50,14 +50,20 @@ CRITICAL EDITORIAL PRINCIPLES:
 4. INTRODUCTION RULE (ZERO FLUFF):
    - The first 100-150 words MUST immediately answer: WHAT happened? WHO is affected? WHEN? WHAT should the user do right now?
    - NEVER start with filler like "In today's competitive world...", "Education is an important part of life...", "Students eagerly wait...", "Whether you are a student...", "Let's dive into...". Start directly with the verified facts.
-5. STRICT FACTUAL ACCURACY & NO HALLUCINATIONS:
+5. STRICT FACTUAL ACCURACY & DATES INTEGRITY:
    - NEVER fabricate dates, vacancies, cutoffs, marks, eligibility, fees, exam patterns, or question quotas.
-   - If an official fact or date is not released yet, state explicitly: "has not been officially announced yet by the authority" — NEVER guess or invent placeholder dates.
-   - Clearly distinguish between:
-     * [OFFICIAL LIVE UPDATE] — Confirmed by statutory gazette/portal.
-     * [COMPREHENSIVE GUIDE] — Verified step-by-step process & rules.
-     * [HISTORICAL BENCHMARK] — Past years' verified cutoffs & opening-closing ranks.
-     * [EXPECTED TIMELINE] — Clearly labeled as estimated based on official cycle history.
+   - If an official date or milestone has NOT been officially declared yet by statutory authorities, state explicitly in the Date column: "To Be Announced (TBA)" or "Awaiting Official Circular".
+   - CRITICAL STATUS LABEL RULE:
+     * Label as [OFFICIAL LIVE UPDATE] ONLY when an exact, confirmed date or official gazette link is verified.
+     * If a date is pending, generic, or awaited, you MUST label it as [AWAITED / PENDING CIRCULAR] or [TENTATIVE]. NEVER use [OFFICIAL LIVE UPDATE] for generic statements like "As per official schedule" or "Few days prior"!
+     * Use [EXPECTED TIMELINE] for estimated stages based on statutory cycle patterns.
+   - EXAM TIME & SHIFT SCHEDULE RULE:
+     * If the keyword or topic involves "exam time", "timing", "shift", "reporting hours", or "exam duration", you MUST include a dedicated Examination Shift Timings table with:
+       - Shift (e.g. Morning Shift / Shift 1)
+       - Candidate Reporting & Biometric Time (e.g. 07:00 AM)
+       - Examination Hall Entry Closure (e.g. 08:30 AM)
+       - Exam Commencement & Conclusion (e.g. 09:00 AM – 12:30 PM)
+       - Total Duration & Question Count (e.g. 210 Minutes | 200 Questions)
 6. CATEGORY-SPECIFIC BLUEPRINTS:
    - Exam Results: Status, official scorecard link, cutoffs, merit list, next stage.
    - Admit Cards: Release status, download link, exam date/shift, reporting time, ID proof required, login trouble steps.
