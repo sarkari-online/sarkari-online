@@ -177,14 +177,10 @@ class AutoCronService {
                 $adapter = new \App\Services\TrendSources\EvergreenTopicsAdapter();
                 $evergreenList = $adapter->fetch(3);
                 foreach ($evergreenList as $item) {
-                    if (!TrendService::existsAsArticle($item['keyword'])) {
+                    if (!TrendService::existsAsArticle($item['keyword']) && !TrendService::isRecentlyCovered($item['keyword'], 30)) {
                         $hash = TrendService::normalizedHash($item['keyword']);
                         $existing = Database::fetchOne("SELECT id, status FROM trends WHERE normalized_hash = :hash LIMIT 1", ['hash' => $hash]);
-                        if ($existing) {
-                            if ($existing['status'] === 'rejected' || $existing['status'] === 'detected') {
-                                TrendService::markStatus((int)$existing['id'], 'detected');
-                            }
-                        } else {
+                        if (!$existing) {
                             Database::insert('trends', [
                                 'keyword' => $item['keyword'],
                                 'normalized_hash' => $hash,
@@ -207,16 +203,7 @@ class AutoCronService {
     private static function runAnalyze(): void {
         Logger::info('AutoCron: Starting analyze-trends');
 
-        $publishingService = new PublishingService();
-        $approvedCount = (int)Database::fetchValue("SELECT COUNT(*) FROM trends WHERE status = 'approved'");
-
-        // Strict Queue Discipline: Cap approved queue to max 5 items — prevent 100+ topic backlog!
-        if ($approvedCount >= 5 || $publishingService->isDailyLimitReached()) {
-            Logger::info("AutoCron analyze: Approved queue cap (5) or daily limit reached ({$approvedCount} approved). Holding detected queue.");
-            return;
-        }
-
-        $maxPerRun = 2; // Smart Pacing: Analyze max 2 topics per cycle to conserve API
+        $maxPerRun = 4; // Analyze detected trends to compute quality & intent scores
         $minScore  = (int)Env::get('MIN_TREND_SCORE', 60);
         $pendingTrends = TrendService::getPendingForAnalysis($maxPerRun);
 
@@ -232,14 +219,12 @@ class AutoCronService {
         foreach ($pendingTrends as $trend) {
             $trendId = (int)$trend['id'];
 
-            // 30-Day Anti-Repeat Protection: Never approve similar topics within 30 days
+            // 30-Day Anti-Repeat Protection: Never allow similar topics within 30 days
             if (TrendService::isRecentlyCovered($trend['keyword'], 30)) {
                 TrendService::markStatus($trendId, 'rejected', ['raw_payload' => ['reason' => 'Topic covered within last 30 days']]);
                 Logger::info("AutoCron analyze: Trend #{$trendId} rejected (covered within last 30 days)");
                 continue;
             }
-
-            TrendService::markStatus($trendId, 'analyzing');
 
             try {
                 $rawPayload = !empty($trend['raw_payload'])
@@ -264,21 +249,37 @@ class AutoCronService {
                 }
                 $categoryId = $cat ? (int)$cat['id'] : null;
 
-                if ($isRecommended && $priorityScore >= $minScore) {
-                    TrendService::markStatus($trendId, 'approved', [
-                        'category_id' => $categoryId,
-                        'trend_score' => $priorityScore,
-                        'raw_payload' => $analysis
-                    ]);
-                    Logger::info("AutoCron: Trend #{$trendId} APPROVED (score: {$priorityScore})");
-                } else {
+                // 🛑 USER-CONTROLLED APPROVAL FLOW:
+                // If score is bad or not recommended -> AUTO-REJECT!
+                // If score is good -> Keep in 'detected' with score updated so Admin can review and click Approve!
+                // Exception: True official breaking notices auto-approve & auto-publish immediately.
+                if (!$isRecommended || $priorityScore < $minScore) {
                     TrendService::markStatus($trendId, 'rejected', [
                         'category_id' => $categoryId,
                         'trend_score' => $priorityScore,
                         'raw_payload' => $analysis
                     ]);
-                    Logger::info("AutoCron: Trend #{$trendId} REJECTED (score: {$priorityScore})");
+                    Logger::info("AutoCron: Trend #{$trendId} AUTO-REJECTED (low score: {$priorityScore})");
+                } elseif (TrendService::isOfficialBreaking($trend)) {
+                    TrendService::markStatus($trendId, 'approved', [
+                        'category_id' => $categoryId,
+                        'trend_score' => 99,
+                        'raw_payload' => $analysis
+                    ]);
+                    Logger::info("AutoCron: Official Breaking Trend #{$trendId} auto-approved for immediate publication");
+                } else {
+                    // Update score and category, but leave in 'detected' for Human Review/Approval!
+                    Database::update('trends', [
+                        'category_id' => $categoryId,
+                        'trend_score' => $priorityScore,
+                        'status'      => 'detected',
+                        'raw_payload' => json_encode($analysis)
+                    ], 'id = :id', ['id' => $trendId]);
+                    Logger::info("AutoCron: Trend #{$trendId} analyzed (score: {$priorityScore}). Awaiting admin review.");
                 }
+            } catch (Throwable $e) {
+                Logger::error("AutoCron analyze trend #{$trendId} error: " . $e->getMessage());
+                TrendService::markStatus($trendId, 'detected'); // reset to retry next cycle
             } catch (Throwable $e) {
                 Logger::error("AutoCron analyze trend #{$trendId} error: " . $e->getMessage());
                 TrendService::markStatus($trendId, 'detected'); // reset to retry next cycle
