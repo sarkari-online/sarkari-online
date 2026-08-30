@@ -35,19 +35,21 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             $messageType = 'success';
         } elseif ($trendId > 0) {
             if ($action === 'publish_now') {
+                @set_time_limit(180);
                 try {
                     TrendService::markStatus($trendId, 'approved', ['trend_score' => 99]);
                     $pipeline = new PipelineService();
-                    $res = $pipeline->generateFromTrend($trendId);
+                    $res = $pipeline->generateFromTrend($trendId, true);
                     if (!empty($res['success']) && !empty($res['article_id'])) {
+                        $articleId = (int)$res['article_id'];
                         $pubService = new PublishingService();
-                        $pubRes = $pubService->publish((int)$res['article_id']);
+                        $pubRes = $pubService->publish($articleId);
                         if (!empty($pubRes['success'])) {
-                            $message = "⚡ Trend #{$trendId} generated and published live immediately!";
-                            $messageType = "success";
+                            header('Location: ' . url('admin/articles/?published=1&new_id=' . $articleId));
+                            exit;
                         } else {
-                            $message = "Draft generated as Article #{$res['article_id']} but held in review: " . implode(', ', $pubRes['reasons'] ?? []);
-                            $messageType = "warning";
+                            header('Location: ' . url('admin/review/?held=1&id=' . $articleId));
+                            exit;
                         }
                     } else {
                         $message = "Generation failed: " . ($res['error'] ?? 'Unknown error');
@@ -277,7 +279,7 @@ include dirname(__DIR__) . '/components/header.php';
                                     <input type="hidden" name="trend_id" value="<?= $t['id'] ?>">
 
                                     <?php if ($t['status'] === 'approved' || $t['status'] === 'detected'): ?>
-                                        <button type="submit" name="action" value="publish_now" class="btn btn-xs btn-success" style="font-weight: 700; display: inline-flex; align-items: center; gap: 3px; background: #16a34a; border-color: #15803d;" onclick="return confirm('Generate and publish this article live immediately?');">
+                                        <button type="submit" name="action" value="publish_now" class="btn btn-xs btn-success" style="font-weight: 700; display: inline-flex; align-items: center; gap: 3px; background: #16a34a; border-color: #15803d;">
                                             ⚡ Publish Now
                                         </button>
                                     <?php endif; ?>

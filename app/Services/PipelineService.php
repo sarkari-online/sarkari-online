@@ -47,23 +47,23 @@ class PipelineService {
     /**
      * Generate complete article from an approved trend
      */
-    public function generateFromTrend(int $trendId): array {
-        $trend = Database::fetchOne("SELECT * FROM trends WHERE id = :id", ['id' => $trendId]);
+    public function generateFromTrend(int $trendId, bool $force = false): array {
+        $trend = Database::fetchOne("SELECT * FROM trends WHERE id = :id LIMIT 1", ['id' => $trendId]);
         if (!$trend) {
-            throw new Exception("Trend #{$trendId} not found in database.");
+            return ['success' => false, 'trend_id' => $trendId, 'error' => 'Trend not found.'];
         }
 
-        // Prevent duplicate generation for same trend
-        if ($trend['status'] === 'generated' || $trend['status'] === 'published') {
-            $existing = Database::fetchOne("SELECT id, title, slug FROM articles WHERE trend_id = :tid LIMIT 1", ['tid' => $trendId]);
+        // Check if article already generated from this trend
+        if (!empty($trend['processed_at'])) {
+            $existing = Database::fetchOne("SELECT id, status FROM articles WHERE trend_id = :tid LIMIT 1", ['tid' => $trendId]);
             if ($existing) {
                 Logger::info("Trend #{$trendId} already generated as Article #{$existing['id']}");
                 return ['success' => true, 'article_id' => (int)$existing['id'], 'status' => 'already_generated'];
             }
         }
 
-        // Prevent generating duplicate article if topic is already published
-        if (TrendService::existsAsArticle($trend['keyword'])) {
+        // Prevent generating duplicate article if topic is already published (unless admin forces generation)
+        if (!$force && TrendService::existsAsArticle($trend['keyword'])) {
             TrendService::markStatus($trendId, 'rejected', ['raw_payload' => ['reason' => 'Similar article already published']]);
             Logger::info("Trend #{$trendId} skipped: similar article already exists in publication library.");
             return ['success' => false, 'trend_id' => $trendId, 'error' => 'Similar article already exists in publication library.'];
@@ -77,21 +77,23 @@ class PipelineService {
         // Check if this trend is an official breaking notification
         $isBreaking = TrendService::isOfficialBreaking($trend);
 
-        // Guard: Prevent burning Gemini API tokens unless it is a verified breaking notice
+        // Guard: Prevent burning Gemini API tokens unless it is a verified breaking notice or admin forced
         $pubService = new PublishingService();
-        if ($pubService->isDailyLimitReached() && !$isBreaking) {
+        if (!$force && $pubService->isDailyLimitReached() && !$isBreaking) {
             Logger::info("Daily publishing quota (5/day) reached. Skipping generation for Trend #{$trendId} to conserve Gemini API tokens.");
             return ['success' => false, 'trend_id' => $trendId, 'error' => 'Daily publishing quota reached. Held for tomorrow.'];
         }
 
-        // 30-Day Anti-Repeat Guard
-        if (!$isBreaking && TrendService::isRecentlyCovered($trend['keyword'], 30)) {
+        // 30-Day Anti-Repeat Guard (Bypassed if admin clicked Publish Now)
+        if (!$force && !$isBreaking && TrendService::isRecentlyCovered($trend['keyword'], 30)) {
             TrendService::markStatus($trendId, 'rejected', ['raw_payload' => ['reason' => 'Topic covered within last 30 days']]);
             Logger::info("Skipping Trend #{$trendId}: Similar topic already covered in the last 30 days.");
             return ['success' => false, 'trend_id' => $trendId, 'error' => 'Similar topic covered within last 30 days.'];
         }
 
-        if ($isBreaking) {
+        if ($force) {
+            Logger::info("⚡ Admin Manual Force Publish triggered for Trend #{$trendId}: '{$trend['keyword']}'");
+        } elseif ($isBreaking) {
             Logger::info("🔴 Official Breaking Notice detected for Trend #{$trendId}: '{$trend['keyword']}'. Fast-tracking publication!");
         } else {
             Logger::info("Starting content generation pipeline for Trend #{$trendId}: '{$trend['keyword']}'");
