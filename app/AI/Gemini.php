@@ -142,8 +142,8 @@ class Gemini {
             ];
         }
 
-        // Active Google Gemini models in 2026
-        $modelsToTry = array_unique(array_filter([$this->model, 'gemini-3.5-flash-lite', 'gemini-3.5-flash', 'gemini-3.6-flash']));
+        // Active Google Gemini models in 2026 (gemini-3.5-flash-lite has the highest free tier quota)
+        $modelsToTry = array_unique(array_filter([$this->model, 'gemini-3.5-flash-lite', 'gemini-3.6-flash']));
         $attempt = 0;
         $lastError = '';
         $tokensUsed = 0;
