@@ -71,4 +71,35 @@ if (!empty($todayPublished[0]['published_at'])) {
 
 $remaining = max(0, 5 - count($todayPublished));
 echo "🎯 REMAINING DAILY QUOTA : {$remaining} article" . ($remaining === 1 ? '' : 's') . "\n";
+echo "\n";
+
+// 4. Check 24/7 Autonomous Daemon Worker Status
+echo "4. 🤖 24/7 AUTONOMOUS DAEMON WORKER STATUS:\n";
+$workerRunning = false;
+$workerPids = [];
+if (function_exists('exec')) {
+    @exec("ps aux | grep '[w]orker.php'", $output);
+    if (!empty($output)) {
+        $workerRunning = true;
+        foreach ($output as $line) {
+            echo "   [ACTIVE] " . trim($line) . "\n";
+        }
+    }
+}
+
+if (!$workerRunning) {
+    echo "   ⚠️ WARNING: Background worker (cron/worker.php) is NOT running!\n";
+    echo "   Run this to start it: docker exec -d sarkari_app php /var/www/html/cron/worker.php\n";
+} else {
+    echo "   ✅ Background worker daemon is running actively.\n";
+}
+
+$stateVal = Database::fetchValue("SELECT value FROM settings WHERE `key` = 'cron_schedule_state' LIMIT 1");
+$state = !empty($stateVal) ? json_decode($stateVal, true) : [];
+echo "\n   Schedule State (Last Executed Timestamps):\n";
+echo "   - Fetch Trends     : " . (!empty($state['fetch']) ? date('d M, h:i A', $state['fetch']) . ' (' . round((time() - $state['fetch'])/60) . 'm ago)' : 'Never') . "\n";
+echo "   - Analyze Trends   : " . (!empty($state['analyze']) ? date('d M, h:i A', $state['analyze']) . ' (' . round((time() - $state['analyze'])/60) . 'm ago)' : 'Never') . "\n";
+echo "   - Generate Articles: " . (!empty($state['generate']) ? date('d M, h:i A', $state['generate']) . ' (' . round((time() - $state['generate'])/60) . 'm ago)' : 'Never') . "\n";
+echo "   - Auto-Publish     : " . (!empty($state['publish']) ? date('d M, h:i A', $state['publish']) . ' (' . round((time() - $state['publish'])/60) . 'm ago)' : 'Never') . "\n";
+
 echo "\n=================================================================\n";
