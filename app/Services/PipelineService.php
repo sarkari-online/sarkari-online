@@ -18,6 +18,7 @@ use App\Helpers\Env;
 use App\Helpers\Logger;
 use App\Helpers\Sanitizer;
 use App\Services\WebVitalsService;
+use App\Services\AuthorityFactFetcherService;
 use Exception;
 use Throwable;
 
@@ -103,12 +104,17 @@ class PipelineService {
             }
         }
 
+        // Fetch Grounded Statutory Facts & Shift Matrix from Official Portals
+        $factFetcher = new AuthorityFactFetcherService();
+        $verifiedFacts = $factFetcher->fetchFactsForTopic($trend['keyword'], $categorySlug, $trend['url'] ?? '');
+
         $sourceData = [
             'keyword' => $trend['keyword'],
-            'source_name' => $rawPayload['source_attribution']['name'] ?? $trend['source'],
-            'source_url' => $trend['url'],
-            'reference' => $rawPayload['source_attribution']['reference'] ?? '',
-            'notes' => $rawPayload['reasoning'] ?? $trend['keyword']
+            'source_name' => $verifiedFacts['authority_name'] ?? ($rawPayload['source_attribution']['name'] ?? $trend['source']),
+            'source_url' => $verifiedFacts['official_portal'] ?? ($trend['url'] ?: 'https://sarkari.online'),
+            'reference' => $verifiedFacts['official_notice_ref'] ?? ($rawPayload['source_attribution']['reference'] ?? ''),
+            'notes' => $rawPayload['reasoning'] ?? $trend['keyword'],
+            'verified_facts' => $verifiedFacts
         ];
 
         // 1. Generate Draft
