@@ -74,26 +74,28 @@ class PipelineService {
         $categorySlug = $autoCat['slug'] ?? 'entrance-exams';
         $categoryId = (int)($autoCat['id'] ?? 5);
 
-        // Guard: Prevent burning Gemini API tokens if today's slot for this category type is already full
+        // Check if this trend is an official breaking notification
+        $isBreaking = TrendService::isOfficialBreaking($trend);
+
+        // Guard: Prevent burning Gemini API tokens unless it is a verified breaking notice
         $pubService = new PublishingService();
-        if ($pubService->isDailyLimitReached()) {
+        if ($pubService->isDailyLimitReached() && !$isBreaking) {
             Logger::info("Daily publishing quota (5/day) reached. Skipping generation for Trend #{$trendId} to conserve Gemini API tokens.");
-            return ['success' => false, 'trend_id' => $trendId, 'error' => 'Daily publishing quota reached.'];
+            return ['success' => false, 'trend_id' => $trendId, 'error' => 'Daily publishing quota reached. Held for tomorrow.'];
         }
 
-        $slotCounts = $pubService->getPublishedSlotCounts();
-        $searchIntentCategories = ['entrance-exams', 'scholarships', 'college-updates', 'career-guides', 'student-technology'];
-        $isSearchIntent = in_array($categorySlug, $searchIntentCategories, true);
-
-        if ($isSearchIntent && $slotCounts['search_intent'] >= $slotCounts['max_search_intent']) {
-            Logger::info("Daily search-intent/evergreen quota ({$slotCounts['max_search_intent']}/day) is full. Holding Trend #{$trendId} for tomorrow to conserve Gemini API tokens.");
-            return ['success' => false, 'trend_id' => $trendId, 'error' => 'Daily evergreen quota full. Topic held for tomorrow.'];
-        } elseif (!$isSearchIntent && $slotCounts['official'] >= $slotCounts['max_official']) {
-            Logger::info("Daily official quota ({$slotCounts['max_official']}/day) is full. Holding Trend #{$trendId} for tomorrow to conserve Gemini API tokens.");
-            return ['success' => false, 'trend_id' => $trendId, 'error' => 'Daily official quota full. Topic held for tomorrow.'];
+        // 30-Day Anti-Repeat Guard
+        if (!$isBreaking && TrendService::isRecentlyCovered($trend['keyword'], 30)) {
+            TrendService::markStatus($trendId, 'rejected', ['raw_payload' => ['reason' => 'Topic covered within last 30 days']]);
+            Logger::info("Skipping Trend #{$trendId}: Similar topic already covered in the last 30 days.");
+            return ['success' => false, 'trend_id' => $trendId, 'error' => 'Similar topic covered within last 30 days.'];
         }
 
-        Logger::info("Starting content generation pipeline for Trend #{$trendId}: '{$trend['keyword']}'");
+        if ($isBreaking) {
+            Logger::info("🔴 Official Breaking Notice detected for Trend #{$trendId}: '{$trend['keyword']}'. Fast-tracking publication!");
+        } else {
+            Logger::info("Starting content generation pipeline for Trend #{$trendId}: '{$trend['keyword']}'");
+        }
 
         // Parse raw payload / source information
         $rawPayload = [];

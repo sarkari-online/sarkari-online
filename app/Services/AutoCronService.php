@@ -206,6 +206,16 @@ class AutoCronService {
 
     private static function runAnalyze(): void {
         Logger::info('AutoCron: Starting analyze-trends');
+
+        $publishingService = new PublishingService();
+        $approvedCount = (int)Database::fetchValue("SELECT COUNT(*) FROM trends WHERE status = 'approved'");
+
+        // Strict Queue Discipline: Cap approved queue to max 5 items — prevent 100+ topic backlog!
+        if ($approvedCount >= 5 || $publishingService->isDailyLimitReached()) {
+            Logger::info("AutoCron analyze: Approved queue cap (5) or daily limit reached ({$approvedCount} approved). Holding detected queue.");
+            return;
+        }
+
         $maxPerRun = 2; // Smart Pacing: Analyze max 2 topics per cycle to conserve API
         $minScore  = (int)Env::get('MIN_TREND_SCORE', 60);
         $pendingTrends = TrendService::getPendingForAnalysis($maxPerRun);
@@ -221,6 +231,14 @@ class AutoCronService {
 
         foreach ($pendingTrends as $trend) {
             $trendId = (int)$trend['id'];
+
+            // 30-Day Anti-Repeat Protection: Never approve similar topics within 30 days
+            if (TrendService::isRecentlyCovered($trend['keyword'], 30)) {
+                TrendService::markStatus($trendId, 'rejected', ['raw_payload' => ['reason' => 'Topic covered within last 30 days']]);
+                Logger::info("AutoCron analyze: Trend #{$trendId} rejected (covered within last 30 days)");
+                continue;
+            }
+
             TrendService::markStatus($trendId, 'analyzing');
 
             try {
@@ -279,9 +297,18 @@ class AutoCronService {
 
         $publishingService = new PublishingService();
 
-        // Guard 1: If today's daily limit (5/day) is already reached, do NOT consume API
-        if ($publishingService->isDailyLimitReached()) {
-            Logger::info('AutoCron generate: Daily publishing quota (5/day) is full. Sleeping generation until midnight to save API tokens.');
+        // Guard 1: Check if there is an official breaking notice in queue (Bypasses steady 5-limit)
+        $hasBreaking = false;
+        $approvedTrends = Database::fetchAll("SELECT * FROM trends WHERE status = 'approved' ORDER BY trend_score DESC LIMIT 5");
+        foreach ($approvedTrends as $at) {
+            if (TrendService::isOfficialBreaking($at)) {
+                $hasBreaking = true;
+                break;
+            }
+        }
+
+        if ($publishingService->isDailyLimitReached() && !$hasBreaking) {
+            Logger::info('AutoCron generate: Daily publishing quota (5/day) is full and no breaking notice. Sleeping generation until midnight to save API tokens.');
             return;
         }
 

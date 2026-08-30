@@ -9,6 +9,8 @@ use App\Helpers\Auth;
 use App\Helpers\CSRF;
 use App\Helpers\Sanitizer;
 use App\Services\TrendService;
+use App\Services\PipelineService;
+use App\Services\PublishingService;
 
 Auth::requireAuth();
 
@@ -18,7 +20,7 @@ $adminPageKey = 'trends';
 $message = null;
 $messageType = 'success';
 
-// Process Actions (Approve / Reject / Reset)
+// Process Actions (Approve / Reject / Reset / Publish Now / Clean Backlog)
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     if (!CSRF::verify($_POST['csrf_token'] ?? '')) {
         $message = "Invalid CSRF security token.";
@@ -27,8 +29,35 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         $action = $_POST['action'] ?? '';
         $trendId = (int)($_POST['trend_id'] ?? 0);
 
-        if ($trendId > 0) {
-            if ($action === 'approve') {
+        if ($action === 'clean_backlog') {
+            $cleaned = TrendService::cleanRepetitiveBacklog();
+            $message = "Cleaned {$cleaned} repetitive topics from the approved queue.";
+            $messageType = 'success';
+        } elseif ($trendId > 0) {
+            if ($action === 'publish_now') {
+                try {
+                    TrendService::markStatus($trendId, 'approved', ['trend_score' => 99]);
+                    $pipeline = new PipelineService();
+                    $res = $pipeline->generateFromTrend($trendId);
+                    if (!empty($res['success']) && !empty($res['article_id'])) {
+                        $pubService = new PublishingService();
+                        $pubRes = $pubService->publish((int)$res['article_id']);
+                        if (!empty($pubRes['success'])) {
+                            $message = "⚡ Trend #{$trendId} generated and published live immediately!";
+                            $messageType = "success";
+                        } else {
+                            $message = "Draft generated as Article #{$res['article_id']} but held in review: " . implode(', ', $pubRes['reasons'] ?? []);
+                            $messageType = "warning";
+                        }
+                    } else {
+                        $message = "Generation failed: " . ($res['error'] ?? 'Unknown error');
+                        $messageType = "danger";
+                    }
+                } catch (\Throwable $e) {
+                    $message = "Error publishing trend: " . $e->getMessage();
+                    $messageType = "danger";
+                }
+            } elseif ($action === 'approve') {
                 TrendService::markStatus($trendId, 'approved', ['trend_score' => 95]);
                 $message = "Trend #{$trendId} manually approved for AI article generation.";
             } elseif ($action === 'reject') {
@@ -68,6 +97,10 @@ $approvedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE s
 $publishedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'published'");
 $rejectedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'rejected'");
 
+$today = date('Y-m-d');
+$todayPublishedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM articles WHERE DATE(published_at) = :today AND status = 'published'", ['today' => $today]);
+$breakingCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'published' AND (trend_score >= 95 OR source LIKE '%statutory%' OR source LIKE '%nta%' OR source LIKE '%ssc%' OR source LIKE '%upsc%')");
+
 include dirname(__DIR__) . '/components/header.php';
 ?>
 
@@ -80,21 +113,21 @@ include dirname(__DIR__) . '/components/header.php';
         <div style="flex: 1;">
             <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 0.4rem;">
                 <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: #ffffff;">
-                    Sarkari.online Trends Engine &amp; Topic Discovery Hub
+                    Sarkari.online Editorial Radar &amp; Trend Intelligence Hub
                 </h2>
                 <div style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 0.8125rem; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399;">
                     <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 10px #10b981;"></span>
-                    24/7 Autonomous Auto-Pilot Active
+                    24/7 Smart Editorial Auto-Pilot Active
                 </div>
             </div>
             <p style="font-size: 0.9rem; color: #cbd5e1; line-height: 1.6; margin: 0 0 0.85rem 0;">
-                Ye page Sarkari.online ka <strong>AI Radar</strong> hai. Jab bhi NTA, UPSC, SSC, CBSE, ya MCC ke official portals par koi naya notification ya circular aata hai, system use yahan <strong>Trend</strong> ke roop me record karta hai.
+                Real-time statutory notices (NTA, UPSC, SSC, CBSE, State Boards). System maintains <strong>5 Daily Diverse Pillars</strong> (Jobs, Entrance, Results, Tech, Scholarships) and gives <strong>Instant Fast-Track Pass</strong> to Official Breaking Alerts!
             </p>
             <div style="display: flex; flex-wrap: wrap; gap: 1rem; font-size: 0.8125rem; color: #94a3b8; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.75rem;">
-                <div>📌 <strong>Detected</strong>: Naya notice scan hua hai.</div>
-                <div>⚡ <strong>Approved</strong>: AI article generation ke liye qualify hua.</div>
-                <div>✅ <strong>Published</strong>: Article generate hokar website par live ho chuka hai.</div>
-                <div>🚫 <strong>Rejected</strong>: Irrelevant ya non-statutory topic reject hua.</div>
+                <div>🔴 <strong>Official Breaking</strong>: Instant government notification (bypasses daily cap).</div>
+                <div>🟢 <strong>Daily Scheduled</strong>: 5 diverse daily pillar guides.</div>
+                <div>⚡ <strong>Publish Now</strong>: Manual 1-click generation and live publishing.</div>
+                <div>🧹 <strong>Clean Backlog</strong>: Discards duplicate/older queue clutter.</div>
             </div>
         </div>
     </div>
@@ -103,24 +136,24 @@ include dirname(__DIR__) . '/components/header.php';
 <!-- Stats Counter Grid -->
 <div class="stats-grid" style="margin-bottom: 1.5rem;">
     <div class="stat-card">
-        <span class="stat-card-label">Total Trends</span>
-        <span class="stat-card-num" style="color: #1e3a8a;"><?= $total ?></span>
+        <span class="stat-card-label">Daily Regular Quota</span>
+        <span class="stat-card-num" style="color: #1e3a8a;"><?= $todayPublishedCount ?> / 5</span>
     </div>
     <div class="stat-card">
-        <span class="stat-card-label">Detected (Queue)</span>
-        <span class="stat-card-num" style="color: #0284c7;"><?= $detectedCount ?></span>
+        <span class="stat-card-label">Official Breaking</span>
+        <span class="stat-card-num" style="color: #dc2626;"><?= $breakingCount ?></span>
     </div>
     <div class="stat-card">
-        <span class="stat-card-label">Approved for AI</span>
+        <span class="stat-card-label">Approved Queue (Lean)</span>
         <span class="stat-card-num" style="color: #16a34a;"><?= $approvedCount ?></span>
     </div>
     <div class="stat-card">
-        <span class="stat-card-label">Published Live</span>
-        <span class="stat-card-num" style="color: #4f46e5;"><?= $publishedCount ?></span>
+        <span class="stat-card-label">Detected (Waiting)</span>
+        <span class="stat-card-num" style="color: #0284c7;"><?= $detectedCount ?></span>
     </div>
     <div class="stat-card">
-        <span class="stat-card-label">Rejected</span>
-        <span class="stat-card-num" style="color: #dc2626;"><?= $rejectedCount ?></span>
+        <span class="stat-card-label">Total Discovered</span>
+        <span class="stat-card-num" style="color: #475569;"><?= $total ?></span>
     </div>
 </div>
 
@@ -134,7 +167,13 @@ include dirname(__DIR__) . '/components/header.php';
             Real-time examination notices ingested from official government portals.
         </span>
     </div>
-    <div style="display: flex; gap: 0.4rem;">
+    <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
+        <form method="POST" style="display: inline-block; margin-right: 0.5rem;">
+            <?= CSRF::input() ?>
+            <button type="submit" name="action" value="clean_backlog" class="btn btn-sm btn-outline" style="border-color:#f59e0b; color:#b45309; font-weight:700;" onclick="return confirm('Clean repetitive older topics from the approved queue?');">
+                🧹 Clean Backlog
+            </button>
+        </form>
         <a href="<?= url('admin/trends/') ?>" class="btn btn-sm <?= $statusFilter === '' ? 'btn-primary' : 'btn-outline' ?>">All (<?= $total ?>)</a>
         <a href="<?= url('admin/trends/?status=detected') ?>" class="btn btn-sm <?= $statusFilter === 'detected' ? 'btn-primary' : 'btn-outline' ?>">Detected (<?= $detectedCount ?>)</a>
         <a href="<?= url('admin/trends/?status=approved') ?>" class="btn btn-sm <?= $statusFilter === 'approved' ? 'btn-primary' : 'btn-outline' ?>">Approved (<?= $approvedCount ?>)</a>
@@ -172,9 +211,22 @@ include dirname(__DIR__) . '/components/header.php';
                         </td>
                     </tr>
                 <?php else: ?>
-                    <?php foreach ($trends as $t): ?>
+                    <?php foreach ($trends as $t): 
+                        $isBreaking = TrendService::isOfficialBreaking($t);
+                    ?>
                         <tr style="border-bottom: 1px solid #e2e8f0;">
                             <td style="padding: 0.85rem 1rem; vertical-align: middle;">
+                                <div style="margin-bottom: 0.35rem;">
+                                    <?php if ($isBreaking): ?>
+                                        <span class="badge" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; font-size: 0.68rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;">
+                                            <span style="width: 6px; height: 6px; border-radius: 50%; background: #ef4444;"></span>🔴 OFFICIAL BREAKING
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="badge" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-size: 0.68rem; font-weight: 700; padding: 2px 6px; border-radius: 4px;">
+                                            🟢 DAILY SCHEDULED
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
                                 <strong style="color: var(--text-main); font-size: 0.925rem; line-height: 1.4; display: block;">
                                     <?= e($t['keyword']) ?>
                                 </strong>
@@ -231,9 +283,15 @@ include dirname(__DIR__) . '/components/header.php';
                                     <?= CSRF::input() ?>
                                     <input type="hidden" name="trend_id" value="<?= $t['id'] ?>">
 
+                                    <?php if ($t['status'] === 'approved' || $t['status'] === 'detected'): ?>
+                                        <button type="submit" name="action" value="publish_now" class="btn btn-xs btn-success" style="font-weight: 700; display: inline-flex; align-items: center; gap: 3px; background: #16a34a; border-color: #15803d;" onclick="return confirm('Generate and publish this article live immediately?');">
+                                            ⚡ Publish Now
+                                        </button>
+                                    <?php endif; ?>
+
                                     <?php if ($t['status'] === 'detected' || $t['status'] === 'rejected'): ?>
                                         <button type="submit" name="action" value="approve" class="btn btn-xs btn-primary">
-                                            Approve for AI
+                                            Approve
                                         </button>
                                     <?php endif; ?>
 

@@ -110,6 +110,96 @@ class TrendService {
     }
 
     /**
+     * Check if a topic was published recently (e.g. within 30 days) to prevent spam repetition
+     */
+    public static function isRecentlyCovered(string $keyword, int $days = 30): bool {
+        $normalized = self::normalizeKeyword($keyword);
+        $words = explode(' ', $normalized);
+        $keyWords = array_values(array_filter($words, fn($w) => strlen($w) > 3));
+
+        if (empty($keyWords)) {
+            return false;
+        }
+
+        $searchTerms = array_slice($keyWords, 0, min(3, count($keyWords)));
+        $likePattern = '%' . implode('%', $searchTerms) . '%';
+        $cutoff = date('Y-m-d H:i:s', strtotime("-{$days} days"));
+
+        $existing = Database::fetchOne(
+            "SELECT id FROM articles WHERE title LIKE :pattern AND (published_at >= :cutoff OR created_at >= :cutoff) LIMIT 1",
+            ['pattern' => $likePattern, 'cutoff' => $cutoff]
+        );
+
+        return $existing !== null;
+    }
+
+    /**
+     * Check if a trend qualifies as an Official Breaking Alert
+     */
+    public static function isOfficialBreaking(array $trend): bool {
+        $source = strtolower($trend['source'] ?? '');
+        $keyword = strtolower($trend['keyword'] ?? '');
+        $score = (int)($trend['trend_score'] ?? 0);
+
+        $officialSources = ['nta', 'nbems', 'natboard', 'upsc', 'ssc', 'cbse', 'rrb', 'ibps', 'sbi', 'indian statutory portals', 'ministry'];
+        $isOfficial = false;
+        foreach ($officialSources as $os) {
+            if (str_contains($source, $os)) {
+                $isOfficial = true;
+                break;
+            }
+        }
+
+        $breakingKeywords = [
+            'notification released', 'notification out', 'vacancies', 'apply online', 'application starts',
+            'admit card out', 'admit card released', 'hall ticket', 'exam date announced', 'schedule released',
+            'result declared', 'answer key released', 'merit list out', 'counselling schedule'
+        ];
+
+        $hasBreakingIntent = false;
+        foreach ($breakingKeywords as $bk) {
+            if (str_contains($keyword, $bk)) {
+                $hasBreakingIntent = true;
+                break;
+            }
+        }
+
+        return ($isOfficial && $hasBreakingIntent) || $score >= 95;
+    }
+
+    /**
+     * Clean repetitive old approved backlog in trends queue
+     */
+    public static function cleanRepetitiveBacklog(): int {
+        try {
+            $approved = Database::fetchAll("SELECT id, keyword, category_hint, source FROM trends WHERE status = 'approved' ORDER BY id ASC");
+            $seenKeywords = [];
+            $cleaned = 0;
+
+            foreach ($approved as $t) {
+                $tid = (int)$t['id'];
+                $kw = self::normalizeKeyword($t['keyword']);
+
+                // If already published as article OR already seen in this batch OR recently covered
+                if (self::existsAsArticle($t['keyword']) || self::isRecentlyCovered($t['keyword'], 20) || in_array($kw, $seenKeywords, true)) {
+                    self::markStatus($tid, 'rejected', ['raw_payload' => ['reason' => 'Duplicate/Repetitive backlog cleanup']]);
+                    $cleaned++;
+                } else {
+                    $seenKeywords[] = $kw;
+                }
+            }
+
+            if ($cleaned > 0) {
+                Logger::info("TrendService: Cleaned {$cleaned} repetitive topics from approved queue.");
+            }
+            return $cleaned;
+        } catch (Throwable $e) {
+            Logger::error("cleanRepetitiveBacklog error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    /**
      * Check whether topic matches allowed categories
      */
     public static function isAllowedCategory(?string $categoryHint): bool {
