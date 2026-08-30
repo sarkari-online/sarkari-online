@@ -116,19 +116,10 @@ class PublishingService {
 
         $reasons = [];
 
-        // Check 0: Daily Slot Quota (Max 5 total: up to 3 official + up to 2 search-intent)
+        // Check 0: Daily Slot Quota (Maximum 5 total articles per day)
         $slotCounts = $this->getPublishedSlotCounts();
-        if ($slotCounts['total'] >= $slotCounts['max_total']) {
+        if (!$skipFactCheck && $slotCounts['total'] >= $slotCounts['max_total']) {
             $reasons[] = "Maximum daily publishing quota ({$slotCounts['max_total']}/day) reached.";
-        }
-
-        $searchIntentCategories = ['entrance-exams', 'scholarships', 'college-updates', 'career-guides', 'student-technology'];
-        $isSearchIntent = in_array($article['category_slug'] ?? '', $searchIntentCategories, true);
-
-        if ($isSearchIntent && $slotCounts['search_intent'] >= 2) {
-            $reasons[] = "Daily search-intent slot quota (maximum 2 evergreen articles/day) is full.";
-        } elseif (!$isSearchIntent && $slotCounts['official'] >= 3) {
-            $reasons[] = "Daily official update slot quota (maximum 3 statutory notices/day) is full.";
         }
 
         // Check 1: Strict Quality Score & Factual Routing Thresholds

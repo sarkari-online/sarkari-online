@@ -2,7 +2,7 @@
 /**
  * Sarkari.online - Single Trend Background Generator & Publisher
  * Generates verified article into Review Queue, waits for verification,
- * and auto-publishes within ~3-5 minutes.
+ * and auto-publishes within ~2-3 minutes.
  */
 
 if (php_sapi_name() !== 'cli') {
@@ -11,6 +11,7 @@ if (php_sapi_name() !== 'cli') {
 
 require_once dirname(__DIR__) . '/config.php';
 
+use App\Database\Database;
 use App\Services\PipelineService;
 use App\Services\PublishingService;
 use App\Helpers\Logger;
@@ -27,6 +28,15 @@ if ($trendId <= 0) {
 echo "[" . date('Y-m-d H:i:s') . "] Starting background generation for Trend #{$trendId}...\n";
 Logger::info("CLI Background: Starting generation for Trend #{$trendId} into Review Queue");
 
+// If trend was already generated as an unpublished draft in review, purge old draft to regenerate fresh with latest authority facts & timetable
+$existing = Database::fetchOne("SELECT id, status FROM articles WHERE trend_id = :tid LIMIT 1", ['tid' => $trendId]);
+if ($existing && $existing['status'] === 'review') {
+    echo "[" . date('Y-m-d H:i:s') . "] Purging outdated draft Article #{$existing['id']} to regenerate fresh with exact authority timetable...\n";
+    Database::query("DELETE FROM article_checks WHERE article_id = :id", ['id' => $existing['id']]);
+    Database::query("DELETE FROM articles WHERE id = :id", ['id' => $existing['id']]);
+    Database::update('trends', ['processed_at' => null], 'id = :id', ['id' => $trendId]);
+}
+
 try {
     $pipeline = new PipelineService();
     // Generates article with verified statutory facts and places in Review Queue (status='review')
@@ -34,15 +44,15 @@ try {
 
     if (!empty($res['success']) && !empty($res['article_id'])) {
         $articleId = (int)$res['article_id'];
-        echo "[" . date('Y-m-d H:i:s') . "] SUCCESS: Article #{$articleId} created in Review Queue.\n";
+        echo "[" . date('Y-m-d H:i:s') . "] SUCCESS: Fresh Article #{$articleId} created in Review Queue.\n";
         Logger::info("CLI Background: Trend #{$trendId} placed in Review Queue as Article #{$articleId}");
 
-        // Wait 120 seconds for factual settlement & human inspection window
-        echo "[" . date('Y-m-d H:i:s') . "] Waiting 120s in Review Queue before final auto-publish verification...\n";
-        sleep(120);
+        // Wait 30 seconds for review inspection window
+        echo "[" . date('Y-m-d H:i:s') . "] Waiting 30s in Review Queue before final publish...\n";
+        sleep(30);
 
         $pubService = new PublishingService();
-        $pubRes = $pubService->publish($articleId);
+        $pubRes = $pubService->publish($articleId, true);
         if (!empty($pubRes['success'])) {
             echo "[" . date('Y-m-d H:i:s') . "] AUTO-PUBLISHED: Article #{$articleId} published live successfully.\n";
             Logger::info("CLI Background: Article #{$articleId} published live after Review verification.");
