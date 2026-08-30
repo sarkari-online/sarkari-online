@@ -198,8 +198,8 @@ class PipelineService {
 
         $articleId = ArticleService::create([
             'trend_id' => $trendId,
-            'title' => $polished['edited_title'],
-            'slug' => $seoData['slug_suggestion'],
+            'title' => mb_substr($polished['edited_title'], 0, 250),
+            'slug' => mb_substr($seoData['slug_suggestion'], 0, 190),
             'category_id' => $categoryId,
             'author_id' => $authorId,
             'excerpt' => $seoData['excerpt'],
@@ -208,14 +208,14 @@ class PipelineService {
             'quality_score' => $finalScore,
             'ai_generated' => 1,
             'source_verified' => !empty($sourceData['source_url']) ? 1 : 0,
-            'source_name' => $sourceData['source_name'],
-            'source_url' => $sourceData['source_url'],
-            'source_ref' => $sourceData['reference'],
-            'meta_title' => $seoData['seo_title'],
-            'meta_description' => $seoData['meta_description'],
-            'canonical_url' => url('article/' . $seoData['slug_suggestion'] . '/'),
-            'og_title' => $seoData['seo_title'],
-            'og_description' => $seoData['meta_description']
+            'source_name' => mb_substr($sourceData['source_name'] ?? 'Statutory Authority', 0, 190),
+            'source_url' => mb_substr($sourceData['source_url'] ?? '', 0, 255),
+            'source_ref' => mb_substr($sourceData['reference'] ?? '', 0, 190),
+            'meta_title' => mb_substr($seoData['seo_title'], 0, 190),
+            'meta_description' => mb_substr($seoData['meta_description'], 0, 255),
+            'canonical_url' => url('article/' . mb_substr($seoData['slug_suggestion'], 0, 190) . '/'),
+            'og_title' => mb_substr($seoData['seo_title'], 0, 190),
+            'og_description' => mb_substr($seoData['meta_description'], 0, 255)
         ]);
 
         // 9. Record Detailed Quality Breakdown in article_checks table
