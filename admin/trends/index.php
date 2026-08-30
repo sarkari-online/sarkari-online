@@ -127,7 +127,6 @@ include dirname(__DIR__) . '/components/header.php';
                 <div>🔴 <strong>Official Breaking</strong>: Instant government notification (bypasses daily cap).</div>
                 <div>🟢 <strong>Daily Scheduled</strong>: 5 diverse daily pillar guides.</div>
                 <div>⚡ <strong>Publish Now</strong>: Manual 1-click generation and live publishing.</div>
-                <div>🧹 <strong>Clean Backlog</strong>: Discards duplicate/older queue clutter.</div>
             </div>
         </div>
     </div>
@@ -168,12 +167,6 @@ include dirname(__DIR__) . '/components/header.php';
         </span>
     </div>
     <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
-        <form method="POST" style="display: inline-block; margin-right: 0.5rem;">
-            <?= CSRF::input() ?>
-            <button type="submit" name="action" value="clean_backlog" class="btn btn-sm btn-outline" style="border-color:#f59e0b; color:#b45309; font-weight:700;" onclick="return confirm('Clean repetitive older topics from the approved queue?');">
-                🧹 Clean Backlog
-            </button>
-        </form>
         <a href="<?= url('admin/trends/') ?>" class="btn btn-sm <?= $statusFilter === '' ? 'btn-primary' : 'btn-outline' ?>">All (<?= $total ?>)</a>
         <a href="<?= url('admin/trends/?status=detected') ?>" class="btn btn-sm <?= $statusFilter === 'detected' ? 'btn-primary' : 'btn-outline' ?>">Detected (<?= $detectedCount ?>)</a>
         <a href="<?= url('admin/trends/?status=approved') ?>" class="btn btn-sm <?= $statusFilter === 'approved' ? 'btn-primary' : 'btn-outline' ?>">Approved (<?= $approvedCount ?>)</a>
