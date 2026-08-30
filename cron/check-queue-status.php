@@ -41,12 +41,34 @@ if (empty($inReview)) {
 }
 echo "\n";
 
-// 3. Check Latest 3 Published Articles
-$published = Database::fetchAll("SELECT id, title, slug, status, published_at FROM articles WHERE status = 'published' ORDER BY id DESC LIMIT 3");
-echo "3. LATEST 3 PUBLISHED LIVE ARTICLES:\n";
-foreach ($published as $p) {
-    echo "   - Article #{$p['id']}: {$p['title']}\n";
-    echo "     Slug: {$p['slug']} | Published At: {$p['published_at']}\n";
+// 3. Check Today's Published Articles & Quota Progress
+$todayPublished = Database::fetchAll("
+    SELECT id, title, slug, status, published_at, created_at, quality_score 
+    FROM articles 
+    WHERE status = 'published' AND DATE(published_at) = CURRENT_DATE 
+    ORDER BY published_at DESC
+");
+
+echo "3. TODAY'S PUBLISHED ARTICLES (" . count($todayPublished) . " / 5 Daily Quota):\n";
+if (empty($todayPublished)) {
+    echo "   (No articles published today yet)\n";
+} else {
+    foreach ($todayPublished as $idx => $p) {
+        $num = $idx + 1;
+        $timeStr = !empty($p['published_at']) ? date('d M Y, h:i:s A', strtotime($p['published_at'])) . ' IST' : 'N/A';
+        echo "   {$num}. Article #{$p['id']}: {$p['title']}\n";
+        echo "      Published At : {$timeStr}\n";
+        echo "      Created At   : {$p['created_at']}\n";
+        echo "      Quality Score: {$p['quality_score']}/100\n";
+    }
 }
 
+if (!empty($todayPublished[0]['published_at'])) {
+    $lastTime = strtotime($todayPublished[0]['published_at']);
+    $minsAgo = round((time() - $lastTime) / 60);
+    echo "\n🕒 LAST ARTICLE PUBLISHED: " . date('h:i:s A', $lastTime) . " IST ({$minsAgo} minutes ago)\n";
+}
+
+$remaining = max(0, 5 - count($todayPublished));
+echo "🎯 REMAINING DAILY QUOTA : {$remaining} article" . ($remaining === 1 ? '' : 's') . "\n";
 echo "\n=================================================================\n";
