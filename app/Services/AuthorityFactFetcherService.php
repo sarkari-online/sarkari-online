@@ -29,15 +29,24 @@ class AuthorityFactFetcherService {
         'upsc'      => ['name' => 'UPSC (Union Public Service Commission)', 'portal' => 'https://upsc.gov.in'],
         'ssc'       => ['name' => 'SSC (Staff Selection Commission)', 'portal' => 'https://ssc.gov.in'],
         'cbse'      => ['name' => 'CBSE (Central Board of Secondary Education)', 'portal' => 'https://cbse.gov.in'],
+        'ctet'      => ['name' => 'CTET Unit, CBSE', 'portal' => 'https://ctet.nic.in'],
         'ugc'       => ['name' => 'UGC (University Grants Commission)', 'portal' => 'https://www.ugc.gov.in'],
         'josaa'     => ['name' => 'JoSAA (Joint Seat Allocation Authority)', 'portal' => 'https://josaa.nic.in'],
         'mcc'       => ['name' => 'MCC (Medical Counselling Committee)', 'portal' => 'https://mcc.nic.in'],
         'nsp'       => ['name' => 'NSP (National Scholarship Portal)', 'portal' => 'https://scholarships.gov.in'],
         'rrb'       => ['name' => 'Railway Recruitment Boards (RRB)', 'portal' => 'https://indianrailways.gov.in'],
+        'ibps'      => ['name' => 'IBPS (Institute of Banking Personnel Selection)', 'portal' => 'https://ibps.in'],
+        'sbi'       => ['name' => 'State Bank of India (SBI)', 'portal' => 'https://sbi.co.in/web/careers'],
+        'iaf'       => ['name' => 'Indian Air Force (CASB Agnipath Vayu)', 'portal' => 'https://agnipathvayu.cdac.in'],
+        'hpbose'    => ['name' => 'HPBOSE (Himachal Pradesh Board of School Education)', 'portal' => 'https://hpbose.org'],
+        'kpsc'      => ['name' => 'KPSC (Karnataka Public Service Commission)', 'portal' => 'https://kpsc.kar.nic.in'],
         'bpsc'      => ['name' => 'Bihar Public Service Commission (BPSC)', 'portal' => 'https://www.bpsc.bih.nic.in'],
         'uppsc'     => ['name' => 'UP Public Service Commission (UPPSC)', 'portal' => 'https://uppsc.up.nic.in'],
         'mppsc'     => ['name' => 'MP Public Service Commission (MPPSC)', 'portal' => 'https://mppsc.mp.gov.in'],
-        'rpsc'      => ['name' => 'Rajasthan Public Service Commission (RPSC)', 'portal' => 'https://rpsc.rajasthan.gov.in']
+        'rpsc'      => ['name' => 'Rajasthan Public Service Commission (RPSC)', 'portal' => 'https://rpsc.rajasthan.gov.in'],
+        'bseb'      => ['name' => 'Bihar School Examination Board (BSEB)', 'portal' => 'https://biharboardonline.bihar.gov.in'],
+        'upmsp'     => ['name' => 'UPMSP (Uttar Pradesh Madhyamik Shiksha Parishad)', 'portal' => 'https://upmsp.edu.in'],
+        'wbjee'     => ['name' => 'WBJEEB (West Bengal Joint Entrance Examinations Board)', 'portal' => 'https://wbjeeb.nic.in']
     ];
 
     public function __construct(?Gemini $gemini = null) {
@@ -50,41 +59,45 @@ class AuthorityFactFetcherService {
     public static function resolveAuthority(string $topic, string $sourceUrl = ''): array {
         $lower = strtolower($topic . ' ' . $sourceUrl);
 
+        // State Boards & Specific State Commissions (High Priority to prevent false UPSC/SSC fallback)
+        if (str_contains($lower, 'hpbose') || str_contains($lower, 'himachal')) return self::$authorityPortals['hpbose'];
+        if (str_contains($lower, 'kpsc') || str_contains($lower, 'karnataka') || str_contains($lower, 'kas ')) return self::$authorityPortals['kpsc'];
+        if (str_contains($lower, 'bpsc') || str_contains($lower, 'bihar public service')) return self::$authorityPortals['bpsc'];
+        if (str_contains($lower, 'uppsc') || str_contains($lower, 'uttar pradesh public service')) return self::$authorityPortals['uppsc'];
+        if (str_contains($lower, 'mppsc') || str_contains($lower, 'madhya pradesh public')) return self::$authorityPortals['mppsc'];
+        if (str_contains($lower, 'rpsc') || str_contains($lower, 'rajasthan public')) return self::$authorityPortals['rpsc'];
+        if (str_contains($lower, 'bseb') || str_contains($lower, 'bihar board')) return self::$authorityPortals['bseb'];
+        if (str_contains($lower, 'upmsp') || str_contains($lower, 'up board')) return self::$authorityPortals['upmsp'];
+        if (str_contains($lower, 'wbjee')) return self::$authorityPortals['wbjee'];
+
+        // Defence & Armed Forces
+        if (str_contains($lower, 'air force') || str_contains($lower, 'iaf') || str_contains($lower, 'agniveer vayu')) return self::$authorityPortals['iaf'];
+
+        // Banking
+        if (str_contains($lower, 'ibps') || str_contains($lower, 'crp po') || str_contains($lower, 'crp clerk')) return self::$authorityPortals['ibps'];
+        if (str_contains($lower, 'sbi po') || str_contains($lower, 'sbi clerk') || str_contains($lower, 'state bank')) return self::$authorityPortals['sbi'];
+
+        // Medical & Entrance
         if (str_contains($lower, 'neet pg') || str_contains($lower, 'dnb') || str_contains($lower, 'fmge') || str_contains($lower, 'natboard') || str_contains($lower, 'nbems')) {
             return self::$authorityPortals['nbems'];
         }
-        if (str_contains($lower, 'jee') || str_contains($lower, 'neet ug') || str_contains($lower, 'cuet') || str_contains($lower, 'nta') || str_contains($lower, 'aicte')) {
+        if (str_contains($lower, 'ctet')) return self::$authorityPortals['ctet'];
+        if (str_contains($lower, 'jee') || str_contains($lower, 'neet ug') || str_contains($lower, 'cuet') || str_contains($lower, 'nta')) {
             return self::$authorityPortals['nta'];
         }
-        if (str_contains($lower, 'upsc') || str_contains($lower, 'civil services') || str_contains($lower, 'nda') || str_contains($lower, 'cds')) {
-            return self::$authorityPortals['upsc'];
-        }
-        if (str_contains($lower, 'ssc') || str_contains($lower, 'cgl') || str_contains($lower, 'chsl') || str_contains($lower, 'mts') || str_contains($lower, 'cpo')) {
-            return self::$authorityPortals['ssc'];
-        }
-        if (str_contains($lower, 'cbse') || str_contains($lower, 'class 10') || str_contains($lower, 'class 12') || str_contains($lower, 'board exam')) {
-            return self::$authorityPortals['cbse'];
-        }
-        if (str_contains($lower, 'josaa') || str_contains($lower, 'csab') || str_contains($lower, 'iit admission')) {
-            return self::$authorityPortals['josaa'];
-        }
-        if (str_contains($lower, 'mcc') || str_contains($lower, 'neet counselling')) {
-            return self::$authorityPortals['mcc'];
-        }
-        if (str_contains($lower, 'scholarship') || str_contains($lower, 'nsp') || str_contains($lower, 'pmsss') || str_contains($lower, 'yasasvi')) {
-            return self::$authorityPortals['nsp'];
-        }
-        if (str_contains($lower, 'rrb') || str_contains($lower, 'railway') || str_contains($lower, 'alp') || str_contains($lower, 'ntpc')) {
-            return self::$authorityPortals['rrb'];
-        }
-        if (str_contains($lower, 'bpsc')) return self::$authorityPortals['bpsc'];
-        if (str_contains($lower, 'uppsc')) return self::$authorityPortals['uppsc'];
-        if (str_contains($lower, 'mppsc')) return self::$authorityPortals['mppsc'];
-        if (str_contains($lower, 'rpsc')) return self::$authorityPortals['rpsc'];
+        if (str_contains($lower, 'josaa') || str_contains($lower, 'csab')) return self::$authorityPortals['josaa'];
+        if (str_contains($lower, 'mcc') || str_contains($lower, 'neet counselling')) return self::$authorityPortals['mcc'];
+
+        // Central Commissions & Boards
+        if (str_contains($lower, 'cbse') || str_contains($lower, 'class 10') || str_contains($lower, 'class 12')) return self::$authorityPortals['cbse'];
+        if (str_contains($lower, 'ssc') || str_contains($lower, 'cgl') || str_contains($lower, 'chsl') || str_contains($lower, 'mts') || str_contains($lower, 'cpo') || str_contains($lower, 'havaldar')) return self::$authorityPortals['ssc'];
+        if (str_contains($lower, 'upsc') || str_contains($lower, 'civil services') || str_contains($lower, 'nda') || str_contains($lower, 'cds') || str_contains($lower, 'ifs')) return self::$authorityPortals['upsc'];
+        if (str_contains($lower, 'rrb') || str_contains($lower, 'railway') || str_contains($lower, 'alp') || str_contains($lower, 'ntpc')) return self::$authorityPortals['rrb'];
+        if (str_contains($lower, 'scholarship') || str_contains($lower, 'nsp') || str_contains($lower, 'pmsss') || str_contains($lower, 'yasasvi')) return self::$authorityPortals['nsp'];
         if (str_contains($lower, 'ugc') || str_contains($lower, 'net exam')) return self::$authorityPortals['ugc'];
 
         return [
-            'name' => 'Official Statutory Examination Authority',
+            'name' => 'Official Statutory Authority',
             'portal' => !empty($sourceUrl) && filter_var($sourceUrl, FILTER_VALIDATE_URL) ? $sourceUrl : 'https://sarkari.online'
         ];
     }
@@ -156,15 +169,17 @@ TOPIC: {$topic}
 CATEGORY: {$category}
 {$contextPrompt}
 
-Extract and structure all official statutory ground truth facts for this topic:
+CRITICAL RULES:
+0. AUTHORITY PURITY:
+   - You MUST attribute facts STRICTLY and ONLY to {$authority['name']} ({$authority['portal']}).
+   - NEVER confuse or attribute state boards, armed forces, banking, or schools to UPSC or any other unrelated agency!
 1. CONFIRMED VS PENDING DATES:
-   - If an official exam date, result date, or admit card release date is gazetted/confirmed by statutory authorities, state the exact date.
+   - If an official exam date, result date, or admit card release date is gazetted/confirmed by {$authority['name']}, state the exact date.
    - If an official date is NOT officially released yet, you MUST state explicitly: "To Be Announced (TBA)" or "Awaiting Official Gazette Notification". NEVER invent or guess dates!
-2. SHIFT TIMINGS MATRIX (Mandatory for Exam Dates / Shifts / Entrance / Recruitment exams):
-   - Provide exact Shift Names (e.g. Shift 1 / Morning Shift, Shift 2 / Afternoon Shift).
-   - Candidate Reporting & Biometric Window (e.g. 07:00 AM / 07:30 AM).
-   - Gate Closure Cutoff Time (Strict zero-tolerance entry closure e.g. 08:30 AM).
-   - Exam Commencement & Conclusion Hours (e.g. 09:00 AM – 12:30 PM).
+2. SHIFT TIMINGS MATRIX:
+   - If exact shifts are confirmed: Provide Shift Name, Reporting Window, Gate Closure Cutoff, Exam Hours, Duration/Format.
+   - If it is an upcoming cycle (e.g. 2027) or notification is awaited: State "Reporting & Gate Closure will be announced in official Hall Ticket / Notification by {$authority['name']}".
+   - Gate Closure Cutoff Time: Detail strict zero-tolerance entry closure (e.g. 30 to 45 mins prior to exam or exact time).
    - Total Duration (e.g. 210 Minutes) & Question Count / Negative Marking scheme.
 3. MANDATORY DOCUMENTS CHECKLIST:
    - Acceptable Original Govt Photo IDs (Aadhaar, PAN, Passport, DL, Voter ID - original only).
