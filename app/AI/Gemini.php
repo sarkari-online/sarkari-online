@@ -53,10 +53,11 @@ class Gemini {
     public static function setCircuitBreaker(int $seconds = 60, string $reason = ''): void {
         $until = time() + $seconds;
         try {
+            $valStr = (string)$until;
             Database::query(
-                "INSERT INTO settings (`key`, `value`, `updated_at`) VALUES ('gemini_circuit_breaker_until', :val, NOW())
-                 ON DUPLICATE KEY UPDATE `value` = :val, `updated_at` = NOW()",
-                ['val' => (string)$until]
+                "INSERT INTO settings (`key`, `value`) VALUES ('gemini_circuit_breaker_until', :val1)
+                 ON DUPLICATE KEY UPDATE `value` = :val2",
+                ['val1' => $valStr, 'val2' => $valStr]
             );
             Logger::warning("Gemini Circuit Breaker ACTIVATED for {$seconds}s until " . date('Y-m-d H:i:s', $until) . ". Reason: {$reason}");
         } catch (Throwable $e) {}

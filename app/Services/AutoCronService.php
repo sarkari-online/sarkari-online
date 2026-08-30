@@ -50,12 +50,15 @@ class AutoCronService {
      */
     private static function saveScheduleState(array $state): void {
         try {
+            $json = json_encode($state);
             Database::query(
-                "INSERT INTO settings (`key`, `value`, `updated_at`) VALUES ('cron_schedule_state', :val, NOW())
-                 ON DUPLICATE KEY UPDATE `value` = :val, `updated_at` = NOW()",
-                ['val' => json_encode($state)]
+                "INSERT INTO settings (`key`, `value`) VALUES ('cron_schedule_state', :val1)
+                 ON DUPLICATE KEY UPDATE `value` = :val2",
+                ['val1' => $json, 'val2' => $json]
             );
-        } catch (Throwable $e) {}
+        } catch (Throwable $e) {
+            Logger::error("AutoCronService saveScheduleState failed: " . $e->getMessage());
+        }
 
         try {
             $lockDir = dirname(__DIR__, 2) . '/storage/cache';
