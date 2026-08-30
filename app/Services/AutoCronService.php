@@ -21,9 +21,9 @@ use Throwable;
 class AutoCronService {
 
     private const INTERVAL_FETCH     = 900;   // 15 mins
-    private const INTERVAL_ANALYZE   = 600;   // 10 mins
-    private const INTERVAL_GENERATE  = 900;   // 15 mins
-    private const INTERVAL_PUBLISH   = 300;   // 5 mins auto-publish check
+    private const INTERVAL_ANALYZE   = 300;   // 5 mins
+    private const INTERVAL_GENERATE  = 120;   // 2 mins (Fast responsive generation of approved topics)
+    private const INTERVAL_PUBLISH   = 120;   // 2 mins (Fast responsive auto-publishing)
     private const INTERVAL_BACKLINKS = 14400; // 4 hours
 
     /**
