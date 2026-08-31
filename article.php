@@ -212,8 +212,9 @@ include __DIR__ . '/components/header.php';
                         return '<td><span class="' . $class . '">' . htmlspecialchars($rawStatus) . '</span></td>';
                     }, $renderedContent);
 
-                    // Contextual In-Content "Also Read:" Callout Box (after 2nd paragraph)
-                    if (!empty($relatedArticles[0])) {
+                    // Contextual In-Content "Also Read:" Callout Box (Only if not already present in content)
+                    $hasExistingAlsoRead = (bool)preg_match('/class=["\'](also-read-card|also-read-callout|see-also)["\']/i', $renderedContent) || str_contains($renderedContent, '📌 ALSO READ:');
+                    if (!$hasExistingAlsoRead && !empty($relatedArticles[0])) {
                         $firstRel = $relatedArticles[0];
                         $alsoReadCallout = '<div class="also-read-callout" style="margin: 1.5rem 0; padding: 1rem 1.25rem; background: #f8fafc; border-left: 4px solid var(--color-primary, #1e3a8a); border-radius: 0 8px 8px 0; font-size: 0.95rem;">'
                             . '<span style="font-weight: 800; color: var(--color-primary, #1e3a8a); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">📌 ALSO READ:</span>'

@@ -51,7 +51,10 @@ CRITICAL RULES:
    - Never recommend publishing merely to meet daily quotas. Only approve if genuine, useful, non-trivial information exists for students.
 3. Avoid low-value clickbait rumors (e.g., unofficial "likely today" speculation without authority notice).
 4. If similar articles already exist, assess duplicate risk. Only recommend publishing if there is a genuine new update.
-5. TEMPORAL FRESHNESS & RELEVANCE: Current operating year is 2026. Strictly REJECT (publish_recommendation: false) any old, expired historical exam/recruitment cycles (e.g., 2024, 2023, 2022, 2021). Only approve active 2026/2027 ongoing cycles.
+5. TEMPORAL FRESHNESS & PROACTIVE ADVANCE NOTICE:
+   - Operating Year: 2026/2027. Strictly REJECT (publish_recommendation: false) any old, expired historical exam/recruitment cycles (2025, 2024, 2023).
+   - PROACTIVE TIMING: Prioritize upcoming events detected in ADVANCE (registration opening, admit card release, exam schedules, counselling rounds, answer key objections).
+   - If an exam date or registration deadline has ALREADY expired/concluded in the past, REJECT it (publish_recommendation: false) because same-day/past notices are useless for students.
 6. NATIONAL SKILLING & TECH EMPOWERMENT: Proactively APPROVE (publish_recommendation: true) under 'student-technology' or 'scholarships' any national skill development initiatives (NSDC, Skill India, PMKVY), Free Cloud/AI certifications (AWS, Microsoft, Google, NASSCOM), and government-backed digital learning programs offering concrete career value to Indian students.
 PROMPT;
 

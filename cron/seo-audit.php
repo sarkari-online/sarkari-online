@@ -43,6 +43,21 @@ foreach ($existingArticles as $eArt) {
     }
 }
 
+// ── 0b. Clean and deduplicate multiple Also Read cards inside content ───────
+$articlesWithCards = Database::fetchAll("SELECT id, content FROM articles WHERE content LIKE '%also-read-card%' OR content LIKE '%also-read-callout%'");
+foreach ($articlesWithCards as $cArt) {
+    $cardCount = 0;
+    $deduped = preg_replace_callback('/<div class=["\']also-read-(card|callout)["\'].*?<\/div>/is', function($match) use (&$cardCount) {
+        $cardCount++;
+        return ($cardCount === 1) ? $match[0] : '';
+    }, $cArt['content']);
+
+    if ($deduped !== $cArt['content']) {
+        Database::update('articles', ['content' => $deduped], 'id = :id', ['id' => $cArt['id']]);
+        echo "  -> [DEDUPLICATED ALSO READ] Article #{$cArt['id']}: removed duplicate Also Read cards\n";
+    }
+}
+
 // ── 1. Fix broken / missing canonical URLs ─────────────────────────────────
 $articles = Database::fetchAll(
     "SELECT id, slug, canonical_url FROM articles WHERE status = 'published'"
