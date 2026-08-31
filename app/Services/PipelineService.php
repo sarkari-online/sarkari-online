@@ -180,22 +180,15 @@ class PipelineService {
         if (!$safetyPass['pass'] || $finalScore < 70) {
             $finalStatus = 'rejected';
             Logger::warning("Article rejected (Score: {$finalScore}): " . implode(', ', $safetyPass['reasons']));
-        } elseif ($hasCriticalIssue || ($factAudit['recommendation'] ?? '') === 'needs_review' || ($factAudit['recommendation'] ?? '') === 'reject') {
-            $finalStatus = 'review';
-            Logger::info("Article routed to review queue due to factual uncertainty (Score: {$finalScore})");
-        } elseif ($finalScore >= 90 && $allCriticalFactsVerified) {
-            $finalStatus = 'review'; // In Review Queue marked as auto-publish eligible
-        } elseif ($finalScore >= 80 && $allCriticalFactsVerified) {
-            $finalStatus = 'review';
-        } elseif ($finalScore >= 70) {
-            $finalStatus = 'review';
         } else {
-            $finalStatus = 'rejected';
+            // Quality Score >= 70 & Safety Gate Passed -> DIRECT LIVE PUBLISH!
+            $finalStatus = 'published';
         }
 
-        // 8. Persist Article in Database
+        // 8. Persist Article in Database directly
         $author = Database::fetchOne("SELECT id FROM users WHERE role = 'admin' LIMIT 1");
         $authorId = $author ? (int)$author['id'] : null;
+        $now = date('Y-m-d H:i:s');
 
         $articleId = ArticleService::create([
             'trend_id' => $trendId,
@@ -216,7 +209,9 @@ class PipelineService {
             'meta_description' => mb_substr($seoData['meta_description'], 0, 255),
             'canonical_url' => url('article/' . mb_substr($seoData['slug_suggestion'], 0, 190) . '/'),
             'og_title' => mb_substr($seoData['seo_title'], 0, 190),
-            'og_description' => mb_substr($seoData['meta_description'], 0, 255)
+            'og_description' => mb_substr($seoData['meta_description'], 0, 255),
+            'published_at' => ($finalStatus === 'published') ? $now : null,
+            'original_published_at' => ($finalStatus === 'published') ? $now : null
         ]);
 
         // 9. Record Detailed Quality Breakdown in article_checks table
@@ -231,20 +226,13 @@ class PipelineService {
                 'flagged_issues_count' => count($factAudit['flagged_issues'] ?? [])
             ], JSON_UNESCAPED_UNICODE),
             'checker' => 'ai',
-            'checked_at' => date('Y-m-d H:i:s'),
-            'created_at' => date('Y-m-d H:i:s')
+            'checked_at' => $now,
+            'created_at' => $now
         ]);
 
         // 10. Generate Branded WebP Thumbnail (Phase 6)
         $thumbnailService = new ThumbnailService();
         $thumbResult = $thumbnailService->generateForArticle($articleId);
-
-        if (empty($thumbResult['success'])) {
-            // Safety rule: if thumbnail generation fails, article must not be published/review ready
-            $finalStatus = 'draft';
-            Database::update('articles', ['status' => 'draft'], 'id = :id', ['id' => $articleId]);
-            Logger::warning("Article #{$articleId} downgraded to draft because thumbnail generation failed.");
-        }
 
         // 10b. Core Web Vitals Pre-Check & Auto-Fix (alt tags, lazy loading, noopener, heading check)
         $vitalsCheck = WebVitalsService::check([
@@ -258,12 +246,10 @@ class PipelineService {
             Database::update('articles', ['content' => $vitalsCheck['fixed_content']], 'id = :id', ['id' => $articleId]);
             Logger::info("Article #{$articleId}: WebVitals auto-fixed {$vitalsCheck['fixes_applied']} HTML issues.");
         }
-        if (!empty($vitalsCheck['issues'])) {
-            Logger::info("Article #{$articleId} WebVitals issues: " . implode(' | ', $vitalsCheck['issues']));
-        }
 
-        // 11. Update Trend Status to 'generated'
-        TrendService::markStatus($trendId, 'generated', [
+        // 11. Update Trend Status to 'published'
+        TrendService::markStatus($trendId, 'published', [
+            'processed_at' => $now,
             'raw_payload' => array_merge($rawPayload, [
                 'generated_article_id' => $articleId,
                 'quality_score' => $finalScore,
@@ -271,17 +257,18 @@ class PipelineService {
             ])
         ]);
 
-        // 12. Instant Autonomous Live Publishing for Qualified Articles
-        $publishingService = new PublishingService();
-        $canPub = $publishingService->canPublish($articleId);
+        Logger::info("🚀 Article #{$articleId} successfully GENERATED and PUBLISHED LIVE on Sarkari.online! (Score: {$finalScore})");
 
-        if ($canPub['can_publish']) {
-            $pubResult = $publishingService->publish($articleId);
-            if (!empty($pubResult['success'])) {
-                $finalStatus = 'published';
-                Logger::info("Article #{$articleId} automatically published LIVE instantly during pipeline generation!");
-            }
-        }
+        return [
+            'success' => true,
+            'article_id' => $articleId,
+            'trend_id' => $trendId,
+            'title' => $polished['edited_title'],
+            'status' => $finalStatus,
+            'quality_score' => $finalScore,
+            'safety_pass' => $safetyPass['pass'],
+            'thumbnail' => $thumbResult['relative_path'] ?? null
+        ];
 
         Logger::info("Pipeline successfully completed Article #{$articleId} (Final Status: {$finalStatus}, Quality Score: {$finalScore}) for Trend #{$trendId}");
 

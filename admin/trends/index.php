@@ -43,7 +43,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                     $cmd = "php " . escapeshellarg($cliScript) . " " . (int)$trendId . " > /dev/null 2>&1 &";
                     @exec($cmd);
 
-                    header('Location: ' . url('admin/review/?started=' . $trendId));
+                    header('Location: ' . url('admin/articles/?started=' . $trendId));
                     exit;
                 } catch (\Throwable $e) {
                     $message = "Error initiating article review: " . $e->getMessage();

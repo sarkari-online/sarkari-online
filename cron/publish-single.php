@@ -39,27 +39,12 @@ if ($existing && $existing['status'] === 'review') {
 
 try {
     $pipeline = new PipelineService();
-    // Generates article with verified statutory facts and places in Review Queue (status='review')
     $res = $pipeline->generateFromTrend($trendId, true);
 
     if (!empty($res['success']) && !empty($res['article_id'])) {
         $articleId = (int)$res['article_id'];
-        echo "[" . date('Y-m-d H:i:s') . "] SUCCESS: Fresh Article #{$articleId} created in Review Queue.\n";
-        Logger::info("CLI Background: Trend #{$trendId} placed in Review Queue as Article #{$articleId}");
-
-        // Wait 30 seconds for review inspection window
-        echo "[" . date('Y-m-d H:i:s') . "] Waiting 30s in Review Queue before final publish...\n";
-        sleep(30);
-
-        $pubService = new PublishingService();
-        $pubRes = $pubService->publish($articleId, true);
-        if (!empty($pubRes['success'])) {
-            echo "[" . date('Y-m-d H:i:s') . "] AUTO-PUBLISHED: Article #{$articleId} published live successfully.\n";
-            Logger::info("CLI Background: Article #{$articleId} published live after Review verification.");
-        } else {
-            echo "[" . date('Y-m-d H:i:s') . "] KEPT IN REVIEW: Article #{$articleId} held for review: " . implode(', ', $pubRes['reasons'] ?? []) . "\n";
-            Logger::warning("CLI Background: Article #{$articleId} kept in Review Queue.");
-        }
+        echo "[" . date('Y-m-d H:i:s') . "] SUCCESS: Article #{$articleId} successfully GENERATED and PUBLISHED LIVE!\n";
+        Logger::info("CLI Background: Article #{$articleId} generated and published live directly from Trend #{$trendId}");
     } else {
         echo "[" . date('Y-m-d H:i:s') . "] FAILED: " . ($res['error'] ?? 'Unknown error') . "\n";
         Logger::error("CLI Background: Generation failed for Trend #{$trendId}: " . ($res['error'] ?? 'Unknown error'));

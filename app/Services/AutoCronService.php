@@ -258,28 +258,41 @@ class AutoCronService {
 
         $publishingService = new PublishingService();
 
-        // Guard 1: Check if there is an official breaking notice in queue (Bypasses steady 5-limit)
-        $hasBreaking = false;
-        $approvedTrends = Database::fetchAll("SELECT * FROM trends WHERE status = 'approved' ORDER BY trend_score DESC LIMIT 5");
-        foreach ($approvedTrends as $at) {
-            if (TrendService::isOfficialBreaking($at)) {
-                $hasBreaking = true;
-                break;
-            }
-        }
-
-        if ($publishingService->isDailyLimitReached() && !$hasBreaking) {
-            Logger::info('AutoCron generate: Daily publishing quota (5/day) is full and no breaking notice. Sleeping generation until midnight to save API tokens.');
+        // 1. Daily Quota Check: Max 5 articles per day
+        $todayCount = $publishingService->getPublishedTodayCount();
+        if ($todayCount >= 5) {
+            Logger::info("AutoCron generate: Daily publishing quota ({$todayCount}/5) reached for today. Resting until tomorrow.");
             return;
         }
 
-        // Auto-heal stale unpublishable drafts older than 12 hours so they don't block the queue
+        // 2. Intelligent Pacing Gap (Natural time spacing across the day):
+        // If an article was published today, require at least 45 minutes gap before next slot
+        // (If 0 articles published today, generate IMMEDIATELY without waiting!)
+        if ($todayCount > 0) {
+            $lastPub = Database::fetchValue("
+                SELECT published_at FROM articles 
+                WHERE status = 'published' AND DATE(published_at) = CURRENT_DATE 
+                ORDER BY published_at DESC LIMIT 1
+            ");
+            if (!empty($lastPub)) {
+                $elapsedMins = round((time() - strtotime($lastPub)) / 60);
+                $minGapMins = 45;
+                if ($elapsedMins < $minGapMins) {
+                    $waitMins = $minGapMins - $elapsedMins;
+                    Logger::info("AutoCron pacing: Slot {$todayCount}/5 was published {$elapsedMins}m ago. Next article in ~{$waitMins}m.");
+                    return;
+                }
+            }
+        }
+
+        // 3. Auto-heal any stale unpublishable drafts older than 6 hours
         try {
-            Database::query("UPDATE articles SET status = 'archived' WHERE status IN ('draft', 'pending_review') AND created_at < DATE_SUB(NOW(), INTERVAL 12 HOUR)");
+            Database::query("UPDATE articles SET status = 'archived' WHERE status IN ('draft', 'pending_review') AND created_at < DATE_SUB(NOW(), INTERVAL 6 HOUR)");
         } catch (Throwable $e) {}
 
-        // Smart Pacing: Generate max 1 article per cycle
-        Logger::info('AutoCron: Generating 1 approved article...');
+        // 4. Generate next top approved trend directly to LIVE status
+        $slotNum = $todayCount + 1;
+        Logger::info("AutoCron: Autonomous Slot {$slotNum}/5 active. Generating top approved trend...");
         $pipeline = new PipelineService();
         $pipeline->processApprovedTrends(1);
     }
