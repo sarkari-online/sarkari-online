@@ -2,7 +2,7 @@
 /**
  * CGPA to Percentage & Marks Converter (2026 Edition)
  * Statutory conversion engine for CBSE, AICTE B.Tech, AKTU, VTU, Mumbai University & 10-Point Scales.
- * Includes WebApplication, FAQPage, HowTo and BreadcrumbList Rich Schemas for Google Search Rich Results.
+ * Professional Institutional UI with SVG Iconography & Rich Schemas for Google Search Rankings.
  */
 require_once dirname(__DIR__) . '/config.php';
 
@@ -105,32 +105,32 @@ include dirname(__DIR__) . '/components/head.php';
                             <a href="<?= e($crumb['url']) ?>" style="color: var(--color-primary); text-decoration: none;"><?= e($crumb['label']) ?></a>
                             <span style="margin-left: 0.35rem; color: #cbd5e1;">/</span>
                         <?php else: ?>
-                            <span style="color: #1e293b; font-weight: 600;"><?= e($crumb['label']) ?></span>
+                            <span style="color: #0f172a; font-weight: 600;"><?= e($crumb['label']) ?></span>
                         <?php endif; ?>
                     </li>
                 <?php endforeach; ?>
             </ol>
         </nav>
 
-        <!-- Tool Header Banner -->
-        <div style="background: linear-gradient(135deg, #0284c7 0%, #0f172a 100%); color: #ffffff; border-radius: 16px; padding: 2rem 2.25rem; margin-bottom: 2rem; box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.15);">
+        <!-- Professional Institutional Header Banner -->
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 2rem 2.25rem; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
             <div style="display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 1.25rem;">
                 <div style="max-width: 780px;">
-                    <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 0.75rem; background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.4); color: #7dd3fc; margin-bottom: 0.85rem;">
-                        <span style="width: 6px; height: 6px; border-radius: 50%; background: #38bdf8;"></span>
-                        Statutory Board &amp; University Multipliers Verified &middot; 2026 Academic Standard
+                    <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 0.75rem; background: #f0f9ff; border: 1px solid #bae6fd; color: #0369a1; margin-bottom: 0.85rem;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                        <span>Statutory Board &amp; University Multipliers Verified &middot; 2026 Academic Standard</span>
                     </div>
-                    <h1 style="font-size: 1.85rem; font-weight: 800; line-height: 1.3; margin: 0 0 0.75rem 0; color: #ffffff;">
+                    <h1 style="font-size: 1.85rem; font-weight: 800; line-height: 1.25; margin: 0 0 0.75rem 0; color: #0f172a; letter-spacing: -0.02em;">
                         CGPA to Percentage &amp; Marks Converter (10-Point Scale)
                     </h1>
-                    <p style="font-size: 0.95rem; color: #cbd5e1; line-height: 1.6; margin: 0;">
-                        Instantly convert Cumulative Grade Point Average (CGPA) into exact equivalent percentage and calculated marks for CBSE 10th/12th, B.Tech/Engineering (AICTE), AKTU, VTU, Mumbai University, and Central Universities for government job applications.
+                    <p style="font-size: 0.95rem; color: #64748b; line-height: 1.6; margin: 0;">
+                        Convert Cumulative Grade Point Average (CGPA) into exact equivalent percentage and calculated marks for CBSE 10th/12th, B.Tech/Engineering (AICTE), AKTU, VTU, Mumbai University, and Central Universities for government job applications.
                     </p>
                 </div>
-                <div style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 1rem 1.25rem; text-align: center; min-width: 170px;">
-                    <div style="font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; font-weight: 700; letter-spacing: 0.05em;">Supported Scale</div>
-                    <div style="font-size: 1.75rem; font-weight: 900; color: #38bdf8; margin: 0.25rem 0;">10.0 CGPA</div>
-                    <div style="font-size: 0.7rem; color: #bae6fd; font-weight: 600;">Standard UGC/AICTE Scale</div>
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem 1.25rem; text-align: center; min-width: 170px;">
+                    <div style="font-size: 0.75rem; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.05em;">Supported Scale</div>
+                    <div style="font-size: 1.75rem; font-weight: 900; color: #0284c7; margin: 0.25rem 0;">10.0 CGPA</div>
+                    <div style="font-size: 0.7rem; color: #0369a1; font-weight: 600;">Standard UGC/AICTE Scale</div>
                 </div>
             </div>
         </div>
@@ -139,9 +139,9 @@ include dirname(__DIR__) . '/components/head.php';
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 3rem;" class="calc-grid-layout">
             
             <!-- Left Column: Inputs & Formula Selector -->
-            <div style="background: #ffffff; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 16px rgba(0,0,0,0.06); border: 1px solid #e2e8f0;">
-                <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin-top: 0; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 8px;">
-                    <?= icon('settings', 'icon-sm') ?>
+            <div style="background: #ffffff; border-radius: 12px; padding: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
+                <h2 style="font-size: 1.15rem; font-weight: 800; color: #0f172a; margin-top: 0; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 8px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                     <span>Enter CGPA &amp; Select Board / University</span>
                 </h2>
 
@@ -153,7 +153,7 @@ include dirname(__DIR__) . '/components/head.php';
                         </label>
                         <span id="cgpaLiveBadge" style="font-size: 1.1rem; font-weight: 900; color: #0284c7; background: #e0f2fe; padding: 2px 10px; border-radius: 6px;">8.40</span>
                     </div>
-                    <input type="number" id="cgpaInput" min="0" max="10" step="0.01" value="8.40" style="width: 100%; padding: 0.75rem 1rem; border-radius: 10px; border: 1.5px solid #cbd5e1; font-size: 1.1rem; font-weight: 800; color: #0f172a; outline: none; margin-bottom: 0.75rem;">
+                    <input type="number" id="cgpaInput" min="0" max="10" step="0.01" value="8.40" style="width: 100%; padding: 0.75rem 1rem; border-radius: 8px; border: 1.5px solid #cbd5e1; font-size: 1.1rem; font-weight: 800; color: #0f172a; outline: none; margin-bottom: 0.75rem;">
                     <input type="range" id="cgpaRange" min="0" max="10" step="0.05" value="8.40" style="width: 100%; accent-color: #0284c7; cursor: pointer;">
                 </div>
 
@@ -162,7 +162,7 @@ include dirname(__DIR__) . '/components/head.php';
                     <label for="formulaSelect" style="display: block; font-size: 0.875rem; font-weight: 700; color: #334155; margin-bottom: 0.5rem;">
                         2. Select Board / University Conversion Formula
                     </label>
-                    <select id="formulaSelect" style="width: 100%; padding: 0.75rem 1rem; border-radius: 10px; border: 1.5px solid #cbd5e1; font-size: 0.95rem; font-weight: 600; color: #0f172a; background: #f8fafc; outline: none; cursor: pointer;">
+                    <select id="formulaSelect" style="width: 100%; padding: 0.75rem 1rem; border-radius: 8px; border: 1.5px solid #cbd5e1; font-size: 0.95rem; font-weight: 600; color: #0f172a; background: #f8fafc; outline: none; cursor: pointer;">
                         <option value="cbse" selected>CBSE Board (Class 10th &amp; 12th) &mdash; Multiplier: 9.5x</option>
                         <option value="aicte">AICTE Engineering / B.Tech &mdash; Formula: (CGPA - 0.75) × 10</option>
                         <option value="aktu">AKTU (Dr. APJ Abdul Kalam Tech Univ) &mdash; (CGPA - 0.75) × 10</option>
@@ -176,11 +176,11 @@ include dirname(__DIR__) . '/components/head.php';
                 </div>
 
                 <!-- 3. Optional Total Marks for Marks Calculation -->
-                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem;">
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.25rem; margin-bottom: 1.5rem;">
                     <label for="totalMarksInput" style="display: block; font-size: 0.8125rem; font-weight: 700; color: #334155; margin-bottom: 0.4rem;">
                         3. Maximum / Total Marks (Optional for Marks Calculation):
                     </label>
-                    <input type="number" id="totalMarksInput" placeholder="e.g. 500 or 600" value="500" style="width: 100%; padding: 0.6rem 0.85rem; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.95rem; font-weight: 700; outline: none;">
+                    <input type="number" id="totalMarksInput" placeholder="e.g. 500 or 600" value="500" style="width: 100%; padding: 0.6rem 0.85rem; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.95rem; font-weight: 700; outline: none;">
                     <div style="font-size: 0.72rem; color: #64748b; margin-top: 0.3rem;">
                         Used to calculate equivalent marks obtained out of maximum marks.
                     </div>
@@ -188,11 +188,13 @@ include dirname(__DIR__) . '/components/head.php';
 
                 <!-- Action Button Strip -->
                 <div style="display: flex; gap: 0.75rem;">
-                    <button type="button" id="copyResultBtn" style="flex: 1; padding: 0.75rem 1rem; border-radius: 10px; background: #0f172a; color: #ffffff; font-weight: 700; font-size: 0.875rem; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
-                        <?= icon('copy', 'icon-xs') ?> Copy Percentage
+                    <button type="button" id="copyResultBtn" style="flex: 1; padding: 0.75rem 1rem; border-radius: 8px; background: #0f172a; color: #ffffff; font-weight: 700; font-size: 0.875rem; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        <span>Copy Percentage</span>
                     </button>
-                    <button type="button" onclick="window.print();" style="padding: 0.75rem 1rem; border-radius: 10px; background: #f1f5f9; color: #334155; font-weight: 700; font-size: 0.875rem; border: 1px solid #cbd5e1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
-                        <?= icon('printer', 'icon-xs') ?> Print
+                    <button type="button" onclick="window.print();" style="padding: 0.75rem 1.25rem; border-radius: 8px; background: #ffffff; color: #334155; font-weight: 700; font-size: 0.875rem; border: 1px solid #cbd5e1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                        <span>Print</span>
                     </button>
                 </div>
             </div>
@@ -200,20 +202,20 @@ include dirname(__DIR__) . '/components/head.php';
             <!-- Right Column: Live Output Card -->
             <div>
                 <!-- Primary Percentage Result Card -->
-                <div style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; border-radius: 16px; padding: 2rem; box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.3); margin-bottom: 1.5rem; text-align: center;">
-                    <span style="font-size: 0.8125rem; text-transform: uppercase; letter-spacing: 0.075em; font-weight: 700; color: #bae6fd;">
+                <div style="background: #0f172a; color: #ffffff; border-radius: 12px; padding: 2rem; border: 1px solid #1e293b; box-shadow: 0 4px 12px rgba(15,23,42,0.12); margin-bottom: 1.5rem; text-align: center;">
+                    <span style="font-size: 0.8125rem; text-transform: uppercase; letter-spacing: 0.075em; font-weight: 700; color: #94a3b8;">
                         Equivalent Calculated Percentage
                     </span>
-                    <div id="percentageDisplay" style="font-size: 3.25rem; font-weight: 900; line-height: 1.1; margin: 0.5rem 0; color: #ffffff;">
+                    <div id="percentageDisplay" style="font-size: 3.25rem; font-weight: 900; line-height: 1.1; margin: 0.5rem 0; color: #38bdf8;">
                         79.80%
                     </div>
-                    <div id="divisionBadge" style="display: inline-block; padding: 4px 14px; border-radius: 20px; font-weight: 700; font-size: 0.875rem; background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.35); color: #ffffff;">
+                    <div id="divisionBadge" style="display: inline-block; padding: 4px 14px; border-radius: 20px; font-weight: 700; font-size: 0.875rem; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); color: #7dd3fc;">
                         First Division with Distinction
                     </div>
                 </div>
 
                 <!-- Detailed Marks & Conversion Proof Box -->
-                <div style="background: #ffffff; border-radius: 16px; padding: 1.75rem; box-shadow: 0 4px 16px rgba(0,0,0,0.06); border: 1px solid #e2e8f0;">
+                <div style="background: #ffffff; border-radius: 12px; padding: 1.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
                     <h3 style="font-size: 1.05rem; font-weight: 800; color: #0f172a; margin: 0 0 1.25rem 0; display: flex; justify-content: space-between; align-items: center;">
                         <span>Step-by-Step Conversion Summary</span>
                         <span style="font-size: 0.75rem; font-weight: 600; color: #64748b;">Statutory Proof</span>
@@ -249,7 +251,7 @@ include dirname(__DIR__) . '/components/head.php';
         </div>
 
         <!-- In-Depth SEO Educational Reference Content -->
-        <div style="background: #ffffff; border-radius: 16px; padding: 2.5rem; box-shadow: 0 4px 16px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; margin-bottom: 2rem;">
+        <div style="background: #ffffff; border-radius: 12px; padding: 2.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 2rem;">
             
             <h2 style="font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-top: 0; margin-bottom: 1rem;">
                 Official University &amp; Board CGPA Conversion Reference Guide
@@ -319,7 +321,7 @@ include dirname(__DIR__) . '/components/head.php';
             </h3>
 
             <div style="display: flex; flex-direction: column; gap: 1rem;">
-                <details style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem;" open>
+                <details style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem;" open>
                     <summary style="font-weight: 700; color: #0f172a; cursor: pointer;">
                         What is the difference between SGPA and CGPA?
                     </summary>
@@ -328,7 +330,7 @@ include dirname(__DIR__) . '/components/head.php';
                     </p>
                 </details>
 
-                <details style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem;">
+                <details style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem;">
                     <summary style="font-weight: 700; color: #0f172a; cursor: pointer;">
                         What if my university doesn't specify a conversion formula?
                     </summary>

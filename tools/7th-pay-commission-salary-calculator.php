@@ -2,7 +2,7 @@
 /**
  * 7th Pay Commission Salary & In-Hand Pay Calculator (2026-2027 Edition)
  * High-Accuracy Statutory Computation Engine for Central Government, SSC, RRB, Banking & Defence Posts.
- * Includes WebApplication, FAQPage, HowTo and BreadcrumbList Rich Schemas for #1 Google Search Rankings.
+ * Professional Institutional UI with SVG Iconography & Rich Schemas for Google Search Rankings.
  */
 require_once dirname(__DIR__) . '/config.php';
 
@@ -105,32 +105,32 @@ include dirname(__DIR__) . '/components/head.php';
                             <a href="<?= e($crumb['url']) ?>" style="color: var(--color-primary); text-decoration: none;"><?= e($crumb['label']) ?></a>
                             <span style="margin-left: 0.35rem; color: #cbd5e1;">/</span>
                         <?php else: ?>
-                            <span style="color: #1e293b; font-weight: 600;"><?= e($crumb['label']) ?></span>
+                            <span style="color: #0f172a; font-weight: 600;"><?= e($crumb['label']) ?></span>
                         <?php endif; ?>
                     </li>
                 <?php endforeach; ?>
             </ol>
         </nav>
 
-        <!-- Tool Header Banner -->
-        <div style="background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%); color: #ffffff; border-radius: 16px; padding: 2rem 2.25rem; margin-bottom: 2rem; box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.15);">
+        <!-- Professional Institutional Header Banner -->
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 2rem 2.25rem; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
             <div style="display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 1.25rem;">
                 <div style="max-width: 780px;">
-                    <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 0.75rem; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; margin-bottom: 0.85rem;">
-                        <span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981;"></span>
-                        Official 7th CPC Matrix Compliant &middot; 50% DA &amp; Revised HRA Active
+                    <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 0.75rem; background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; margin-bottom: 0.85rem;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span>Ministry of Finance 7th CPC Matrix Compliant &middot; 50% DA Active</span>
                     </div>
-                    <h1 style="font-size: 1.85rem; font-weight: 800; line-height: 1.3; margin: 0 0 0.75rem 0; color: #ffffff;">
+                    <h1 style="font-size: 1.85rem; font-weight: 800; line-height: 1.25; margin: 0 0 0.75rem 0; color: #0f172a; letter-spacing: -0.02em;">
                         7th Pay Commission Salary &amp; In-Hand Pay Calculator (2026–27)
                     </h1>
-                    <p style="font-size: 0.95rem; color: #cbd5e1; line-height: 1.6; margin: 0;">
-                        Accurately compute monthly in-hand net salary, gross package, dearness allowance (50%), house rent allowance (30%/20%/10%), transport allowance, and mandatory NPS deductions for Central Government, SSC, RRB, UPSC, and Banking examinations.
+                    <p style="font-size: 0.95rem; color: #64748b; line-height: 1.6; margin: 0;">
+                        Compute exact monthly in-hand net salary, gross package, 50% DA, house rent allowance (30%/20%/10%), transport allowance, and mandatory NPS deductions for Central Government, SSC, RRB, UPSC, and Banking posts.
                     </p>
                 </div>
-                <div style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 1rem 1.25rem; text-align: center; min-width: 170px;">
-                    <div style="font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; font-weight: 700; letter-spacing: 0.05em;">Current DA Rate</div>
-                    <div style="font-size: 1.75rem; font-weight: 900; color: #38bdf8; margin: 0.25rem 0;">50%</div>
-                    <div style="font-size: 0.7rem; color: #a7f3d0; font-weight: 600;">Standard Central Govt Rate</div>
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem 1.25rem; text-align: center; min-width: 170px;">
+                    <div style="font-size: 0.75rem; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.05em;">Current DA Rate</div>
+                    <div style="font-size: 1.75rem; font-weight: 900; color: #0284c7; margin: 0.25rem 0;">50%</div>
+                    <div style="font-size: 0.7rem; color: #15803d; font-weight: 600;">Standard Central Govt Rate</div>
                 </div>
             </div>
         </div>
@@ -139,10 +139,10 @@ include dirname(__DIR__) . '/components/head.php';
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 3rem;" class="calc-grid-layout">
             
             <!-- Left Column: Inputs & Controls -->
-            <div style="background: #ffffff; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 16px rgba(0,0,0,0.06); border: 1px solid #e2e8f0;">
-                <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin-top: 0; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 8px;">
-                    <?= icon('settings', 'icon-sm') ?>
-                    <span>Select Post &amp; Location Details</span>
+            <div style="background: #ffffff; border-radius: 12px; padding: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
+                <h2 style="font-size: 1.15rem; font-weight: 800; color: #0f172a; margin-top: 0; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 8px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    <span>Post &amp; Posting Location Settings</span>
                 </h2>
 
                 <!-- 1. Pay Level Selection -->
@@ -150,7 +150,7 @@ include dirname(__DIR__) . '/components/head.php';
                     <label for="payLevelSelect" style="display: block; font-size: 0.875rem; font-weight: 700; color: #334155; margin-bottom: 0.5rem;">
                         1. Pay Level &amp; Grade Pay
                     </label>
-                    <select id="payLevelSelect" style="width: 100%; padding: 0.75rem 1rem; border-radius: 10px; border: 1.5px solid #cbd5e1; font-size: 0.95rem; font-weight: 600; color: #0f172a; background: #f8fafc; outline: none; cursor: pointer;">
+                    <select id="payLevelSelect" style="width: 100%; padding: 0.75rem 1rem; border-radius: 8px; border: 1.5px solid #cbd5e1; font-size: 0.95rem; font-weight: 600; color: #0f172a; background: #f8fafc; outline: none; cursor: pointer;">
                         <option value="1" data-basic="18000" data-gp="1800" data-posts="MTS, Group D, Peon, Trackman">Level 1 (GP 1800) &mdash; Basic: ₹18,000 (MTS / Group D)</option>
                         <option value="2" data-basic="19900" data-gp="1900" data-posts="Lower Division Clerk (LDC), Junior Clerk">Level 2 (GP 1900) &mdash; Basic: ₹19,900 (LDC / Junior Clerk)</option>
                         <option value="3" data-basic="21700" data-gp="2000" data-posts="Police Constable, Postal Assistant, Fireman">Level 3 (GP 2000) &mdash; Basic: ₹21,700 (Constable / Postal Asst)</option>
@@ -175,52 +175,54 @@ include dirname(__DIR__) . '/components/head.php';
                     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;">
                         <label style="cursor: pointer;">
                             <input type="radio" name="cityTier" value="X" checked style="display: none;" id="tierX">
-                            <div class="tier-card active" id="cardTierX" style="border: 2px solid #0284c7; background: #f0f9ff; padding: 0.75rem 0.5rem; border-radius: 10px; text-align: center; transition: all 0.2s;">
-                                <div style="font-weight: 800; font-size: 1rem; color: #0369a1;">X City (30%)</div>
-                                <div style="font-size: 0.7rem; color: #64748b; margin-top: 0.2rem;">Delhi, Mumbai, Bengaluru, Pune</div>
+                            <div class="tier-card active" id="cardTierX" style="border: 1.5px solid #0284c7; background: #f0f9ff; padding: 0.75rem 0.5rem; border-radius: 8px; text-align: center; transition: all 0.2s;">
+                                <div style="font-weight: 800; font-size: 0.95rem; color: #0369a1;">X City (30%)</div>
+                                <div style="font-size: 0.7rem; color: #64748b; margin-top: 0.2rem;">Delhi, Mumbai, Bengaluru</div>
                             </div>
                         </label>
                         <label style="cursor: pointer;">
                             <input type="radio" name="cityTier" value="Y" style="display: none;" id="tierY">
-                            <div class="tier-card" id="cardTierY" style="border: 2px solid #cbd5e1; background: #ffffff; padding: 0.75rem 0.5rem; border-radius: 10px; text-align: center; transition: all 0.2s;">
-                                <div style="font-weight: 800; font-size: 1rem; color: #475569;">Y City (20%)</div>
-                                <div style="font-size: 0.7rem; color: #64748b; margin-top: 0.2rem;">Jaipur, Lucknow, Patna, Bhopal</div>
+                            <div class="tier-card" id="cardTierY" style="border: 1.5px solid #cbd5e1; background: #ffffff; padding: 0.75rem 0.5rem; border-radius: 8px; text-align: center; transition: all 0.2s;">
+                                <div style="font-weight: 800; font-size: 0.95rem; color: #475569;">Y City (20%)</div>
+                                <div style="font-size: 0.7rem; color: #64748b; margin-top: 0.2rem;">Jaipur, Lucknow, Patna</div>
                             </div>
                         </label>
                         <label style="cursor: pointer;">
                             <input type="radio" name="cityTier" value="Z" style="display: none;" id="tierZ">
-                            <div class="tier-card" id="cardTierZ" style="border: 2px solid #cbd5e1; background: #ffffff; padding: 0.75rem 0.5rem; border-radius: 10px; text-align: center; transition: all 0.2s;">
-                                <div style="font-weight: 800; font-size: 1rem; color: #475569;">Z City (10%)</div>
-                                <div style="font-size: 0.7rem; color: #64748b; margin-top: 0.2rem;">Small Towns &amp; Rural Postings</div>
+                            <div class="tier-card" id="cardTierZ" style="border: 1.5px solid #cbd5e1; background: #ffffff; padding: 0.75rem 0.5rem; border-radius: 8px; text-align: center; transition: all 0.2s;">
+                                <div style="font-weight: 800; font-size: 0.95rem; color: #475569;">Z City (10%)</div>
+                                <div style="font-size: 0.7rem; color: #64748b; margin-top: 0.2rem;">Small Towns &amp; Rural</div>
                             </div>
                         </label>
                     </div>
                 </div>
 
                 <!-- 3. Advanced Settings (DA & NPS Sliders) -->
-                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem;">
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.25rem; margin-bottom: 1.5rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
                         <span style="font-size: 0.8125rem; font-weight: 700; color: #334155;">Dearness Allowance (DA Rate):</span>
                         <span id="daRateVal" style="font-size: 0.925rem; font-weight: 800; color: #0284c7;">50%</span>
                     </div>
                     <input type="range" id="daRange" min="40" max="60" value="50" step="1" style="width: 100%; accent-color: #0284c7; cursor: pointer;">
                     
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; margin-bottom: 0.75rem;">
-                        <span style="font-size: 0.8125rem; font-weight: 700; color: #334155;">NPS Employee Deduction:</span>
-                        <span id="npsRateVal" style="font-size: 0.925rem; font-weight: 800; color: #15803d;">10% (Mandatory)</span>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; margin-bottom: 0.5rem;">
+                        <span style="font-size: 0.8125rem; font-weight: 700; color: #334155;">NPS Employee Share:</span>
+                        <span id="npsRateVal" style="font-size: 0.875rem; font-weight: 700; color: #15803d;">10% (Statutory)</span>
                     </div>
                     <div style="font-size: 0.72rem; color: #64748b;">
-                        Calculated as 10% of (Basic Pay + Dearness Allowance).
+                        Calculated strictly as 10% of (Basic Pay + Dearness Allowance).
                     </div>
                 </div>
 
                 <!-- Action Button Strip -->
                 <div style="display: flex; gap: 0.75rem;">
-                    <button type="button" id="copySummaryBtn" style="flex: 1; padding: 0.75rem 1rem; border-radius: 10px; background: #0f172a; color: #ffffff; font-weight: 700; font-size: 0.875rem; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
-                        <?= icon('copy', 'icon-xs') ?> Copy Breakdown
+                    <button type="button" id="copySummaryBtn" style="flex: 1; padding: 0.75rem 1rem; border-radius: 8px; background: #0f172a; color: #ffffff; font-weight: 700; font-size: 0.875rem; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        <span>Copy Breakdown</span>
                     </button>
-                    <button type="button" onclick="window.print();" style="padding: 0.75rem 1rem; border-radius: 10px; background: #f1f5f9; color: #334155; font-weight: 700; font-size: 0.875rem; border: 1px solid #cbd5e1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
-                        <?= icon('printer', 'icon-xs') ?> Print
+                    <button type="button" onclick="window.print();" style="padding: 0.75rem 1.25rem; border-radius: 8px; background: #ffffff; color: #334155; font-weight: 700; font-size: 0.875rem; border: 1px solid #cbd5e1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                        <span>Print</span>
                     </button>
                 </div>
             </div>
@@ -228,20 +230,20 @@ include dirname(__DIR__) . '/components/head.php';
             <!-- Right Column: Live Output & Salary Slip -->
             <div>
                 <!-- Primary In-Hand Card -->
-                <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); color: #ffffff; border-radius: 16px; padding: 2rem; box-shadow: 0 10px 25px -5px rgba(5, 150, 105, 0.3); margin-bottom: 1.5rem; text-align: center;">
-                    <span style="font-size: 0.8125rem; text-transform: uppercase; letter-spacing: 0.075em; font-weight: 700; color: #a7f3d0;">
+                <div style="background: #0f172a; color: #ffffff; border-radius: 12px; padding: 2rem; border: 1px solid #1e293b; box-shadow: 0 4px 12px rgba(15,23,42,0.12); margin-bottom: 1.5rem; text-align: center;">
+                    <span style="font-size: 0.8125rem; text-transform: uppercase; letter-spacing: 0.075em; font-weight: 700; color: #94a3b8;">
                         Estimated Monthly In-Hand Salary (in Bank)
                     </span>
-                    <div id="netInHandDisplay" style="font-size: 2.75rem; font-weight: 900; line-height: 1.1; margin: 0.5rem 0; color: #ffffff;">
+                    <div id="netInHandDisplay" style="font-size: 2.75rem; font-weight: 900; line-height: 1.1; margin: 0.5rem 0; color: #38bdf8;">
                         ₹78,805
                     </div>
-                    <div style="font-size: 0.875rem; color: #d1fae5;">
-                        Annual In-Hand Take Home: <strong id="annualInHandDisplay" style="color: #ffffff;">₹9,45,660 / Year</strong>
+                    <div style="font-size: 0.875rem; color: #cbd5e1;">
+                        Annual In-Hand Package: <strong id="annualInHandDisplay" style="color: #ffffff;">₹9,45,660 / Year</strong>
                     </div>
                 </div>
 
                 <!-- Detailed Breakdown Table Box -->
-                <div style="background: #ffffff; border-radius: 16px; padding: 1.75rem; box-shadow: 0 4px 16px rgba(0,0,0,0.06); border: 1px solid #e2e8f0;">
+                <div style="background: #ffffff; border-radius: 12px; padding: 1.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
                     <h3 style="font-size: 1.05rem; font-weight: 800; color: #0f172a; margin: 0 0 1.25rem 0; display: flex; justify-content: space-between; align-items: center;">
                         <span>Monthly Earnings &amp; Deductions</span>
                         <span style="font-size: 0.75rem; font-weight: 600; color: #64748b;">7th CPC Formula</span>
@@ -301,7 +303,7 @@ include dirname(__DIR__) . '/components/head.php';
         </div>
 
         <!-- In-Depth SEO Reference Guides & Pay Matrix Tables -->
-        <div style="background: #ffffff; border-radius: 16px; padding: 2.5rem; box-shadow: 0 4px 16px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; margin-bottom: 2rem;">
+        <div style="background: #ffffff; border-radius: 12px; padding: 2.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 2rem;">
             
             <h2 style="font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-top: 0; margin-bottom: 1rem;">
                 Official 7th CPC Pay Matrix &amp; In-Hand Salary Guide (2026–27)
@@ -333,7 +335,7 @@ include dirname(__DIR__) . '/components/head.php';
                             <td style="padding: 0.75rem 1rem;">₹18,000</td>
                             <td style="padding: 0.75rem 1rem;">₹34,425</td>
                             <td style="padding: 0.75rem 1rem; font-weight: 700; color: #15803d;">₹31,400</td>
-                            <td style="padding: 0.75rem 1rem;">SSC MTS, RRB Group D, Peon, Attendant</td>
+                            <td style="padding: 0.75rem 1rem;">SSC MTS, RRB Group D, Peon, Trackman</td>
                         </tr>
                         <tr style="border-bottom: 1px solid #e2e8f0; background: #f8fafc;">
                             <td style="padding: 0.75rem 1rem; font-weight: 700; color: #0284c7;">Level 2</td>
@@ -393,7 +395,7 @@ include dirname(__DIR__) . '/components/head.php';
             </h3>
 
             <div style="display: flex; flex-direction: column; gap: 1rem;">
-                <details style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem;" open>
+                <details style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem;" open>
                     <summary style="font-weight: 700; color: #0f172a; cursor: pointer;">
                         How does the 50% DA increase affect HRA rates in 2026?
                     </summary>
@@ -402,7 +404,7 @@ include dirname(__DIR__) . '/components/head.php';
                     </p>
                 </details>
 
-                <details style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem;">
+                <details style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem;">
                     <summary style="font-weight: 700; color: #0f172a; cursor: pointer;">
                         What are the standard employee deduction components?
                     </summary>
@@ -411,7 +413,7 @@ include dirname(__DIR__) . '/components/head.php';
                     </p>
                 </details>
 
-                <details style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem;">
+                <details style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem;">
                     <summary style="font-weight: 700; color: #0f172a; cursor: pointer;">
                         Is the salary calculation identical for Central Govt and State Govt employees?
                     </summary>
