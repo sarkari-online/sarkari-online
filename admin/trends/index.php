@@ -227,14 +227,22 @@ include dirname(__DIR__) . '/components/header.php';
                                 <strong style="color: var(--text-main); font-size: 0.925rem; line-height: 1.4; display: block;">
                                     <?= e($t['keyword']) ?>
                                 </strong>
-                                <?php if (!empty($t['url'])): ?>
-                                    <div style="font-size: 0.75rem; margin-top: 0.25rem;">
-                                        <a href="<?= e($t['url']) ?>" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary); display: inline-flex; align-items: center; gap: 4px; text-decoration: none;">
-                                            <span><?= e(mb_substr($t['url'], 0, 48)) ?>...</span>
+                                <?php 
+                                $officialAuth = \App\Services\AuthorityFactFetcherService::resolveAuthority($t['keyword'], $t['url'] ?? '');
+                                ?>
+                                <div style="font-size: 0.75rem; margin-top: 0.35rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                    <?php if (!empty($officialAuth['portal'])): ?>
+                                        <a href="<?= e($officialAuth['portal']) ?>" target="_blank" rel="noopener noreferrer" style="color: #047857; background: #ecfdf5; border: 1px solid #a7f3d0; padding: 2px 8px; border-radius: 4px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; text-decoration: none;" title="<?= e($officialAuth['name']) ?>">
+                                            🏛️ <?= e(parse_url($officialAuth['portal'], PHP_URL_HOST)) ?> <?= icon('external-link', 'icon-xs') ?>
+                                        </a>
+                                    <?php endif; ?>
+                                    <?php if (!empty($t['url'])): ?>
+                                        <a href="<?= e($t['url']) ?>" target="_blank" rel="noopener noreferrer" style="color: #64748b; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 3px; text-decoration: none;" title="News Wire Source">
+                                            <span>(Wire: <?= e(parse_url($t['url'], PHP_URL_HOST)) ?>)</span>
                                             <?= icon('external-link', 'icon-xs') ?>
                                         </a>
-                                    </div>
-                                <?php endif; ?>
+                                    <?php endif; ?>
+                                </div>
                             </td>
                             <td style="padding: 0.85rem 1rem; text-align: center; vertical-align: middle;">
                                 <?php
