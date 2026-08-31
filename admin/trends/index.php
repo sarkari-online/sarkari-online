@@ -256,7 +256,7 @@ include dirname(__DIR__) . '/components/header.php';
                                 </span>
                             </td>
                             <td style="padding: 0.85rem 1rem; font-size: 0.785rem; color: var(--text-muted); vertical-align: middle; white-space: nowrap;">
-                                <?= date('d M Y, H:i', strtotime($t['detected_at'])) ?>
+                                <?= date('d M Y, h:i A', strtotime($t['detected_at'])) ?>
                             </td>
                             <td style="padding: 0.85rem 1rem; vertical-align: middle;">
                                 <?php if ($t['status'] === 'analyzing'): ?>
