@@ -255,13 +255,18 @@ class AutoCronService {
 
     private static function runGenerate(): void {
         Logger::info('AutoCron: Checking generation pipeline');
+        if (php_sapi_name() === 'cli') {
+            echo "[" . date('Y-m-d H:i:s') . "] ⚡ AutoCron: Checking generation pipeline...\n";
+        }
 
         $publishingService = new PublishingService();
 
         // 1. Daily Quota Check: Max 5 articles per day
         $todayCount = $publishingService->getPublishedTodayCount();
         if ($todayCount >= 5) {
-            Logger::info("AutoCron generate: Daily publishing quota ({$todayCount}/5) reached for today. Resting until tomorrow.");
+            $msg = "AutoCron generate: Daily publishing quota ({$todayCount}/5) reached for today. Resting until tomorrow.";
+            Logger::info($msg);
+            if (php_sapi_name() === 'cli') echo "[" . date('Y-m-d H:i:s') . "] {$msg}\n";
             return;
         }
 
@@ -279,7 +284,9 @@ class AutoCronService {
                 $minGapMins = 45;
                 if ($elapsedMins < $minGapMins) {
                     $waitMins = $minGapMins - $elapsedMins;
-                    Logger::info("AutoCron pacing: Slot {$todayCount}/5 was published {$elapsedMins}m ago. Next article in ~{$waitMins}m.");
+                    $msg = "AutoCron pacing: Slot {$todayCount}/5 was published {$elapsedMins}m ago. Next article in ~{$waitMins}m.";
+                    Logger::info($msg);
+                    if (php_sapi_name() === 'cli') echo "[" . date('Y-m-d H:i:s') . "] {$msg}\n";
                     return;
                 }
             }
@@ -292,9 +299,15 @@ class AutoCronService {
 
         // 4. Generate next top approved trend directly to LIVE status
         $slotNum = $todayCount + 1;
-        Logger::info("AutoCron: Autonomous Slot {$slotNum}/5 active. Generating top approved trend...");
+        $msg = "AutoCron: Autonomous Slot {$slotNum}/5 active. Generating top approved trend...";
+        Logger::info($msg);
+        if (php_sapi_name() === 'cli') echo "[" . date('Y-m-d H:i:s') . "] {$msg}\n";
+
         $pipeline = new PipelineService();
-        $pipeline->processApprovedTrends(1);
+        $results = $pipeline->processApprovedTrends(1);
+        if (php_sapi_name() === 'cli') {
+            echo "[" . date('Y-m-d H:i:s') . "] Generation result: " . json_encode($results) . "\n";
+        }
     }
 
     private static function runPublish(): void {

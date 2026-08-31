@@ -416,19 +416,25 @@ class PipelineService {
     /**
      * Run batch article generation on approved trends
      */
-    public function processApprovedTrends(int $limit = 5): array {
-        $sql = "SELECT id FROM trends WHERE status = 'approved' ORDER BY trend_score DESC, id ASC LIMIT " . (int)$limit;
+    public function processApprovedTrends(int $targetPublished = 1): array {
+        // Fetch up to 10 approved candidates to smoothly skip any already-covered topics
+        $sql = "SELECT id FROM trends WHERE status = 'approved' ORDER BY trend_score DESC, id ASC LIMIT 10";
         $approved = Database::fetchAll($sql);
 
         $results = [];
-        foreach ($approved as $index => $tr) {
-            if ($index > 0) {
-                // Pause 5 seconds between articles to stay comfortably under Google Free Tier RPM limit
-                sleep(5);
+        $publishedCount = 0;
+
+        foreach ($approved as $tr) {
+            if ($publishedCount >= $targetPublished) {
+                break;
             }
+
             try {
                 $res = $this->generateFromTrend((int)$tr['id']);
                 $results[] = $res;
+                if (!empty($res['success']) && ($res['status'] ?? '') !== 'already_generated') {
+                    $publishedCount++;
+                }
             } catch (Throwable $e) {
                 Logger::error("Failed to generate article for Trend #{$tr['id']}: " . $e->getMessage());
                 $results[] = ['success' => false, 'trend_id' => (int)$tr['id'], 'error' => $e->getMessage()];

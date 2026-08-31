@@ -69,8 +69,12 @@ $params = [];
 $where = [];
 
 if ($statusFilter !== '') {
-    $where[] = "status = :status";
-    $params['status'] = $statusFilter;
+    if ($statusFilter === 'approved') {
+        $where[] = "status IN ('approved', 'generating')";
+    } else {
+        $where[] = "status = :status";
+        $params['status'] = $statusFilter;
+    }
 }
 
 $whereClause = !empty($where) ? "WHERE " . implode(' AND ', $where) : "";
@@ -85,7 +89,7 @@ $totalPages = ceil($total / $perPage);
 
 // Stats
 $detectedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'detected'");
-$approvedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'approved'");
+$approvedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status IN ('approved', 'generating')");
 $generatingCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'generating'");
 $publishedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'published'");
 $rejectedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'rejected'");
