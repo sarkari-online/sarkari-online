@@ -125,8 +125,8 @@ class TrendService {
         $cutoff = date('Y-m-d H:i:s', strtotime("-{$days} days"));
 
         $existing = Database::fetchOne(
-            "SELECT id FROM articles WHERE title LIKE :pattern AND (published_at >= :cutoff OR created_at >= :cutoff) LIMIT 1",
-            ['pattern' => $likePattern, 'cutoff' => $cutoff]
+            "SELECT id FROM articles WHERE title LIKE :pattern AND (published_at >= :cutoff1 OR created_at >= :cutoff2) LIMIT 1",
+            ['pattern' => $likePattern, 'cutoff1' => $cutoff, 'cutoff2' => $cutoff]
         );
 
         return $existing !== null;
