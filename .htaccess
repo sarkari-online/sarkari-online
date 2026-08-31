@@ -40,6 +40,11 @@
     RewriteRule ^terms/?$ terms.php [L,QSA]
     RewriteRule ^editorial-policy/?$ editorial-policy.php [L,QSA]
     RewriteRule ^ai-policy/?$ ai-policy.php [L,QSA]
+    RewriteRule ^tools/?$ tools/index.php [L,QSA]
+    RewriteRule ^tools/7th-pay-commission-salary-calculator/?$ tools/7th-pay-commission-salary-calculator.php [L,QSA]
+    RewriteRule ^tools/salary-calculator/?$ tools/7th-pay-commission-salary-calculator.php [L,QSA]
+    RewriteRule ^tools/cgpa-to-percentage-calculator/?$ tools/cgpa-to-percentage-calculator.php [L,QSA]
+    RewriteRule ^tools/cgpa-calculator/?$ tools/cgpa-to-percentage-calculator.php [L,QSA]
 
     # Serve existing files and directories directly
     RewriteCond %{REQUEST_FILENAME} -f [OR]

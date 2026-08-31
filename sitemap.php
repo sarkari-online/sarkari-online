@@ -40,7 +40,10 @@ $staticPages = [
     ['url' => 'contact/', 'file' => __DIR__ . '/contact.php'],
     ['url' => 'privacy-policy/', 'file' => __DIR__ . '/privacy-policy.php'],
     ['url' => 'terms/', 'file' => __DIR__ . '/terms.php'],
-    ['url' => 'disclaimer/', 'file' => __DIR__ . '/disclaimer.php']
+    ['url' => 'disclaimer/', 'file' => __DIR__ . '/disclaimer.php'],
+    ['url' => 'tools/', 'file' => __DIR__ . '/tools/index.php'],
+    ['url' => 'tools/7th-pay-commission-salary-calculator/', 'file' => __DIR__ . '/tools/7th-pay-commission-salary-calculator.php'],
+    ['url' => 'tools/cgpa-to-percentage-calculator/', 'file' => __DIR__ . '/tools/cgpa-to-percentage-calculator.php']
 ];
 
 $seenUrls = [];

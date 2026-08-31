@@ -45,7 +45,8 @@
                     <ul class="footer-links-list">
                         <li><a href="<?= url('category/government-jobs/') ?>" class="footer-link">Staff Selection (SSC)</a></li>
                         <li><a href="<?= url('category/government-jobs/') ?>" class="footer-link">Railway Recruitment (RRB)</a></li>
-                        <li><a href="<?= url('category/government-jobs/') ?>" class="footer-link">Banking Careers (IBPS/SBI)</a></li>
+                        <li><a href="<?= url('tools/7th-pay-commission-salary-calculator/') ?>" class="footer-link" style="color: #38bdf8;">7th Pay Salary Calculator</a></li>
+                        <li><a href="<?= url('tools/cgpa-to-percentage-calculator/') ?>" class="footer-link" style="color: #38bdf8;">CGPA to % Converter</a></li>
                         <li><a href="<?= url('category/scholarships/') ?>" class="footer-link">National Scholarships (NSP)</a></li>
                         <li><a href="<?= url('category/admit-cards/') ?>" class="footer-link">Admit Cards &amp; Hall Tickets</a></li>
                         <li><a href="<?= url('category/exam-dates/') ?>" class="footer-link">Exam Calendars 2026–27</a></li>

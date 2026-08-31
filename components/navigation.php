@@ -12,9 +12,12 @@ $primaryNavLinks = [
     ['label' => 'Exam Dates', 'url' => 'category/exam-dates/'],
     ['label' => 'Govt Jobs', 'url' => 'category/government-jobs/'],
     ['label' => 'Scholarships', 'url' => 'category/scholarships/'],
+    ['label' => 'Student Tools', 'url' => 'tools/'],
 ];
 
 $moreNavLinks = [
+    ['label' => '7th Pay Salary Calculator', 'url' => 'tools/7th-pay-commission-salary-calculator/', 'icon' => 'trending-up', 'desc' => 'Calculate In-Hand Pay, 50% DA, HRA & NPS Deductions'],
+    ['label' => 'CGPA to % Converter', 'url' => 'tools/cgpa-to-percentage-calculator/', 'icon' => 'book-open', 'desc' => 'CBSE, AICTE, AKTU, VTU & 10-Point Scales'],
     ['label' => 'College Updates', 'url' => 'category/college-updates/', 'icon' => 'book-open', 'desc' => 'UGC Norms, PhD Admissions & College Cutoffs'],
     ['label' => 'Entrance Exams', 'url' => 'category/entrance-exams/', 'icon' => 'compass', 'desc' => 'NEET, JEE, CTET & State CETs'],
     ['label' => 'Career Guides', 'url' => 'category/career-guides/', 'icon' => 'trending-up', 'desc' => 'Syllabus, Exam Patterns & Roadmaps'],
