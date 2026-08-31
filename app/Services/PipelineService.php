@@ -99,8 +99,8 @@ class PipelineService {
             Logger::info("Starting content generation pipeline for Trend #{$trendId}: '{$trend['keyword']}'");
         }
 
-        // Mark status as 'generating' so UI immediately shows GENERATING badge
-        TrendService::markStatus($trendId, 'generating');
+        // Mark status as 'analyzing' (valid DB enum) so UI immediately shows GENERATING badge
+        TrendService::markStatus($trendId, 'analyzing');
 
         // Parse raw payload / source information
         $rawPayload = [];

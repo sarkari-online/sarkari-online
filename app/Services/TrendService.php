@@ -400,10 +400,9 @@ class TrendService {
      * Fetch pending trends for AI analysis with atomic locking
      */
     public static function getPendingForAnalysis(int $limit = 10): array {
-        // Auto-heal stuck analyzing or generating trends (e.g. from timeouts or network disconnects)
+        // Auto-heal stuck analyzing trends (e.g. from timeouts or network disconnects)
         try {
             Database::query("UPDATE trends SET status = 'detected' WHERE status = 'analyzing' AND analyzed_at < DATE_SUB(NOW(), INTERVAL 10 MINUTE)");
-            Database::query("UPDATE trends SET status = 'approved' WHERE status = 'generating' AND updated_at < DATE_SUB(NOW(), INTERVAL 10 MINUTE)");
         } catch (Throwable $e) {}
 
         $sql = "SELECT t.*, c.name AS category_name, c.slug AS category_slug
@@ -420,7 +419,7 @@ class TrendService {
      * Update trend status and optional payload notes
      */
     public static function markStatus(int $id, string $status, array $extra = []): bool {
-        $allowedStatuses = ['detected', 'analyzing', 'approved', 'generating', 'rejected', 'generated', 'published', 'failed'];
+        $allowedStatuses = ['detected', 'analyzing', 'approved', 'rejected', 'generated', 'published', 'failed'];
         if (!in_array($status, $allowedStatuses, true)) {
             return false;
         }

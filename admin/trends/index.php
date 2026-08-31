@@ -70,7 +70,7 @@ $where = [];
 
 if ($statusFilter !== '') {
     if ($statusFilter === 'approved') {
-        $where[] = "status IN ('approved', 'generating')";
+        $where[] = "status IN ('approved', 'analyzing')";
     } else {
         $where[] = "status = :status";
         $params['status'] = $statusFilter;
@@ -89,8 +89,8 @@ $totalPages = ceil($total / $perPage);
 
 // Stats
 $detectedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'detected'");
-$approvedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status IN ('approved', 'generating')");
-$generatingCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'generating'");
+$approvedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status IN ('approved', 'analyzing')");
+$generatingCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'analyzing'");
 $publishedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'published'");
 $rejectedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'rejected'");
 
@@ -172,11 +172,6 @@ include dirname(__DIR__) . '/components/header.php';
     </div>
     <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
         <a href="<?= url('admin/trends/') ?>" class="btn btn-sm <?= $statusFilter === '' ? 'btn-primary' : 'btn-outline' ?>">All (<?= $total ?>)</a>
-        <?php if ($generatingCount > 0): ?>
-            <a href="<?= url('admin/trends/?status=generating') ?>" class="btn btn-sm <?= $statusFilter === 'generating' ? 'btn-warning' : 'btn-outline' ?>" style="color: #b45309; border-color: #f59e0b;">
-                ⚙️ Generating (<?= $generatingCount ?>)
-            </a>
-        <?php endif; ?>
         <a href="<?= url('admin/trends/?status=approved') ?>" class="btn btn-sm <?= $statusFilter === 'approved' ? 'btn-primary' : 'btn-outline' ?>">Approved (<?= $approvedCount ?>)</a>
         <a href="<?= url('admin/trends/?status=detected') ?>" class="btn btn-sm <?= $statusFilter === 'detected' ? 'btn-primary' : 'btn-outline' ?>">Detected (<?= $detectedCount ?>)</a>
         <a href="<?= url('admin/trends/?status=published') ?>" class="btn btn-sm <?= $statusFilter === 'published' ? 'btn-primary' : 'btn-outline' ?>">Published (<?= $publishedCount ?>)</a>
@@ -264,7 +259,7 @@ include dirname(__DIR__) . '/components/header.php';
                                 <?= date('d M Y, H:i', strtotime($t['detected_at'])) ?>
                             </td>
                             <td style="padding: 0.85rem 1rem; vertical-align: middle;">
-                                <?php if ($t['status'] === 'generating'): ?>
+                                <?php if ($t['status'] === 'analyzing'): ?>
                                     <span class="badge" style="background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; font-weight: 800; font-size: 0.75rem; padding: 4px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px;">
                                         <span style="display: inline-block; width: 8px; height: 8px; border: 2px solid #b45309; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></span>
                                         GENERATING...
@@ -290,7 +285,7 @@ include dirname(__DIR__) . '/components/header.php';
                                 <?php endif; ?>
                             </td>
                             <td style="padding: 0.85rem 1rem; text-align: right; vertical-align: middle; white-space: nowrap;">
-                                <?php if ($t['status'] === 'generating'): ?>
+                                <?php if ($t['status'] === 'analyzing'): ?>
                                     <span style="font-size: 0.75rem; color: #b45309; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
                                         Writing Article &amp; Thumbnail...
                                     </span>
