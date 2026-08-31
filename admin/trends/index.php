@@ -86,6 +86,7 @@ $totalPages = ceil($total / $perPage);
 // Stats
 $detectedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'detected'");
 $approvedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'approved'");
+$generatingCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'generating'");
 $publishedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'published'");
 $rejectedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'rejected'");
 
@@ -95,6 +96,11 @@ $breakingCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE s
 
 include dirname(__DIR__) . '/components/header.php';
 ?>
+
+<style>
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+@keyframes pulseGlow { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+</style>
 
 <!-- Trends Engine Explainer & Guide Banner -->
 <div style="background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%); color: #ffffff; border-radius: 12px; padding: 1.5rem 1.75rem; margin-bottom: 1.75rem; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);">
@@ -130,10 +136,12 @@ include dirname(__DIR__) . '/components/header.php';
         <span class="stat-card-label">Daily Regular Quota</span>
         <span class="stat-card-num" style="color: #1e3a8a;"><?= $todayPublishedCount ?> / 5</span>
     </div>
-    <div class="stat-card">
-        <span class="stat-card-label">Official Breaking</span>
-        <span class="stat-card-num" style="color: #dc2626;"><?= $breakingCount ?></span>
-    </div>
+    <?php if ($generatingCount > 0): ?>
+        <div class="stat-card" style="border: 2px solid #f59e0b; background: #fffbeb;">
+            <span class="stat-card-label" style="color: #b45309; font-weight: 800;">⚙️ Generating Live</span>
+            <span class="stat-card-num" style="color: #d97706; animation: pulseGlow 1.5s infinite;"><?= $generatingCount ?></span>
+        </div>
+    <?php endif; ?>
     <div class="stat-card">
         <span class="stat-card-label">Approved Queue (Lean)</span>
         <span class="stat-card-num" style="color: #16a34a;"><?= $approvedCount ?></span>
@@ -160,8 +168,13 @@ include dirname(__DIR__) . '/components/header.php';
     </div>
     <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
         <a href="<?= url('admin/trends/') ?>" class="btn btn-sm <?= $statusFilter === '' ? 'btn-primary' : 'btn-outline' ?>">All (<?= $total ?>)</a>
-        <a href="<?= url('admin/trends/?status=detected') ?>" class="btn btn-sm <?= $statusFilter === 'detected' ? 'btn-primary' : 'btn-outline' ?>">Detected (<?= $detectedCount ?>)</a>
+        <?php if ($generatingCount > 0): ?>
+            <a href="<?= url('admin/trends/?status=generating') ?>" class="btn btn-sm <?= $statusFilter === 'generating' ? 'btn-warning' : 'btn-outline' ?>" style="color: #b45309; border-color: #f59e0b;">
+                ⚙️ Generating (<?= $generatingCount ?>)
+            </a>
+        <?php endif; ?>
         <a href="<?= url('admin/trends/?status=approved') ?>" class="btn btn-sm <?= $statusFilter === 'approved' ? 'btn-primary' : 'btn-outline' ?>">Approved (<?= $approvedCount ?>)</a>
+        <a href="<?= url('admin/trends/?status=detected') ?>" class="btn btn-sm <?= $statusFilter === 'detected' ? 'btn-primary' : 'btn-outline' ?>">Detected (<?= $detectedCount ?>)</a>
         <a href="<?= url('admin/trends/?status=published') ?>" class="btn btn-sm <?= $statusFilter === 'published' ? 'btn-primary' : 'btn-outline' ?>">Published (<?= $publishedCount ?>)</a>
         <a href="<?= url('admin/trends/?status=rejected') ?>" class="btn btn-sm <?= $statusFilter === 'rejected' ? 'btn-primary' : 'btn-outline' ?>">Rejected (<?= $rejectedCount ?>)</a>
     </div>
@@ -174,9 +187,9 @@ include dirname(__DIR__) . '/components/header.php';
 <?php endif; ?>
 
 <!-- Trends Table Box -->
-<div class="admin-table-box">
-    <div style="overflow-x: auto;">
-        <table class="table" style="margin: 0; width: 100%; border-collapse: collapse;">
+<div class="card" style="padding: 0; overflow: hidden;">
+    <div class="table-responsive">
+        <table class="table" style="margin-bottom: 0; width: 100%; border-collapse: collapse;">
             <thead>
                 <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
                     <th style="padding: 0.85rem 1rem; font-size: 0.8rem; text-transform: uppercase; color: #475569; font-weight: 700; width: 40%;">Topic &amp; Official URL</th>
@@ -247,51 +260,75 @@ include dirname(__DIR__) . '/components/header.php';
                                 <?= date('d M Y, H:i', strtotime($t['detected_at'])) ?>
                             </td>
                             <td style="padding: 0.85rem 1rem; vertical-align: middle;">
-                                <?php
-                                $statusStyles = [
-                                    'detected' => 'background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;',
-                                    'analyzing' => 'background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;',
-                                    'approved' => 'background: #dcfce7; color: #166534; border: 1px solid #bbf7d0;',
-                                    'rejected' => 'background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;',
-                                    'generated' => 'background: #ede9fe; color: #5b21b6; border: 1px solid #ddd6fe;',
-                                    'published' => 'background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe;',
-                                    'failed' => 'background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca;'
-                                ];
-                                $badgeStyle = $statusStyles[$t['status']] ?? 'background: #f1f5f9; color: #475569;';
+                                <?php if ($t['status'] === 'generating'): ?>
+                                    <span class="badge" style="background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; font-weight: 800; font-size: 0.75rem; padding: 4px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px;">
+                                        <span style="display: inline-block; width: 8px; height: 8px; border: 2px solid #b45309; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></span>
+                                        GENERATING...
+                                    </span>
+                                <?php elseif ($t['status'] === 'published'): ?>
+                                    <span class="badge" style="background: #dcfce7; color: #15803d; border: 1px solid #86efac; font-weight: 800; font-size: 0.75rem; padding: 3px 8px; border-radius: 6px;">
+                                        ✅ PUBLISHED
+                                    </span>
+                                <?php else: 
+                                    $statusStyles = [
+                                        'detected' => 'background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;',
+                                        'analyzing' => 'background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;',
+                                        'approved' => 'background: #dcfce7; color: #166534; border: 1px solid #bbf7d0;',
+                                        'rejected' => 'background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;',
+                                        'generated' => 'background: #ede9fe; color: #5b21b6; border: 1px solid #ddd6fe;',
+                                        'failed' => 'background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca;'
+                                    ];
+                                    $badgeStyle = $statusStyles[$t['status']] ?? 'background: #f1f5f9; color: #475569;';
                                 ?>
-                                <span class="badge" style="<?= $badgeStyle ?> font-weight: 700; font-size: 0.75rem; padding: 3px 8px; border-radius: 6px; text-transform: uppercase;">
-                                    <?= ucfirst($t['status']) ?>
-                                </span>
+                                    <span class="badge" style="<?= $badgeStyle ?> font-weight: 700; font-size: 0.75rem; padding: 3px 8px; border-radius: 6px; text-transform: uppercase;">
+                                        <?= ucfirst($t['status']) ?>
+                                    </span>
+                                <?php endif; ?>
                             </td>
                             <td style="padding: 0.85rem 1rem; text-align: right; vertical-align: middle; white-space: nowrap;">
-                                <form method="POST" style="display: inline-flex; gap: 0.35rem; align-items: center;">
-                                    <?= CSRF::input() ?>
-                                    <input type="hidden" name="trend_id" value="<?= $t['id'] ?>">
-
-                                    <?php if ($t['status'] === 'approved' || $t['status'] === 'detected'): ?>
-                                        <button type="submit" name="action" value="publish_now" class="btn btn-xs btn-success" style="font-weight: 700; display: inline-flex; align-items: center; gap: 3px; background: #16a34a; border-color: #15803d;">
-                                            ⚡ Publish Now
-                                        </button>
+                                <?php if ($t['status'] === 'generating'): ?>
+                                    <span style="font-size: 0.75rem; color: #b45309; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                                        Writing Article &amp; Thumbnail...
+                                    </span>
+                                <?php elseif ($t['status'] === 'published'): ?>
+                                    <?php 
+                                    $pubArticle = \App\Database\Database::fetchOne("SELECT slug FROM articles WHERE trend_id = :tid LIMIT 1", ['tid' => $t['id']]);
+                                    ?>
+                                    <?php if ($pubArticle): ?>
+                                        <a href="<?= e(url('article/' . $pubArticle['slug'] . '/')) ?>" target="_blank" class="btn btn-xs btn-outline" style="color: #0284c7; border-color: #0284c7; font-weight: 700; display: inline-flex; align-items: center; gap: 3px;">
+                                            <?= icon('external-link', 'icon-xs') ?> View Live
+                                        </a>
                                     <?php endif; ?>
+                                <?php else: ?>
+                                    <form method="POST" style="display: inline-flex; gap: 0.35rem; align-items: center;">
+                                        <?= CSRF::input() ?>
+                                        <input type="hidden" name="trend_id" value="<?= $t['id'] ?>">
 
-                                    <?php if ($t['status'] === 'detected' || $t['status'] === 'rejected'): ?>
-                                        <button type="submit" name="action" value="approve" class="btn btn-xs btn-primary">
-                                            Approve
-                                        </button>
-                                    <?php endif; ?>
+                                        <?php if ($t['status'] === 'approved' || $t['status'] === 'detected'): ?>
+                                            <button type="submit" name="action" value="publish_now" class="btn btn-xs btn-success" style="font-weight: 700; display: inline-flex; align-items: center; gap: 3px; background: #16a34a; border-color: #15803d;">
+                                                ⚡ Publish Now
+                                            </button>
+                                        <?php endif; ?>
 
-                                    <?php if ($t['status'] === 'detected' || $t['status'] === 'approved'): ?>
-                                        <button type="submit" name="action" value="reject" class="btn btn-xs btn-outline" style="color: var(--color-danger);" onclick="return confirm('Reject this topic?');">
-                                            Reject
-                                        </button>
-                                    <?php endif; ?>
+                                        <?php if ($t['status'] === 'detected' || $t['status'] === 'rejected'): ?>
+                                            <button type="submit" name="action" value="approve" class="btn btn-xs btn-primary">
+                                                Approve
+                                            </button>
+                                        <?php endif; ?>
 
-                                    <?php if ($t['status'] === 'failed'): ?>
-                                        <button type="submit" name="action" value="reanalyze" class="btn btn-xs btn-secondary">
-                                            Retry
-                                        </button>
-                                    <?php endif; ?>
-                                </form>
+                                        <?php if ($t['status'] === 'detected' || $t['status'] === 'approved'): ?>
+                                            <button type="submit" name="action" value="reject" class="btn btn-xs btn-outline" style="color: var(--color-danger);" onclick="return confirm('Reject this topic?');">
+                                                Reject
+                                            </button>
+                                        <?php endif; ?>
+
+                                        <?php if ($t['status'] === 'failed'): ?>
+                                            <button type="submit" name="action" value="reanalyze" class="btn btn-xs btn-secondary">
+                                                Retry
+                                            </button>
+                                        <?php endif; ?>
+                                    </form>
+                                <?php endif; ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>
