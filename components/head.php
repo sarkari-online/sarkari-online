@@ -135,14 +135,14 @@ if (!$isAdminSession):
     <meta name="twitter:creator" content="@SarkariOnline">
 
     <!-- Multi-Device Favicons & PWA Icons (Google Search Standard 48px Multiple Compliant) -->
-    <link rel="icon" type="image/png" sizes="48x48" href="<?= url('assets/favicon-48x48.png') ?>">
-    <link rel="icon" type="image/x-icon" href="<?= url('favicon.ico') ?>">
-    <link rel="shortcut icon" type="image/x-icon" href="<?= url('favicon.ico') ?>">
-    <link rel="icon" type="image/png" sizes="96x96" href="<?= url('assets/favicon-96x96.png') ?>">
-    <link rel="icon" type="image/png" sizes="192x192" href="<?= url('assets/favicon-192x192.png') ?>">
-    <link rel="icon" type="image/png" sizes="32x32" href="<?= url('assets/favicon-32x32.png') ?>">
-    <link rel="icon" type="image/png" sizes="16x16" href="<?= url('assets/favicon-16x16.png') ?>">
-    <link rel="apple-touch-icon" sizes="180x180" href="<?= url('assets/apple-touch-icon.png') ?>">
+    <link rel="icon" type="image/png" sizes="48x48" href="<?= url('assets/favicon-48x48.png?v=2') ?>">
+    <link rel="icon" type="image/x-icon" href="<?= url('favicon.ico?v=2') ?>">
+    <link rel="shortcut icon" type="image/x-icon" href="<?= url('favicon.ico?v=2') ?>">
+    <link rel="icon" type="image/png" sizes="96x96" href="<?= url('assets/favicon-96x96.png?v=2') ?>">
+    <link rel="icon" type="image/png" sizes="192x192" href="<?= url('assets/favicon-192x192.png?v=2') ?>">
+    <link rel="icon" type="image/png" sizes="32x32" href="<?= url('assets/favicon-32x32.png?v=2') ?>">
+    <link rel="icon" type="image/png" sizes="16x16" href="<?= url('assets/favicon-16x16.png?v=2') ?>">
+    <link rel="apple-touch-icon" sizes="180x180" href="<?= url('assets/apple-touch-icon.png?v=2') ?>">
     <link rel="manifest" href="<?= url('assets/site.webmanifest') ?>">
     <meta name="theme-color" content="#1e3a8a">
     <!-- Core Web Vitals Resource Hints & Preconnects -->
