@@ -400,6 +400,11 @@ class TrendService {
      * Fetch pending trends for AI analysis with atomic locking
      */
     public static function getPendingForAnalysis(int $limit = 10): array {
+        // Auto-heal stuck analyzing trends (e.g. from timeouts or network disconnects)
+        try {
+            Database::query("UPDATE trends SET status = 'detected' WHERE status = 'analyzing' AND analyzed_at < DATE_SUB(NOW(), INTERVAL 10 MINUTE)");
+        } catch (Throwable $e) {}
+
         $sql = "SELECT t.*, c.name AS category_name, c.slug AS category_slug
                 FROM trends t
                 LEFT JOIN categories c ON t.category_id = c.id

@@ -219,10 +219,9 @@ class AutoCronService {
                 }
                 $categoryId = $cat ? (int)$cat['id'] : null;
 
-                // 🛑 USER-CONTROLLED APPROVAL FLOW:
-                // If score is bad or not recommended -> AUTO-REJECT!
-                // If score is good -> Keep in 'detected' with score updated so Admin can review and click Approve!
-                // Exception: True official breaking notices auto-approve & auto-publish immediately.
+                // 🚀 100% FULL AUTONOMOUS PIPELINE:
+                // If score is low or not recommended -> AUTO-REJECT!
+                // If score is high (>= minScore) -> AUTO-APPROVE for instant autonomous generation & publishing!
                 if (!$isRecommended || $priorityScore < $minScore) {
                     TrendService::markStatus($trendId, 'rejected', [
                         'category_id' => $categoryId,
@@ -230,22 +229,13 @@ class AutoCronService {
                         'raw_payload' => $analysis
                     ]);
                     Logger::info("AutoCron: Trend #{$trendId} AUTO-REJECTED (low score: {$priorityScore})");
-                } elseif (TrendService::isOfficialBreaking($trend)) {
+                } else {
                     TrendService::markStatus($trendId, 'approved', [
                         'category_id' => $categoryId,
-                        'trend_score' => 99,
+                        'trend_score' => $priorityScore,
                         'raw_payload' => $analysis
                     ]);
-                    Logger::info("AutoCron: Official Breaking Trend #{$trendId} auto-approved for immediate publication");
-                } else {
-                    // Update score and category, but leave in 'detected' for Human Review/Approval!
-                    Database::update('trends', [
-                        'category_id' => $categoryId,
-                        'trend_score' => $priorityScore,
-                        'status'      => 'detected',
-                        'raw_payload' => json_encode($analysis)
-                    ], 'id = :id', ['id' => $trendId]);
-                    Logger::info("AutoCron: Trend #{$trendId} analyzed (score: {$priorityScore}). Awaiting admin review.");
+                    Logger::info("AutoCron: Trend #{$trendId} AUTO-APPROVED (score: {$priorityScore}) for autonomous generation");
                 }
             } catch (Throwable $e) {
                 Logger::error("AutoCron analyze trend #{$trendId} error: " . $e->getMessage());
@@ -283,16 +273,10 @@ class AutoCronService {
             return;
         }
 
-        // Guard 2: Lean Review Queue — If Review Queue has >= 1 pending draft, pause generation (no queue pile-up)
+        // Auto-heal stale unpublishable drafts older than 12 hours so they don't block the queue
         try {
-            $pendingDrafts = (int)Database::fetchValue("SELECT COUNT(*) FROM articles WHERE status IN ('draft', 'pending_review', 'review')");
-            if ($pendingDrafts >= 1) {
-                Logger::info("AutoCron generate: {$pendingDrafts} draft already in Review Queue. Pausing generation until current draft is published.");
-                return;
-            }
-        } catch (Throwable $e) {
-            // ignore
-        }
+            Database::query("UPDATE articles SET status = 'archived' WHERE status IN ('draft', 'pending_review') AND created_at < DATE_SUB(NOW(), INTERVAL 12 HOUR)");
+        } catch (Throwable $e) {}
 
         // Smart Pacing: Generate max 1 article per cycle
         Logger::info('AutoCron: Generating 1 approved article...');
