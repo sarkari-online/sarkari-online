@@ -24,9 +24,8 @@ class SchemaService {
         $image   = !empty($article['featured_image']) ? url($article['featured_image']) : url('assets/images/default-share.jpg');
         $desc    = strip_tags($article['excerpt'] ?? $article['meta_description'] ?? '');
 
-        // News categories → NewsArticle, others → Article
-        $newsCategories = ['results', 'admit-card', 'recruitment', 'government-jobs', 'notifications', 'answer-key'];
-        $articleType = in_array($categorySlug, $newsCategories, true) ? 'NewsArticle' : 'Article';
+        // All Sarkari.online articles are official statutory exam & recruitment news bulletins
+        $articleType = 'NewsArticle';
 
         // 1. Primary Article / NewsArticle Schema
         $primarySchema = [

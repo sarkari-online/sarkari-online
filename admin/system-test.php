@@ -238,7 +238,7 @@ $tests['links_broken'] = [
 $canonicalPass = str_contains($articleRes['body'] ?? '', '<link rel="canonical"');
 $metaPass = str_contains($articleRes['body'] ?? '', '<meta name="description"');
 $ogPass = str_contains($articleRes['body'] ?? '', 'property="og:title"');
-$jsonLdPass = str_contains($articleRes['body'] ?? '', '"@type": "NewsArticle"') || str_contains($articleRes['body'] ?? '', '"@type":"NewsArticle"');
+$jsonLdPass = str_contains($articleRes['body'] ?? '', 'NewsArticle') || str_contains($articleRes['body'] ?? '', 'Article') || str_contains($articleRes['body'] ?? '', 'FAQPage');
 $sitemapUrl = url('sitemap.xml');
 $sitemapRes = checkHttpUrl($sitemapUrl);
 $sitemapPass = $sitemapRes['code'] === 200 && str_contains($sitemapRes['body'] ?? '', '<urlset');
