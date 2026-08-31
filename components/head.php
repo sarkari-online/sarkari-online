@@ -94,6 +94,9 @@ if (!$isAdminSession):
     <!-- Google Search Console Ownership Verification -->
     <meta name="google-site-verification" content="tbEauc4I8_zvPJ8zJOf_YA3-40UtKAZNRxgo881ZLiY">
 
+    <!-- Google AdSense Official Publisher & Verification Script -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7182678086129554" crossorigin="anonymous"></script>
+
     <!-- Authorship & Publisher Directives -->
     <meta name="author" content="<?= e($metaAuthorVal) ?>">
     <meta name="publisher" content="<?= e(SITE_NAME) ?>">
