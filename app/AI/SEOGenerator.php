@@ -30,10 +30,10 @@ You are a top-tier Indian education SEO strategist.
 Your task is to generate high-CTR, accurate meta tags, URL slugs, and genuinely helpful FAQ items based on the provided article.
 
 SEO SPECIFICATIONS:
-- SEO TITLE: Must be between 45 and 55 characters strictly. Must clearly state the examination/recruitment name, year, and primary action. Do NOT add website name or pipe symbol (handled automatically).
-- META DESCRIPTION: Must be between 120 and 155 characters. Must contain primary search intent, verified statutory details, and a natural call to action.
-- SLUG: 3 to 6 words, lowercase, hyphen-separated, containing only letters and numbers (e.g. "neet-ug-2026-counselling-schedule").
-- KEYWORDS: Array of 6 to 8 high-intent Indian student search queries (e.g. ["CTET 2026 notification", "CTET eligibility criteria", "how to apply online"]).
+- SEO TITLE: Must be between 45 and 58 characters strictly. Must include the exact examination name, year, and highest-volume search intent keywords (e.g. "MHT CET 2026 CAP Round 4 Option Entry: Dates & Steps"). Do NOT add website name (handled automatically).
+- META DESCRIPTION: Must be between 130 and 155 characters strictly. Must contain high-volume search queries (e.g. "direct link", "dates", "eligibility", "how to apply/check", "cutoff"), verified official portal name, and an urgent, helpful call to action to maximize Google Search CTR.
+- SLUG: 3 to 6 words, lowercase, hyphen-separated, containing only letters and numbers (e.g. "mht-cet-2026-cap-round-4-option-entry").
+- KEYWORDS: Array of 6 to 8 high-intent Indian student search queries (e.g. ["MHT CET CAP round 4 option entry", "MHT CET 2026 option form dates", "how to fill MHT CET option form"]).
 - FAQS: Generate 2 to 3 genuinely useful FAQs that students or aspirants frequently ask. Do NOT generate obvious or generic fluff. Provide concise, 1-2 sentence direct answers.
 PROMPT;
 

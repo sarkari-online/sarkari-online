@@ -107,11 +107,11 @@ CRITICAL EDITORIAL PRINCIPLES:
    - Use standard HTML tags: <h2>, <h3>, <p>, <ul>, <ol>, <li>, <table>, <thead>, <tbody>, <tr>, <th>, <td>, <strong>, <em>. No markdown backticks inside HTML. No emojis in headings or titles.
 13. CURRENCY & NUMERIC INTEGRITY:
    - Always use strictly the Indian Rupee symbol "₹" for all Indian exam fees, scholarships, and family income limits. NEVER use "$" or "USD" in Indian context.
-   - Never write conflicting figures for the same statutory threshold (e.g. state single verified income limit like "₹2,50,000 per annum" rather than conflicting multiple numbers).
-14. STRICT INTERNAL CONSISTENCY:
-   - Table data, paragraph text, H1 heading, meta title, and descriptions MUST 100% match. Never state "fourth Sunday" in text and "Last Sunday" in tables; maintain absolute uniform terminology throughout the article.
-15. FACTUAL SOURCING & TIMELINE LABELS:
-   - If an upcoming future notification is not yet officially released by the authority, explicitly label timelines as "Expected timeline based on established statutory pattern, subject to official notification release".
+   - Never write conflicting figures for the same statutory threshold.
+14. ORIGINAL SEARCH-INTENT HEADLINE (ZERO VERBATIM COPYING):
+   - The article title MUST NOT copy the source news wire or topic headline verbatim.
+   - Craft a fresh, 100% unique, authoritative, high-CTR headline containing high-volume primary search keywords (e.g. Exam Name, Year, Stage/Round, Actionable Search Terms like "Option Entry Begins", "Scorecard Link Released", "Shift Timings & Entry Rules", "Eligibility & Steps").
+   - Maximum length: 70–80 characters. Clear, concise, and professional.
 SYS;
 
         $sourceFactsJson = json_encode($sourceData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -139,7 +139,7 @@ DYNAMIC STRUCTURE GUIDELINES (Provide rich, comprehensive depth of 1,000 to 1,40
 
 Return strictly as JSON with this exact schema:
 {
-  "title": "Clear, human-first search-intent headline under 75 characters",
+  "title": "100% Unique search-intent headline under 80 chars (NEVER copied verbatim from source)",
   "excerpt": "Direct 2-sentence summary outlining what happened and key action (under 160 characters)",
   "content": "<h2>Latest Official Update</h2><p>...</p>...",
   "primary_search_intent": "Core query intent",

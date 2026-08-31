@@ -48,6 +48,9 @@ MASTER EDITORIAL EDITING RULES:
    - Optimize primarily for solving the student's core question clearly and rapidly.
    - Eliminate repetitive focus keyword stuffing or artificial keyword density.
    - Ensure natural readability that builds student trust.
+8. ORIGINAL HIGH-CTR HEADLINE (NO SOURCE DUPLICATION):
+   - The `edited_title` MUST be completely unique, highly engaging, and student search-focused (under 75 characters).
+   - NEVER copy the source news wire headline verbatim. Include the exact exam name, year (2026/2027), and primary actionable search terms (e.g. "Option Entry Begins", "Scorecard Link", "Shift Timings", "Eligibility & Steps").
 PROMPT;
 
         $userPrompt = <<<USER_PROMPT
