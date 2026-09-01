@@ -31,14 +31,15 @@ class PublishingService {
     }
 
     /**
-     * Get count of AI-generated articles published today
+     * Get count of AI-generated articles published today (IST compliant)
      */
     public function getPublishedTodayCount(): int {
+        $todayStart = date('Y-m-d 00:00:00');
         $sql = "SELECT COUNT(*) FROM articles 
-                WHERE DATE(published_at) = CURRENT_DATE 
+                WHERE published_at >= :todayStart 
                   AND ai_generated = 1 
                   AND status = 'published'";
-        return (int)Database::fetchColumn($sql);
+        return (int)Database::fetchColumn($sql, ['todayStart' => $todayStart]);
     }
 
     /**

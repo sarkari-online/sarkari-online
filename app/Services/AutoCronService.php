@@ -276,14 +276,16 @@ class AutoCronService {
         if ($todayCount > 0) {
             $lastPub = Database::fetchValue("
                 SELECT published_at FROM articles 
-                WHERE status = 'published' AND DATE(published_at) = CURRENT_DATE 
+                WHERE status = 'published' 
                 ORDER BY published_at DESC LIMIT 1
             ");
             if (!empty($lastPub)) {
-                $elapsedMins = round((time() - strtotime($lastPub)) / 60);
-                $minGapMins = 45;
-                if ($elapsedMins < $minGapMins) {
-                    $waitMins = $minGapMins - $elapsedMins;
+                $lastPubTime = strtotime($lastPub);
+                $elapsedSeconds = time() - $lastPubTime;
+                $minGapSeconds = 45 * 60; // 45 minutes
+                if ($elapsedSeconds < $minGapSeconds && $elapsedSeconds >= 0) {
+                    $elapsedMins = round($elapsedSeconds / 60);
+                    $waitMins = round(($minGapSeconds - $elapsedSeconds) / 60);
                     $msg = "AutoCron pacing: Slot {$todayCount}/5 was published {$elapsedMins}m ago. Next article in ~{$waitMins}m.";
                     Logger::info($msg);
                     if (php_sapi_name() === 'cli') echo "[" . date('Y-m-d H:i:s') . "] {$msg}\n";

@@ -77,14 +77,38 @@ class PipelineService {
         // Check if this trend is an official breaking notification
         $isBreaking = TrendService::isOfficialBreaking($trend);
 
-        // Guard: Prevent burning Gemini API tokens unless it is a verified breaking notice or admin forced
+        // Guard 1: Daily Quota (Max 5/day) & 45-Minute Pacing Gap
         $pubService = new PublishingService();
-        if (!$force && $pubService->isDailyLimitReached() && !$isBreaking) {
-            Logger::info("Daily publishing quota (5/day) reached. Skipping generation for Trend #{$trendId} to conserve Gemini API tokens.");
-            return ['success' => false, 'trend_id' => $trendId, 'error' => 'Daily publishing quota reached. Held for tomorrow.'];
+        if (!$force) {
+            $todayCount = $pubService->getPublishedTodayCount();
+            if ($todayCount >= 5 && !$isBreaking) {
+                Logger::info("Daily publishing quota (5/day) reached. Skipping generation for Trend #{$trendId}.");
+                return ['success' => false, 'trend_id' => $trendId, 'error' => 'Daily publishing quota reached (5/5). Held for tomorrow.'];
+            }
+
+            // Enforce minimum 45-minute gap between autonomous articles
+            if ($todayCount > 0 && !$isBreaking) {
+                $lastPubRow = Database::fetchOne("
+                    SELECT published_at FROM articles 
+                    WHERE status = 'published' 
+                    ORDER BY published_at DESC LIMIT 1
+                ");
+                if (!empty($lastPubRow['published_at'])) {
+                    $lastPubTime = strtotime($lastPubRow['published_at']);
+                    $elapsedSeconds = time() - $lastPubTime;
+                    $minGapSeconds = 45 * 60; // 45 minutes = 2700s
+                    if ($elapsedSeconds < $minGapSeconds && $elapsedSeconds >= 0) {
+                        $elapsedMins = round($elapsedSeconds / 60);
+                        $waitMins = round(($minGapSeconds - $elapsedSeconds) / 60);
+                        $pacingMsg = "Pacing gap active: Slot {$todayCount}/5 was published {$elapsedMins}m ago. Next slot in ~{$waitMins}m.";
+                        Logger::info("Trend #{$trendId} deferred: " . $pacingMsg);
+                        return ['success' => false, 'trend_id' => $trendId, 'error' => $pacingMsg];
+                    }
+                }
+            }
         }
 
-        // 30-Day Anti-Repeat Guard (Bypassed if admin clicked Publish Now)
+        // Guard 2: 30-Day Anti-Repeat Guard (Bypassed if admin clicked Publish Now)
         if (!$force && !$isBreaking && TrendService::isRecentlyCovered($trend['keyword'], 30)) {
             TrendService::markStatus($trendId, 'rejected', ['raw_payload' => ['reason' => 'Topic covered within last 30 days']]);
             Logger::info("Skipping Trend #{$trendId}: Similar topic already covered in the last 30 days.");
@@ -434,6 +458,7 @@ class PipelineService {
                 $results[] = $res;
                 if (!empty($res['success']) && ($res['status'] ?? '') !== 'already_generated') {
                     $publishedCount++;
+                    break; // Strictly stop after 1 article to enforce 45-minute pacing
                 }
             } catch (Throwable $e) {
                 Logger::error("Failed to generate article for Trend #{$tr['id']}: " . $e->getMessage());

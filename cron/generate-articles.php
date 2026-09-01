@@ -22,7 +22,7 @@ $startTime = microtime(true);
 echo "[" . date('Y-m-d H:i:s') . "] Starting Sarkari.online Article Generation Worker...\n";
 Logger::info("Cron generate-articles started");
 
-$maxPerRun = (int)Env::get('MAX_TRENDS_PER_RUN', 5);
+$maxPerRun = 1; // Strictly process 1 slot per run (enforces 45-min spacing gap)
 $pipeline = new PipelineService();
 
 try {
