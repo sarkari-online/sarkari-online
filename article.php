@@ -56,6 +56,32 @@ $sourceName = $article['source_name'] ?? (is_array($article['source'] ?? null) ?
 $sourceUrl = $article['source_url'] ?? (is_array($article['source'] ?? null) ? $article['source']['source_url'] : null);
 $sourceRef = $article['source_ref'] ?? (is_array($article['source'] ?? null) ? $article['source']['official_notice_ref'] : null);
 
+// Media Domain Safety Shield: Never show commercial news portals as the official statutory authority portal
+$mediaDomains = ['timesofindia', 'indiatimes.com', 'hindustantimes', 'ndtv.com', 'indianexpress', 'livemint', 'jagran.com', 'amarujala', 'news18', 'aajtak', 'abplive'];
+$isMediaUrl = false;
+foreach ($mediaDomains as $mDomain) {
+    if (!empty($sourceUrl) && str_contains(strtolower($sourceUrl), $mDomain)) {
+        $isMediaUrl = true;
+        break;
+    }
+}
+if ($isMediaUrl) {
+    $topicLower = strtolower(($article['title'] ?? '') . ' ' . ($article['slug'] ?? ''));
+    if (str_contains($topicLower, 'ignou')) {
+        $sourceName = 'Indira Gandhi National Open University (IGNOU)';
+        $sourceUrl = 'https://ignouadmission.samarth.edu.in';
+        $sourceRef = 'Official Admission Portal (ignouadmission.samarth.edu.in)';
+    } elseif (str_contains($topicLower, 'coal india')) {
+        $sourceName = 'Coal India Limited (CIL)';
+        $sourceUrl = 'https://coalindia.in';
+        $sourceRef = 'Official Recruitment Portal (coalindia.in)';
+    } else {
+        $sourceUrl = null;
+        $sourceName = 'Official Statutory Authority';
+        $sourceRef = 'Official Public Gazette / Portal Release';
+    }
+}
+
 // SEO Setup
 $pageTitle = !empty($article['meta_title']) ? $article['meta_title'] : $article['title'];
 $pageDesc = !empty($article['meta_description']) ? $article['meta_description'] : ($article['excerpt'] ?? '');

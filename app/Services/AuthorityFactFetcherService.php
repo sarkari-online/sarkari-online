@@ -39,6 +39,8 @@ class AuthorityFactFetcherService {
         'sbi'       => ['name' => 'State Bank of India (SBI)', 'portal' => 'https://sbi.co.in/web/careers'],
         'iaf'       => ['name' => 'Indian Air Force (CASB Agnipath Vayu)', 'portal' => 'https://agnipathvayu.cdac.in'],
         'hpbose'    => ['name' => 'HPBOSE (Himachal Pradesh Board of School Education)', 'portal' => 'https://hpbose.org'],
+        'ignou'     => ['name' => 'Indira Gandhi National Open University (IGNOU)', 'portal' => 'https://ignouadmission.samarth.edu.in'],
+        'coalindia' => ['name' => 'Coal India Limited (CIL)', 'portal' => 'https://coalindia.in'],
         'kpsc'      => ['name' => 'KPSC (Karnataka Public Service Commission)', 'portal' => 'https://kpsc.kar.nic.in'],
         'bpsc'      => ['name' => 'Bihar Public Service Commission (BPSC)', 'portal' => 'https://www.bpsc.bih.nic.in'],
         'uppsc'     => ['name' => 'UP Public Service Commission (UPPSC)', 'portal' => 'https://uppsc.up.nic.in'],
@@ -57,7 +59,30 @@ class AuthorityFactFetcherService {
      * Resolve the statutory authority from topic text or URL
      */
     public static function resolveAuthority(string $topic, string $sourceUrl = ''): array {
+        // Media Domain Blocker: If sourceUrl is a news portal / media aggregator, NEVER treat it as statutory authority portal!
+        $mediaDomains = [
+            'timesofindia.indiatimes.com', 'indiatimes.com', 'hindustantimes.com', 'ndtv.com',
+            'indianexpress.com', 'livemint.com', 'jagran.com', 'amarujala.com', 'news18.com',
+            'aajtak.in', 'abplive.com', 'firstpost.com', 'thehindu.com', 'zeenews.india.com',
+            'dnaindia.com', 'economictimes.indiatimes.com', 'indiatoday.in', 'career360.com',
+            'shiksha.com', 'collegedunia.com'
+        ];
+        foreach ($mediaDomains as $domain) {
+            if (str_contains(strtolower($sourceUrl), $domain)) {
+                $sourceUrl = '';
+                break;
+            }
+        }
+
         $lower = strtolower($topic . ' ' . $sourceUrl);
+
+        // Open Universities & National Portals
+        if (str_contains($lower, 'ignou') || str_contains($lower, 'indira gandhi national open')) {
+            return self::$authorityPortals['ignou'];
+        }
+        if (str_contains($lower, 'coal india') || str_contains($lower, 'cil mt') || str_contains($lower, 'coalindia')) {
+            return self::$authorityPortals['coalindia'];
+        }
 
         // State Admission & CET Cells (High Priority)
         if (str_contains($lower, 'mht cet') || str_contains($lower, 'mahacet') || str_contains($lower, 'cap round')) {
