@@ -78,11 +78,19 @@
     </div>
 
     <!-- Bottom Copyright Strip -->
+    <?php
+    $siteLastUpdated = \App\Database\Database::fetchValue("SELECT published_at FROM articles WHERE status = 'published' ORDER BY published_at DESC LIMIT 1");
+    $siteLastUpdatedStr = !empty($siteLastUpdated) ? date('d M Y, h:i A', strtotime($siteLastUpdated)) . ' IST' : date('d M Y, h:i A') . ' IST';
+    ?>
     <div class="footer-bottom-bar">
         <div class="container">
             <div class="footer-bottom-flex">
                 <div class="footer-copy-left">
-                    &copy; <?= date('Y') ?> <?= e(SITE_NAME) ?> &middot; Independent Educational Information Network.
+                    <div>&copy; <?= date('Y') ?> <?= e(SITE_NAME) ?> &middot; Independent Educational Information Network.</div>
+                    <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.35rem; display: flex; align-items: center; gap: 5px;">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        <span>Portal Last Updated: <strong style="color: #cbd5e1;"><?= e($siteLastUpdatedStr) ?></strong></span>
+                    </div>
                 </div>
                 <div class="footer-legal-inline-links">
                     <a href="<?= url('privacy-policy/') ?>">Privacy Policy</a>
@@ -97,6 +105,168 @@
         </div>
     </div>
 </footer>
+
+<!-- Mobile Smart Language Choice Banner (Safe Non-Intrusive Floating Pill) -->
+<div id="mobileLangBanner" class="mobile-lang-banner" style="display: none;">
+    <div class="mobile-lang-banner-inner">
+        <div class="mobile-lang-banner-left">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            <div class="mobile-lang-banner-text">
+                <span class="lang-txt-hi">हिंदी में पढ़ें?</span>
+                <span class="lang-txt-en">Choose language</span>
+            </div>
+        </div>
+        <div class="mobile-lang-banner-actions">
+            <button type="button" class="btn-lang-pill btn-lang-hi" id="btnChooseHindi">हिंदी</button>
+            <button type="button" class="btn-lang-pill btn-lang-en" id="btnChooseEnglish">English</button>
+            <button type="button" class="btn-lang-dismiss" id="btnCloseLangBanner" aria-label="Dismiss">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+.mobile-lang-banner {
+    position: fixed;
+    bottom: 68px;
+    left: 12px;
+    right: 12px;
+    z-index: 1050;
+    animation: slideUpLangBanner 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@media (min-width: 769px) {
+    .mobile-lang-banner {
+        display: none !important;
+    }
+}
+.mobile-lang-banner-inner {
+    background: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 0.65rem 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.45);
+    gap: 0.5rem;
+}
+.mobile-lang-banner-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+.mobile-lang-banner-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+.mobile-lang-banner-text .lang-txt-hi {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #ffffff;
+}
+.mobile-lang-banner-text .lang-txt-en {
+    font-size: 0.68rem;
+    color: #94a3b8;
+}
+.mobile-lang-banner-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+.btn-lang-pill {
+    padding: 0.35rem 0.65rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.btn-lang-hi {
+    background: #0284c7;
+    color: #ffffff;
+}
+.btn-lang-hi:active {
+    background: #0369a1;
+}
+.btn-lang-en {
+    background: rgba(255, 255, 255, 0.1);
+    color: #cbd5e1;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.btn-lang-dismiss {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    padding: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
+.btn-lang-dismiss:active {
+    color: #ffffff;
+}
+@keyframes slideUpLangBanner {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.innerWidth >= 769) return;
+
+    var isDismissed = localStorage.getItem('sarkari_lang_banner_closed');
+    var hasCookie = document.cookie.indexOf('googtrans=') !== -1 && document.cookie.indexOf('googtrans=/en/en') === -1;
+    if (isDismissed || hasCookie) return;
+
+    var banner = document.getElementById('mobileLangBanner');
+    if (!banner) return;
+
+    setTimeout(function() {
+        banner.style.display = 'block';
+    }, 1500);
+
+    var btnHi = document.getElementById('btnChooseHindi');
+    if (btnHi) {
+        btnHi.addEventListener('click', function() {
+            localStorage.setItem('sarkari_lang_banner_closed', 'true');
+            banner.style.display = 'none';
+            if (typeof loadGoogleTranslate === 'function') loadGoogleTranslate();
+            if (typeof setSiteLanguage === 'function') {
+                setSiteLanguage('hi');
+            } else {
+                var d = new Date();
+                d.setTime(d.getTime() + (30 * 24 * 60 * 60 * 1000));
+                document.cookie = "googtrans=/en/hi;path=/;expires=" + d.toUTCString();
+                window.location.reload();
+            }
+        });
+    }
+
+    var btnEn = document.getElementById('btnChooseEnglish');
+    if (btnEn) {
+        btnEn.addEventListener('click', function() {
+            localStorage.setItem('sarkari_lang_banner_closed', 'true');
+            banner.style.display = 'none';
+        });
+    }
+
+    var btnClose = document.getElementById('btnCloseLangBanner');
+    if (btnClose) {
+        btnClose.addEventListener('click', function() {
+            localStorage.setItem('sarkari_lang_banner_closed', 'true');
+            banner.style.display = 'none';
+        });
+    }
+});
+</script>
 
 <?php include __DIR__ . '/mobile-nav.php'; ?>
 
