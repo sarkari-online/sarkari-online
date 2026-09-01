@@ -164,12 +164,12 @@
         <div class="search-quick-tags">
             <div class="search-tags-title">Popular Searches</div>
             <div class="search-tag-list">
-                <a href="<?= url('search/?q=NEET+UG') ?>" class="search-tag-chip">NEET UG 2026</a>
-                <a href="<?= url('search/?q=JEE+Advanced') ?>" class="search-tag-chip">JEE Advanced Cutoff</a>
-                <a href="<?= url('search/?q=SSC+CGL') ?>" class="search-tag-chip">SSC CGL 2026</a>
-                <a href="<?= url('search/?q=CUET+Admit+Card') ?>" class="search-tag-chip">CUET Admit Card</a>
-                <a href="<?= url('search/?q=UPSC+Answer+Key') ?>" class="search-tag-chip">UPSC Answer Key</a>
-                <a href="<?= url('search/?q=Scholarships') ?>" class="search-tag-chip">NSP Scholarship</a>
+                <a href="<?= url('search/?q=NEET+UG') ?>" rel="nofollow" class="search-tag-chip">NEET UG 2026</a>
+                <a href="<?= url('search/?q=JEE+Advanced') ?>" rel="nofollow" class="search-tag-chip">JEE Advanced Cutoff</a>
+                <a href="<?= url('search/?q=SSC+CGL') ?>" rel="nofollow" class="search-tag-chip">SSC CGL 2026</a>
+                <a href="<?= url('search/?q=CUET+Admit+Card') ?>" rel="nofollow" class="search-tag-chip">CUET Admit Card</a>
+                <a href="<?= url('search/?q=UPSC+Answer+Key') ?>" rel="nofollow" class="search-tag-chip">UPSC Answer Key</a>
+                <a href="<?= url('search/?q=Scholarships') ?>" rel="nofollow" class="search-tag-chip">NSP Scholarship</a>
             </div>
         </div>
     </div>

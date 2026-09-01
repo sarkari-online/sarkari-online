@@ -326,13 +326,13 @@ include __DIR__ . '/components/header.php';
             <div class="topic-boards-strip">
                 <span class="topic-boards-label">Key Statutory Portals:</span>
                 <div class="topic-boards-chips">
-                    <a href="<?= url('search/?q=NTA') ?>" class="topic-board-chip">NTA (NEET / JEE / CUET)</a>
-                    <a href="<?= url('search/?q=UPSC') ?>" class="topic-board-chip">UPSC Civil Services</a>
-                    <a href="<?= url('search/?q=SSC') ?>" class="topic-board-chip">SSC (CGL / CHSL / GD)</a>
-                    <a href="<?= url('search/?q=CBSE') ?>" class="topic-board-chip">CBSE Board</a>
-                    <a href="<?= url('search/?q=IBPS') ?>" class="topic-board-chip">IBPS &amp; Banking</a>
-                    <a href="<?= url('search/?q=Scholarship') ?>" class="topic-board-chip">National Scholarship Portal</a>
-                    <a href="<?= url('search/?q=Counselling') ?>" class="topic-board-chip">JoSAA / MCC Counselling</a>
+                    <a href="<?= url('search/?q=NTA') ?>" rel="nofollow" class="topic-board-chip">NTA (NEET / JEE / CUET)</a>
+                    <a href="<?= url('search/?q=UPSC') ?>" rel="nofollow" class="topic-board-chip">UPSC Civil Services</a>
+                    <a href="<?= url('search/?q=SSC') ?>" rel="nofollow" class="topic-board-chip">SSC (CGL / CHSL / GD)</a>
+                    <a href="<?= url('search/?q=CBSE') ?>" rel="nofollow" class="topic-board-chip">CBSE Board</a>
+                    <a href="<?= url('search/?q=IBPS') ?>" rel="nofollow" class="topic-board-chip">IBPS &amp; Banking</a>
+                    <a href="<?= url('category/scholarships/') ?>" class="topic-board-chip">National Scholarship Portal</a>
+                    <a href="<?= url('category/college-updates/') ?>" class="topic-board-chip">JoSAA / MCC Counselling</a>
                 </div>
             </div>
         </section>

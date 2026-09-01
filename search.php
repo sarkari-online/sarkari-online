@@ -108,10 +108,10 @@ include __DIR__ . '/components/header.php';
                             We could not locate any reports matching your search. Try searching for broader terms like "NEET", "JEE", "UPSC", or "Scholarship".
                         </p>
                         <div class="search-tag-list" style="justify-content: center;">
-                            <a href="<?= url('search/?q=NEET+UG') ?>" class="search-tag-chip">NEET UG 2026</a>
-                            <a href="<?= url('search/?q=JEE+Advanced') ?>" class="search-tag-chip">JEE Cutoff</a>
-                            <a href="<?= url('search/?q=SSC+CGL') ?>" class="search-tag-chip">SSC CGL</a>
-                            <a href="<?= url('search/?q=Admit+Card') ?>" class="search-tag-chip">Admit Cards</a>
+                            <a href="<?= url('search/?q=NEET+UG') ?>" rel="nofollow" class="search-tag-chip">NEET UG 2026</a>
+                            <a href="<?= url('search/?q=JEE+Advanced') ?>" rel="nofollow" class="search-tag-chip">JEE Cutoff</a>
+                            <a href="<?= url('search/?q=SSC+CGL') ?>" rel="nofollow" class="search-tag-chip">SSC CGL</a>
+                            <a href="<?= url('search/?q=Admit+Card') ?>" rel="nofollow" class="search-tag-chip">Admit Cards</a>
                         </div>
                     </div>
                 <?php endif; ?>
