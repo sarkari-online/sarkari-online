@@ -108,8 +108,12 @@ class CategoryService {
         elseif (str_contains($t, 'admit card') || str_contains($t, 'hall ticket') || str_contains($t, 'city slip') || str_contains($t, 'city intimation') || str_contains($t, 'call letter')) {
             $slug = 'admit-cards';
         }
+        // 2b. Answer Keys, Response Sheets & Question Paper Challenges
+        elseif (str_contains($t, 'answer key') || str_contains($t, 'answer-key') || str_contains($t, 'response sheet') || str_contains($t, 'key challenge') || str_contains($t, 'objection window') || str_contains($t, 'raise objection') || str_contains($t, 'omr sheet') || str_contains($t, 'tentative key') || str_contains($t, 'provisional key') || str_contains($t, 'final key')) {
+            $slug = 'answer-keys';
+        }
         // 3. Exam Results, Cutoffs & Scorecards
-        elseif (str_contains($t, 'result') || str_contains($t, 'cut off') || str_contains($t, 'cutoff') || str_contains($t, 'scorecard') || str_contains($t, 'merit list') || str_contains($t, 'rank list') || str_contains($t, 'qualifying marks') || str_contains($t, 'answer key')) {
+        elseif (str_contains($t, 'result') || str_contains($t, 'cut off') || str_contains($t, 'cutoff') || str_contains($t, 'scorecard') || str_contains($t, 'merit list') || str_contains($t, 'rank list') || str_contains($t, 'qualifying marks')) {
             $slug = 'exam-results';
         }
         // 4. Government Jobs & Direct Recruitment
