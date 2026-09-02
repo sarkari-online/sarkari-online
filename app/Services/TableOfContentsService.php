@@ -139,9 +139,9 @@ class TableOfContentsService {
                 $itemsHtml .= "<a href=\"#{$anchor}\" class=\"toc-link\">{$title}</a>";
                 $itemsHtml .= "</li>\n";
             } else {
-                // H3 sub-item
+                // H3 sub-item with clean SVG arrow
                 $itemsHtml .= "<li class=\"toc-item toc-h3\">";
-                $itemsHtml .= "<span class=\"toc-bullet\">↳</span> ";
+                $itemsHtml .= "<svg class=\"toc-sub-arrow\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#94a3b8\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"9 18 15 12 9 6\"></polyline></svg> ";
                 $itemsHtml .= "<a href=\"#{$anchor}\" class=\"toc-link\">{$title}</a>";
                 $itemsHtml .= "</li>\n";
             }
@@ -151,8 +151,15 @@ class TableOfContentsService {
 <nav class="article-toc-box" aria-label="Table of Contents">
     <div class="toc-header" onclick="toggleArticleToc()" role="button" tabindex="0" aria-expanded="true">
         <div class="toc-title-group">
-            <span class="toc-icon">📑</span>
-            <span class="toc-heading">Quick Navigation &amp; Table of Contents</span>
+            <svg class="toc-icon-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="8" y1="6" x2="21" y2="6"></line>
+                <line x1="8" y1="12" x2="21" y2="12"></line>
+                <line x1="8" y1="18" x2="21" y2="18"></line>
+                <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                <line x1="3" y1="18" x2="3.01" y2="18"></line>
+            </svg>
+            <span class="toc-heading">Table of Contents</span>
         </div>
         <button type="button" class="toc-toggle-btn" aria-label="Toggle Table of Contents" id="tocToggleBtn">
             <span id="tocToggleText">[ Hide ]</span>
