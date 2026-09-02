@@ -144,7 +144,11 @@ include dirname(__DIR__) . '/components/header.php';
 <div class="stats-grid" style="margin-bottom: 1.5rem;">
     <div class="stat-card">
         <span class="stat-card-label">Daily Regular Quota</span>
-        <span class="stat-card-num" style="color: #1e3a8a;"><?= $todayPublishedCount ?> / 3</span>
+        <?php 
+            $targetQuota = (int)\App\Helpers\Env::get('AUTO_PUBLISH_DAILY_LIMIT', 3);
+            $displayTarget = ($todayPublishedCount > $targetQuota) ? $todayPublishedCount : $targetQuota;
+        ?>
+        <span class="stat-card-num" style="color: #1e3a8a;"><?= $todayPublishedCount ?> / <?= $displayTarget ?></span>
     </div>
     <?php if ($generatingCount > 0): ?>
         <div class="stat-card" style="border: 2px solid #f59e0b; background: #fffbeb;">
