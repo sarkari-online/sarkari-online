@@ -536,6 +536,104 @@ p:last-child {
     margin-top: 2px;
 }
 
+/* 2-Column Professional Mega Menu */
+.nav-dropdown-menu.nav-mega-menu {
+    width: 610px;
+    max-width: calc(100vw - 2rem);
+    padding: 1rem 1.15rem 0.75rem 1.15rem;
+    gap: 0.75rem;
+}
+
+.mega-menu-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.15rem;
+}
+
+.mega-menu-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.mega-menu-col:first-child {
+    border-right: 1px solid #f1f5f9;
+    padding-right: 1rem;
+}
+
+.mega-menu-col-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 0.25rem 0.5rem 0.25rem;
+    margin-bottom: 0.35rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.mega-col-title {
+    font-size: 0.725rem;
+    font-weight: 800;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.mega-col-badge {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #1e40af;
+    background: #eff6ff;
+    padding: 1px 6px;
+    border-radius: 4px;
+}
+
+.mega-menu-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.nav-mega-menu .nav-dropdown-item {
+    padding: 0.45rem 0.5rem;
+    border-radius: 8px;
+    gap: 0.65rem;
+}
+
+.nav-mega-menu .nav-dropdown-item-title {
+    font-size: 0.845rem;
+    font-weight: 700;
+}
+
+.nav-mega-menu .nav-dropdown-item-desc {
+    font-size: 0.725rem;
+    line-height: 1.25;
+    margin-top: 1px;
+}
+
+.mega-menu-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.65rem 0.25rem 0.15rem 0.25rem;
+    border-top: 1px solid #f1f5f9;
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+.mega-footer-link {
+    color: var(--color-primary, #1e3a8a);
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: color 0.15s ease;
+}
+
+.mega-footer-link:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
+}
+
 @media (max-width: 1200px) and (min-width: 992px) {
     .desktop-nav {
         gap: 0.15rem;
