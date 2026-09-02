@@ -173,6 +173,15 @@ class AutoCronService {
     private static function runAnalyze(): void {
         Logger::info('AutoCron: Starting analyze-trends');
 
+        // Circuit Breaker pre-check: skip cycle if Gemini is in cooldown
+        if (\App\AI\Gemini::isCircuitBreakerActive()) {
+            Logger::info('AutoCron analyze: Gemini API circuit breaker is currently active. Skipping analysis cycle.');
+            if (php_sapi_name() === 'cli') {
+                echo "[" . date('Y-m-d H:i:s') . "] ⏸️ AutoCron analyze: Gemini circuit breaker active (cooldown). Skipping cycle.\n";
+            }
+            return;
+        }
+
         $maxPerRun = 4; // Analyze detected trends to compute quality & intent scores
         $minScore  = (int)Env::get('MIN_TREND_SCORE', 60);
         $pendingTrends = TrendService::getPendingForAnalysis($maxPerRun);
@@ -240,9 +249,6 @@ class AutoCronService {
             } catch (Throwable $e) {
                 Logger::error("AutoCron analyze trend #{$trendId} error: " . $e->getMessage());
                 TrendService::markStatus($trendId, 'detected'); // reset to retry next cycle
-            } catch (Throwable $e) {
-                Logger::error("AutoCron analyze trend #{$trendId} error: " . $e->getMessage());
-                TrendService::markStatus($trendId, 'detected'); // reset to retry next cycle
                 if (str_contains(strtolower($e->getMessage()), 'circuit breaker') || str_contains(strtolower($e->getMessage()), 'quota') || str_contains(strtolower($e->getMessage()), '429')) {
                     Logger::warning("AutoCron analyze halted: AI rate-limit/quota circuit breaker tripped.");
                     break; // STOP analyzing further trends this cycle!
@@ -257,6 +263,15 @@ class AutoCronService {
         Logger::info('AutoCron: Checking generation pipeline');
         if (php_sapi_name() === 'cli') {
             echo "[" . date('Y-m-d H:i:s') . "] ⚡ AutoCron: Checking generation pipeline...\n";
+        }
+
+        // Circuit Breaker pre-check
+        if (\App\AI\Gemini::isCircuitBreakerActive()) {
+            Logger::info('AutoCron generate: Gemini API circuit breaker is currently active. Skipping generation cycle.');
+            if (php_sapi_name() === 'cli') {
+                echo "[" . date('Y-m-d H:i:s') . "] ⏸️ AutoCron generate: Gemini circuit breaker active (cooldown). Skipping cycle.\n";
+            }
+            return;
         }
 
         $publishingService = new PublishingService();

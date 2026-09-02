@@ -29,7 +29,7 @@ class Gemini {
             $dbModel = Database::fetchValue("SELECT value FROM settings WHERE `key` = 'gemini_model' LIMIT 1");
         } catch (Throwable $e) {}
 
-        $this->model = $model ?: ($dbModel ?: (string)Env::get('GEMINI_MODEL', 'gemini-3.5-flash-lite'));
+        $this->model = $model ?: ($dbModel ?: (string)Env::get('GEMINI_MODEL', 'gemini-3.6-flash'));
         $this->timeout = (int)Env::get('GEMINI_TIMEOUT', 90);
         $this->maxRetries = (int)Env::get('GEMINI_MAX_RETRIES', 3);
     }
@@ -107,7 +107,7 @@ class Gemini {
             $val = (int)Database::fetchValue("SELECT value FROM settings WHERE `key` = 'gemini_circuit_breaker_until' LIMIT 1");
             $rem = max(1, $val - time());
             $err = "Gemini API circuit breaker is active (cooldown). Please wait {$rem}s before retrying.";
-            $this->logOperation($stage, $articleId, $trendId, $prompt, '', 0, false, $err);
+            // Note: Do NOT log this local cooldown rejection to ai_logs to avoid false failure count inflation
             throw new Exception($err);
         }
 
@@ -143,8 +143,8 @@ class Gemini {
             ];
         }
 
-        // Active Google Gemini models in 2026 (gemini-3.5-flash-lite has the highest free tier quota)
-        $modelsToTry = array_unique(array_filter([$this->model, 'gemini-3.5-flash-lite', 'gemini-3.6-flash']));
+        // Active Google Gemini models in 2026: primary gemini-3.6-flash, followed by gemini-3.5-flash and gemini-2.5-flash
+        $modelsToTry = array_unique(array_filter([$this->model, 'gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-2.5-flash']));
         $attempt = 0;
         $lastError = '';
         $tokensUsed = 0;
@@ -182,17 +182,25 @@ class Gemini {
                         break;
                     }
 
-                    // Handle rate limit (429) -> Activate Circuit Breaker and STOP trying further models
+                    // Handle rate limit (429) -> Try next model if available, else activate circuit breaker
                     if ($httpCode === 429) {
-                        $retrySeconds = 60;
+                        $retrySeconds = 30;
                         if (preg_match('/retry in ([0-9.]+)s/i', $rawBody, $m)) {
                             $retrySeconds = (int)ceil((float)$m[1]) + 5;
-                        } elseif (str_contains(strtolower($rawBody), 'quota exceeded') || str_contains(strtolower($rawBody), 'check your plan')) {
-                            $retrySeconds = 900; // 15 mins for daily quota
+                        } elseif (str_contains(strtolower($rawBody), 'day') || str_contains(strtolower($rawBody), 'free_tier_requests')) {
+                            $retrySeconds = 600; // 10 mins for daily quota
                         }
-                        self::setCircuitBreaker($retrySeconds, "HTTP 429 Rate Limit on {$currentModel}");
-                        $lastError = "Gemini API HTTP 429: Rate limit cooldown active for {$retrySeconds}s.";
-                        break 2; // Exit BOTH loops immediately — all models share the same quota pool!
+
+                        // Check if there are other models to try
+                        $isLastModel = ($currentModel === end($modelsToTry));
+                        if (!$isLastModel) {
+                            Logger::warning("Gemini model {$currentModel} rate limited (429); falling back to next available model.");
+                            break; // Try next model!
+                        } else {
+                            self::setCircuitBreaker($retrySeconds, "HTTP 429 Rate Limit across all models");
+                            $lastError = "Gemini API HTTP 429: Rate limit cooldown active for {$retrySeconds}s.";
+                            break 2;
+                        }
                     }
 
                     // Server error (500/503) -> brief wait
