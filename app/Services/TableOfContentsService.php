@@ -127,7 +127,9 @@ class TableOfContentsService {
 
         foreach ($headings as $h) {
             $anchor = htmlspecialchars($h['anchor'], ENT_QUOTES, 'UTF-8');
-            $title = htmlspecialchars($h['title'], ENT_QUOTES, 'UTF-8');
+            // Clean redundant leading numbers from heading text (e.g. "1. Overview" -> "Overview")
+            $cleanTitle = preg_replace('/^\d+[\.\)\s\-]+\s*/u', '', $h['title']);
+            $title = htmlspecialchars($cleanTitle, ENT_QUOTES, 'UTF-8');
             $level = $h['level'];
 
             if ($level === 2) {
@@ -139,7 +141,7 @@ class TableOfContentsService {
             } else {
                 // H3 sub-item
                 $itemsHtml .= "<li class=\"toc-item toc-h3\">";
-                $itemsHtml .= "<span class=\"toc-bullet\">•</span> ";
+                $itemsHtml .= "<span class=\"toc-bullet\">↳</span> ";
                 $itemsHtml .= "<a href=\"#{$anchor}\" class=\"toc-link\">{$title}</a>";
                 $itemsHtml .= "</li>\n";
             }
@@ -157,9 +159,9 @@ class TableOfContentsService {
         </button>
     </div>
     <div class="toc-content" id="articleTocContent">
-        <ol class="toc-list">
+        <ul class="toc-list" style="list-style: none !important; padding-left: 0 !important; margin: 0 !important;">
             {$itemsHtml}
-        </ol>
+        </ul>
     </div>
 </nav>
 HTML;

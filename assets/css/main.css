@@ -3577,16 +3577,24 @@ html {
     border-top: 1px solid #e2e8f0;
 }
 
-.toc-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
+.article-body-content .article-toc-box ul,
+.article-body-content .article-toc-box ol,
+.article-toc-box .toc-list {
+    list-style: none !important;
+    list-style-type: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    padding-left: 0 !important;
     display: flex;
     flex-direction: column;
     gap: 0.55rem;
 }
 
-.toc-item {
+.article-body-content .article-toc-box li,
+.article-toc-box .toc-item {
+    list-style: none !important;
+    list-style-type: none !important;
+    margin-bottom: 0 !important;
     font-size: 0.925rem;
     line-height: 1.45;
 }
