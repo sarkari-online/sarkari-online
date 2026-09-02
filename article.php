@@ -258,6 +258,10 @@ include __DIR__ . '/components/header.php';
                             return $m[0];
                         }, $renderedContent);
                     }
+
+                    // Automatic Table of Contents & Google Sitelinks Navigation
+                    $tocData = \App\Services\TableOfContentsService::process($renderedContent);
+                    $renderedContent = $tocData['content'];
                     ?>
                     <?= $renderedContent ?>
                 </div>
@@ -351,6 +355,25 @@ echo SchemaService::injectIntoHead($schemas);
 <!-- BreadcrumbList JSON-LD Structured Data -->
 <script type="application/ld+json">
 <?= SEOHelper::breadcrumbSchema($crumbs) ?>
+</script>
+
+<!-- Table of Contents Smooth Toggle Script -->
+<script>
+function toggleArticleToc() {
+    var content = document.getElementById('articleTocContent');
+    var btnText = document.getElementById('tocToggleText');
+    var btn = document.getElementById('tocToggleBtn');
+    if (!content || !btnText) return;
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+        btnText.textContent = '[ Hide ]';
+        if (btn) btn.setAttribute('aria-expanded', 'true');
+    } else {
+        content.style.display = 'none';
+        btnText.textContent = '[ Show ]';
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+    }
+}
 </script>
 
 <?php include __DIR__ . '/components/footer.php'; ?>

@@ -70,6 +70,26 @@ class SchemaService {
             $primarySchema['articleSection'] = $article['category_name'] ?? 'Education';
         }
 
+        // Inject Google Sitelinks deep navigation anchors (hasPart schema)
+        if (preg_match_all('/<h2\b[^>]*>(.*?)<\/h2>/is', $content, $hMatches)) {
+            $hasPart = [];
+            foreach ($hMatches[1] as $rawH2) {
+                $hText = trim(strip_tags($rawH2));
+                if (!empty($hText)) {
+                    $slug = trim(strtolower(preg_replace('/[^a-zA-Z0-9]+/u', '-', $hText)), '-');
+                    $hasPart[] = [
+                        '@type'               => 'WebPageElement',
+                        'isAccessibleForFree' => true,
+                        'cssSelector'         => '#' . $slug,
+                        'name'                => $hText
+                    ];
+                }
+            }
+            if (!empty($hasPart)) {
+                $primarySchema['hasPart'] = array_slice($hasPart, 0, 6);
+            }
+        }
+
         $schemas[] = $primarySchema;
 
         // 2. FAQPage Schema — detect FAQ content
