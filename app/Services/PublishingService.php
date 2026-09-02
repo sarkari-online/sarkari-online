@@ -26,8 +26,7 @@ class PublishingService {
 
     public function __construct() {
         $this->minQualityScore = (int)Env::get('MIN_QUALITY_SCORE', 75);
-        $this->dailyLimit = (int)Env::get('AUTO_PUBLISH_DAILY_LIMIT', 5);
-
+        $this->dailyLimit = (int)Env::get('AUTO_PUBLISH_DAILY_LIMIT', 3);
     }
 
     /**
@@ -77,9 +76,9 @@ class PublishingService {
             'total' => count($todayArticles),
             'official' => $officialCount,
             'search_intent' => $searchIntentCount,
-            'max_total' => $this->dailyLimit, // 5
-            'max_official' => 3,
-            'max_search_intent' => 2
+            'max_total' => $this->dailyLimit, // 3
+            'max_official' => 2,
+            'max_search_intent' => 1
         ];
     }
 

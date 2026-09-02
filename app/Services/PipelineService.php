@@ -77,33 +77,22 @@ class PipelineService {
         // Check if this trend is an official breaking notification
         $isBreaking = TrendService::isOfficialBreaking($trend);
 
-        // Guard 1: Daily Quota (Max 5/day) & 45-Minute Pacing Gap
+        // Guard 1: Daily Quota (Max 3/day) & Fixed Slot Timing (10:00 AM, 02:00 PM, 06:00 PM IST)
         $pubService = new PublishingService();
         if (!$force) {
             $todayCount = $pubService->getPublishedTodayCount();
-            if ($todayCount >= 5 && !$isBreaking) {
-                Logger::info("Daily publishing quota (5/day) reached. Skipping generation for Trend #{$trendId}.");
-                return ['success' => false, 'trend_id' => $trendId, 'error' => 'Daily publishing quota reached (5/5). Held for tomorrow.'];
+            if ($todayCount >= 3 && !$isBreaking) {
+                Logger::info("Daily publishing quota (3/day) reached. Skipping generation for Trend #{$trendId}.");
+                return ['success' => false, 'trend_id' => $trendId, 'error' => 'Daily publishing quota reached (3/3). Held for tomorrow 10:00 AM IST.'];
             }
 
-            // Enforce minimum 45-minute gap between autonomous articles
-            if ($todayCount > 0 && !$isBreaking) {
-                $lastPubRow = Database::fetchOne("
-                    SELECT published_at FROM articles 
-                    WHERE status = 'published' 
-                    ORDER BY published_at DESC LIMIT 1
-                ");
-                if (!empty($lastPubRow['published_at'])) {
-                    $lastPubTime = strtotime($lastPubRow['published_at']);
-                    $elapsedSeconds = time() - $lastPubTime;
-                    $minGapSeconds = 45 * 60; // 45 minutes = 2700s
-                    if ($elapsedSeconds < $minGapSeconds && $elapsedSeconds >= 0) {
-                        $elapsedMins = round($elapsedSeconds / 60);
-                        $waitMins = round(($minGapSeconds - $elapsedSeconds) / 60);
-                        $pacingMsg = "Pacing gap active: Slot {$todayCount}/5 was published {$elapsedMins}m ago. Next slot in ~{$waitMins}m.";
-                        Logger::info("Trend #{$trendId} deferred: " . $pacingMsg);
-                        return ['success' => false, 'trend_id' => $trendId, 'error' => $pacingMsg];
-                    }
+            // Enforce fixed IST publishing slot schedule (10:00 AM, 02:00 PM, 06:00 PM)
+            if (!$isBreaking) {
+                $schedule = AutoCronService::getISTSlotSchedule();
+                if ($todayCount >= $schedule['unlocked_slots']) {
+                    $pacingMsg = "Slot schedule active: {$todayCount}/3 articles published today. Next slot: {$schedule['next_slot_name']} (in ~{$schedule['wait_minutes']}m).";
+                    Logger::info("Trend #{$trendId} deferred: " . $pacingMsg);
+                    return ['success' => false, 'trend_id' => $trendId, 'error' => $pacingMsg];
                 }
             }
         }

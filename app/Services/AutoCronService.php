@@ -259,6 +259,49 @@ class AutoCronService {
         }
     }
 
+    /**
+     * Get the current active publishing slot status for Indian Standard Time (IST)
+     * Daily Slots:
+     * - Slot 1: 10:00 AM IST (Morning announcement peak)
+     * - Slot 2: 02:00 PM IST (14:00 - Afternoon update peak)
+     * - Slot 3: 06:00 PM IST (18:00 - Evening bulletin peak)
+     */
+    public static function getISTSlotSchedule(): array {
+        $nowH = (int)date('H'); // 0 to 23 in Asia/Kolkata
+        $nowM = (int)date('i');
+        $nowMinutes = ($nowH * 60) + $nowM;
+
+        $slot1Minutes = 10 * 60;       // 10:00 AM = 600 mins
+        $slot2Minutes = 14 * 60;       // 02:00 PM = 840 mins
+        $slot3Minutes = 18 * 60;       // 06:00 PM = 1080 mins
+
+        if ($nowMinutes < $slot1Minutes) {
+            $unlockedSlots = 0;
+            $nextSlotName = 'Morning Slot 1 (10:00 AM IST)';
+            $waitMinutes = $slot1Minutes - $nowMinutes;
+        } elseif ($nowMinutes < $slot2Minutes) {
+            $unlockedSlots = 1;
+            $nextSlotName = 'Noon Slot 2 (02:00 PM IST)';
+            $waitMinutes = $slot2Minutes - $nowMinutes;
+        } elseif ($nowMinutes < $slot3Minutes) {
+            $unlockedSlots = 2;
+            $nextSlotName = 'Evening Slot 3 (06:00 PM IST)';
+            $waitMinutes = $slot3Minutes - $nowMinutes;
+        } else {
+            $unlockedSlots = 3;
+            $nextSlotName = 'Morning Slot 1 Tomorrow (10:00 AM IST)';
+            $waitMinutes = (24 * 60 - $nowMinutes) + $slot1Minutes;
+        }
+
+        return [
+            'unlocked_slots' => $unlockedSlots,
+            'max_daily'      => 3,
+            'next_slot_name' => $nextSlotName,
+            'wait_minutes'   => $waitMinutes,
+            'current_time'   => date('h:i A') . ' IST'
+        ];
+    }
+
     private static function runGenerate(): void {
         Logger::info('AutoCron: Checking generation pipeline');
         if (php_sapi_name() === 'cli') {
@@ -276,37 +319,23 @@ class AutoCronService {
 
         $publishingService = new PublishingService();
 
-        // 1. Daily Quota Check: Max 5 articles per day
+        // 1. Daily Quota Check: Max 3 articles per day
         $todayCount = $publishingService->getPublishedTodayCount();
-        if ($todayCount >= 5) {
-            $msg = "AutoCron generate: Daily publishing quota ({$todayCount}/5) reached for today. Resting until tomorrow.";
+        $maxDaily = 3;
+        if ($todayCount >= $maxDaily) {
+            $msg = "AutoCron generate: Daily publishing quota ({$todayCount}/{$maxDaily}) reached for today. Resting until tomorrow 10:00 AM IST.";
             Logger::info($msg);
             if (php_sapi_name() === 'cli') echo "[" . date('Y-m-d H:i:s') . "] {$msg}\n";
             return;
         }
 
-        // 2. Intelligent Pacing Gap (Natural time spacing across the day):
-        // If an article was published today, require at least 45 minutes gap before next slot
-        // (If 0 articles published today, generate IMMEDIATELY without waiting!)
-        if ($todayCount > 0) {
-            $lastPub = Database::fetchValue("
-                SELECT published_at FROM articles 
-                WHERE status = 'published' 
-                ORDER BY published_at DESC LIMIT 1
-            ");
-            if (!empty($lastPub)) {
-                $lastPubTime = strtotime($lastPub);
-                $elapsedSeconds = time() - $lastPubTime;
-                $minGapSeconds = 45 * 60; // 45 minutes
-                if ($elapsedSeconds < $minGapSeconds && $elapsedSeconds >= 0) {
-                    $elapsedMins = round($elapsedSeconds / 60);
-                    $waitMins = round(($minGapSeconds - $elapsedSeconds) / 60);
-                    $msg = "AutoCron pacing: Slot {$todayCount}/5 was published {$elapsedMins}m ago. Next article in ~{$waitMins}m.";
-                    Logger::info($msg);
-                    if (php_sapi_name() === 'cli') echo "[" . date('Y-m-d H:i:s') . "] {$msg}\n";
-                    return;
-                }
-            }
+        // 2. Fixed Publishing Slots (10:00 AM, 02:00 PM, 06:00 PM IST)
+        $schedule = self::getISTSlotSchedule();
+        if ($todayCount >= $schedule['unlocked_slots']) {
+            $msg = "AutoCron pacing: {$todayCount}/{$maxDaily} published today. Next slot: {$schedule['next_slot_name']} (unlocks in ~{$schedule['wait_minutes']}m).";
+            Logger::info($msg);
+            if (php_sapi_name() === 'cli') echo "[" . date('Y-m-d H:i:s') . "] {$msg}\n";
+            return;
         }
 
         // 3. Auto-heal any stale unpublishable drafts older than 6 hours
@@ -316,7 +345,9 @@ class AutoCronService {
 
         // 4. Generate next top approved trend directly to LIVE status
         $slotNum = $todayCount + 1;
-        $msg = "AutoCron: Autonomous Slot {$slotNum}/5 active. Generating top approved trend...";
+        $slotNames = [1 => 'Morning (10:00 AM)', 2 => 'Noon (02:00 PM)', 3 => 'Evening (06:00 PM)'];
+        $slotLabel = $slotNames[$slotNum] ?? "Slot {$slotNum}";
+        $msg = "AutoCron: Autonomous {$slotLabel} [{$slotNum}/{$maxDaily}] active. Generating top approved trend...";
         Logger::info($msg);
         if (php_sapi_name() === 'cli') echo "[" . date('Y-m-d H:i:s') . "] {$msg}\n";
 
@@ -329,7 +360,7 @@ class AutoCronService {
 
     private static function runPublish(): void {
         Logger::info('AutoCron: Starting publish-articles');
-        $maxBatch          = (int)Env::get('AUTO_PUBLISH_DAILY_LIMIT', 5);
+        $maxBatch          = (int)Env::get('AUTO_PUBLISH_DAILY_LIMIT', 3);
         $publishingService = new PublishingService();
 
         if (!$publishingService->isDailyLimitReached()) {

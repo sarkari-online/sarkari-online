@@ -24,7 +24,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         $messageType = 'danger';
     } else {
         $minQuality = max(50, min(100, (int)($_POST['min_quality_score'] ?? 90)));
-        $dailyLimit = max(1, min(50, (int)($_POST['auto_publish_daily_limit'] ?? 5)));
+        $dailyLimit = max(1, min(50, (int)($_POST['auto_publish_daily_limit'] ?? 3)));
         $maxTrends = max(1, min(20, (int)($_POST['max_trends_per_run'] ?? 5)));
         $minTrendScore = max(50, min(100, (int)($_POST['min_trend_score'] ?? 75)));
         $contactEmail = Sanitizer::email($_POST['contact_email'] ?? 'official.sarkarionline@gmail.com');
@@ -40,7 +40,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 }
 
 $curMinQuality = (int)SettingsService::get('MIN_QUALITY_SCORE', Env::get('MIN_QUALITY_SCORE', 90));
-$curDailyLimit = (int)SettingsService::get('AUTO_PUBLISH_DAILY_LIMIT', Env::get('AUTO_PUBLISH_DAILY_LIMIT', 5));
+$curDailyLimit = (int)SettingsService::get('AUTO_PUBLISH_DAILY_LIMIT', Env::get('AUTO_PUBLISH_DAILY_LIMIT', 3));
 $curMaxTrends = (int)SettingsService::get('MAX_TRENDS_PER_RUN', Env::get('MAX_TRENDS_PER_RUN', 5));
 $curMinTrendScore = (int)SettingsService::get('MIN_TREND_SCORE', Env::get('MIN_TREND_SCORE', 75));
 $curContactEmail = (string)SettingsService::get('EDITORIAL_CONTACT_EMAIL', 'official.sarkarionline@gmail.com');
@@ -79,10 +79,10 @@ include dirname(__DIR__) . '/components/header.php';
 
         <div class="form-group" style="margin-bottom: 1.5rem;">
             <label class="form-label" style="font-weight: 700; font-size: 0.9rem;">
-                Daily Auto-Publishing Quota Limit (Default: 5)
+                Daily Auto-Publishing Quota Limit (Default: 3)
             </label>
             <input type="number" name="auto_publish_daily_limit" class="form-control" min="1" max="50" value="<?= $curDailyLimit ?>" required>
-            <div class="form-help">Maximum number of automated articles the system is permitted to publish live per day.</div>
+            <div class="form-help">Maximum automatic articles published per day (Paced across 3 fixed IST slots: 10:00 AM, 02:00 PM, 06:00 PM). Manual admin publishing is always unlimited.</div>
         </div>
 
         <div class="form-group" style="margin-bottom: 1.5rem;">
