@@ -15,6 +15,16 @@ if (str_starts_with($cleanPath, 'automation')) {
 }
 
 if (!empty($cleanPath) && $cleanPath !== 'index.php') {
+    // Dynamic Tool Router: route any /tools/{slug} to its php file
+    if (str_starts_with($cleanPath, 'tools/')) {
+        $toolSlug = trim(substr($cleanPath, 6), '/');
+        $toolFile = __DIR__ . '/tools/' . $toolSlug . '.php';
+        if (file_exists($toolFile)) {
+            require $toolFile;
+            exit;
+        }
+    }
+
     require __DIR__ . '/404.php';
     exit;
 }
