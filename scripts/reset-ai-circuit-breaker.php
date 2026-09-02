@@ -39,6 +39,10 @@ $deleted = Database::query("
 ");
 echo "✅ Cleaned historical cooldown failure logs from ai_logs table.\n";
 
+// 3b. Reset any stuck analyzing trends back to detected
+Database::query("UPDATE trends SET status = 'detected' WHERE status = 'analyzing'");
+echo "✅ Reset any stuck 'analyzing' trends back to detected.\n";
+
 // 4. Test live model connection
 echo "\n🧪 Testing live connection with gemini-3.6-flash...\n";
 try {

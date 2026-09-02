@@ -63,6 +63,11 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     }
 }
 
+// Auto-heal any stale analyzing trends older than 3 minutes
+try {
+    Database::query("UPDATE trends SET status = 'detected' WHERE status = 'analyzing' AND updated_at < DATE_SUB(NOW(), INTERVAL 3 MINUTE)");
+} catch (Throwable $e) {}
+
 // Fetch Trends with Pagination & Filter
 $statusFilter = Sanitizer::string($_GET['status'] ?? '');
 $params = [];
@@ -70,7 +75,7 @@ $where = [];
 
 if ($statusFilter !== '') {
     if ($statusFilter === 'approved') {
-        $where[] = "status IN ('approved', 'analyzing')";
+        $where[] = "status IN ('approved', 'analyzing', 'generating')";
     } else {
         $where[] = "status = :status";
         $params['status'] = $statusFilter;
@@ -89,8 +94,9 @@ $totalPages = ceil($total / $perPage);
 
 // Stats
 $detectedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'detected'");
-$approvedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status IN ('approved', 'analyzing')");
-$generatingCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'analyzing'");
+$approvedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status IN ('approved', 'generating')");
+$analyzingCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'analyzing'");
+$generatingCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'generating'");
 $publishedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'published'");
 $rejectedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'rejected'");
 
@@ -138,7 +144,7 @@ include dirname(__DIR__) . '/components/header.php';
 <div class="stats-grid" style="margin-bottom: 1.5rem;">
     <div class="stat-card">
         <span class="stat-card-label">Daily Regular Quota</span>
-        <span class="stat-card-num" style="color: #1e3a8a;"><?= $todayPublishedCount ?> / 5</span>
+        <span class="stat-card-num" style="color: #1e3a8a;"><?= $todayPublishedCount ?> / 3</span>
     </div>
     <?php if ($generatingCount > 0): ?>
         <div class="stat-card" style="border: 2px solid #f59e0b; background: #fffbeb;">
@@ -268,9 +274,14 @@ include dirname(__DIR__) . '/components/header.php';
                             </td>
                             <td style="padding: 0.85rem 1rem; vertical-align: middle;">
                                 <?php if ($t['status'] === 'analyzing'): ?>
+                                    <span class="badge" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-weight: 800; font-size: 0.75rem; padding: 4px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px;">
+                                        <span style="display: inline-block; width: 8px; height: 8px; border: 2px solid #0369a1; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></span>
+                                        ANALYZING TOPIC...
+                                    </span>
+                                <?php elseif ($t['status'] === 'generating'): ?>
                                     <span class="badge" style="background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; font-weight: 800; font-size: 0.75rem; padding: 4px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px;">
                                         <span style="display: inline-block; width: 8px; height: 8px; border: 2px solid #b45309; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></span>
-                                        GENERATING...
+                                        GENERATING ARTICLE...
                                     </span>
                                 <?php elseif ($t['status'] === 'published'): ?>
                                     <span class="badge" style="background: #dcfce7; color: #15803d; border: 1px solid #86efac; font-weight: 800; font-size: 0.75rem; padding: 3px 8px; border-radius: 6px;">
