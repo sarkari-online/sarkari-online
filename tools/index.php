@@ -101,6 +101,32 @@ include dirname(__DIR__) . '/components/header.php';
                 </a>
             </div>
 
+            <!-- Card 3: Govt Job Age Calculator & Eligibility Checker -->
+            <div style="background: #ffffff; border-radius: 12px; padding: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.2s ease-in-out;" onmouseover="this.style.borderColor='#1e3a8a'; this.style.boxShadow='0 8px 20px rgba(30,58,138,0.08)';" onmouseout="this.style.borderColor='#e2e8f0'; this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)';">
+                <div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+                        <div style="width: 48px; height: 48px; border-radius: 10px; background: #eff6ff; border: 1px solid #bfdbfe; display: flex; align-items: center; justify-content: center; color: #1e3a8a;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        </div>
+                        <span style="font-size: 0.72rem; font-weight: 700; color: #1e40af; background: #dbeafe; padding: 3px 8px; border-radius: 4px; border: 1px solid #bfdbfe;">
+                            DoPT Rules &middot; All Categories
+                        </span>
+                    </div>
+
+                    <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0 0 0.6rem 0; line-height: 1.35;">
+                        Govt Job Age Calculator &amp; Eligibility Checker
+                    </h2>
+                    <p style="font-size: 0.875rem; color: #64748b; line-height: 1.6; margin: 0 0 1.5rem 0;">
+                        Calculate exact age in years, months, and days as on notification cutoff date. Check age eligibility and category relaxation (UR, OBC, SC, ST, PwBD) for UPSC, SSC, and Banking forms.
+                    </p>
+                </div>
+
+                <a href="<?= url('tools/age-calculator/') ?>" class="btn btn-primary" style="width: 100%; text-align: center; justify-content: center; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; padding: 0.75rem 1.25rem; border-radius: 8px;">
+                    <span>Open Age Calculator</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </a>
+            </div>
+
         </div>
 
         <!-- Trust and Institutional Verification Strip -->

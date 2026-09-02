@@ -43,7 +43,8 @@ $staticPages = [
     ['url' => 'disclaimer/', 'file' => __DIR__ . '/disclaimer.php'],
     ['url' => 'tools/', 'file' => __DIR__ . '/tools/index.php'],
     ['url' => 'tools/7th-pay-commission-salary-calculator/', 'file' => __DIR__ . '/tools/7th-pay-commission-salary-calculator.php'],
-    ['url' => 'tools/cgpa-to-percentage-calculator/', 'file' => __DIR__ . '/tools/cgpa-to-percentage-calculator.php']
+    ['url' => 'tools/cgpa-to-percentage-calculator/', 'file' => __DIR__ . '/tools/cgpa-to-percentage-calculator.php'],
+    ['url' => 'tools/age-calculator/', 'file' => __DIR__ . '/tools/age-calculator.php']
 ];
 
 $seenUrls = [];

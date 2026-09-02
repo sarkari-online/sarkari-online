@@ -45,6 +45,8 @@
     RewriteRule ^tools/salary-calculator/?$ tools/7th-pay-commission-salary-calculator.php [L,QSA]
     RewriteRule ^tools/cgpa-to-percentage-calculator/?$ tools/cgpa-to-percentage-calculator.php [L,QSA]
     RewriteRule ^tools/cgpa-calculator/?$ tools/cgpa-to-percentage-calculator.php [L,QSA]
+    RewriteRule ^tools/age-calculator/?$ tools/age-calculator.php [L,QSA]
+    RewriteRule ^tools/govt-job-age-calculator/?$ tools/age-calculator.php [L,QSA]
 
     # Serve existing files and directories directly
     RewriteCond %{REQUEST_FILENAME} -f [OR]
