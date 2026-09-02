@@ -20,8 +20,8 @@ use Throwable;
 
 class AutoCronService {
 
-    private const INTERVAL_FETCH     = 900;   // 15 mins
-    private const INTERVAL_ANALYZE   = 300;   // 5 mins
+    private const INTERVAL_FETCH     = 1800;  // 30 mins
+    private const INTERVAL_ANALYZE   = 1800;  // 30 mins (Conserves AI quota; only analyzes when topics are needed)
     private const INTERVAL_GENERATE  = 120;   // 2 mins (Fast responsive generation of approved topics)
     private const INTERVAL_PUBLISH   = 120;   // 2 mins (Fast responsive auto-publishing)
     private const INTERVAL_BACKLINKS = 14400; // 4 hours
@@ -179,6 +179,25 @@ class AutoCronService {
             if (php_sapi_name() === 'cli') {
                 echo "[" . date('Y-m-d H:i:s') . "] ⏸️ AutoCron analyze: Gemini circuit breaker active (cooldown). Skipping cycle.\n";
             }
+            return;
+        }
+
+        // 1. Quota Guard: If we already have 5+ approved trends in queue, don't burn AI calls analyzing more
+        $approvedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'approved'");
+        if ($approvedCount >= 5) {
+            $msg = "AutoCron analyze: Sufficient approved trends ({$approvedCount}) already in queue. Skipping analysis to preserve AI quota.";
+            Logger::info($msg);
+            if (php_sapi_name() === 'cli') echo "[" . date('Y-m-d H:i:s') . "] ⏸️ {$msg}\n";
+            return;
+        }
+
+        // 2. Daily Rest Guard: If today's 3 articles are already published and we have at least 3 approved trends for tomorrow, rest!
+        $pubService = new PublishingService();
+        $todayCount = $pubService->getPublishedTodayCount();
+        if ($todayCount >= 3 && $approvedCount >= 3) {
+            $msg = "AutoCron analyze: Today's quota (3/3) reached and tomorrow's pipeline is stocked ({$approvedCount} approved). Resting until tomorrow.";
+            Logger::info($msg);
+            if (php_sapi_name() === 'cli') echo "[" . date('Y-m-d H:i:s') . "] ⏸️ {$msg}\n";
             return;
         }
 

@@ -40,4 +40,11 @@ while (true) {
     }
 
     sleep(60);
+
+    // Self-healing worker recycle every 30 cycles (30 minutes)
+    // Ensures clean garbage collection and instantaneous code updates via Supervisord
+    if ($cycle >= 30) {
+        echo "[" . date('Y-m-d H:i:s') . "] 🔄 Worker completed 30 cycles. Recycling process for fresh memory & code reload...\n";
+        exit(0);
+    }
 }
