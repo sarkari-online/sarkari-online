@@ -11,8 +11,8 @@ use App\Services\StateJobService;
 $allStates = StateJobService::getAllStates();
 $regions = StateJobService::getStatesByRegion();
 
-$pageTitle = 'State Govt Jobs 2026 (राज्यवार सरकारी नौकरी) — All States Recruitment Portal';
-$pageDesc = 'Explore latest state government jobs 2026 across Uttar Pradesh, Bihar, Rajasthan, Delhi, MP, Haryana, Maharashtra and all Indian states. Direct official portal links and verified recruitment notifications.';
+$pageTitle = 'State Govt Jobs 2026: All States Portal | ' . SITE_NAME;
+$pageDesc = 'Explore latest state government jobs 2026 across UP, Bihar, Rajasthan, Delhi, MP, and all Indian states with direct official portals and verified job alerts.';
 $pageKeywords = 'state govt jobs 2026, rajyawar sarkari naukri, up sarkari naukri, bihar govt jobs, rajasthan sarkari vacancy, mp vyapam jobs, haryana hssc recruitment, delhi dsssb jobs';
 $canonicalUrl = url('state-jobs/');
 $ogType = 'website';

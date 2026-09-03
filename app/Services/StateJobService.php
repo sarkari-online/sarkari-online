@@ -25,8 +25,8 @@ class StateJobService {
             'region' => 'North',
             'capital' => 'Lucknow',
             'tagline' => 'UP Police, UPSSSC PET, UPPSC, Lekhpal & Teaching Recruitment 2026',
-            'meta_title' => 'UP Sarkari Naukri 2026 — Latest Uttar Pradesh Govt Jobs, Results & Notifications',
-            'meta_desc' => 'Verified Uttar Pradesh (UP) government jobs 2026, UP Police Constable & SI vacancy, UPSSSC, UPPSC civil services, teacher recruitment, and official direct application portals.',
+            'meta_title' => 'UP Sarkari Naukri 2026: UP Police & PET',
+            'meta_desc' => 'Latest Uttar Pradesh (UP) government jobs 2026. Verified alerts for UP Police Constable & SI, UPSSSC PET, UPPSC, and official direct application portals.',
             'top_keywords' => [
                 'UP Sarkari Naukri 2026', 'UP Police Vacancy 2026', 'UPSSSC PET Notification',
                 'UPPSC Civil Services', 'UP Lekhpal Recruitment', 'UP TGT PGT Vacancy'
@@ -49,8 +49,8 @@ class StateJobService {
             'region' => 'East',
             'capital' => 'Patna',
             'tagline' => 'BPSC Teacher TRE, BSSC Inter Level, Bihar Police & CSBC Alerts 2026',
-            'meta_title' => 'Bihar Sarkari Naukri 2026 — BPSC, BSSC, Bihar Police Vacancy & Results',
-            'meta_desc' => 'Latest Bihar government job alerts 2026. Official notifications for BPSC TRE Teacher recruitment, BSSC 10+2 Inter Level, Bihar Police Constable, CSBC, and Patna High Court.',
+            'meta_title' => 'Bihar Sarkari Naukri 2026: BPSC & Police',
+            'meta_desc' => 'Latest Bihar government jobs 2026. Verified alerts for BPSC TRE Teacher, BSSC Inter Level, Bihar Police Constable, and official direct application portals.',
             'top_keywords' => [
                 'Bihar Sarkari Naukri 2026', 'BPSC TRE Teacher Vacancy', 'BSSC Inter Level 2026',
                 'Bihar Police Constable Alert', 'BPSSC SI Recruitment', 'Patna High Court Jobs'
@@ -73,8 +73,8 @@ class StateJobService {
             'region' => 'West',
             'capital' => 'Jaipur',
             'tagline' => 'RSMSSB CET, RPSC RAS, Rajasthan Police & REET Teacher Updates 2026',
-            'meta_title' => 'Rajasthan Govt Jobs 2026 — RSMSSB, RPSC RAS, REET & Police Vacancies',
-            'meta_desc' => 'Verified Rajasthan government recruitment 2026. RSMSSB CET Graduation & 12th Level, RPSC RAS/RTS, REET Teacher Grade 3, Rajasthan Police Constable, and Patwari vacancies.',
+            'meta_title' => 'Rajasthan Govt Jobs 2026: RPSC & RSMSSB',
+            'meta_desc' => 'Verified Rajasthan government jobs 2026. Official alerts for RSMSSB CET, RPSC RAS, REET Teacher Grade 3, Police Constable, and direct application portals.',
             'top_keywords' => [
                 'Rajasthan Govt Jobs 2026', 'RSMSSB CET Notification', 'RPSC RAS 2026',
                 'REET Exam Date 2026', 'Rajasthan Police Vacancy', 'Rajasthan Patwari Bharti'
@@ -96,8 +96,8 @@ class StateJobService {
             'region' => 'Central',
             'capital' => 'Bhopal',
             'tagline' => 'MPESB Vyapam, MPPSC State Services, MP Police & Patwari Recruitment 2026',
-            'meta_title' => 'MP Sarkari Naukri 2026 — MPESB Vyapam, MPPSC, MP Police Vacancies',
-            'meta_desc' => 'Official Madhya Pradesh government job updates 2026. Direct links to MPESB (Vyapam) notifications, MPPSC State Service Examination, MP Police Constable, Patwari, and Samvida Shikshak.',
+            'meta_title' => 'MP Sarkari Naukri 2026: MPESB & MPPSC',
+            'meta_desc' => 'Latest MP government jobs 2026. Verified alerts for MPESB Vyapam, MPPSC State Services, MP Police Constable, Patwari, and direct application portals.',
             'top_keywords' => [
                 'MP Sarkari Naukri 2026', 'MPESB Vyapam Vacancy', 'MPPSC State Service 2026',
                 'MP Police Constable Alert', 'MP Patwari Bharti', 'MP TET Samvida Shikshak'
@@ -109,7 +109,6 @@ class StateJobService {
                 ['name' => 'Madhya Pradesh High Court', 'abbr' => 'MPHC', 'url' => 'https://mphc.gov.in', 'desc' => 'Civil Judge, Stenographer, Assistant Grade 3']
             ],
             'color' => '#6d28d9',
-            'bg' => '#f5f3ff'
         ],
         'delhi' => [
             'slug' => 'delhi',
@@ -119,8 +118,8 @@ class StateJobService {
             'region' => 'North',
             'capital' => 'New Delhi',
             'tagline' => 'DSSSB Teaching & Non-Teaching, Delhi Police & High Court Jobs 2026',
-            'meta_title' => 'Delhi Govt Jobs 2026 — DSSSB Teacher, Delhi Police, High Court Vacancies',
-            'meta_desc' => 'Latest Delhi government job vacancies 2026. Official DSSSB PRT/TGT/PGT teacher recruitment, Delhi Police Head Constable & Executive, and Delhi High Court recruitments.',
+            'meta_title' => 'Delhi Govt Jobs 2026: DSSSB & DP Police',
+            'meta_desc' => 'Latest Delhi government job vacancies 2026. Official DSSSB PRT/TGT/PGT teacher recruitment, Delhi Police Constable, and direct online application portals.',
             'top_keywords' => [
                 'Delhi Govt Jobs 2026', 'DSSSB Recruitment 2026', 'Delhi Police Vacancy',
                 'DSSSB TGT PGT Vacancy', 'Delhi High Court Jobs', 'DDA Recruitment 2026'
@@ -142,8 +141,8 @@ class StateJobService {
             'region' => 'North',
             'capital' => 'Chandigarh',
             'tagline' => 'HSSC CET Group C & D, HPSC HCS, Haryana Police Alerts 2026',
-            'meta_title' => 'Haryana Govt Jobs 2026 — HSSC CET Group C/D, HPSC HCS, Police Bharti',
-            'meta_desc' => 'Authentic Haryana government job notifications 2026. Direct portals for HSSC Common Eligibility Test (CET) Group C & D, HPSC Civil Services (HCS), and Haryana Police Constable.',
+            'meta_title' => 'Haryana Govt Jobs 2026: HSSC & HPSC HCS',
+            'meta_desc' => 'Authentic Haryana government jobs 2026. Official alerts for HSSC CET Group C & D, HPSC HCS Civil Services, Haryana Police, and direct application links.',
             'top_keywords' => [
                 'Haryana Govt Jobs 2026', 'HSSC CET Group C 2026', 'HPSC HCS Notification',
                 'Haryana Police Constable Bharti', 'HTET Exam Date', 'HSSC Group D Result'
@@ -165,8 +164,8 @@ class StateJobService {
             'region' => 'West',
             'capital' => 'Mumbai',
             'tagline' => 'MPSC State Services, Talathi Bharti, Maharashtra Police & ZP Bharti 2026',
-            'meta_title' => 'Maharashtra Govt Jobs 2026 (महासर्कारी नोकरी) — MPSC, Talathi, Police Bharti',
-            'meta_desc' => 'Maharashtra government jobs 2026 (MahaPariksha). MPSC Rajyaseva, Talathi Bharti, Maharashtra Police Constable, Zilla Parishad (ZP), and Arogya Vibhag official alerts.',
+            'meta_title' => 'Maharashtra Govt Jobs 2026: MPSC Bharti',
+            'meta_desc' => 'Latest Maharashtra government jobs 2026. Verified alerts for MPSC Rajyaseva, Talathi Bharti, Maharashtra Police Constable, and direct application portals.',
             'top_keywords' => [
                 'Maharashtra Govt Jobs 2026', 'MPSC Rajyaseva 2026', 'Maharashtra Police Bharti',
                 'Talathi Bharti Result', 'Zilla Parishad Recruitment', 'MahaPariksha Portal'
@@ -188,8 +187,8 @@ class StateJobService {
             'region' => 'East',
             'capital' => 'Kolkata',
             'tagline' => 'WBPSC WBCS, WB Police PRB, WB TET & Health Recruitment 2026',
-            'meta_title' => 'West Bengal Govt Jobs 2026 — WBPSC WBCS, WB Police PRB, WB TET Alerts',
-            'meta_desc' => 'Latest West Bengal government job updates 2026. WBPSC West Bengal Civil Service (WBCS), West Bengal Police PRB Constable & SI, WB Primary TET, and WBHRB alerts.',
+            'meta_title' => 'West Bengal Govt Jobs 2026: WBPSC & WBP',
+            'meta_desc' => 'Latest West Bengal government jobs 2026. Verified alerts for WBPSC WBCS, WB Police PRB Constable & SI, WB TET, and official direct application portals.',
             'top_keywords' => [
                 'West Bengal Govt Jobs 2026', 'WBPSC WBCS 2026', 'WB Police Constable Bharti',
                 'WB TET Notification 2026', 'Calcutta High Court Jobs', 'WBHRB Staff Nurse'
@@ -211,8 +210,8 @@ class StateJobService {
             'region' => 'West',
             'capital' => 'Gandhinagar',
             'tagline' => 'GPSC Class 1 & 2, GSSSB CCE, Gujarat Police & Talati Recruitment 2026',
-            'meta_title' => 'Gujarat Govt Jobs 2026 (OJAS Gujarat) — GPSC, GSSSB CCE, Police Bharti',
-            'meta_desc' => 'Authentic Gujarat government job updates 2026 on OJAS portal. GPSC Class 1-2 Civil Services, GSSSB Combined Competitive Exam (CCE), Gujarat Police Lokrakshak & PSI recruitments.',
+            'meta_title' => 'Gujarat Govt Jobs 2026: OJAS & GPSC CCE',
+            'meta_desc' => 'Latest Gujarat government jobs 2026 on OJAS. Verified alerts for GPSC Class 1-2, GSSSB CCE, Gujarat Police Constable, and direct application portals.',
             'top_keywords' => [
                 'Gujarat Govt Jobs 2026', 'OJAS Gujarat Bharti', 'GPSC Class 1 2 2026',
                 'GSSSB CCE Notification', 'Gujarat Police Constable PSI', 'Talati Mantri Bharti'
@@ -234,8 +233,8 @@ class StateJobService {
             'region' => 'East',
             'capital' => 'Ranchi',
             'tagline' => 'JSSC CGL, JPSC Civil Services, Jharkhand Police & JTET Alerts 2026',
-            'meta_title' => 'Jharkhand Govt Jobs 2026 — JSSC CGL, JPSC Civil Services, Police Bharti',
-            'meta_desc' => 'Verified Jharkhand government job notifications 2026. JSSC CGL Graduate Level, JPSC Combined Civil Services, Jharkhand Police Constable, and JTET Teacher recruitment.',
+            'meta_title' => 'Jharkhand Govt Jobs 2026: JSSC & JPSC',
+            'meta_desc' => 'Latest Jharkhand government jobs 2026. Verified notifications for JSSC CGL, JPSC Civil Services, Jharkhand Police, and direct online application links.',
             'top_keywords' => [
                 'Jharkhand Govt Jobs 2026', 'JSSC CGL 2026', 'JPSC Civil Services Exam',
                 'Jharkhand Police Constable', 'JTET Notification 2026', 'JSSC Inter Level'
@@ -256,8 +255,8 @@ class StateJobService {
             'region' => 'North',
             'capital' => 'Dehradun',
             'tagline' => 'UKSSSC Group C, UKPSC Upper & Lower Subordinate, UK Police 2026',
-            'meta_title' => 'Uttarakhand Govt Jobs 2026 — UKPSC, UKSSSC Group C, Police Vacancies',
-            'meta_desc' => 'Latest Uttarakhand government vacancies 2026. UKPSC Combined State Civil Services, UKSSSC Group C Patwari, Lekhpal, Forest Guard, and Uttarakhand Police Constable alerts.',
+            'meta_title' => 'Uttarakhand Govt Jobs 2026: UKPSC UKSSSC',
+            'meta_desc' => 'Latest Uttarakhand government jobs 2026. Verified alerts for UKPSC Civil Services, UKSSSC Group C Patwari, Police, and direct online application links.',
             'top_keywords' => [
                 'Uttarakhand Govt Jobs 2026', 'UKPSC Civil Services 2026', 'UKSSSC Group C Bharti',
                 'Uttarakhand Police Vacancy', 'UK Patwari Lekhpal', 'UTET Exam 2026'
@@ -278,8 +277,8 @@ class StateJobService {
             'region' => 'Central',
             'capital' => 'Raipur',
             'tagline' => 'CG Vyapam, CGPSC State Service, CG Police Constable Alerts 2026',
-            'meta_title' => 'Chhattisgarh Govt Jobs 2026 — CG Vyapam, CGPSC State Service, CG Police',
-            'meta_desc' => 'Official Chhattisgarh government job notifications 2026. CGPSC Civil Services examination, CGPEB Vyapam recruitment tests, CG Police Constable, and Shikshak bharti.',
+            'meta_title' => 'Chhattisgarh Govt Jobs 2026: CG Vyapam',
+            'meta_desc' => 'Latest Chhattisgarh government jobs 2026. Verified alerts for CG Vyapam, CGPSC State Services, CG Police Constable, and official online portals.',
             'top_keywords' => [
                 'Chhattisgarh Govt Jobs 2026', 'CG Vyapam Vacancy 2026', 'CGPSC State Service',
                 'CG Police Constable Bharti', 'CG TET Exam Date', 'CG High Court Bilaspur'
@@ -339,9 +338,11 @@ class StateJobService {
             $conditions = [];
             $params = [];
             foreach ($keywords as $i => $kw) {
-                $paramKey = "kw_{$i}";
-                $conditions[] = "(a.title LIKE :{$paramKey} OR a.slug LIKE :{$paramKey})";
-                $params[$paramKey] = '%' . $kw . '%';
+                $pTitle = "kw_t_{$i}";
+                $pSlug = "kw_s_{$i}";
+                $conditions[] = "(a.title LIKE :{$pTitle} OR a.slug LIKE :{$pSlug})";
+                $params[$pTitle] = '%' . $kw . '%';
+                $params[$pSlug] = '%' . $kw . '%';
             }
             $whereClause = '(' . implode(' OR ', $conditions) . ')';
 
@@ -382,7 +383,7 @@ class StateJobService {
                 LEFT JOIN categories c ON a.category_id = c.id
                 WHERE a.status = 'published' AND {$whereClause}
                 ORDER BY a.published_at DESC
-                LIMIT {$limit} OFFSET {$offset}
+                LIMIT {$limitInt} OFFSET {$offsetInt}
             ";
             $items = Database::fetchAll($dataSql, $params);
 
