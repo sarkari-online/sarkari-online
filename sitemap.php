@@ -44,7 +44,13 @@ $staticPages = [
     ['url' => 'tools/', 'file' => __DIR__ . '/tools/index.php'],
     ['url' => 'tools/7th-pay-commission-salary-calculator/', 'file' => __DIR__ . '/tools/7th-pay-commission-salary-calculator.php'],
     ['url' => 'tools/cgpa-to-percentage-calculator/', 'file' => __DIR__ . '/tools/cgpa-to-percentage-calculator.php'],
-    ['url' => 'tools/age-calculator/', 'file' => __DIR__ . '/tools/age-calculator.php']
+    ['url' => 'tools/age-calculator/', 'file' => __DIR__ . '/tools/age-calculator.php'],
+    ['url' => 'previous-year-papers/', 'file' => __DIR__ . '/previous-year-papers.php'],
+    ['url' => 'previous-year-papers/upsc-cse/', 'file' => __DIR__ . '/previous-year-papers.php'],
+    ['url' => 'previous-year-papers/ssc-cgl/', 'file' => __DIR__ . '/previous-year-papers.php'],
+    ['url' => 'previous-year-papers/rrb-ntpc/', 'file' => __DIR__ . '/previous-year-papers.php'],
+    ['url' => 'previous-year-papers/ibps-po/', 'file' => __DIR__ . '/previous-year-papers.php'],
+    ['url' => 'previous-year-papers/nda/', 'file' => __DIR__ . '/previous-year-papers.php']
 ];
 
 $seenUrls = [];
