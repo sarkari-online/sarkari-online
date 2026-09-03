@@ -331,18 +331,20 @@ class StateJobService {
         try {
             $keywords = $state['match_keywords'] ?? [];
             if (empty($keywords)) {
-                return ['items' => [], 'total' => 0, 'pages' => 1];
+                return ['items' => [], 'total' => 0, 'pages' => 1, 'is_fallback' => false];
             }
 
-            // Build LIKE clauses for title, slug, and content
+            // Build LIKE clauses for title, slug, and summary
             $conditions = [];
             $params = [];
             foreach ($keywords as $i => $kw) {
                 $pTitle = "kw_t_{$i}";
                 $pSlug = "kw_s_{$i}";
-                $conditions[] = "(a.title LIKE :{$pTitle} OR a.slug LIKE :{$pSlug})";
+                $pSum = "kw_m_{$i}";
+                $conditions[] = "(a.title LIKE :{$pTitle} OR a.slug LIKE :{$pSlug} OR a.summary LIKE :{$pSum})";
                 $params[$pTitle] = '%' . $kw . '%';
                 $params[$pSlug] = '%' . $kw . '%';
+                $params[$pSum] = '%' . $kw . '%';
             }
             $whereClause = '(' . implode(' OR ', $conditions) . ')';
 
@@ -350,53 +352,59 @@ class StateJobService {
             $limitInt = (int)$limit;
             $offsetInt = (int)$offset;
 
-            // Count total
+            // Count total matching articles
             $countSql = "SELECT COUNT(*) as total FROM articles a WHERE a.status = 'published' AND {$whereClause}";
             $totalRow = Database::fetchOne($countSql, $params);
             $total = (int)($totalRow['total'] ?? 0);
 
-            if ($total === 0) {
-                // Fallback: If no direct state matches, return latest published government & exam alerts
-                $fallbackSql = "
+            if ($total > 0) {
+                // Return matching state articles
+                $dataSql = "
                     SELECT a.id, a.title, a.slug, a.summary, a.featured_image, a.reading_time, a.published_at,
                            c.name as category_name, c.slug as category_slug, c.color as category_color
                     FROM articles a
                     LEFT JOIN categories c ON a.category_id = c.id
-                    WHERE a.status = 'published'
+                    WHERE a.status = 'published' AND {$whereClause}
                     ORDER BY a.published_at DESC
                     LIMIT {$limitInt} OFFSET {$offsetInt}
                 ";
-                $items = Database::fetchAll($fallbackSql);
-                return [
-                    'items' => $items,
-                    'total' => count($items),
-                    'pages' => 1,
-                    'is_fallback' => true
-                ];
+                $items = Database::fetchAll($dataSql, $params);
+                if (!empty($items)) {
+                    return [
+                        'items' => $items,
+                        'total' => $total,
+                        'pages' => max(1, (int)ceil($total / $limit)),
+                        'is_fallback' => false
+                    ];
+                }
             }
 
-            // Query items with category info
-            $dataSql = "
+            // Fallback: If no direct state matches, return latest published government & exam alerts
+            $fallbackSql = "
                 SELECT a.id, a.title, a.slug, a.summary, a.featured_image, a.reading_time, a.published_at,
                        c.name as category_name, c.slug as category_slug, c.color as category_color
                 FROM articles a
                 LEFT JOIN categories c ON a.category_id = c.id
-                WHERE a.status = 'published' AND {$whereClause}
+                WHERE a.status = 'published'
                 ORDER BY a.published_at DESC
                 LIMIT {$limitInt} OFFSET {$offsetInt}
             ";
-            $items = Database::fetchAll($dataSql, $params);
-
+            $items = Database::fetchAll($fallbackSql);
             return [
                 'items' => $items,
-                'total' => $total,
-                'pages' => max(1, (int)ceil($total / $limit)),
-                'is_fallback' => false
+                'total' => count($items),
+                'pages' => 1,
+                'is_fallback' => true
             ];
 
         } catch (Throwable $e) {
             Logger::error("Failed to query articles for state '{$state['slug']}': " . $e->getMessage());
-            return ['items' => [], 'total' => 0, 'pages' => 1, 'is_fallback' => false];
+            try {
+                $safeItems = Database::fetchAll("SELECT a.id, a.title, a.slug, a.summary, a.reading_time, a.published_at, c.name as category_name, c.slug as category_slug, c.color as category_color FROM articles a LEFT JOIN categories c ON a.category_id = c.id WHERE a.status = 'published' ORDER BY a.published_at DESC LIMIT 10");
+                return ['items' => $safeItems, 'total' => count($safeItems), 'pages' => 1, 'is_fallback' => true];
+            } catch (Throwable $e2) {
+                return ['items' => [], 'total' => 0, 'pages' => 1, 'is_fallback' => false];
+            }
         }
     }
 

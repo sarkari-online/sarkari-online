@@ -139,19 +139,23 @@ include __DIR__ . '/components/header.php';
                 <div class="state-articles-grid">
                     <?php foreach ($articles as $art): ?>
                     <article class="state-article-card">
-                        <div class="article-meta-bar">
-                            <span class="article-cat-tag" style="background-color: <?= e($art['category_color'] ?? '#1e3a8a') ?>15; color: <?= e($art['category_color'] ?? '#1e3a8a') ?>;">
+                        <div class="article-meta-bar" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+                            <span class="article-cat-tag" style="background-color: <?= e($art['category_color'] ?? '#1e3a8a') ?>15; color: <?= e($art['category_color'] ?? '#1e3a8a') ?>; font-weight:700;">
                                 <?= e($art['category_name'] ?? 'Govt Jobs') ?>
                             </span>
+                            <span class="article-date" style="display:inline-flex; align-items:center; gap:5px; font-size:0.75rem; font-weight:700; color:#1e293b; background:#f8fafc; border:1px solid #e2e8f0; padding:3px 8px; border-radius:4px;">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                <?= !empty($art['published_at']) ? date('M d, Y', strtotime($art['published_at'])) : date('M d, Y') ?>
+                            </span>
                             <?php if ($isFallback): ?>
-                            <span style="font-size: 0.7rem; font-weight: 600; color: #15803d; background: #dcfce7; padding: 0.15rem 0.45rem; border-radius: 4px;">
+                            <span style="font-size: 0.7rem; font-weight: 700; color: #15803d; background: #dcfce7; border: 1px solid #bbf7d0; padding: 2px 7px; border-radius: 4px;">
                                 Open for <?= e($state['code']) ?> Candidates
                             </span>
-                            <?php endif; ?>
-                            <span class="article-date">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                                <?= date('M d, Y', strtotime($art['published_at'])) ?>
+                            <?php else: ?>
+                            <span style="font-size: 0.7rem; font-weight: 700; color: #15803d; background: #dcfce7; border: 1px solid #bbf7d0; padding: 2px 7px; border-radius: 4px;">
+                                <?= e($state['code']) ?> State Vacancy
                             </span>
+                            <?php endif; ?>
                             <?php if (!empty($art['reading_time'])): ?>
                             <span class="article-read-time"><?= e((string)$art['reading_time']) ?> min read</span>
                             <?php endif; ?>
