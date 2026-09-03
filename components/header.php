@@ -148,74 +148,87 @@
                 </a>
             <?php endforeach; ?>
 
-            <!-- Featured State Govt Jobs Portal Link -->
-            <a href="<?= url('state-jobs/') ?>" class="mobile-nav-link mobile-nav-highlight <?= str_contains($currentUrl, 'state-jobs') ? 'active' : '' ?>">
-                <div style="display: flex; align-items: center; gap: 0.6rem;">
-                    <span class="mobile-state-flag-badge">State Jobs</span>
-                    <span>State Govt Jobs 2026</span>
+            <!-- Featured Portals & Tools Cards Section -->
+            <div class="mobile-nav-featured-section">
+                
+                <!-- State Govt Jobs Card -->
+                <a href="<?= url('state-jobs/') ?>" class="mobile-feature-card <?= str_contains($currentUrl, 'state-jobs') ? 'active' : '' ?>">
+                    <div class="mobile-feature-icon state-icon">
+                        <?= icon('award', 'icon-sm') ?>
+                    </div>
+                    <div class="mobile-feature-body">
+                        <div class="mobile-feature-top">
+                            <span class="mobile-feature-title">State Govt Jobs</span>
+                            <span class="mobile-feature-badge state-badge">2026</span>
+                        </div>
+                        <span class="mobile-feature-sub">28 States &amp; UTs Employment Hub</span>
+                    </div>
+                    <span class="mobile-feature-arrow"><?= icon('chevron-right', 'icon-xs') ?></span>
+                </a>
+
+                <!-- More: Examination Tools & Portals Accordion Card -->
+                <div class="mobile-accordion-container <?= $isMoreActive ? 'open' : '' ?>">
+                    <button type="button" class="mobile-feature-card mobile-accordion-trigger <?= $isMoreActive ? 'open' : '' ?>" id="mobileMegaToggle" aria-expanded="<?= $isMoreActive ? 'true' : 'false' ?>">
+                        <div class="mobile-feature-icon tools-icon">
+                            <?= icon('layers', 'icon-sm') ?>
+                        </div>
+                        <div class="mobile-feature-body">
+                            <div class="mobile-feature-top">
+                                <span class="mobile-feature-title">More Portals &amp; Tools</span>
+                                <span class="mobile-feature-badge tools-badge">Interactive</span>
+                            </div>
+                            <span class="mobile-feature-sub">Salary, Age, Portals &amp; Guides</span>
+                        </div>
+                        <span class="mobile-accordion-chevron"><?= icon('chevron-right', 'icon-xs') ?></span>
+                    </button>
+
+                    <div class="mobile-accordion-drawer <?= $isMoreActive ? 'open' : '' ?>" id="mobileMegaCollapse">
+                        
+                        <!-- Section 1: Examination & Student Tools -->
+                        <div class="mobile-sub-group">
+                            <div class="mobile-sub-header">
+                                <span class="mobile-sub-header-title">Examination Tools</span>
+                                <span class="mobile-sub-header-badge">Interactive</span>
+                            </div>
+                            <div class="mobile-sub-list">
+                                <?php foreach ($toolsLinks as $tl): 
+                                    $isTlActive = str_contains($currentUrl, trim($tl['url'], '/'));
+                                ?>
+                                    <a href="<?= url($tl['url']) ?>" class="mobile-sub-item <?= $isTlActive ? 'active' : '' ?>">
+                                        <span class="mobile-sub-icon"><?= icon($tl['icon'], 'icon-xs') ?></span>
+                                        <div class="mobile-sub-text">
+                                            <span class="mobile-sub-title"><?= e($tl['label']) ?></span>
+                                            <span class="mobile-sub-desc"><?= e($tl['desc']) ?></span>
+                                        </div>
+                                    </a>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+
+                        <!-- Section 2: Academic & Career Portals -->
+                        <div class="mobile-sub-group">
+                            <div class="mobile-sub-header">
+                                <span class="mobile-sub-header-title">Academic &amp; Career Portals</span>
+                                <span class="mobile-sub-header-badge">Live Updates</span>
+                            </div>
+                            <div class="mobile-sub-list">
+                                <?php foreach ($portalLinks as $pl): 
+                                    $isPlActive = str_contains($currentUrl, trim($pl['url'], '/'));
+                                ?>
+                                    <a href="<?= url($pl['url']) ?>" class="mobile-sub-item <?= $isPlActive ? 'active' : '' ?>">
+                                        <span class="mobile-sub-icon"><?= icon($pl['icon'], 'icon-xs') ?></span>
+                                        <div class="mobile-sub-text">
+                                            <span class="mobile-sub-title"><?= e($pl['label']) ?></span>
+                                            <span class="mobile-sub-desc"><?= e($pl['desc']) ?></span>
+                                        </div>
+                                    </a>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+
+                    </div>
                 </div>
-                <span class="mobile-badge-pill">28 States &amp; UTs</span>
-            </a>
 
-            <!-- Mobile More / Mega Menu Accordion -->
-            <div class="mobile-mega-accordion <?= $isMoreActive ? 'open' : '' ?>">
-                <button type="button" class="mobile-mega-toggle <?= $isMoreActive ? 'open' : '' ?>" id="mobileMegaToggle" aria-expanded="<?= $isMoreActive ? 'true' : 'false' ?>">
-                    <div class="mobile-mega-toggle-title">
-                        <span class="mobile-mega-icon"><?= icon('layers', 'icon-sm') ?></span>
-                        <span>More Portals &amp; Tools</span>
-                    </div>
-                    <span class="mobile-mega-chevron"><?= icon('chevron-right', 'icon-xs') ?></span>
-                </button>
-
-                <div class="mobile-mega-collapse <?= $isMoreActive ? 'open' : '' ?>" id="mobileMegaCollapse">
-                    
-                    <!-- Section 1: Examination & Student Tools -->
-                    <div class="mobile-mega-group">
-                        <div class="mobile-mega-group-header">
-                            <span class="mobile-mega-group-title">Examination Tools</span>
-                            <span class="mobile-mega-badge">Interactive</span>
-                        </div>
-                        <div class="mobile-mega-group-items">
-                            <?php foreach ($toolsLinks as $tl): 
-                                $isTlActive = str_contains($currentUrl, trim($tl['url'], '/'));
-                            ?>
-                                <a href="<?= url($tl['url']) ?>" class="mobile-mega-card <?= $isTlActive ? 'active' : '' ?>">
-                                    <div class="mobile-mega-card-icon">
-                                        <?= icon($tl['icon'], 'icon-sm') ?>
-                                    </div>
-                                    <div class="mobile-mega-card-text">
-                                        <div class="mobile-mega-card-title"><?= e($tl['label']) ?></div>
-                                        <div class="mobile-mega-card-desc"><?= e($tl['desc']) ?></div>
-                                    </div>
-                                </a>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-
-                    <!-- Section 2: Academic & Career Portals -->
-                    <div class="mobile-mega-group">
-                        <div class="mobile-mega-group-header">
-                            <span class="mobile-mega-group-title">Academic &amp; Career Portals</span>
-                            <span class="mobile-mega-badge">Live Updates</span>
-                        </div>
-                        <div class="mobile-mega-group-items">
-                            <?php foreach ($portalLinks as $pl): 
-                                $isPlActive = str_contains($currentUrl, trim($pl['url'], '/'));
-                            ?>
-                                <a href="<?= url($pl['url']) ?>" class="mobile-mega-card <?= $isPlActive ? 'active' : '' ?>">
-                                    <div class="mobile-mega-card-icon">
-                                        <?= icon($pl['icon'], 'icon-sm') ?>
-                                    </div>
-                                    <div class="mobile-mega-card-text">
-                                        <div class="mobile-mega-card-title"><?= e($pl['label']) ?></div>
-                                        <div class="mobile-mega-card-desc"><?= e($pl['desc']) ?></div>
-                                    </div>
-                                </a>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-
-                </div>
             </div>
         </nav>
 

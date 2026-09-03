@@ -83,6 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2b. Mobile Mega Menu Accordion Toggle
     const mobileMegaToggle = document.getElementById('mobileMegaToggle');
     const mobileMegaCollapse = document.getElementById('mobileMegaCollapse');
+    const mobileAccordionContainer = document.querySelector('.mobile-accordion-container');
     if (mobileMegaToggle && mobileMegaCollapse) {
         mobileMegaToggle.addEventListener('click', (e) => {
             e.preventDefault();
@@ -90,10 +91,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isOpen) {
                 mobileMegaCollapse.classList.remove('open');
                 mobileMegaToggle.classList.remove('open');
+                if (mobileAccordionContainer) mobileAccordionContainer.classList.remove('open');
                 mobileMegaToggle.setAttribute('aria-expanded', 'false');
             } else {
                 mobileMegaCollapse.classList.add('open');
                 mobileMegaToggle.classList.add('open');
+                if (mobileAccordionContainer) mobileAccordionContainer.classList.add('open');
                 mobileMegaToggle.setAttribute('aria-expanded', 'true');
             }
         });
