@@ -43,12 +43,6 @@ $toolsLinks = [
 
 $portalLinks = [
     [
-        'label' => 'Previous Year Papers',
-        'url'   => 'previous-year-papers/',
-        'icon'  => 'award',
-        'desc'  => 'UPSC, SSC, RRB & Bank Question Papers & Keys'
-    ],
-    [
         'label' => 'College Updates',
         'url'   => 'category/college-updates/',
         'icon'  => 'graduation-cap',

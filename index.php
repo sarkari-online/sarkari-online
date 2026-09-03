@@ -25,26 +25,6 @@ if (!empty($cleanPath) && $cleanPath !== 'index.php') {
         }
     }
 
-    // Question Papers Router: route /previous-year-papers or /previous-year-papers/{exam-slug}
-    if ($cleanPath === 'previous-year-papers' || str_starts_with($cleanPath, 'previous-year-papers/')) {
-        $parts = explode('/', $cleanPath);
-        if (isset($parts[1]) && !empty($parts[1])) {
-            $_GET['exam'] = $parts[1];
-        }
-        require __DIR__ . '/previous-year-papers.php';
-        exit;
-    }
-
-    // Paper Download Router: route /download/paper/{id}
-    if (str_starts_with($cleanPath, 'download/paper/')) {
-        $parts = explode('/', $cleanPath);
-        if (isset($parts[2]) && is_numeric($parts[2])) {
-            $_GET['id'] = (int)$parts[2];
-            require __DIR__ . '/download-paper.php';
-            exit;
-        }
-    }
-
     require __DIR__ . '/404.php';
     exit;
 }

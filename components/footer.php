@@ -48,7 +48,6 @@
                         <li><a href="<?= url('tools/age-calculator/') ?>" class="footer-link">Govt Job Age Calculator</a></li>
                         <li><a href="<?= url('tools/7th-pay-commission-salary-calculator/') ?>" class="footer-link">7th Pay Salary Calculator</a></li>
                         <li><a href="<?= url('tools/cgpa-to-percentage-calculator/') ?>" class="footer-link">CGPA to % Converter</a></li>
-                        <li><a href="<?= url('previous-year-papers/') ?>" class="footer-link">Previous Year Papers &amp; Keys</a></li>
                         <li><a href="<?= url('category/scholarships/') ?>" class="footer-link">National Scholarships (NSP)</a></li>
                         <li><a href="<?= url('category/admit-cards/') ?>" class="footer-link">Admit Cards &amp; Hall Tickets</a></li>
                         <li><a href="<?= url('category/exam-dates/') ?>" class="footer-link">Exam Calendars 2026–27</a></li>

@@ -47,9 +47,6 @@
     RewriteRule ^tools/cgpa-calculator/?$ tools/cgpa-to-percentage-calculator.php [L,QSA]
     RewriteRule ^tools/age-calculator/?$ tools/age-calculator.php [L,QSA]
     RewriteRule ^tools/govt-job-age-calculator/?$ tools/age-calculator.php [L,QSA]
-    RewriteRule ^previous-year-papers/?$ previous-year-papers.php [L,QSA]
-    RewriteRule ^previous-year-papers/([a-zA-Z0-9_-]+)/?$ previous-year-papers.php?exam=$1 [L,QSA]
-    RewriteRule ^download/paper/([0-9]+)/?$ download-paper.php?id=$1 [L,QSA]
 
     # Serve existing files and directories directly
     RewriteCond %{REQUEST_FILENAME} -f [OR]
