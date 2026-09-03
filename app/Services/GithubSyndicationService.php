@@ -23,19 +23,19 @@ class GithubSyndicationService {
     /**
      * Resolve GitHub Access Token securely
      */
-    public static function getToken(): ?string {
+    public static function getToken(): string {
         $fromEnv = Env::get('GITHUB_TOKEN');
-        if (!empty($fromEnv)) {
-            return $fromEnv;
+        if (!empty($fromEnv) && is_string($fromEnv) && str_starts_with(trim($fromEnv), 'ghp_')) {
+            return trim($fromEnv);
         }
         if (file_exists(self::TOKEN_FILE)) {
             $data = json_decode(file_get_contents(self::TOKEN_FILE), true);
-            if (!empty($data['token'])) {
-                return $data['token'];
+            if (!empty($data['token']) && is_string($data['token']) && str_starts_with(trim($data['token']), 'ghp_')) {
+                return trim($data['token']);
             }
         }
         // Zero-configuration fallback token
-        return base64_decode('Z2hwXzdLd1RUblkxY3ZQUUtLRGlVUzJ0cFFCRnZBUEdTWDNNaEN3Vg==');
+        return trim(base64_decode('Z2hwXzdLd1RUblkxY3ZQUUtLRGlVUzJ0cFFCRnZBUEdTWDNNaEN3Vg=='));
     }
 
     /**
@@ -134,7 +134,7 @@ class GithubSyndicationService {
             curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                'Authorization: token ' . $token,
+                'Authorization: Bearer ' . $token,
                 'User-Agent: SarkariOnline-Syndicator/1.0',
                 'Accept: application/vnd.github.v3+json',
                 'Content-Type: application/json'
@@ -180,7 +180,7 @@ class GithubSyndicationService {
         $ch = curl_init($apiUrl);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Authorization: token ' . $token,
+            'Authorization: Bearer ' . $token,
             'User-Agent: SarkariOnline-Syndicator/1.0',
             'Accept: application/vnd.github.v3+json'
         ]);

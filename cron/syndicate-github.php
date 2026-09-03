@@ -26,6 +26,10 @@ echo "🚀 SARKARI.ONLINE — GITHUB (DA 96) KNOWLEDGE HUB SYNDICATOR\n";
 echo "   Repository: https://github.com/sarkari-online/govt-job-alerts-2026\n";
 echo "=================================================================\n\n";
 
+$activeToken = GithubSyndicationService::getToken();
+$maskedToken = substr($activeToken, 0, 8) . '...' . substr($activeToken, -4);
+echo "🔑 Active Token: {$maskedToken} (Length: " . strlen($activeToken) . " chars)\n\n";
+
 // 1. Fetch all published articles
 $articles = Database::fetchAll("
     SELECT id, title, slug, excerpt, content, source_name, source_url, published_at 
