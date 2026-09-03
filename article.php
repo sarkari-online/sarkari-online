@@ -7,6 +7,7 @@ require_once __DIR__ . '/config.php';
 
 use App\Services\ArticleService;
 use App\Services\SchemaService;
+use App\Services\FeaturedSnippetService;
 use App\Helpers\Auth;
 use App\Helpers\SEOHelper;
 
@@ -263,6 +264,9 @@ include __DIR__ . '/components/header.php';
                     $tocData = \App\Services\TableOfContentsService::process($renderedContent);
                     $renderedContent = $tocData['content'];
                     ?>
+                    <!-- Google Position 0 Featured Snippet & Direct Answer Box -->
+                    <?= FeaturedSnippetService::render($article) ?>
+
                     <?= $renderedContent ?>
                 </div>
 

@@ -141,6 +141,7 @@ Return strictly as JSON with this exact schema:
 {
   "title": "100% Unique search-intent headline under 80 chars (NEVER copied verbatim from source)",
   "excerpt": "Direct 2-sentence summary outlining what happened and key action (under 160 characters)",
+  "direct_answer": "Crisp 35-45 word direct factual answer answering the core student search query (who, what, when, immediate action) specifically crafted for Google Position 0 Featured Snippet",
   "content": "<h2>Latest Official Update</h2><p>...</p>...",
   "primary_search_intent": "Core query intent",
   "search_queries": [
