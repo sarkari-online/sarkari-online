@@ -346,6 +346,8 @@ class StateJobService {
             $whereClause = '(' . implode(' OR ', $conditions) . ')';
 
             $offset = max(0, ($page - 1) * $limit);
+            $limitInt = (int)$limit;
+            $offsetInt = (int)$offset;
 
             // Count total
             $countSql = "SELECT COUNT(*) as total FROM articles a WHERE a.status = 'published' AND {$whereClause}";
@@ -353,17 +355,17 @@ class StateJobService {
             $total = (int)($totalRow['total'] ?? 0);
 
             if ($total === 0) {
-                // Fallback: If no direct state matches, return latest national jobs with govt-jobs category
+                // Fallback: If no direct state matches, return latest published government & exam alerts
                 $fallbackSql = "
                     SELECT a.id, a.title, a.slug, a.summary, a.featured_image, a.reading_time, a.published_at,
                            c.name as category_name, c.slug as category_slug, c.color as category_color
                     FROM articles a
                     LEFT JOIN categories c ON a.category_id = c.id
-                    WHERE a.status = 'published' AND (c.slug = 'government-jobs' OR c.slug = 'exam-dates')
+                    WHERE a.status = 'published'
                     ORDER BY a.published_at DESC
-                    LIMIT :limit OFFSET :offset
+                    LIMIT {$limitInt} OFFSET {$offsetInt}
                 ";
-                $items = Database::fetchAll($fallbackSql, ['limit' => $limit, 'offset' => $offset]);
+                $items = Database::fetchAll($fallbackSql);
                 return [
                     'items' => $items,
                     'total' => count($items),

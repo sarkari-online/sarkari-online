@@ -116,11 +116,24 @@ include __DIR__ . '/components/header.php';
             <section class="state-jobs-section">
                 <div class="section-header-row">
                     <div>
-                        <h2 class="section-title">Verified <?= e($state['name']) ?> Recruitment Notifications</h2>
-                        <p class="section-desc"><?php echo $isFallback ? "Latest active public employment alerts across state departments:" : "Live database-synchronized jobs matching {$state['name']} recruiting agencies:"; ?></p>
+                        <h2 class="section-title">
+                            <?= $isFallback ? "Active Government Jobs & " . e($state['name']) . " Opportunities 2026" : "Verified " . e($state['name']) . " Recruitment Notifications" ?>
+                        </h2>
+                        <p class="section-desc">
+                            <?= $isFallback ? "All-India and state-eligible vacancies open for " . e($state['name']) . " candidates (State gazette notices auto-synced upon release):" : "Live database-synchronized jobs matching " . e($state['name']) . " recruiting agencies:" ?>
+                        </p>
                     </div>
                     <span class="job-count-badge"><?= count($articles) ?> Active Updates</span>
                 </div>
+
+                <?php if ($isFallback && !empty($articles)): ?>
+                <div class="state-fallback-notice" style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-md); padding: 0.85rem 1.15rem; margin-bottom: 1.25rem; display: flex; align-items: flex-start; gap: 0.75rem;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    <div style="font-size: 0.85rem; color: #1e3a8a; line-height: 1.5;">
+                        <strong>Upcoming <?= e($state['name']) ?> Vacancies:</strong> State selection boards (<?= e(implode(', ', array_column($state['conducting_bodies'], 'abbr'))) ?>) release official notification gazettes periodically. Below are the verified active public sector vacancies open for candidates from <?= e($state['name']) ?>.
+                    </div>
+                </div>
+                <?php endif; ?>
 
                 <?php if (!empty($articles)): ?>
                 <div class="state-articles-grid">
@@ -130,6 +143,11 @@ include __DIR__ . '/components/header.php';
                             <span class="article-cat-tag" style="background-color: <?= e($art['category_color'] ?? '#1e3a8a') ?>15; color: <?= e($art['category_color'] ?? '#1e3a8a') ?>;">
                                 <?= e($art['category_name'] ?? 'Govt Jobs') ?>
                             </span>
+                            <?php if ($isFallback): ?>
+                            <span style="font-size: 0.7rem; font-weight: 600; color: #15803d; background: #dcfce7; padding: 0.15rem 0.45rem; border-radius: 4px;">
+                                Open for <?= e($state['code']) ?> Candidates
+                            </span>
+                            <?php endif; ?>
                             <span class="article-date">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                                 <?= date('M d, Y', strtotime($art['published_at'])) ?>
@@ -173,8 +191,8 @@ include __DIR__ . '/components/header.php';
                 <?php else: ?>
                 <div class="state-no-jobs">
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                    <h3>Gazette Notifications Awaited</h3>
-                    <p>No new vacancy is active for <?= e($state['name']) ?> today. As soon as the state government releases official notifications, they will be indexed here automatically.</p>
+                    <h3>Upcoming <?= e($state['name']) ?> State Notifications</h3>
+                    <p>New vacancies for <?= e($state['name']) ?> are updated as soon as gazette releases are published. Check the official commission portals below for active advertisements.</p>
                 </div>
                 <?php endif; ?>
             </section>
