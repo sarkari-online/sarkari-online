@@ -90,7 +90,8 @@ include __DIR__ . '/components/header.php';
                 <!-- Search Input for States -->
                 <div class="state-search-box">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    <input type="text" id="stateFilterInput" placeholder="Type your state (e.g. Uttar Pradesh, Bihar, Rajasthan)..." aria-label="Filter states">
+                    <input type="text" id="stateFilterInput" placeholder="Type your state (e.g. Uttar Pradesh, Bihar, Rajasthan)..." aria-label="Filter states" autocomplete="off">
+                    <button type="button" id="stateFilterClear" style="display:none; background:none; border:none; color:#94a3b8; cursor:pointer; padding:0 4px; font-size:16px; font-weight:bold; line-height:1;" aria-label="Clear search">✕</button>
                 </div>
 
                 <!-- High-Level Trust Metrics -->
@@ -151,7 +152,7 @@ include __DIR__ . '/components/header.php';
 
                 <div class="state-cards-grid">
                     <?php foreach ($regionStates as $st): ?>
-                    <a href="<?= url('jobs/' . $st['slug'] . '/') ?>" class="state-card" data-name="<?= strtolower($st['name'] . ' ' . $st['name_hi'] . ' ' . $st['code'] . ' ' . implode(' ', $st['match_keywords'])) ?>">
+                    <a href="<?= url('jobs/' . $st['slug'] . '/') ?>" class="state-card" data-name="<?= e(mb_strtolower($st['name'] . ' ' . $st['name_hi'] . ' ' . $st['code'] . ' ' . $st['capital'] . ' ' . implode(' ', $st['match_keywords']), 'UTF-8')) ?>">
                         <div class="state-card-header">
                             <div class="state-card-identity">
                                 <span class="state-code-badge" style="background-color: <?= e($st['bg']) ?>; color: <?= e($st['color']) ?>; border-color: <?= e($st['color']) ?>40;">
@@ -212,42 +213,77 @@ include __DIR__ . '/components/header.php';
 </main>
 
 <script>
-// Lightweight Client-Side State Search
-document.addEventListener('DOMContentLoaded', function() {
-    var searchInput = document.getElementById('stateFilterInput');
-    if (!searchInput) return;
+(function() {
+    function initStateSearch() {
+        var searchInput = document.getElementById('stateFilterInput');
+        var clearBtn = document.getElementById('stateFilterClear');
+        if (!searchInput) return;
 
-    var stateCards = document.querySelectorAll('.state-card');
-    var regionGroups = document.querySelectorAll('.state-region-group');
-    var noResults = document.getElementById('noStatesFound');
+        var stateCards = document.querySelectorAll('.state-card');
+        var regionGroups = document.querySelectorAll('.state-region-group');
+        var popularSection = document.querySelector('.state-popular-section');
+        var noResults = document.getElementById('noStatesFound');
 
-    searchInput.addEventListener('input', function() {
-        var query = this.value.trim().toLowerCase();
-        var totalVisible = 0;
+        function doFilter() {
+            var rawVal = searchInput.value || '';
+            var query = rawVal.trim().toLowerCase();
 
-        regionGroups.forEach(function(group) {
-            var groupCards = group.querySelectorAll('.state-card');
-            var groupVisible = 0;
+            if (clearBtn) {
+                clearBtn.style.display = query.length > 0 ? 'inline-block' : 'none';
+            }
 
-            groupCards.forEach(function(card) {
-                var searchData = card.getAttribute('data-name') || '';
-                if (query === '' || searchData.indexOf(query) !== -1) {
-                    card.style.display = 'flex';
-                    groupVisible++;
-                    totalVisible++;
-                } else {
-                    card.style.display = 'none';
-                }
+            if (popularSection) {
+                popularSection.style.display = query.length > 0 ? 'none' : 'block';
+            }
+
+            var totalVisible = 0;
+
+            regionGroups.forEach(function(group) {
+                var groupCards = group.querySelectorAll('.state-card');
+                var groupVisible = 0;
+
+                groupCards.forEach(function(card) {
+                    var dataName = (card.getAttribute('data-name') || '').toLowerCase();
+                    var cardText = (card.textContent || card.innerText || '').toLowerCase();
+
+                    if (query === '' || dataName.indexOf(query) !== -1 || cardText.indexOf(query) !== -1) {
+                        card.style.display = 'flex';
+                        groupVisible++;
+                        totalVisible++;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+
+                group.style.display = groupVisible > 0 ? 'block' : 'none';
             });
 
-            group.style.display = groupVisible > 0 ? 'block' : 'none';
+            if (noResults) {
+                noResults.style.display = (totalVisible === 0 && query.length > 0) ? 'block' : 'none';
+            }
+        }
+
+        searchInput.addEventListener('input', doFilter);
+        searchInput.addEventListener('keyup', doFilter);
+        searchInput.addEventListener('paste', function() {
+            setTimeout(doFilter, 50);
         });
 
-        if (noResults) {
-            noResults.style.display = totalVisible === 0 ? 'block' : 'none';
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function() {
+                searchInput.value = '';
+                searchInput.focus();
+                doFilter();
+            });
         }
-    });
-});
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initStateSearch);
+    } else {
+        initStateSearch();
+    }
+})();
 </script>
 
 <!-- JSON-LD Structured Data -->
