@@ -459,7 +459,8 @@ p:last-child {
 
 .nav-dropdown-menu {
     position: absolute;
-    top: calc(100% + 6px);
+    top: 100%;
+    margin-top: 8px;
     right: 0;
     min-width: 270px;
     background: #ffffff;
@@ -482,6 +483,15 @@ p:last-child {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
+}
+
+.nav-dropdown-menu::before {
+    content: '';
+    position: absolute;
+    top: -12px;
+    left: 0;
+    right: 0;
+    height: 12px;
 }
 
 .nav-dropdown-item {
@@ -3118,7 +3128,8 @@ p:last-child {
 
 .lang-dropdown-menu {
     position: absolute;
-    top: calc(100% + 8px);
+    top: 100%;
+    margin-top: 8px;
     right: 0;
     width: 270px;
     background-color: #ffffff;

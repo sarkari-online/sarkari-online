@@ -109,6 +109,7 @@ class StateJobService {
                 ['name' => 'Madhya Pradesh High Court', 'abbr' => 'MPHC', 'url' => 'https://mphc.gov.in', 'desc' => 'Civil Judge, Stenographer, Assistant Grade 3']
             ],
             'color' => '#6d28d9',
+            'bg' => '#f5f3ff'
         ],
         'delhi' => [
             'slug' => 'delhi',

@@ -40,7 +40,7 @@ include __DIR__ . '/components/header.php';
 <main class="site-main state-detail-main" style="padding-top: 0; width: 100%; max-width: 100%;">
 
     <!-- State Hero Banner -->
-    <section class="state-banner" style="width: 100%; margin: 0; --state-brand-color: <?= e($state['color']) ?>; --state-brand-bg: <?= e($state['bg']) ?>;">
+    <section class="state-banner" style="width: 100%; margin: 0; --state-brand-color: <?= e($state['color'] ?? '#1e3a8a') ?>; --state-brand-bg: <?= e($state['bg'] ?? '#eff6ff') ?>;">
         <div class="container">
             
             <!-- Breadcrumbs -->
@@ -81,7 +81,7 @@ include __DIR__ . '/components/header.php';
                 <div class="state-banner-sidebar">
                     <div class="state-quick-card">
                         <div class="quick-card-header">
-                            <span class="state-emblem-badge" style="background-color: <?= e($state['bg']) ?>; color: <?= e($state['color']) ?>;">
+                            <span class="state-emblem-badge" style="background-color: <?= e($state['bg'] ?? '#eff6ff') ?>; color: <?= e($state['color'] ?? '#1e3a8a') ?>;">
                                 <?= e($state['code']) ?>
                             </span>
                             <div>

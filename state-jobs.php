@@ -155,7 +155,7 @@ include __DIR__ . '/components/header.php';
                     <a href="<?= url('jobs/' . $st['slug'] . '/') ?>" class="state-card" data-name="<?= e(mb_strtolower($st['name'] . ' ' . $st['name_hi'] . ' ' . $st['code'] . ' ' . $st['capital'] . ' ' . implode(' ', $st['match_keywords']), 'UTF-8')) ?>">
                         <div class="state-card-header">
                             <div class="state-card-identity">
-                                <span class="state-code-badge" style="background-color: <?= e($st['bg']) ?>; color: <?= e($st['color']) ?>; border-color: <?= e($st['color']) ?>40;">
+                                <span class="state-code-badge" style="background-color: <?= e($st['bg'] ?? '#eff6ff') ?>; color: <?= e($st['color'] ?? '#1e3a8a') ?>; border-color: <?= e($st['color'] ?? '#1e3a8a') ?>40;">
                                     <?= e($st['code']) ?>
                                 </span>
                                 <div>
