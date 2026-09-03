@@ -47,6 +47,8 @@
     RewriteRule ^tools/cgpa-calculator/?$ tools/cgpa-to-percentage-calculator.php [L,QSA]
     RewriteRule ^tools/age-calculator/?$ tools/age-calculator.php [L,QSA]
     RewriteRule ^tools/govt-job-age-calculator/?$ tools/age-calculator.php [L,QSA]
+    RewriteRule ^state-jobs/?$ state-jobs.php [L,QSA]
+    RewriteRule ^jobs/([a-zA-Z0-9_-]+)/?$ state-detail.php?state=$1 [L,QSA]
 
     # Serve existing files and directories directly
     RewriteCond %{REQUEST_FILENAME} -f [OR]

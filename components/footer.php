@@ -43,6 +43,9 @@
                 <div class="footer-col">
                     <h3 class="footer-heading">Recruitment &amp; Aid</h3>
                     <ul class="footer-links-list">
+                        <li><a href="<?= url('state-jobs/') ?>" class="footer-link" style="color: #60a5fa; font-weight: 600;">State Govt Jobs 2026</a></li>
+                        <li><a href="<?= url('jobs/uttar-pradesh/') ?>" class="footer-link">UP Sarkari Naukri (UPSSSC)</a></li>
+                        <li><a href="<?= url('jobs/bihar/') ?>" class="footer-link">Bihar Govt Jobs (BPSC/BSSC)</a></li>
                         <li><a href="<?= url('category/government-jobs/') ?>" class="footer-link">Staff Selection (SSC)</a></li>
                         <li><a href="<?= url('category/government-jobs/') ?>" class="footer-link">Railway Recruitment (RRB)</a></li>
                         <li><a href="<?= url('tools/age-calculator/') ?>" class="footer-link">Govt Job Age Calculator</a></li>

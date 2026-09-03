@@ -45,6 +45,19 @@ $staticPages = [
     ['url' => 'tools/7th-pay-commission-salary-calculator/', 'file' => __DIR__ . '/tools/7th-pay-commission-salary-calculator.php'],
     ['url' => 'tools/cgpa-to-percentage-calculator/', 'file' => __DIR__ . '/tools/cgpa-to-percentage-calculator.php'],
     ['url' => 'tools/age-calculator/', 'file' => __DIR__ . '/tools/age-calculator.php'],
+    ['url' => 'state-jobs/', 'file' => __DIR__ . '/state-jobs.php'],
+    ['url' => 'jobs/uttar-pradesh/', 'file' => __DIR__ . '/state-detail.php'],
+    ['url' => 'jobs/bihar/', 'file' => __DIR__ . '/state-detail.php'],
+    ['url' => 'jobs/rajasthan/', 'file' => __DIR__ . '/state-detail.php'],
+    ['url' => 'jobs/madhya-pradesh/', 'file' => __DIR__ . '/state-detail.php'],
+    ['url' => 'jobs/delhi/', 'file' => __DIR__ . '/state-detail.php'],
+    ['url' => 'jobs/haryana/', 'file' => __DIR__ . '/state-detail.php'],
+    ['url' => 'jobs/maharashtra/', 'file' => __DIR__ . '/state-detail.php'],
+    ['url' => 'jobs/west-bengal/', 'file' => __DIR__ . '/state-detail.php'],
+    ['url' => 'jobs/gujarat/', 'file' => __DIR__ . '/state-detail.php'],
+    ['url' => 'jobs/jharkhand/', 'file' => __DIR__ . '/state-detail.php'],
+    ['url' => 'jobs/uttarakhand/', 'file' => __DIR__ . '/state-detail.php'],
+    ['url' => 'jobs/chhattisgarh/', 'file' => __DIR__ . '/state-detail.php'],
 ];
 
 $seenUrls = [];

@@ -43,6 +43,12 @@ $toolsLinks = [
 
 $portalLinks = [
     [
+        'label' => 'State Govt Jobs',
+        'url'   => 'state-jobs/',
+        'icon'  => 'award',
+        'desc'  => 'UP, Bihar, Rajasthan, MP & All States 2026'
+    ],
+    [
         'label' => 'College Updates',
         'url'   => 'category/college-updates/',
         'icon'  => 'graduation-cap',

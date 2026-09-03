@@ -3957,3 +3957,893 @@ details[open] > .pyq-faq-q::before { content: '−'; }
     .pyq-hero-actions { flex-direction: column; }
     .pyq-btn-primary, .pyq-btn-ghost { justify-content: center; }
 }
+
+/* ==========================================================================
+   State Government Jobs — Hub & Dynamic State Landing Pages
+   Hand-crafted, editorial, high-authority design system matching Sarkari.online
+   ========================================================================== */
+
+/* --- Breadcrumbs --- */
+.state-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.825rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 1.25rem;
+}
+.state-breadcrumb a {
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+.state-breadcrumb a:hover {
+    color: #ffffff;
+    text-decoration: underline;
+}
+.state-breadcrumb .sep {
+    color: rgba(255, 255, 255, 0.5);
+}
+.state-breadcrumb .curr {
+    color: #ffffff;
+    font-weight: 500;
+}
+
+/* --- State Hub Hero --- */
+.state-hub-hero {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #1e40af 100%);
+    color: #ffffff;
+    padding: 2.5rem 0 3rem;
+    position: relative;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.state-hero-content {
+    max-width: 820px;
+}
+.state-hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #93c5fd;
+    padding: 0.3rem 0.75rem;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    letter-spacing: 0.02em;
+}
+.state-hero-title {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.2;
+    margin: 0 0 0.85rem;
+    letter-spacing: -0.02em;
+}
+.state-hero-sub {
+    font-size: 1rem;
+    color: #cbd5e1;
+    line-height: 1.6;
+    margin: 0 0 1.75rem;
+}
+
+/* Search Box */
+.state-search-box {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: #ffffff;
+    border-radius: var(--radius-lg);
+    padding: 0.65rem 1rem;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+    max-width: 580px;
+    margin-bottom: 1.5rem;
+}
+.state-search-box input {
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: 0.95rem;
+    color: var(--text-main);
+    background: transparent;
+}
+.state-search-box input::placeholder {
+    color: #94a3b8;
+}
+
+/* Stats Row */
+.state-stats-row {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+.state-stat-pill {
+    display: flex;
+    flex-direction: column;
+}
+.state-stat-pill .stat-num {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.1;
+}
+.state-stat-pill .stat-lbl {
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
+.state-stats-row .stat-div {
+    width: 1px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* --- Container & Layout --- */
+.state-hub-container {
+    padding-top: 2rem;
+    padding-bottom: 3.5rem;
+}
+
+/* Popular States Chips */
+.state-popular-section {
+    margin-bottom: 2.25rem;
+}
+.section-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+.section-heading {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0;
+}
+.section-tag {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #b45309;
+    background: #fef3c7;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.popular-states-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+}
+.popular-state-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 0.85rem;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: var(--text-main);
+    transition: all 0.15s ease;
+    box-shadow: var(--shadow-xs);
+}
+.popular-state-chip:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-1px);
+    color: var(--color-primary);
+}
+.popular-state-chip .chip-code {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--color-primary);
+    background: #eff6ff;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+}
+.popular-state-chip .chip-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+.popular-state-chip .chip-hi {
+    font-size: 0.8rem;
+    color: var(--text-light);
+}
+
+/* Region Group & State Cards */
+.state-region-group {
+    margin-bottom: 2.5rem;
+}
+.region-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--border-subtle);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.25rem;
+}
+.region-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0;
+}
+.region-count {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+.state-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 1.15rem;
+}
+.state-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-xs);
+}
+.state-card:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+.state-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+.state-card-identity {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.state-code-badge {
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.9rem;
+    border: 1px solid transparent;
+    flex-shrink: 0;
+}
+.state-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0;
+    line-height: 1.2;
+}
+.state-name-hi {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    display: block;
+    margin-top: 0.15rem;
+}
+.state-capital {
+    font-size: 0.725rem;
+    color: var(--text-muted);
+    background: var(--bg-surface-subtle);
+    padding: 0.2rem 0.45rem;
+    border-radius: 4px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+.state-tagline {
+    font-size: 0.825rem;
+    color: var(--text-body);
+    line-height: 1.5;
+    margin: 0;
+    flex: 1;
+}
+.state-commissions-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+.commission-tag {
+    font-size: 0.7rem;
+    font-weight: 600;
+    background: var(--bg-surface-subtle);
+    color: var(--text-muted);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    border: 1px solid var(--border-subtle);
+}
+.commission-tag.more {
+    background: #eff6ff;
+    color: var(--color-primary);
+    border-color: #bfdbfe;
+}
+.state-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--border-subtle);
+    padding-top: 0.65rem;
+    margin-top: auto;
+}
+.portal-cta-label {
+    font-size: 0.825rem;
+    font-weight: 600;
+    color: var(--color-primary);
+}
+.portal-cta-arrow {
+    color: var(--color-primary);
+    transition: transform 0.15s ease;
+}
+.state-card:hover .portal-cta-arrow {
+    transform: translateX(3px);
+}
+
+/* Trust Banner */
+.state-trust-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.15rem;
+    background: #f8fafc;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.5rem;
+    margin-top: 2rem;
+}
+.trust-icon {
+    width: 44px;
+    height: 44px;
+    background: #eff6ff;
+    color: var(--color-primary);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.trust-content h4 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0 0 0.35rem;
+}
+.trust-content p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.55;
+    margin: 0;
+}
+
+/* No Results State */
+.state-no-results {
+    text-align: center;
+    padding: 3rem 1rem;
+}
+.state-no-results h3 {
+    font-size: 1.1rem;
+    color: var(--text-main);
+    margin: 0.75rem 0 0.25rem;
+}
+.state-no-results p {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* ==========================================================================
+   State Detail Landing Page (/jobs/{state-slug}/)
+   ========================================================================== */
+.state-banner {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #172554 100%);
+    color: #ffffff;
+    padding: 2rem 0 2.5rem;
+    border-bottom: 3px solid var(--state-brand-color, #1e3a8a);
+}
+.state-banner-inner {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 2rem;
+    align-items: flex-start;
+}
+.state-banner-tags {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    font-size: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+.state-banner-badge {
+    background: rgba(255, 255, 255, 0.15);
+    padding: 0.2rem 0.55rem;
+    border-radius: 4px;
+    font-weight: 600;
+    color: #93c5fd;
+}
+.state-meta-dot {
+    width: 4px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+}
+.state-banner-capital, .state-banner-auth {
+    color: #cbd5e1;
+}
+.state-banner-title {
+    margin: 0 0 0.85rem;
+    line-height: 1.2;
+}
+.state-title-en {
+    display: block;
+    font-size: clamp(1.6rem, 3.5vw, 2.25rem);
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.02em;
+}
+.state-title-hi {
+    display: block;
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: #93c5fd;
+    margin-top: 0.35rem;
+}
+.state-banner-desc {
+    font-size: 0.95rem;
+    color: #cbd5e1;
+    line-height: 1.6;
+    margin: 0 0 1.25rem;
+    max-width: 720px;
+}
+.state-keywords-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+.keyword-pill {
+    font-size: 0.75rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #e2e8f0;
+    padding: 0.25rem 0.6rem;
+    border-radius: 100px;
+}
+
+/* Quick Card in Sidebar of Hero */
+.state-quick-card {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+}
+.quick-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+.state-emblem-badge {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.875rem;
+    flex-shrink: 0;
+}
+.quick-card-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+}
+.quick-card-sub {
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
+.quick-portals-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.quick-portal-link {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: #ffffff;
+    transition: all 0.15s ease;
+}
+.quick-portal-link:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateX(2px);
+}
+.quick-portal-link .portal-abbr {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #93c5fd;
+}
+.quick-portal-link .portal-name {
+    display: block;
+    font-size: 0.7rem;
+    color: #cbd5e1;
+}
+
+/* Detail Content Layout (Main + Sidebar) */
+.state-content-layout {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 2rem;
+    padding-top: 2rem;
+    padding-bottom: 3.5rem;
+}
+.section-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 1.25rem;
+    border-bottom: 2px solid var(--border-subtle);
+    padding-bottom: 0.5rem;
+}
+.section-header-row .section-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0 0 0.25rem;
+}
+.section-header-row .section-desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+.job-count-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    background: #eff6ff;
+    color: var(--color-primary);
+    padding: 0.25rem 0.6rem;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+/* Articles Grid */
+.state-articles-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+.state-article-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-xs);
+}
+.state-article-card:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-md);
+}
+.article-meta-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.75rem;
+    flex-wrap: wrap;
+}
+.article-cat-tag {
+    font-weight: 700;
+    padding: 0.2rem 0.55rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.article-date {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--text-light);
+}
+.article-read-time {
+    color: var(--text-light);
+}
+.article-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0;
+    line-height: 1.35;
+}
+.article-title a {
+    color: var(--text-main);
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+.article-title a:hover {
+    color: var(--color-primary);
+}
+.article-excerpt {
+    font-size: 0.85rem;
+    color: var(--text-body);
+    line-height: 1.55;
+    margin: 0;
+}
+.article-footer-row {
+    margin-top: 0.35rem;
+}
+.article-apply-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.825rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+.article-apply-btn:hover {
+    color: var(--color-primary-hover);
+    transform: translateX(2px);
+}
+
+/* Conducting Bodies Directory */
+.state-bodies-section {
+    margin-top: 2.5rem;
+    margin-bottom: 2.5rem;
+}
+.bodies-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+}
+.body-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.body-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.body-abbr-badge {
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--color-primary);
+    background: #eff6ff;
+    padding: 0.2rem 0.55rem;
+    border-radius: 4px;
+}
+.body-ext-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-secondary);
+    text-decoration: none;
+}
+.body-ext-link:hover {
+    text-decoration: underline;
+}
+.body-full-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0;
+    line-height: 1.3;
+}
+.body-desc {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.45;
+    margin: 0;
+    flex: 1;
+}
+.body-url-domain code {
+    font-size: 0.725rem;
+    color: var(--text-light);
+    background: var(--bg-surface-subtle);
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+}
+
+/* FAQ Section */
+.state-faq-section {
+    margin-top: 2.5rem;
+}
+.state-faq-accordion {
+    display: flex;
+    flex-direction: column;
+}
+.state-faq-item {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-bottom: none;
+}
+.state-faq-item:first-child {
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+.state-faq-item:last-child {
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+.faq-question {
+    padding: 1rem 1.25rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-main);
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+    transition: background 0.15s ease;
+}
+.faq-question:hover {
+    background: var(--bg-surface-subtle);
+}
+.faq-question::-webkit-details-marker {
+    display: none;
+}
+.faq-question::before {
+    content: '+';
+    float: right;
+    font-size: 1.25rem;
+    color: var(--color-primary);
+    font-weight: 400;
+}
+details[open] > .faq-question::before {
+    content: '−';
+}
+.faq-answer {
+    padding: 0 1.25rem 1.15rem;
+    font-size: 0.875rem;
+    color: var(--text-body);
+    line-height: 1.6;
+    border-top: 1px solid var(--border-subtle);
+}
+.faq-answer p {
+    margin: 0.5rem 0 0;
+}
+
+/* Sidebar Boxes */
+.sidebar-box {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+.sidebar-box-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0 0 0.85rem;
+    border-bottom: 1px solid var(--border-subtle);
+    padding-bottom: 0.5rem;
+}
+.sidebar-box-sub {
+    font-size: 0.775rem;
+    color: var(--text-muted);
+    margin: -0.45rem 0 0.85rem;
+}
+.sidebar-states-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    max-height: 380px;
+    overflow-y: auto;
+    padding-right: 0.35rem;
+}
+.sidebar-state-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.45rem 0.6rem;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    color: var(--text-main);
+    font-size: 0.825rem;
+    transition: background 0.15s ease;
+}
+.sidebar-state-item:hover {
+    background: var(--bg-surface-subtle);
+    color: var(--color-primary);
+}
+.sidebar-state-item .sb-code {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--color-primary);
+    background: #eff6ff;
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+    margin-right: 0.45rem;
+}
+.sidebar-state-item .sb-name {
+    flex: 1;
+}
+
+/* Tools Widget */
+.sidebar-tools-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+.sb-tool-link {
+    display: block;
+    background: var(--bg-surface-subtle);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 0.65rem 0.85rem;
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+.sb-tool-link:hover {
+    border-color: var(--color-primary);
+    background: #eff6ff;
+}
+.sb-tool-link strong {
+    display: block;
+    font-size: 0.825rem;
+    color: var(--color-primary);
+    margin-bottom: 0.15rem;
+}
+.sb-tool-link span {
+    display: block;
+    font-size: 0.725rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+/* Responsive Media Queries */
+@media (max-width: 900px) {
+    .state-banner-inner {
+        grid-template-columns: 1fr;
+    }
+    .state-content-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .state-hub-hero {
+        padding: 1.75rem 0 2rem;
+    }
+    .state-stats-row {
+        gap: 1rem;
+    }
+    .state-stats-row .stat-div {
+        height: 22px;
+    }
+    .state-cards-grid {
+        grid-template-columns: 1fr;
+    }
+}

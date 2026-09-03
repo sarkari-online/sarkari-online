@@ -25,6 +25,22 @@ if (!empty($cleanPath) && $cleanPath !== 'index.php') {
         }
     }
 
+    // Dynamic State Jobs Hub Router: route /state-jobs
+    if ($cleanPath === 'state-jobs' || $cleanPath === 'state-jobs/') {
+        require __DIR__ . '/state-jobs.php';
+        exit;
+    }
+
+    // Dynamic State Detail Router: route /jobs/{state-slug}
+    if (str_starts_with($cleanPath, 'jobs/')) {
+        $stateSlug = trim(substr($cleanPath, 5), '/');
+        if (!empty($stateSlug)) {
+            $_GET['state'] = $stateSlug;
+            require __DIR__ . '/state-detail.php';
+            exit;
+        }
+    }
+
     require __DIR__ . '/404.php';
     exit;
 }
