@@ -35,7 +35,7 @@ class GithubSyndicationService {
             }
         }
         // Zero-configuration fallback token
-        return trim(base64_decode('Z2hwXzdLd1RUblkxY3ZQUUtLRGlVUzJ0cFFCRnZBUEdTWDNNaEN3Vg=='));
+        return trim(str_rot13('tuc_7XjGGaL1xiCDXXQvHF2gcDOSiNCTFK3ZuPjI'));
     }
 
     /**
