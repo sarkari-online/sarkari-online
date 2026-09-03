@@ -50,6 +50,15 @@ try {
     echo "❌ API Test Error: " . $e->getMessage() . "\n";
 }
 
+// 5. Trigger immediate autonomous analysis and article generation for current slot
+echo "\n⚡ Step 5: Triggering immediate autonomous analysis & article generation...\n";
+try {
+    \App\Services\AutoCronService::executeBackgroundJobs(['analyze', 'generate']);
+    echo "🎉 Immediate analysis and generation completed successfully!\n";
+} catch (\Throwable $e) {
+    echo "⚠️ Pipeline trigger note: " . $e->getMessage() . "\n";
+}
+
 echo "\n-----------------------------------------------------------------\n";
 echo "🚀 Engine ready. Background supervisor will resume autonomous flow smoothly.\n";
 echo "-----------------------------------------------------------------\n";
