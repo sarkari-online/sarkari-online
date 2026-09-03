@@ -80,6 +80,25 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // 2b. Mobile Mega Menu Accordion Toggle
+    const mobileMegaToggle = document.getElementById('mobileMegaToggle');
+    const mobileMegaCollapse = document.getElementById('mobileMegaCollapse');
+    if (mobileMegaToggle && mobileMegaCollapse) {
+        mobileMegaToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            const isOpen = mobileMegaCollapse.classList.contains('open');
+            if (isOpen) {
+                mobileMegaCollapse.classList.remove('open');
+                mobileMegaToggle.classList.remove('open');
+                mobileMegaToggle.setAttribute('aria-expanded', 'false');
+            } else {
+                mobileMegaCollapse.classList.add('open');
+                mobileMegaToggle.classList.add('open');
+                mobileMegaToggle.setAttribute('aria-expanded', 'true');
+            }
+        });
+    }
+
     // 3. Search Modal Trigger & Keyboard Shortcut (Cmd+K / Ctrl+K / '/' key)
     const searchModal = document.querySelector('.search-modal');
     const searchTriggers = document.querySelectorAll('.trigger-search-modal');

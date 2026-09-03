@@ -847,6 +847,196 @@ p:last-child {
     border-left-color: var(--color-primary);
 }
 
+/* Mobile Highlighted State Jobs Link */
+.mobile-nav-link.mobile-nav-highlight {
+    background-color: #f0fdf4 !important;
+    border-left-color: #16a34a !important;
+    color: #15803d !important;
+    font-weight: 700 !important;
+}
+
+.mobile-state-flag-badge {
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    background: #dcfce7;
+    color: #15803d;
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.03em;
+}
+
+.mobile-badge-pill {
+    font-size: 0.68rem;
+    font-weight: 700;
+    background: #e0f2fe;
+    color: #0369a1;
+    padding: 2px 7px;
+    border-radius: 9999px;
+}
+
+/* Mobile Mega Menu Accordion */
+.mobile-mega-accordion {
+    margin: 0.5rem 0 0 0;
+    border-top: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.mobile-mega-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.85rem 1.25rem;
+    background: #f8fafc;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--color-primary, #1e3a8a);
+    text-align: left;
+    transition: background-color 0.15s ease;
+}
+
+.mobile-mega-toggle:hover {
+    background: #f1f5f9;
+}
+
+.mobile-mega-toggle-title {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.mobile-mega-icon {
+    display: flex;
+    align-items: center;
+    color: var(--color-primary);
+}
+
+.mobile-mega-chevron {
+    display: flex;
+    align-items: center;
+    color: #64748b;
+    transition: transform 0.2s ease;
+}
+
+.mobile-mega-toggle.open .mobile-mega-chevron {
+    transform: rotate(90deg);
+}
+
+.mobile-mega-collapse {
+    display: none;
+    background: #ffffff;
+    padding: 0.5rem 0.75rem 1rem 0.75rem;
+}
+
+.mobile-mega-collapse.open {
+    display: block;
+    animation: fadeIn 0.15s ease-out;
+}
+
+.mobile-mega-group {
+    margin-top: 0.75rem;
+}
+
+.mobile-mega-group:first-child {
+    margin-top: 0.25rem;
+}
+
+.mobile-mega-group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.35rem 0.5rem 0.45rem 0.5rem;
+    border-bottom: 1px solid #f1f5f9;
+    margin-bottom: 0.35rem;
+}
+
+.mobile-mega-group-title {
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #475569;
+}
+
+.mobile-mega-badge {
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: #1e40af;
+    background: #eff6ff;
+    padding: 1px 6px;
+    border-radius: 4px;
+}
+
+.mobile-mega-group-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.mobile-mega-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.55rem 0.5rem;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--text-main, #0f172a);
+    transition: all 0.15s ease;
+}
+
+.mobile-mega-card:hover, .mobile-mega-card.active {
+    background: var(--color-primary-light, #eff6ff);
+    color: var(--color-primary, #1e3a8a);
+}
+
+.mobile-mega-card-icon {
+    width: 32px;
+    height: 32px;
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    flex-shrink: 0;
+    transition: all 0.15s ease;
+}
+
+.mobile-mega-card:hover .mobile-mega-card-icon,
+.mobile-mega-card.active .mobile-mega-card-icon {
+    background: #dbeafe;
+    color: var(--color-primary);
+    border-color: #bfdbfe;
+}
+
+.mobile-mega-card-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.mobile-mega-card-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: inherit;
+    line-height: 1.25;
+}
+
+.mobile-mega-card-desc {
+    font-size: 0.72rem;
+    color: var(--text-muted, #64748b);
+    margin-top: 1px;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 /* Search Dropdown / Modal */
 .search-modal {
     position: fixed;
