@@ -47,10 +47,12 @@ $canonicalUrl = url($currentExam ? 'previous-year-papers/' . $examSlug . '/' : '
 $years = QuestionPaperService::getDistinctYears();
 $schemaJson = json_encode(QuestionPaperService::generateSchema($papers, $examSlug, $currentExam), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
 
+include __DIR__ . '/components/head.php';
 include __DIR__ . '/components/header.php';
 ?>
 
-<div class="container" style="max-width: 1200px; margin: 1.5rem auto 3rem auto; padding: 0 1rem;">
+<main class="site-main">
+    <div class="container" style="max-width: 1200px; margin: 1.5rem auto 3rem auto; padding: 0 1rem;">
 
     <!-- Breadcrumb -->
     <nav class="breadcrumb-nav" aria-label="Breadcrumb" style="margin-bottom: 1.25rem; font-size: 0.875rem; color: var(--text-muted);">
@@ -316,7 +318,8 @@ include __DIR__ . '/components/header.php';
         </div>
     </div>
 
-</div>
+    </div>
+</main>
 
 <!-- JSON-LD Structured Data -->
 <script type="application/ld+json">
