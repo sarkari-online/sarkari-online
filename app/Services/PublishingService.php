@@ -14,6 +14,7 @@ use App\Helpers\SEOHelper;
 use App\Services\CategoryService;
 use App\Services\GoogleIndexingService;
 use App\Services\IndexNowService;
+use App\Services\TelegraphSyndicationService;
 use App\Services\ThumbnailService;
 use App\Services\TrendService;
 use Exception;
@@ -345,6 +346,9 @@ class PublishingService {
         if (IndexNowService::isConfigured()) {
             IndexNowService::pingArticle($articleId);
         }
+
+        // 8. Real-Time Telegra.ph (DA 92) Backlink Syndication
+        TelegraphSyndicationService::syndicateArticle($article);
 
         return [
             'success' => true,
