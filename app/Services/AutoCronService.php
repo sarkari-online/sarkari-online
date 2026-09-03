@@ -182,26 +182,31 @@ class AutoCronService {
             return;
         }
 
-        // 1. Quota Guard: If we already have 5+ approved trends in queue, don't burn AI calls analyzing more
+        // 1. Quota Guard: Cap approved queue strictly at 3 (Lean 1-day buffer for the 3 daily slots)
         $approvedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'approved'");
-        if ($approvedCount >= 5) {
-            $msg = "AutoCron analyze: Sufficient approved trends ({$approvedCount}) already in queue. Skipping analysis to preserve AI quota.";
+        if ($approvedCount >= 3) {
+            $msg = "AutoCron analyze: Target lean approved buffer ({$approvedCount}/3) full. Skipping AI analysis to preserve Gemini quota.";
             Logger::info($msg);
             if (php_sapi_name() === 'cli') echo "[" . date('Y-m-d H:i:s') . "] ⏸️ {$msg}\n";
             return;
         }
 
-        // 2. Daily Rest Guard: If today's 3 articles are already published and we have at least 3 approved trends for tomorrow, rest!
+        // 2. Daily Rest Guard: If today's 3 articles are already published and we have at least 2 approved trends for tomorrow, rest!
         $pubService = new PublishingService();
         $todayCount = $pubService->getPublishedTodayCount();
-        if ($todayCount >= 3 && $approvedCount >= 3) {
-            $msg = "AutoCron analyze: Today's quota (3/3) reached and tomorrow's pipeline is stocked ({$approvedCount} approved). Resting until tomorrow.";
+        if ($todayCount >= 3 && $approvedCount >= 2) {
+            $msg = "AutoCron analyze: Today's quota (3/3) reached and tomorrow's pipeline is stocked ({$approvedCount} approved). Resting AI until tomorrow.";
             Logger::info($msg);
             if (php_sapi_name() === 'cli') echo "[" . date('Y-m-d H:i:s') . "] ⏸️ {$msg}\n";
             return;
         }
 
-        $maxPerRun = 4; // Analyze detected trends to compute quality & intent scores
+        // 3. Only analyze the exact number needed to top up the buffer to 3 (max 2 per run)
+        $needed = max(0, 3 - $approvedCount);
+        if ($needed <= 0) {
+            return;
+        }
+        $maxPerRun = min(2, $needed);
         $minScore  = (int)Env::get('MIN_TREND_SCORE', 60);
         $pendingTrends = TrendService::getPendingForAnalysis($maxPerRun);
 
