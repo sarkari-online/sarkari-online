@@ -40,7 +40,9 @@ try {
         $rejectedCount  = 0;
         $heldCount      = 0;
 
-        if (!empty($result['items'])) {
+        if (($result['reason'] ?? '') === 'slot_locked') {
+            echo "  -> [SLOT LOCKED] {$result['published_today']}/{$maxBatch} published today. Next slot: {$result['next_slot']}\n";
+        } elseif (!empty($result['items'])) {
             foreach ($result['items'] as $item) {
                 $conf   = isset($item['verification_confidence']) ? " [{$item['verification_confidence']}% confidence]" : '';
                 $action = $item['action'] ?? '';

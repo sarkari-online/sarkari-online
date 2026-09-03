@@ -40,10 +40,14 @@ try {
         }
     }
 
-    // Automatically sweep and publish any qualified review queue articles up to daily limit
+    // Optional sweep of review queue only if the current IST time slot has remaining capacity
     $pubService = new \App\Services\PublishingService();
-    if (!$pubService->isDailyLimitReached()) {
-        $pubResult = $pubService->processPublishQueue($maxPerRun);
+    $todayCount = $pubService->getPublishedTodayCount();
+    $schedule   = \App\Services\AutoCronService::getISTSlotSchedule();
+
+    if ($todayCount < $schedule['unlocked_slots'] && !$pubService->isDailyLimitReached()) {
+        $remainingInSlot = max(0, $schedule['unlocked_slots'] - $todayCount);
+        $pubResult = $pubService->processPublishQueue($remainingInSlot);
         if (!empty($pubResult['items'])) {
             foreach ($pubResult['items'] as $pItem) {
                 if (!empty($pItem['success'])) {

@@ -380,12 +380,19 @@ class AutoCronService {
     }
 
     private static function runPublish(): void {
-        Logger::info('AutoCron: Starting publish-articles');
-        $maxBatch          = (int)Env::get('AUTO_PUBLISH_DAILY_LIMIT', 3);
         $publishingService = new PublishingService();
+        $todayCount = $publishingService->getPublishedTodayCount();
+        $schedule = self::getISTSlotSchedule();
 
-        if (!$publishingService->isDailyLimitReached()) {
-            $publishingService->processPublishQueue($maxBatch);
+        // Strict Slot Guard: Do NOT publish if today count already reached or exceeded the unlocked slot capacity
+        if ($todayCount >= $schedule['unlocked_slots'] || $publishingService->isDailyLimitReached()) {
+            return;
+        }
+
+        $remainingInSlot = max(0, $schedule['unlocked_slots'] - $todayCount);
+        if ($remainingInSlot > 0) {
+            Logger::info("AutoCron: Processing publish queue for remaining slot capacity ({$remainingInSlot} slots available)");
+            $publishingService->processPublishQueue($remainingInSlot);
         }
     }
 }

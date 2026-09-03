@@ -368,8 +368,9 @@ class PublishingService {
      *   5. verdict "fail" (contradicted facts) → REJECT + DELETE from DB
      */
     public function processPublishQueue(int $maxBatch = 5): array {
+        $todayCount = $this->getPublishedTodayCount();
+
         if ($this->isDailyLimitReached()) {
-            $todayCount = $this->getPublishedTodayCount();
             Logger::info("Daily publishing quota reached ({$todayCount}/{$this->dailyLimit} articles published today).");
             return [
                 'success' => false,
@@ -380,8 +381,30 @@ class PublishingService {
             ];
         }
 
-        $remainingSlots = max(0, $this->dailyLimit - $this->getPublishedTodayCount());
+        // Strict IST Slot Guard: Slot 1 (10:00 AM) = max 1, Slot 2 (02:00 PM) = max 2, Slot 3 (06:00 PM) = max 3
+        $schedule = AutoCronService::getISTSlotSchedule();
+        if ($todayCount >= $schedule['unlocked_slots']) {
+            Logger::info("Publish queue locked by IST slot schedule: {$todayCount}/{$this->dailyLimit} published. Next slot: {$schedule['next_slot_name']} (unlocks in ~{$schedule['wait_minutes']}m).");
+            return [
+                'success' => false,
+                'reason'  => 'slot_locked',
+                'published_today' => $todayCount,
+                'unlocked_slots'  => $schedule['unlocked_slots'],
+                'next_slot'       => $schedule['next_slot_name'],
+                'items'   => []
+            ];
+        }
+
+        // Only allow publishing up to the currently unlocked slot capacity
+        $remainingSlots = max(0, min($schedule['unlocked_slots'] - $todayCount, $this->dailyLimit - $todayCount));
         $limit = min($maxBatch, $remainingSlots);
+        if ($limit <= 0) {
+            return [
+                'success' => false,
+                'reason'  => 'slot_capacity_zero',
+                'items'   => []
+            ];
+        }
 
         $sql = "SELECT id, title, content, source_url, source_name
                 FROM articles
