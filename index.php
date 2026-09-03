@@ -230,45 +230,83 @@ include __DIR__ . '/components/header.php';
         <section class="content-section">
             <div class="grid-2">
                 
-                <!-- Student Tech & AI -->
+                <!-- Examination Tools & Student Calculators -->
                 <div>
                     <div class="section-header">
                         <h2 class="section-title">
-                            <?= icon('cpu') ?>
-                            <span>Student Tech &amp; AI Tools</span>
+                            <?= icon('layers') ?>
+                            <span>Student Utilities &amp; Exam Tools</span>
                         </h2>
-                        <a href="<?= url('category/student-technology/') ?>" class="section-link-more">
-                            Explore <?= icon('chevron-right', 'icon-sm') ?>
+                        <a href="<?= url('tools/') ?>" class="section-link-more">
+                            All Tools <?= icon('chevron-right', 'icon-sm') ?>
                         </a>
                     </div>
 
-                    <div style="display: flex; flex-direction: column; gap: 1rem;">
-                        <?php foreach ($studentTech as $tech): ?>
-                            <div class="card-compact-row">
-                                <div class="compact-row-thumb">
-                                    <a href="<?= url('article/' . $tech['slug'] . '/') ?>">
-                                        <?php if (!empty($tech['featured_image'])): ?>
-                                            <img src="<?= url($tech['featured_image']) ?>" alt="<?= e($tech['title']) ?>" class="card-thumb-img" loading="lazy" width="320" height="240" style="width: 100%; height: 100%; object-fit: cover; display: block; border-radius: var(--radius-sm);">
-                                        <?php else: ?>
-                                            <?= render_thumbnail_svg($tech['category_slug'] ?? 'student-technology', $tech['title'], 320, 240) ?>
-                                        <?php endif; ?>
-                                    </a>
-                                </div>
-                                <div class="compact-row-content">
-                                    <div class="card-meta" style="margin-bottom: 0.35rem; font-size: 0.75rem;">
-                                        <span class="badge" style="background: #e2e8f0; color: #0f172a; font-weight: 700; font-size: 0.7rem; border: 1px solid #cbd5e1;">
-                                            <?= e($tech['category_name'] ?? 'Tech') ?>
-                                        </span>
-                                        <span class="meta-dot"></span>
-                                        <span><?= format_date($tech['published_at'] ?? 'now') ?></span>
-                                    </div>
-                                    <h3 class="compact-row-title">
-                                        <a href="<?= url('article/' . $tech['slug'] . '/') ?>"><?= e($tech['title']) ?></a>
-                                    </h3>
-                                    <p style="font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 0;"><?= e(truncate_text($tech['excerpt'], 90)) ?></p>
-                                </div>
+                    <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+                        
+                        <!-- Tool 1: Age Calculator -->
+                        <div class="card-compact-row" style="background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1rem 1.15rem; display: flex; gap: 1rem; align-items: center; transition: all 0.2s ease;">
+                            <div style="width: 48px; height: 48px; border-radius: 10px; background: #eff6ff; border: 1px solid #bfdbfe; display: flex; align-items: center; justify-content: center; color: #1e3a8a; flex-shrink: 0;">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                             </div>
-                        <?php endforeach; ?>
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 0.25rem;">
+                                    <span style="font-size: 0.6875rem; font-weight: 700; color: #1e40af; background: #dbeafe; padding: 2px 7px; border-radius: 4px;">DoPT Statutory Rules</span>
+                                    <span style="font-size: 0.7rem; color: #64748b;">2026 Cutoff</span>
+                                </div>
+                                <h3 style="font-size: 0.95rem; font-weight: 700; line-height: 1.35; margin: 0 0 0.25rem 0;">
+                                    <a href="<?= url('tools/age-calculator/') ?>" style="color: var(--text-main); text-decoration: none;">Govt Job Age Calculator &amp; Eligibility Checker</a>
+                                </h3>
+                                <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0 0 0.35rem 0; line-height: 1.4;">Calculate exact age &amp; category relaxation (UR, OBC, SC, ST) for UPSC &amp; SSC.</p>
+                                <a href="<?= url('tools/age-calculator/') ?>" style="font-size: 0.775rem; font-weight: 700; color: var(--color-primary); display: inline-flex; align-items: center; gap: 4px; text-decoration: none;">
+                                    <span>Open Age Calculator</span>
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Tool 2: 7th Pay Salary Calculator -->
+                        <div class="card-compact-row" style="background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1rem 1.15rem; display: flex; gap: 1rem; align-items: center; transition: all 0.2s ease;">
+                            <div style="width: 48px; height: 48px; border-radius: 10px; background: #f0fdf4; border: 1px solid #bbf7d0; display: flex; align-items: center; justify-content: center; color: #16a34a; flex-shrink: 0;">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                            </div>
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 0.25rem;">
+                                    <span style="font-size: 0.6875rem; font-weight: 700; color: #15803d; background: #dcfce7; padding: 2px 7px; border-radius: 4px;">7th CPC Matrix</span>
+                                    <span style="font-size: 0.7rem; color: #64748b;">50% DA Updated</span>
+                                </div>
+                                <h3 style="font-size: 0.95rem; font-weight: 700; line-height: 1.35; margin: 0 0 0.25rem 0;">
+                                    <a href="<?= url('tools/7th-pay-commission-salary-calculator/') ?>" style="color: var(--text-main); text-decoration: none;">7th Pay Commission Salary &amp; In-Hand Calculator</a>
+                                </h3>
+                                <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0 0 0.35rem 0; line-height: 1.4;">Calculate post-wise monthly in-hand net salary, HRA &amp; mandatory NPS deductions.</p>
+                                <a href="<?= url('tools/7th-pay-commission-salary-calculator/') ?>" style="font-size: 0.775rem; font-weight: 700; color: var(--color-primary); display: inline-flex; align-items: center; gap: 4px; text-decoration: none;">
+                                    <span>Open Salary Calculator</span>
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Tool 3: CGPA Converter -->
+                        <div class="card-compact-row" style="background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1rem 1.15rem; display: flex; gap: 1rem; align-items: center; transition: all 0.2s ease;">
+                            <div style="width: 48px; height: 48px; border-radius: 10px; background: #f0f9ff; border: 1px solid #bae6fd; display: flex; align-items: center; justify-content: center; color: #0284c7; flex-shrink: 0;">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                            </div>
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 0.25rem;">
+                                    <span style="font-size: 0.6875rem; font-weight: 700; color: #0369a1; background: #e0f2fe; padding: 2px 7px; border-radius: 4px;">CBSE &amp; AICTE Formula</span>
+                                    <span style="font-size: 0.7rem; color: #64748b;">10-Point Scale</span>
+                                </div>
+                                <h3 style="font-size: 0.95rem; font-weight: 700; line-height: 1.35; margin: 0 0 0.25rem 0;">
+                                    <a href="<?= url('tools/cgpa-to-percentage-calculator/') ?>" style="color: var(--text-main); text-decoration: none;">CGPA to Percentage &amp; Marks Converter</a>
+                                </h3>
+                                <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0 0 0.35rem 0; line-height: 1.4;">Convert CGPA to exact marks &amp; percentages for CBSE, B.Tech, and State Universities.</p>
+                                <a href="<?= url('tools/cgpa-to-percentage-calculator/') ?>" style="font-size: 0.775rem; font-weight: 700; color: var(--color-primary); display: inline-flex; align-items: center; gap: 4px; text-decoration: none;">
+                                    <span>Open CGPA Converter</span>
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                                </a>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
