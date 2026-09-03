@@ -268,8 +268,10 @@ class AutoCronService {
             } catch (Throwable $e) {
                 Logger::error("AutoCron analyze trend #{$trendId} error: " . $e->getMessage());
                 TrendService::markStatus($trendId, 'detected'); // reset to retry next cycle
-                if (str_contains(strtolower($e->getMessage()), 'circuit breaker') || str_contains(strtolower($e->getMessage()), 'quota') || str_contains(strtolower($e->getMessage()), '429')) {
+                $errLower = strtolower($e->getMessage());
+                if (str_contains($errLower, 'circuit breaker') || str_contains($errLower, 'quota') || str_contains($errLower, '429') || str_contains($errLower, 'rate limit') || str_contains($errLower, '404') || str_contains($errLower, 'not available')) {
                     Logger::warning("AutoCron analyze halted: AI rate-limit/quota circuit breaker tripped.");
+                    \App\AI\Gemini::setCircuitBreaker(900, "Analyze quota limit protection");
                     break; // STOP analyzing further trends this cycle!
                 }
             }

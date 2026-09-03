@@ -29,7 +29,7 @@ class Gemini {
             $dbModel = Database::fetchValue("SELECT value FROM settings WHERE `key` = 'gemini_model' LIMIT 1");
         } catch (Throwable $e) {}
 
-        $this->model = $model ?: ($dbModel ?: (string)Env::get('GEMINI_MODEL', 'gemini-3.6-flash'));
+        $this->model = $model ?: ($dbModel ?: (string)Env::get('GEMINI_MODEL', 'gemini-3.1-flash-lite'));
         $this->timeout = (int)Env::get('GEMINI_TIMEOUT', 90);
         $this->maxRetries = (int)Env::get('GEMINI_MAX_RETRIES', 3);
     }
@@ -59,7 +59,7 @@ class Gemini {
                  ON DUPLICATE KEY UPDATE `value` = :val2",
                 ['val1' => $valStr, 'val2' => $valStr]
             );
-            Logger::warning("Gemini Circuit Breaker ACTIVATED for {$seconds}s until " . date('Y-m-d H:i:s', $until) . ". Reason: {$reason}");
+            Logger::warning("Gemini circuit breaker tripped for {$seconds}s: {$reason}");
         } catch (Throwable $e) {}
     }
 
@@ -143,8 +143,16 @@ class Gemini {
             ];
         }
 
-        // Active Google Gemini models in 2026: primary gemini-3.6-flash, followed by gemini-3.5-flash and gemini-2.5-flash
-        $modelsToTry = array_unique(array_filter([$this->model, 'gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-2.5-flash']));
+        // Active Google Gemini models in 2026: high-throughput flash-lite models first, followed by next-gen flash
+        // Deprecated gemini-2.5-flash / gemini-2.5-flash-lite completely removed (they return 404 from Google)
+        $modelsToTry = array_unique(array_filter([
+            $this->model,
+            'gemini-3.1-flash-lite',
+            'gemini-3.5-flash-lite',
+            'gemini-3.7-flash',
+            'gemini-3.8-flash',
+            'gemini-3.6-flash'
+        ]));
         $attempt = 0;
         $lastError = '';
         $tokensUsed = 0;
