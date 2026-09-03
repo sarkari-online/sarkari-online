@@ -3989,6 +3989,14 @@ details[open] > .pyq-faq-q::before { content: '−'; }
     font-weight: 500;
 }
 
+/* --- State Main Wrappers & Heroes (100% Full-Bleed Width) --- */
+.site-main.state-hub-main,
+.site-main.state-detail-main {
+    padding-top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
 /* --- State Hub Hero --- */
 .state-hub-hero {
     background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #1e40af 100%);
@@ -3996,6 +4004,9 @@ details[open] > .pyq-faq-q::before { content: '−'; }
     padding: 2.5rem 0 3rem;
     position: relative;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
 }
 .state-hero-content {
     max-width: 820px;
@@ -4348,6 +4359,9 @@ details[open] > .pyq-faq-q::before { content: '−'; }
     color: #ffffff;
     padding: 2rem 0 2.5rem;
     border-bottom: 3px solid var(--state-brand-color, #1e3a8a);
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
 }
 .state-banner-inner {
     display: grid;

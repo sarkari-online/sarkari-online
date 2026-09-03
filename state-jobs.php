@@ -68,10 +68,10 @@ include __DIR__ . '/components/head.php';
 include __DIR__ . '/components/header.php';
 ?>
 
-<main class="site-main state-hub-main">
+<main class="site-main state-hub-main" style="padding-top: 0; width: 100%; max-width: 100%;">
 
     <!-- Hero Section -->
-    <section class="state-hub-hero">
+    <section class="state-hub-hero" style="width: 100%; margin: 0;">
         <div class="container">
             <nav class="state-breadcrumb" aria-label="Breadcrumb">
                 <a href="<?= url() ?>">Home</a>

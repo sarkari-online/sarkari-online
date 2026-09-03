@@ -37,10 +37,10 @@ include __DIR__ . '/components/head.php';
 include __DIR__ . '/components/header.php';
 ?>
 
-<main class="site-main state-detail-main">
+<main class="site-main state-detail-main" style="padding-top: 0; width: 100%; max-width: 100%;">
 
     <!-- State Hero Banner -->
-    <section class="state-banner" style="--state-brand-color: <?= e($state['color']) ?>; --state-brand-bg: <?= e($state['bg']) ?>;">
+    <section class="state-banner" style="width: 100%; margin: 0; --state-brand-color: <?= e($state['color']) ?>; --state-brand-bg: <?= e($state['bg']) ?>;">
         <div class="container">
             
             <!-- Breadcrumbs -->
