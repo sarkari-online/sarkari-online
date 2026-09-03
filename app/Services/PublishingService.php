@@ -15,6 +15,7 @@ use App\Services\CategoryService;
 use App\Services\GoogleIndexingService;
 use App\Services\IndexNowService;
 use App\Services\TelegraphSyndicationService;
+use App\Services\GithubSyndicationService;
 use App\Services\ThumbnailService;
 use App\Services\TrendService;
 use Exception;
@@ -349,6 +350,9 @@ class PublishingService {
 
         // 8. Real-Time Telegra.ph (DA 92) Backlink Syndication
         TelegraphSyndicationService::syndicateArticle($article);
+
+        // 9. Real-Time GitHub (DA 96) Knowledge Hub Syndication
+        GithubSyndicationService::syndicateArticle($article);
 
         return [
             'success' => true,
