@@ -32,18 +32,23 @@ echo "   - Unlocked Slots Today: " . $schedule['unlocked_slots'] . " / " . $sche
 echo "   - Next Slot: " . $schedule['next_slot_name'] . "\n";
 echo "   - Wait Duration: ~" . $schedule['wait_minutes'] . " minutes\n";
 
-// 3. Check today's published AI count
+// 3. Check today's autonomous slots & published AI count
+$slotsState = AutoCronService::getDailySlotsState();
+$completedSlots = AutoCronService::getCompletedSlotsTodayCount();
+$pendingSlot = AutoCronService::getNextPendingSlot();
 $pub = new PublishingService();
-$todayCount = $pub->getPublishedTodayCount();
+$todayTotal = $pub->getPublishedTodayCount();
+
 echo "\n📊 Today's Progress:\n";
-echo "   - AI Articles Published Today: " . $todayCount . " / 3\n";
+echo "   - Autonomous Scheduled Slots Completed: " . $completedSlots . " / 3\n";
+echo "   - Total Published Articles Today: " . $todayTotal . " (Includes manual & scheduled)\n";
 
 if ($schedule['unlocked_slots'] == 0) {
     echo "   - Status: ⏸️ Pre-10:00 AM window. System will start Slot 1 at 10:00 AM IST.\n";
-} elseif ($todayCount < $schedule['unlocked_slots']) {
-    echo "   - Status: 🟢 Slot ready for generation!\n";
+} elseif ($pendingSlot !== null) {
+    echo "   - Status: 🟢 Slot {$pendingSlot} is UNLOCKED & READY to generate/publish!\n";
 } else {
-    echo "   - Status: ⏳ Pacing active until " . $schedule['next_slot_name'] . ".\n";
+    echo "   - Status: ⏳ All currently unlocked slots completed. Pacing active until " . $schedule['next_slot_name'] . ".\n";
 }
 
 echo "\n-----------------------------------------------------------------\n";

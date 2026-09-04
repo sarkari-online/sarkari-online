@@ -86,9 +86,11 @@ class PublishingService {
 
     /**
      * Check if daily automatic publishing quota is reached
+     * Only counts autonomous scheduled slots (max 3/day: 10 AM, 2 PM, 6 PM).
+     * Manual articles published by admin are completely exempt and unlimited.
      */
     public function isDailyLimitReached(): bool {
-        return $this->getPublishedTodayCount() >= $this->dailyLimit;
+        return AutoCronService::getCompletedSlotsTodayCount() >= $this->dailyLimit;
     }
 
     /**
@@ -379,33 +381,34 @@ class PublishingService {
         $todayCount = $this->getPublishedTodayCount();
 
         if ($this->isDailyLimitReached()) {
-            Logger::info("Daily publishing quota reached ({$todayCount}/{$this->dailyLimit} articles published today).");
+            $completedSlots = AutoCronService::getCompletedSlotsTodayCount();
+            Logger::info("Daily publishing quota reached ({$completedSlots}/{$this->dailyLimit} scheduled slots completed today). Manual publishing remains unlimited.");
             return [
                 'success' => false,
                 'reason'  => 'daily_limit_reached',
-                'published_today' => $todayCount,
+                'completed_slots' => $completedSlots,
                 'daily_limit'     => $this->dailyLimit,
                 'items'   => []
             ];
         }
 
-        // Strict IST Slot Guard: Slot 1 (10:00 AM) = max 1, Slot 2 (02:00 PM) = max 2, Slot 3 (06:00 PM) = max 3
-        $schedule = AutoCronService::getISTSlotSchedule();
-        if ($todayCount >= $schedule['unlocked_slots']) {
-            Logger::info("Publish queue locked by IST slot schedule: {$todayCount}/{$this->dailyLimit} published. Next slot: {$schedule['next_slot_name']} (unlocks in ~{$schedule['wait_minutes']}m).");
+        // Strict IST Slot Guard: Slot 1 (10:00 AM), Slot 2 (02:00 PM), Slot 3 (06:00 PM)
+        $pendingSlot = AutoCronService::getNextPendingSlot();
+        if ($pendingSlot === null) {
+            $schedule = AutoCronService::getISTSlotSchedule();
+            $completedSlots = AutoCronService::getCompletedSlotsTodayCount();
+            Logger::info("Publish queue locked by IST slot schedule: {$completedSlots}/{$this->dailyLimit} scheduled slots completed. Next slot: {$schedule['next_slot_name']} (unlocks in ~{$schedule['wait_minutes']}m).");
             return [
                 'success' => false,
                 'reason'  => 'slot_locked',
-                'published_today' => $todayCount,
-                'unlocked_slots'  => $schedule['unlocked_slots'],
+                'completed_slots' => $completedSlots,
                 'next_slot'       => $schedule['next_slot_name'],
                 'items'   => []
             ];
         }
 
-        // Only allow publishing up to the currently unlocked slot capacity
-        $remainingSlots = max(0, min($schedule['unlocked_slots'] - $todayCount, $this->dailyLimit - $todayCount));
-        $limit = min($maxBatch, $remainingSlots);
+        // Only allow publishing 1 article per pending slot
+        $limit = min($maxBatch, 1);
         if ($limit <= 0) {
             return [
                 'success' => false,

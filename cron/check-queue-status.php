@@ -41,15 +41,35 @@ if (empty($inReview)) {
 }
 echo "\n";
 
-// 3. Check Today's Published Articles & Quota Progress
+// 3. Check Autonomous 3-Slot Schedule & Today's Publications
+$slotSchedule = \App\Services\AutoCronService::getISTSlotSchedule();
+$slotsState   = \App\Services\AutoCronService::getDailySlotsState();
+$completedSlots = $slotsState['completed_slots'] ?? [];
+$pendingSlot  = \App\Services\AutoCronService::getNextPendingSlot();
+
+echo "3. 🕒 AUTONOMOUS 3-SLOT DAILY SCHEDULE (10 AM | 2 PM | 6 PM IST):\n";
+$slotLabels = [
+    1 => 'Morning Slot 1 (10:00 AM IST)',
+    2 => 'Noon Slot 2 (02:00 PM IST)',
+    3 => 'Evening Slot 3 (06:00 PM IST)'
+];
+foreach ($slotLabels as $sNum => $label) {
+    $done = in_array($sNum, $completedSlots, true);
+    $history = $slotsState['slot_history'][$sNum] ?? null;
+    $statusText = $done ? "✅ COMPLETED (" . ($history['executed_at'] ?? 'today') . " -> Article #" . ($history['article_id'] ?? 'N/A') . ")" : ($sNum <= $slotSchedule['unlocked_slots'] ? "⚡ DUE TO EXECUTE NOW" : "⏳ UNLOCKS LATER");
+    echo "   - [Slot {$sNum}] {$label}: {$statusText}\n";
+}
+echo "   Next Action: " . ($pendingSlot !== null ? "Slot {$pendingSlot} is DUE NOW" : "All currently unlocked slots completed. Next slot: " . $slotSchedule['next_slot_name']) . "\n";
+echo "   ℹ️ Note: Manual articles published by admin are 100% UNLIMITED and do not affect scheduled slots.\n\n";
+
 $todayPublished = Database::fetchAll("
-    SELECT id, title, slug, status, published_at, created_at, quality_score 
+    SELECT id, title, slug, status, published_at, created_at, quality_score, ai_generated 
     FROM articles 
     WHERE status = 'published' AND DATE(published_at) = CURRENT_DATE 
     ORDER BY published_at DESC
 ");
 
-echo "3. TODAY'S PUBLISHED ARTICLES (" . count($todayPublished) . " / 5 Daily Quota):\n";
+echo "4. TODAY'S TOTAL PUBLISHED ARTICLES (" . count($todayPublished) . " Total Live Today):\n";
 if (empty($todayPublished)) {
     echo "   (No articles published today yet)\n";
 } else {
@@ -58,20 +78,9 @@ if (empty($todayPublished)) {
         $timeStr = !empty($p['published_at']) ? date('d M Y, h:i:s A', strtotime($p['published_at'])) . ' IST' : 'N/A';
         echo "   {$num}. Article #{$p['id']}: {$p['title']}\n";
         echo "      Published At : {$timeStr}\n";
-        echo "      Created At   : {$p['created_at']}\n";
         echo "      Quality Score: {$p['quality_score']}/100\n";
     }
 }
-
-if (!empty($todayPublished[0]['published_at'])) {
-    $lastTime = strtotime($todayPublished[0]['published_at']);
-    $minsAgo = round((time() - $lastTime) / 60);
-    echo "\n🕒 LAST ARTICLE PUBLISHED: " . date('h:i:s A', $lastTime) . " IST ({$minsAgo} minutes ago)\n";
-}
-
-$remaining = max(0, 5 - count($todayPublished));
-echo "🎯 REMAINING DAILY QUOTA : {$remaining} article" . ($remaining === 1 ? '' : 's') . "\n";
-echo "\n";
 
 // 4. Check 24/7 Autonomous Daemon Worker Status
 echo "4. 🤖 24/7 AUTONOMOUS DAEMON WORKER STATUS:\n";

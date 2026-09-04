@@ -77,23 +77,16 @@ class PipelineService {
         // Check if this trend is an official breaking notification
         $isBreaking = TrendService::isOfficialBreaking($trend);
 
-        // Guard 1: Daily Quota (Max 3/day) & Fixed Slot Timing (10:00 AM, 02:00 PM, 06:00 PM IST)
-        $pubService = new PublishingService();
-        if (!$force) {
-            $todayCount = $pubService->getPublishedTodayCount();
-            if ($todayCount >= 3 && !$isBreaking) {
-                Logger::info("Daily publishing quota (3/day) reached. Skipping generation for Trend #{$trendId}.");
-                return ['success' => false, 'trend_id' => $trendId, 'error' => 'Daily publishing quota reached (3/3). Held for tomorrow 10:00 AM IST.'];
-            }
-
-            // Enforce fixed IST publishing slot schedule (10:00 AM, 02:00 PM, 06:00 PM)
-            if (!$isBreaking) {
+        // Guard 1: Fixed Slot Timing (10:00 AM, 02:00 PM, 06:00 PM IST)
+        // Manual publishing by admin ($force = true) or Breaking Notices ($isBreaking = true) are 100% UNLIMITED and NEVER blocked.
+        if (!$force && !$isBreaking) {
+            $pendingSlot = AutoCronService::getNextPendingSlot();
+            if ($pendingSlot === null) {
                 $schedule = AutoCronService::getISTSlotSchedule();
-                if ($todayCount >= $schedule['unlocked_slots']) {
-                    $pacingMsg = "Slot schedule active: {$todayCount}/3 articles published today. Next slot: {$schedule['next_slot_name']} (in ~{$schedule['wait_minutes']}m).";
-                    Logger::info("Trend #{$trendId} deferred: " . $pacingMsg);
-                    return ['success' => false, 'trend_id' => $trendId, 'error' => $pacingMsg];
-                }
+                $completed = AutoCronService::getCompletedSlotsTodayCount();
+                $pacingMsg = "Autonomous slot schedule active: {$completed}/3 scheduled slots completed today. Next slot: {$schedule['next_slot_name']} (in ~{$schedule['wait_minutes']}m). Manual publishing by admin remains unlimited.";
+                Logger::info("Trend #{$trendId} deferred: " . $pacingMsg);
+                return ['success' => false, 'trend_id' => $trendId, 'error' => $pacingMsg];
             }
         }
 

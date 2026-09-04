@@ -41,16 +41,15 @@ try {
     }
 
     // Optional sweep of review queue only if the current IST time slot has remaining capacity
-    $pubService = new \App\Services\PublishingService();
-    $todayCount = $pubService->getPublishedTodayCount();
-    $schedule   = \App\Services\AutoCronService::getISTSlotSchedule();
+    $pendingSlot = \App\Services\AutoCronService::getNextPendingSlot();
+    $pubService  = new \App\Services\PublishingService();
 
-    if ($todayCount < $schedule['unlocked_slots'] && !$pubService->isDailyLimitReached()) {
-        $remainingInSlot = max(0, $schedule['unlocked_slots'] - $todayCount);
-        $pubResult = $pubService->processPublishQueue($remainingInSlot);
+    if ($pendingSlot !== null && !$pubService->isDailyLimitReached()) {
+        $pubResult = $pubService->processPublishQueue(1);
         if (!empty($pubResult['items'])) {
             foreach ($pubResult['items'] as $pItem) {
-                if (!empty($pItem['success'])) {
+                if (!empty($pItem['success']) && !empty($pItem['article_id'])) {
+                    \App\Services\AutoCronService::recordSlotCompleted($pendingSlot, (int)$pItem['article_id']);
                     echo "  -> Auto-Published Review Article #{$pItem['article_id']}: '{$pItem['title']}'\n";
                 }
             }

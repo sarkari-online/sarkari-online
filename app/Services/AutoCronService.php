@@ -16,6 +16,7 @@ use App\Services\ArticleService;
 use App\Services\CategoryService;
 use App\Services\PipelineService;
 use App\Services\PublishingService;
+use App\Services\SettingsService;
 use Throwable;
 
 class AutoCronService {
@@ -191,11 +192,10 @@ class AutoCronService {
             return;
         }
 
-        // 2. Daily Rest Guard: If today's 3 articles are already published and we have at least 2 approved trends for tomorrow, rest!
-        $pubService = new PublishingService();
-        $todayCount = $pubService->getPublishedTodayCount();
-        if ($todayCount >= 3 && $approvedCount >= 2) {
-            $msg = "AutoCron analyze: Today's quota (3/3) reached and tomorrow's pipeline is stocked ({$approvedCount} approved). Resting AI until tomorrow.";
+        // 2. Daily Rest Guard: If today's 3 scheduled slots are already completed and we have at least 2 approved trends for tomorrow, rest!
+        $completedSlots = self::getCompletedSlotsTodayCount();
+        if ($completedSlots >= 3 && $approvedCount >= 2) {
+            $msg = "AutoCron analyze: Today's 3 scheduled slots completed and tomorrow's pipeline is stocked ({$approvedCount} approved). Resting AI until tomorrow.";
             Logger::info($msg);
             if (php_sapi_name() === 'cli') echo "[" . date('Y-m-d H:i:s') . "] ⏸️ {$msg}\n";
             return;
@@ -328,6 +328,87 @@ class AutoCronService {
         ];
     }
 
+    /**
+     * Get the state of autonomous scheduled slot executions for today (IST)
+     * Autonomous 3-Slot Daily Schedule:
+     * - Slot 1: 10:00 AM IST (Morning announcement peak)
+     * - Slot 2: 02:00 PM IST (14:00 - Afternoon update peak)
+     * - Slot 3: 06:00 PM IST (18:00 - Evening bulletin peak)
+     *
+     * In-between manual articles published by the user/admin are completely exempt
+     * and NEVER count against or block these 3 scheduled slots.
+     */
+    public static function getDailySlotsState(): array {
+        $today = date('Y-m-d');
+        $default = [
+            'date' => $today,
+            'completed_slots' => [],
+            'slot_history' => []
+        ];
+
+        try {
+            $val = SettingsService::get('cron_daily_slots_state', null);
+            if (!empty($val)) {
+                $decoded = is_array($val) ? $val : json_decode($val, true);
+                if (is_array($decoded) && ($decoded['date'] ?? '') === $today) {
+                    return $decoded;
+                }
+            }
+        } catch (Throwable $e) {}
+
+        return $default;
+    }
+
+    /**
+     * Record a scheduled slot as completed for today
+     */
+    public static function recordSlotCompleted(int $slotNum, ?int $articleId = null): void {
+        $state = self::getDailySlotsState();
+        if (!in_array($slotNum, $state['completed_slots'] ?? [], true)) {
+            $state['completed_slots'][] = $slotNum;
+            sort($state['completed_slots']);
+        }
+        $state['slot_history'][$slotNum] = [
+            'executed_at' => date('Y-m-d H:i:s'),
+            'article_id'  => $articleId
+        ];
+        try {
+            SettingsService::set('cron_daily_slots_state', json_encode($state), 'json', 'Daily autonomous slot execution state');
+        } catch (Throwable $e) {
+            Logger::error("Failed to record slot {$slotNum} completion: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Get next unlocked slot that hasn't executed today (1, 2, or 3), or null if all unlocked are done
+     */
+    public static function getNextPendingSlot(): ?int {
+        $schedule = self::getISTSlotSchedule();
+        $unlocked = (int)($schedule['unlocked_slots'] ?? 0);
+        if ($unlocked <= 0) {
+            return null;
+        }
+
+        $state = self::getDailySlotsState();
+        $completed = $state['completed_slots'] ?? [];
+
+        for ($s = 1; $s <= $unlocked; $s++) {
+            if (!in_array($s, $completed, true)) {
+                return $s;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Count of scheduled slots completed today (0, 1, 2, or 3)
+     */
+    public static function getCompletedSlotsTodayCount(): int {
+        $state = self::getDailySlotsState();
+        return count($state['completed_slots'] ?? []);
+    }
+
     private static function runGenerate(): void {
         Logger::info('AutoCron: Checking generation pipeline');
         if (php_sapi_name() === 'cli') {
@@ -343,37 +424,31 @@ class AutoCronService {
             return;
         }
 
-        $publishingService = new PublishingService();
-
-        // 1. Daily Quota Check: Max 3 articles per day
-        $todayCount = $publishingService->getPublishedTodayCount();
-        $maxDaily = 3;
-        if ($todayCount >= $maxDaily) {
-            $msg = "AutoCron generate: Daily publishing quota ({$todayCount}/{$maxDaily}) reached for today. Resting until tomorrow 10:00 AM IST.";
-            Logger::info($msg);
-            if (php_sapi_name() === 'cli') echo "[" . date('Y-m-d H:i:s') . "] {$msg}\n";
-            return;
-        }
-
-        // 2. Fixed Publishing Slots (10:00 AM, 02:00 PM, 06:00 PM IST)
         $schedule = self::getISTSlotSchedule();
-        if ($todayCount >= $schedule['unlocked_slots']) {
-            $msg = "AutoCron pacing: {$todayCount}/{$maxDaily} published today. Next slot: {$schedule['next_slot_name']} (unlocks in ~{$schedule['wait_minutes']}m).";
+        $pendingSlot = self::getNextPendingSlot();
+
+        // If no unlocked slots are pending today, log pacing and exit
+        if ($pendingSlot === null) {
+            $completedCount = self::getCompletedSlotsTodayCount();
+            if ($completedCount >= 3) {
+                $msg = "AutoCron pacing: All 3 autonomous daily slots (10 AM, 2 PM, 6 PM) completed for today. Resting until tomorrow 10:00 AM IST.";
+            } else {
+                $msg = "AutoCron pacing: {$completedCount}/3 scheduled slots completed today. Next slot: {$schedule['next_slot_name']} (unlocks in ~{$schedule['wait_minutes']}m).";
+            }
             Logger::info($msg);
             if (php_sapi_name() === 'cli') echo "[" . date('Y-m-d H:i:s') . "] {$msg}\n";
             return;
         }
 
-        // 3. Auto-heal any stale unpublishable drafts older than 6 hours
+        // Auto-heal any stale unpublishable drafts older than 6 hours
         try {
             Database::query("UPDATE articles SET status = 'archived' WHERE status IN ('draft', 'pending_review') AND created_at < DATE_SUB(NOW(), INTERVAL 6 HOUR)");
         } catch (Throwable $e) {}
 
-        // 4. Generate next top approved trend directly to LIVE status
-        $slotNum = $todayCount + 1;
-        $slotNames = [1 => 'Morning (10:00 AM)', 2 => 'Noon (02:00 PM)', 3 => 'Evening (06:00 PM)'];
-        $slotLabel = $slotNames[$slotNum] ?? "Slot {$slotNum}";
-        $msg = "AutoCron: Autonomous {$slotLabel} [{$slotNum}/{$maxDaily}] active. Generating top approved trend...";
+        // Generate next top approved trend directly to LIVE status for this pending slot
+        $slotNames = [1 => 'Morning (10:00 AM IST)', 2 => 'Noon (02:00 PM IST)', 3 => 'Evening (06:00 PM IST)'];
+        $slotLabel = $slotNames[$pendingSlot] ?? "Slot {$pendingSlot}";
+        $msg = "AutoCron: Autonomous {$slotLabel} [Slot {$pendingSlot}/3] active. Generating top approved trend...";
         Logger::info($msg);
         if (php_sapi_name() === 'cli') echo "[" . date('Y-m-d H:i:s') . "] {$msg}\n";
 
@@ -382,22 +457,36 @@ class AutoCronService {
         if (php_sapi_name() === 'cli') {
             echo "[" . date('Y-m-d H:i:s') . "] Generation result: " . json_encode($results) . "\n";
         }
+
+        if (!empty($results)) {
+            foreach ($results as $res) {
+                if (!empty($res['success']) && !empty($res['article_id'])) {
+                    self::recordSlotCompleted($pendingSlot, (int)$res['article_id']);
+                    $compMsg = "AutoCron: Scheduled {$slotLabel} successfully COMPLETED with Article #{$res['article_id']}";
+                    Logger::info($compMsg);
+                    if (php_sapi_name() === 'cli') echo "[" . date('Y-m-d H:i:s') . "] ✅ {$compMsg}\n";
+                    break;
+                }
+            }
+        }
     }
 
     private static function runPublish(): void {
-        $publishingService = new PublishingService();
-        $todayCount = $publishingService->getPublishedTodayCount();
-        $schedule = self::getISTSlotSchedule();
-
-        // Strict Slot Guard: Do NOT publish if today count already reached or exceeded the unlocked slot capacity
-        if ($todayCount >= $schedule['unlocked_slots'] || $publishingService->isDailyLimitReached()) {
+        $pendingSlot = self::getNextPendingSlot();
+        if ($pendingSlot === null) {
             return;
         }
 
-        $remainingInSlot = max(0, $schedule['unlocked_slots'] - $todayCount);
-        if ($remainingInSlot > 0) {
-            Logger::info("AutoCron: Processing publish queue for remaining slot capacity ({$remainingInSlot} slots available)");
-            $publishingService->processPublishQueue($remainingInSlot);
+        $publishingService = new PublishingService();
+        $pubResult = $publishingService->processPublishQueue(1);
+        if (!empty($pubResult['items'])) {
+            foreach ($pubResult['items'] as $item) {
+                if (!empty($item['success']) && !empty($item['article_id'])) {
+                    self::recordSlotCompleted($pendingSlot, (int)$item['article_id']);
+                    Logger::info("AutoCron: Scheduled Slot {$pendingSlot} published from review queue with Article #{$item['article_id']}");
+                    break;
+                }
+            }
         }
     }
 }
