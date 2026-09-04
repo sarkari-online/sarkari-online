@@ -156,6 +156,46 @@ class TrendService {
     }
 
     /**
+     * Check if an article covering the same examination authority or exam was published recently (default 12 hours)
+     * to prevent publishing multiple articles about the same board/commission on the same day.
+     */
+    public static function isAuthorityCoveredRecently(string $keyword, int $hours = 12): bool {
+        $kwLower = mb_strtolower($keyword);
+        $entities = ['upsc', 'nda', 'cds', 'ssc', 'nta', 'cbse', 'rrb', 'ibps', 'ugc', 'neet', 'jee', 'ctet', 'gate', 'cat', 'clat', 'aibe'];
+
+        $detectedEntity = null;
+        foreach ($entities as $ent) {
+            if (preg_match('/\b' . preg_quote($ent, '/') . '\b/i', $kwLower)) {
+                $detectedEntity = $ent;
+                break;
+            }
+        }
+
+        // Also check full names
+        if (!$detectedEntity) {
+            if (str_contains($kwLower, 'union public service commission')) $detectedEntity = 'upsc';
+            elseif (str_contains($kwLower, 'staff selection commission')) $detectedEntity = 'ssc';
+            elseif (str_contains($kwLower, 'national testing agency')) $detectedEntity = 'nta';
+            elseif (str_contains($kwLower, 'central board of secondary education')) $detectedEntity = 'cbse';
+            elseif (str_contains($kwLower, 'railway recruitment board')) $detectedEntity = 'rrb';
+        }
+
+        if (!$detectedEntity) {
+            return false;
+        }
+
+        $since = date('Y-m-d H:i:s', strtotime("-{$hours} hours"));
+        $pattern = '%' . $detectedEntity . '%';
+
+        $existing = Database::fetchOne(
+            "SELECT id, title FROM articles WHERE (LOWER(title) LIKE :p OR LOWER(slug) LIKE :p) AND (published_at >= :since OR created_at >= :since) LIMIT 1",
+            ['p' => $pattern, 'since' => $since]
+        );
+
+        return $existing !== null;
+    }
+
+    /**
      * Check if a trend qualifies as a TRUE Official Breaking Alert
      */
     public static function isOfficialBreaking(array $trend): bool {

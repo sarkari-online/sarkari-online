@@ -97,11 +97,11 @@ class PipelineService {
             }
         }
 
-        // Guard 2: 30-Day Anti-Repeat Guard (Bypassed if admin clicked Publish Now)
-        if (!$force && !$isBreaking && TrendService::isRecentlyCovered($trend['keyword'], 30)) {
-            TrendService::markStatus($trendId, 'rejected', ['raw_payload' => ['reason' => 'Topic covered within last 30 days']]);
-            Logger::info("Skipping Trend #{$trendId}: Similar topic already covered in the last 30 days.");
-            return ['success' => false, 'trend_id' => $trendId, 'error' => 'Similar topic covered within last 30 days.'];
+        // Guard 2: 30-Day Anti-Repeat Guard & Same-Day Authority Protection (Bypassed if admin clicked Publish Now)
+        if (!$force && !$isBreaking && (TrendService::isRecentlyCovered($trend['keyword'], 30) || TrendService::isAuthorityCoveredRecently($trend['keyword'], 12))) {
+            TrendService::markStatus($trendId, 'rejected', ['raw_payload' => ['reason' => 'Topic or examination authority covered recently']]);
+            Logger::info("Skipping Trend #{$trendId}: Similar topic or examination authority already covered recently.");
+            return ['success' => false, 'trend_id' => $trendId, 'error' => 'Similar topic or examination authority already covered recently.'];
         }
 
         if ($force) {
