@@ -100,6 +100,7 @@ $lcpImagePreload = !empty($featured['featured_image']) ? url($featured['featured
 
 include __DIR__ . '/components/head.php';
 include __DIR__ . '/components/header.php';
+include __DIR__ . '/components/live-ticker-strip.php';
 ?>
 
 <main class="site-main">
@@ -108,24 +109,8 @@ include __DIR__ . '/components/header.php';
         <!-- 1. Hero Editorial Section (Featured + Secondary) -->
         <?php include __DIR__ . '/components/featured-card.php'; ?>
 
-        <!-- 2. Latest Updates Grid -->
-        <section class="content-section" aria-labelledby="sec-latest-title">
-            <div class="section-header">
-                <h2 class="section-title" id="sec-latest-title">
-                    <?= icon('bolt') ?>
-                    <span>Latest Updates</span>
-                </h2>
-                <a href="<?= url('category/exam-results/') ?>" class="section-link-more">
-                    View All Updates <?= icon('chevron-right', 'icon-sm') ?>
-                </a>
-            </div>
-
-            <div class="grid-3">
-                <?php foreach ($latestArticles as $article): ?>
-                    <?php include __DIR__ . '/components/article-card.php'; ?>
-                <?php endforeach; ?>
-            </div>
-        </section>
+        <!-- 2. 3-Pillar Candidate Action Hub (Results | Admit Cards | Latest Jobs) -->
+        <?php include __DIR__ . '/components/fast-feed-columns.php'; ?>
 
         <!-- 3. Two-Column Layout: Exam Updates + Trending 1-5 -->
         <section class="content-section">
