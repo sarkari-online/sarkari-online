@@ -1,31 +1,29 @@
 <?php
 /**
  * Sarkari.online - 8-Card Official Examination & Recruitment Grid
- * Exact pixel-perfect implementation of the ChatGPT high-craft design mockup.
+ * Decluttered Senior Creative Front-End Edition.
  * Features:
- * - Official logos (SSC, Indian Railways, UPSC, UP Police, AICTE, NTA, IBPS, CBSE)
- * - Faint architectural watermark illustrations in the background
- * - Top number pill (01-08) + status badge (★ Trending, ★ Popular, ★ Hot, etc.)
- * - Board title, full official name, and motto tagline
- * - Notice title & subtitle
- * - Dedicated status pill
- * - 2-column key dates strip
- * - Dual action buttons (Outline action + Solid primary "View Details →")
+ * - Real official high-resolution board logos (PNG assets in /assets/images/boards/)
+ * - Intelligent Board-to-Article matching (SSC gets SSC, Railways gets RRB, etc.)
+ * - Zero visual noise: removed duplicate slogans and repetitive subtitles
+ * - Subdued, elegant background watermarks that never interfere with text
+ * - High-clarity typography, clean status pills, and crisp action buttons
  */
 
 if (!isset($hotArticles)) {
-    $dbHero = App\Services\ArticleService::getLatestPublished(8);
+    $dbHero = App\Services\ArticleService::getLatestPublished(16);
     if (!empty($dbHero)) {
         $hotArticles = $dbHero;
     } else {
-        $heroData = MockData::getHeroArticles();
         $hotArticles = MockData::getLatestArticles(8);
     }
 }
 
-// Preset metadata mapping matching the 8 cards
+// Preset metadata mapping matching the 8 official commission cards
 $cardPresets = [
     0 => [
+        'board_key' => 'ssc',
+        'keywords' => ['ssc', 'cgl', 'chsl', 'mts', 'je', 'cpo', 'gd constable'],
         'num' => '01',
         'badge' => '★ Trending',
         'badge_bg' => '#DC2626',
@@ -33,9 +31,7 @@ $cardPresets = [
         'num_color' => '#DC2626',
         'board_title' => 'SSC',
         'board_name' => 'Staff Selection Commission',
-        'board_motto' => 'People • Progress • Opportunities',
         'default_title' => 'SSC CGL Tier 1 2026',
-        'default_sub' => 'Admit Card Released for Tier 1 Exam',
         'watermark' => 'parliament',
         'watermark_color' => '#DC2626',
         'status_text' => 'Admit Card Released',
@@ -53,9 +49,11 @@ $cardPresets = [
         'btn1_border' => '#FECACA',
         'btn2_text' => 'View Details',
         'btn2_bg' => '#B91C1C',
-        'logo' => 'ssc'
+        'logo_img' => 'ssc.png'
     ],
     1 => [
+        'board_key' => 'railways',
+        'keywords' => ['railway', 'rrb', 'ntpc', 'alp', 'rrc', 'loco pilot'],
         'num' => '02',
         'badge' => '★ Popular',
         'badge_bg' => '#16A34A',
@@ -63,9 +61,7 @@ $cardPresets = [
         'num_color' => '#16A34A',
         'board_title' => 'Indian Railways',
         'board_name' => 'Railway Recruitment Board',
-        'board_motto' => 'Nation on Track',
         'default_title' => 'RRB NTPC 2026',
-        'default_sub' => 'Apply Online for 11,558 Posts',
         'watermark' => 'train',
         'watermark_color' => '#16A34A',
         'status_text' => 'Online Form Live',
@@ -83,9 +79,11 @@ $cardPresets = [
         'btn1_border' => '#BBF7D0',
         'btn2_text' => 'View Details',
         'btn2_bg' => '#065F46',
-        'logo' => 'railway'
+        'logo_img' => 'railways.png'
     ],
     2 => [
+        'board_key' => 'upsc',
+        'keywords' => ['upsc', 'civil services', 'nda', 'cds', 'ias', 'ifs', 'ips', 'capf', 'epfo'],
         'num' => '03',
         'badge' => '★ Hot',
         'badge_bg' => '#2563EB',
@@ -93,9 +91,7 @@ $cardPresets = [
         'num_color' => '#2563EB',
         'board_title' => 'UPSC',
         'board_name' => 'Union Public Service Commission',
-        'board_motto' => 'Excellence in Service',
         'default_title' => 'Civil Services Exam 2026',
-        'default_sub' => 'Final Result Declared',
         'watermark' => 'rashtrapati',
         'watermark_color' => '#2563EB',
         'status_text' => 'Final Result Out',
@@ -113,9 +109,11 @@ $cardPresets = [
         'btn1_border' => '#BFDBFE',
         'btn2_text' => 'View Details',
         'btn2_bg' => '#1D4ED8',
-        'logo' => 'upsc'
+        'logo_img' => 'upsc.png'
     ],
     3 => [
+        'board_key' => 'uppolice',
+        'keywords' => ['police', 'constable', 'sub inspector', 'uppbpb', 'daroga', 'cisf', 'crpf', 'bsf'],
         'num' => '04',
         'badge' => '★ Updated',
         'badge_bg' => '#EA580C',
@@ -123,9 +121,7 @@ $cardPresets = [
         'num_color' => '#D97706',
         'board_title' => 'UP Police',
         'board_name' => 'Uttar Pradesh Police',
-        'board_motto' => 'Safety • Security • Service',
         'default_title' => 'Constable Re-Exam 2026',
-        'default_sub' => 'Official Answer Key Released',
         'watermark' => 'police',
         'watermark_color' => '#EA580C',
         'status_text' => 'Answer Key Live',
@@ -143,9 +139,11 @@ $cardPresets = [
         'btn1_border' => '#FED7AA',
         'btn2_text' => 'View Details',
         'btn2_bg' => '#C2410C',
-        'logo' => 'uppolice'
+        'logo_img' => 'uppolice.png'
     ],
     4 => [
+        'board_key' => 'aicte',
+        'keywords' => ['aicte', 'technical education', 'doctoral fellowship', 'phd', 'fellowship'],
         'num' => '05',
         'badge' => 'New',
         'badge_bg' => '#7C3AED',
@@ -153,9 +151,7 @@ $cardPresets = [
         'num_color' => '#9333EA',
         'board_title' => 'AICTE',
         'board_name' => 'All India Council for Technical Education',
-        'board_motto' => 'Education for a Better Tomorrow',
         'default_title' => 'AICTE Doctoral Fellowship 2026',
-        'default_sub' => 'Eligibility, Stipend & Application Steps',
         'watermark' => 'aicte',
         'watermark_color' => '#7C3AED',
         'status_text' => 'Official Notice',
@@ -173,9 +169,11 @@ $cardPresets = [
         'btn1_border' => '#E9D5FF',
         'btn2_text' => 'Apply Online',
         'btn2_bg' => '#6D28D9',
-        'logo' => 'aicte'
+        'logo_img' => 'aicte.png'
     ],
     5 => [
+        'board_key' => 'nta',
+        'keywords' => ['nta', 'neet', 'jee', 'cuet', 'ugc net', 'counselling', 'mbbs', 'iit'],
         'num' => '06',
         'badge' => '★ Live',
         'badge_bg' => '#059669',
@@ -183,9 +181,7 @@ $cardPresets = [
         'num_color' => '#0891B2',
         'board_title' => 'NTA',
         'board_name' => 'National Testing Agency',
-        'board_motto' => 'Fair Exams, Bright Futures',
         'default_title' => 'NEET UG Round 2 Seat 2026',
-        'default_sub' => 'Counselling Registration Link',
         'watermark' => 'medical',
         'watermark_color' => '#0891B2',
         'status_text' => 'Registration Active',
@@ -203,9 +199,11 @@ $cardPresets = [
         'btn1_border' => '#A5F3FC',
         'btn2_text' => 'View Details',
         'btn2_bg' => '#0F766E',
-        'logo' => 'nta'
+        'logo_img' => 'nta.png'
     ],
     6 => [
+        'board_key' => 'ibps',
+        'keywords' => ['ibps', 'sbi', 'bank', 'po', 'clerk', 'rbi', 'nabard', 'specialist officer'],
         'num' => '07',
         'badge' => '★ Popular',
         'badge_bg' => '#2563EB',
@@ -213,9 +211,7 @@ $cardPresets = [
         'num_color' => '#2563EB',
         'board_title' => 'IBPS',
         'board_name' => 'Institute of Banking Personnel Selection',
-        'board_motto' => 'People for Progress',
         'default_title' => 'SBI PO 2026',
-        'default_sub' => '3,955 Vacancy Notice Out',
         'watermark' => 'bank',
         'watermark_color' => '#2563EB',
         'status_text' => 'Notification Live',
@@ -233,9 +229,11 @@ $cardPresets = [
         'btn1_border' => '#BFDBFE',
         'btn2_text' => 'Apply Online',
         'btn2_bg' => '#1D4ED8',
-        'logo' => 'ibps'
+        'logo_img' => 'ibps.png'
     ],
     7 => [
+        'board_key' => 'cbse',
+        'keywords' => ['cbse', 'class 10', 'class 12', 'board result', 'scorecard', 'bpsc', 'tre'],
         'num' => '08',
         'badge' => '★ Updated',
         'badge_bg' => '#E11D48',
@@ -243,9 +241,7 @@ $cardPresets = [
         'num_color' => '#E11D48',
         'board_title' => 'CBSE',
         'board_name' => 'Central Board of Secondary Education',
-        'board_motto' => 'Education for All',
         'default_title' => 'Class 10/12 Result 2026',
-        'default_sub' => 'Scorecard Link Available',
         'watermark' => 'cbse',
         'watermark_color' => '#E11D48',
         'status_text' => 'Result Declared',
@@ -263,41 +259,34 @@ $cardPresets = [
         'btn1_border' => '#FECDD3',
         'btn2_text' => 'View Details',
         'btn2_bg' => '#BE123C',
-        'logo' => 'cbse'
+        'logo_img' => 'cbse.png'
     ]
 ];
 
-// Helper: Render Official Board Emblem SVG
-function render_official_board_logo(string $type): string {
-    switch ($type) {
-        case 'ssc':
-            return '<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="24" r="23" fill="#8B0000" stroke="#D4AF37" stroke-width="2"/><circle cx="24" cy="24" r="19.5" fill="#7A0000" stroke="#FFD700" stroke-dasharray="2 2"/><path d="M24 8C22 8 20.5 9.5 20.5 11.5C20.5 12.5 21 13.2 21.8 13.6C21 14.5 19.5 16 19.5 18C19.5 19.8 21 21 22.5 21.5V23.5H18V25H30V23.5H25.5V21.5C27 21 28.5 19.8 28.5 18C28.5 16 27 14.5 26.2 13.6C27 13.2 27.5 12.5 27.5 11.5C27.5 9.5 26 8 24 8ZM15 28C15 33 19 37 24 37C29 37 33 33 33 28H30C30 31.3 27.3 34 24 34C20.7 34 18 31.3 18 28H15Z" fill="#FFD700"/><rect x="18" y="25.5" width="12" height="1.8" rx="0.5" fill="#FFFFFF"/><text x="24" y="31.5" text-anchor="middle" fill="#FFFFFF" font-family="sans-serif" font-size="3.5" font-weight="900" letter-spacing="0.5">SSC</text></svg>';
+// Helper: Match article pool to appropriate board preset
+$poolArticles = !empty($hotArticles) ? $hotArticles : [];
+$usedArticleIds = [];
 
-        case 'railway':
-            return '<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="24" r="23" fill="#C51D24" stroke="#FFFFFF" stroke-width="1.5"/><circle cx="24" cy="24" r="19" stroke="#FFFFFF" stroke-width="1" stroke-dasharray="2 1.5"/><circle cx="24" cy="24" r="14" fill="#A8151B" stroke="#FFFFFF" stroke-width="1"/><path d="M17 17C17 14.5 19 13 24 13C29 13 31 14.5 31 17V26C31 28 29.5 29 28 29H20C18.5 29 17 28 17 26V17ZM19 16V20H29V16H19ZM20.5 25C21.3 25 22 24.3 22 23.5C22 22.7 21.3 22 20.5 22C19.7 22 19 22.7 19 23.5C19 24.3 19.7 25 20.5 25ZM27.5 25C28.3 25 29 24.3 29 23.5C29 22.7 28.3 22 27.5 22C26.7 22 26 22.7 26 23.5C26 24.3 26.7 25 27.5 25ZM16 32L14 35H17L18 33H30L31 35H34L32 32H16Z" fill="#FFFFFF"/></svg>';
-
-        case 'upsc':
-            return '<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="48" height="48" rx="8" fill="#F8FAFC"/><path d="M24 5C21.5 5 19.8 6.8 19.8 9C19.8 10.2 20.4 11.2 21.2 11.8C20 13 18.5 15 18.5 18C18.5 20.5 20.2 22 22 22.5V24H16V26H32V24H26V22.5C27.8 22 29.5 20.5 29.5 18C29.5 15 28 13 26.8 11.8C27.6 11.2 28.2 10.2 28.2 9C28.2 6.8 26.5 5 24 5ZM14 12C12.8 12 11.8 13 11.8 14.5C11.8 16 13 17.5 14.5 18V21H16V17C15.2 16.5 14.5 15.5 14.5 14.5C14.5 13.5 15.2 12.8 16 12.8C15.5 12.3 14.8 12 14 12ZM34 12C33.2 12 32.5 12.3 32 12.8C32.8 12.8 33.5 13.5 33.5 14.5C33.5 15.5 32.8 16.5 32 17V21H33.5V18C35 17.5 36.2 16 36.2 14.5C36.2 13 35.2 12 34 12ZM15 28C15 28.5 15.5 29 16 29H32C32.5 29 33 28.5 33 28V27H15V28ZM19 33C19 35.8 21.2 38 24 38C26.8 38 29 35.8 29 33H19ZM14 41H34V43H14V41Z" fill="#1E3A8A"/><circle cx="24" cy="33" r="3.5" stroke="#1E3A8A" stroke-width="1"/><line x1="24" y1="30" x2="24" y2="36" stroke="#1E3A8A" stroke-width="0.8"/><line x1="21" y1="33" x2="27" y2="33" stroke="#1E3A8A" stroke-width="0.8"/></svg>';
-
-        case 'uppolice':
-            return '<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="48" height="48" rx="8" fill="#FFFBEB"/><path d="M24 4L22 7H26L24 4ZM20 8H28V10H20V8Z" fill="#D97706"/><path d="M14 12H24V34C24 37 14 35 14 30V12Z" fill="#B91C1C"/><path d="M24 12H34V30C34 35 24 37 24 34V12Z" fill="#1E3A8A"/><path d="M18 20C18 24 21 26 24 26C27 26 30 24 30 20C30 17 28 15 24 15C20 15 18 17 18 20Z" fill="#F59E0B"/><path d="M12 36C12 36 17 40 24 40C31 40 36 36 36 36L34 38C34 38 29 42 24 42C19 42 14 38 14 38L12 36Z" fill="#D97706"/><text x="24" y="22" text-anchor="middle" fill="#78350F" font-family="sans-serif" font-size="4" font-weight="900">UPP</text></svg>';
-
-        case 'aicte':
-            return '<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="24" r="23" fill="#F59E0B" stroke="#D97706" stroke-width="1.5"/><circle cx="24" cy="24" r="18" fill="#FBBF24"/><circle cx="24" cy="24" r="14" fill="#1E3A8A"/><path d="M24 14C23 17 21 19 21 22C21 24.5 22.5 26 24 26C25.5 26 27 24.5 27 22C27 19 25 17 24 14Z" fill="#EF4444"/><circle cx="24" cy="23" r="1.5" fill="#FDE047"/><text x="24" y="32" text-anchor="middle" fill="#FFFFFF" font-family="sans-serif" font-size="3.5" font-weight="900" letter-spacing="0.5">AICTE</text></svg>';
-
-        case 'nta':
-            return '<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="24" r="23" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/><path d="M12 24C12 17.37 17.37 12 24 12C30.63 12 36 17.37 36 24H30C30 20.69 27.31 18 24 18C20.69 18 18 20.69 18 24H12Z" fill="#F97316"/><path d="M12 26C12 32.63 17.37 38 24 38C28.5 38 32.4 35.5 34.5 31.8L29.5 29C28.2 31 26.2 32 24 32C20.69 32 18 29.31 18 26H12Z" fill="#16A34A"/><circle cx="24" cy="25" r="3.5" fill="#1E40AF"/></svg>';
-
-        case 'ibps':
-            return '<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="48" height="48" rx="8" fill="#F0F9FF"/><path d="M13 12H21C24.5 12 27 14 27 17C27 19 25.5 20.5 23.5 21C26 21.5 28 23.5 28 26.5C28 30 25 32 21 32H13V12ZM18 19H20.5C21.8 19 22.5 18.2 22.5 17C22.5 15.8 21.8 15 20.5 15H18V19ZM18 29H21C22.5 29 23.5 28 23.5 26.5C23.5 25 22.5 24 21 24H18V29Z" fill="#0284C7"/><path d="M30 12H35V32H30V12Z" fill="#0369A1"/><text x="24" y="41" text-anchor="middle" fill="#0369A1" font-family="sans-serif" font-size="5" font-weight="900">IBPS</text></svg>';
-
-        case 'cbse':
-        default:
-            return '<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="24" r="23" fill="#047857" stroke="#F59E0B" stroke-width="1.5"/><circle cx="24" cy="24" r="19" fill="#065F46" stroke="#FFFFFF" stroke-dasharray="1.5 1.5"/><path d="M16 19C16 19 20 20 24 21C28 20 32 19 32 19V30C32 30 28 31 24 32C20 31 16 30 16 30V19Z" fill="#FFFFFF"/><path d="M24 15V20" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/><path d="M24 12C23 13.5 23 14.5 24 15.5C25 14.5 25 13.5 24 12Z" fill="#F59E0B"/><text x="24" y="37" text-anchor="middle" fill="#FDE68A" font-family="sans-serif" font-size="3.8" font-weight="900" letter-spacing="0.5">CBSE</text></svg>';
+$matchArticleForPreset = function(array $keywords) use (&$poolArticles, &$usedArticleIds): ?array {
+    foreach ($poolArticles as $art) {
+        $id = $art['id'] ?? null;
+        if ($id && in_array($id, $usedArticleIds, true)) {
+            continue;
+        }
+        $title = strtolower($art['title'] ?? '');
+        foreach ($keywords as $kw) {
+            if (strpos($title, strtolower($kw)) !== false) {
+                if ($id) {
+                    $usedArticleIds[] = $id;
+                }
+                return $art;
+            }
+        }
     }
-}
+    return null;
+};
 
-// Helper: Render Background Architectural Watermark
+// Helper: Render Background Architectural Watermark SVG
 function render_background_watermark(string $type, string $color): string {
     switch ($type) {
         case 'train':
@@ -332,24 +321,23 @@ function render_background_watermark(string $type, string $color): string {
         <?php 
         for ($i = 0; $i < 8; $i++): 
             $preset = $cardPresets[$i];
-            $item = $hotArticles[$i] ?? null;
+            
+            // Intelligently find matching database article for this commission
+            $matchedArticle = $matchArticleForPreset($preset['keywords']);
 
-            // Notice Title & Subtitle (Use database article if present, or pristine preset)
-            $articleTitle = $item['title'] ?? $preset['default_title'];
-            $articleSlug = $item['slug'] ?? 'latest-updates';
-            $articleSub = !empty($item['excerpt']) ? truncate_text($item['excerpt'], 48) : $preset['default_sub'];
+            $articleTitle = $matchedArticle['title'] ?? $preset['default_title'];
+            $articleSlug = $matchedArticle['slug'] ?? 'latest-updates';
 
             // Watermark SVG
             $watermarkSvg = render_background_watermark($preset['watermark'], $preset['watermark_color']);
-            $logoSvg = render_official_board_logo($preset['logo']);
         ?>
             <article class="cg-card">
-                <!-- Background Architectural Watermark -->
+                <!-- Background Architectural Watermark (Top Right Corner Accent) -->
                 <div class="cg-card-watermark" aria-hidden="true">
                     <?= $watermarkSvg ?>
                 </div>
 
-                <div>
+                <div class="cg-card-body-top">
                     <!-- Top Row: Number Pill + Status Badge -->
                     <div class="cg-card-topbar">
                         <span class="cg-num-badge" style="background-color: <?= $preset['num_bg'] ?>; color: <?= $preset['num_color'] ?>;">
@@ -360,25 +348,28 @@ function render_background_watermark(string $type, string $color): string {
                         </span>
                     </div>
 
-                    <!-- Board Header: Official Logo + Title + Motto -->
+                    <!-- Board Header: Real Official Logo Image + Short & Full Title -->
                     <div class="cg-board-header">
                         <div class="cg-board-logo">
-                            <?= $logoSvg ?>
+                            <img src="<?= url('assets/images/boards/' . $preset['logo_img']) ?>" 
+                                 alt="<?= e($preset['board_title']) ?>" 
+                                 width="42" 
+                                 height="42" 
+                                 loading="lazy" 
+                                 class="cg-board-logo-img">
                         </div>
                         <div class="cg-board-info">
                             <h4 class="cg-board-title"><?= e($preset['board_title']) ?></h4>
                             <span class="cg-board-sub" title="<?= e($preset['board_name']) ?>"><?= e($preset['board_name']) ?></span>
-                            <span class="cg-board-motto"><?= e($preset['board_motto']) ?></span>
                         </div>
                     </div>
 
-                    <!-- Notice Title & Subtitle -->
+                    <!-- Notice Title (Clean & High-Contrast) -->
                     <h3 class="cg-notice-title">
                         <a href="<?= url('article/' . $articleSlug . '/') ?>" title="<?= e($articleTitle) ?>">
-                            <?= e(truncate_text($articleTitle, 46)) ?>
+                            <?= e(truncate_text($articleTitle, 52)) ?>
                         </a>
                     </h3>
-                    <p class="cg-notice-sub"><?= e($articleSub) ?></p>
 
                     <!-- Status Pill -->
                     <div class="cg-status-pill" style="background-color: <?= $preset['status_bg'] ?>; color: <?= $preset['status_color'] ?>;">
@@ -413,7 +404,7 @@ function render_background_watermark(string $type, string $color): string {
                     </a>
                     <a href="<?= url('article/' . $articleSlug . '/') ?>" class="cg-btn-solid" style="background-color: <?= $preset['btn2_bg'] ?>;">
                         <span><?= e($preset['btn2_text']) ?></span>
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="5" y1="12" x2="19" y2="12"></line>
                             <polyline points="12 5 19 12 12 19"></polyline>
                         </svg>
@@ -423,4 +414,3 @@ function render_background_watermark(string $type, string $color): string {
         <?php endfor; ?>
     </div>
 </section>
-
