@@ -20,6 +20,19 @@ if (!empty($dbLatest)) {
     $breakingUpdates = MockData::getBreakingUpdates();
 }
 ?>
+<!-- Official Non-Affiliation Statutory Advisory Strip (AdSense Compliance) -->
+<div class="statutory-advisory-strip" style="background: #f1f5f9; border-bottom: 1px solid #e2e8f0; font-size: 0.725rem; color: #475569; padding: 4px 0; line-height: 1.4;">
+    <div class="container" style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 5px;">
+            <span style="font-size: 0.8rem;">&#9888;&#65039;</span>
+            <span><strong>Statutory Advisory:</strong> <?= e(SITE_NAME) ?> is an independent educational news observatory and is not affiliated with the Government of India or any examination board.</span>
+        </div>
+        <div>
+            <a href="<?= url('disclaimer/') ?>" style="color: #2563eb; font-weight: 600; text-decoration: none; white-space: nowrap;">Disclaimer &rarr;</a>
+        </div>
+    </div>
+</div>
+
 <div class="top-update-bar">
     <div class="container">
         <div class="top-update-inner">

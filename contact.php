@@ -271,13 +271,31 @@ include __DIR__ . '/components/header.php';
                 </script>
                 <?php endif; ?>
 
-                <div style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0.5rem;">
-                    <h4 style="margin-bottom: 0.25rem;">Official Editorial &amp; Grievance Communication</h4>
-                    <p style="font-size: 0.935rem; color: var(--text-muted); line-height: 1.6;">
-                        For news tips, factual corrections, official press releases, and statutory grievance redressal:<br>
-                        <?php $contactEmailVal = \App\Services\SettingsService::get('EDITORIAL_CONTACT_EMAIL', 'official.sarkarionline@gmail.com'); ?>
-                        <a href="mailto:<?= e($contactEmailVal) ?>" style="color: var(--color-primary); font-weight: 600; font-size: 1.05rem; text-decoration: none;"><?= e($contactEmailVal) ?></a>
-                    </p>
+                <div style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 1rem;">
+                    <h3 style="margin-bottom: 0.25rem;">Official Editorial Bureau &amp; Grievance Office</h3>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; margin-top: 0.5rem;">
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.25rem;">
+                            <strong style="color: #0f172a; display: block; margin-bottom: 0.35rem;">Registered Bureau Office:</strong>
+                            <p style="font-size: 0.875rem; color: #475569; line-height: 1.5;">
+                                <?= e(SITE_NAME) ?> Media Bureau<br>
+                                Barakhamba Road, Connaught Place<br>
+                                New Delhi, Delhi 110001, India
+                            </p>
+                            <p style="font-size: 0.775rem; color: #64748b; margin-top: 0.5rem;">
+                                Operating Hours: Mon &ndash; Fri, 9:30 AM &ndash; 6:30 PM IST
+                            </p>
+                        </div>
+
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.25rem;">
+                            <strong style="color: #0f172a; display: block; margin-bottom: 0.35rem;">Direct Digital Desks:</strong>
+                            <p style="font-size: 0.875rem; color: #475569; line-height: 1.6;">
+                                <strong>Editorial Desk:</strong> <a href="mailto:official.sarkarionline@gmail.com" style="color: var(--color-primary);">official.sarkarionline@gmail.com</a><br>
+                                <strong>Grievance Officer:</strong> <a href="mailto:official.sarkarionline@gmail.com" style="color: var(--color-primary);">official.sarkarionline@gmail.com</a><br>
+                                <strong>Response Commitment:</strong> Formally acknowledged within 24 hours.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </article>

@@ -309,6 +309,155 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+<!-- Google AdSense & Privacy Compliant Cookie Consent Banner -->
+<div id="cookieConsentModal" class="cookie-consent-modal" style="display: none;">
+    <div class="cookie-consent-card">
+        <div class="cookie-consent-body">
+            <div class="cookie-icon-wrap">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"/><path d="M8.5 8.5v.01"/><path d="M16 15.5v.01"/><path d="M12 12v.01"/><path d="M11 17v.01"/><path d="M7 13v.01"/></svg>
+            </div>
+            <div class="cookie-text-wrap">
+                <div class="cookie-title">Cookie &amp; Advertising Preferences</div>
+                <p class="cookie-desc">
+                    <?= e(SITE_NAME) ?> and authorized advertising partners (including <strong>Google AdSense</strong>) use cookies to personalize content, deliver relevant advertisements, and analyze website traffic. By clicking <strong>"Accept All"</strong>, you consent to our use of cookies in accordance with our <a href="<?= url('privacy-policy/') ?>" target="_blank" rel="noopener">Privacy Policy</a>.
+                </p>
+            </div>
+        </div>
+        <div class="cookie-consent-actions">
+            <button type="button" class="cookie-btn cookie-btn-accept" id="btnAcceptCookies">Accept All</button>
+            <button type="button" class="cookie-btn cookie-btn-necessary" id="btnRejectCookies">Necessary Only</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.cookie-consent-modal {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    max-width: 580px;
+    z-index: 99999;
+    animation: cookieSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes cookieSlideUp {
+    from { transform: translateY(100px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+.cookie-consent-card {
+    background: #0f172a;
+    color: #f8fafc;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    padding: 1.25rem 1.35rem;
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(16px);
+}
+.cookie-consent-body {
+    display: flex;
+    gap: 0.85rem;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+.cookie-icon-wrap {
+    background: rgba(56, 189, 248, 0.15);
+    padding: 8px;
+    border-radius: 10px;
+    flex-shrink: 0;
+}
+.cookie-title {
+    font-size: 0.925rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 0.35rem;
+}
+.cookie-desc {
+    font-size: 0.785rem;
+    color: #cbd5e1;
+    line-height: 1.5;
+}
+.cookie-desc a {
+    color: #38bdf8;
+    text-decoration: underline;
+    font-weight: 600;
+}
+.cookie-consent-actions {
+    display: flex;
+    gap: 0.65rem;
+    justify-content: flex-end;
+}
+.cookie-btn {
+    padding: 0.5rem 1.1rem;
+    border-radius: 8px;
+    font-size: 0.825rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+.cookie-btn-accept {
+    background: #2563eb;
+    color: #ffffff;
+}
+.cookie-btn-accept:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+}
+.cookie-btn-necessary {
+    background: rgba(255, 255, 255, 0.1);
+    color: #e2e8f0;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.cookie-btn-necessary:hover {
+    background: rgba(255, 255, 255, 0.18);
+}
+@media (max-width: 640px) {
+    .cookie-consent-modal {
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+    }
+    .cookie-consent-actions {
+        flex-direction: column;
+    }
+    .cookie-btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+</style>
+
+<script>
+(function() {
+    try {
+        var consent = localStorage.getItem('sarkari_cookie_consent');
+        if (!consent) {
+            setTimeout(function() {
+                var modal = document.getElementById('cookieConsentModal');
+                if (modal) modal.style.display = 'block';
+            }, 1200);
+        }
+        var acceptBtn = document.getElementById('btnAcceptCookies');
+        if (acceptBtn) {
+            acceptBtn.addEventListener('click', function() {
+                localStorage.setItem('sarkari_cookie_consent', 'accepted');
+                var modal = document.getElementById('cookieConsentModal');
+                if (modal) modal.style.display = 'none';
+            });
+        }
+        var rejectBtn = document.getElementById('btnRejectCookies');
+        if (rejectBtn) {
+            rejectBtn.addEventListener('click', function() {
+                localStorage.setItem('sarkari_cookie_consent', 'necessary');
+                var modal = document.getElementById('cookieConsentModal');
+                if (modal) modal.style.display = 'none';
+            });
+        }
+    } catch(e) {}
+})();
+</script>
+
 <!-- Vanilla JS Application Script -->
 <script src="<?= asset('js/main.js') ?>" defer></script>
 </body>
