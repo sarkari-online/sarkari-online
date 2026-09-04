@@ -1,9 +1,9 @@
 <?php
 /**
- * Sarkari.online - Hot-Grid Matrix with Official Agency Watermarks
- * 8-Box High-Impact Color Matrix featuring subtle vector security watermarks
- * (Ashoka Lion, Railway Locomotive, Police Shield, Stethoscope, Bank Pillars, AICTE Gear, CBSE Seal).
- * Strictly zero emojis, 100% vector SVG, instant load time, fully responsive.
+ * Sarkari.online - Official National Gazette & Commission Desk
+ * High-craft editorial grid featuring distinctive agency crest medallions
+ * (Ashoka Lion, Indian Railways Locomotive, Police Shield, Stethoscope, Bank Pillars, AICTE Gear, CBSE Book).
+ * Zero rainbow top-borders, 100% recognizable vector crests, senior-designer aesthetic.
  */
 
 if (!isset($hotArticles)) {
@@ -16,219 +16,217 @@ if (!isset($hotArticles)) {
     }
 }
 
-if (!function_exists('get_agency_watermark_svg')) {
-    function get_agency_watermark_svg(string $type): string {
+if (!function_exists('render_crest_svg')) {
+    function render_crest_svg(string $type): string {
         switch ($type) {
             case 'railway':
-                return '<svg viewBox="0 0 100 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M25 22C25 15.37 30.37 10 37 10H63C69.63 10 75 15.37 75 22V62C75 66.42 71.42 70 67 70H33C28.58 70 25 66.42 25 62V22ZM32 20C30.9 20 30 20.9 30 22V38C30 39.1 30.9 40 32 40H68C69.1 40 70 39.1 70 38V22C70 20.9 69.1 20 68 20H32ZM37 54C37 57.31 39.69 60 43 60C46.31 60 49 57.31 49 54C49 50.69 46.31 48 43 48C39.69 48 37 50.69 37 54ZM51 54C51 57.31 53.69 60 57 60C60.31 60 63 57.31 63 54C63 50.69 60.31 48 57 48C53.69 48 51 50.69 51 54ZM20 78L28 72H72L80 78H20ZM14 88L24 82H76L86 88H14Z"/></svg>';
+                // Aerodynamic Locomotive & Tracks
+                return '<svg viewBox="0 0 24 24" fill="currentColor" class="crest-svg"><path d="M5 4C5 2.9 5.9 2 7 2H17C18.1 2 19 2.9 19 4V14C19 16.2 17.2 18 15 18H9C6.8 18 5 16.2 5 14V4ZM7 5V9H17V5H7ZM8.5 15C9.3 15 10 14.3 10 13.5C10 12.7 9.3 12 8.5 12C7.7 12 7 12.7 7 13.5C7 14.3 7.7 15 8.5 15ZM15.5 15C16.3 15 17 14.3 17 13.5C17 12.7 16.3 12 15.5 12C14.7 12 14 12.7 14 13.5C14 14.3 14.7 15 15.5 15ZM4 19L2 22H5L6 20H18L19 22H22L20 19H4Z"/></svg>';
 
             case 'police':
-                return '<svg viewBox="0 0 100 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M50 5L18 19V45C18 68 31.8 89.2 50 95C68.2 89.2 82 68 82 45V19L50 5ZM50 16L74 26.5V45C74 63.8 63.5 81.3 50 86.8C36.5 81.3 26 63.8 26 45V26.5L50 16ZM50 30L53.7 41.4H65.7L56 48.4L59.7 59.8L50 52.8L40.3 59.8L44 48.4L34.3 41.4H46.3L50 30Z"/></svg>';
+                // Police Star on Heraldic Shield
+                return '<svg viewBox="0 0 24 24" fill="currentColor" class="crest-svg"><path d="M12 1L3 5V11C3 16.5 6.8 21.7 12 23C17.2 21.7 21 16.5 21 11V5L12 1ZM12 4.2L18.5 7.1V11C18.5 15.2 15.7 19.3 12 20.5C8.3 19.3 5.5 15.2 5.5 11V7.1L12 4.2ZM12 7.5L13.3 10.7H16.8L14 12.7L15 15.9L12 14L9 15.9L10 12.7L7.2 10.7H10.7L12 7.5Z"/></svg>';
 
             case 'medical':
-                return '<svg viewBox="0 0 100 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M44 12V24H32V36H44V48H56V36H68V24H56V12H44ZM28 16C28 13.8 29.8 12 32 12H36V18H32V38C32 47.9 40.1 56 50 56C59.9 56 68 47.9 68 38V18H64V12H68C70.2 12 72 13.8 72 16V38C72 50.1 62.1 60 50 60C37.9 60 28 50.1 28 38V16ZM50 60V72C50 76.4 46.4 80 42 80H40C35.6 80 32 83.6 32 88C32 92.4 35.6 96 40 96H44C48.4 96 52 92.4 52 88V60H50ZM68 76C63.6 76 60 79.6 60 84C60 88.4 63.6 92 68 92C72.4 92 76 88.4 76 84C76 79.6 72.4 76 68 76Z"/></svg>';
+                // Stethoscope & Healing Cross
+                return '<svg viewBox="0 0 24 24" fill="currentColor" class="crest-svg"><path d="M10 2V5H8V7H10V10H12V7H14V5H12V2H10ZM6 3C5.4 3 5 3.4 5 4V10C5 13.9 8.1 17 12 17C15.9 17 19 13.9 19 10V4C19 3.4 18.6 3 18 3C17.4 3 17 3.4 17 4V10C17 12.8 14.8 15 12 15C9.2 15 7 12.8 7 10V4C7 3.4 6.6 3 6 3ZM12 17V19C12 20.1 12.9 21 14 21H16C17.1 21 18 20.1 18 19V17.8C18.9 17.4 19.5 16.5 19.5 15.5C19.5 14.1 18.4 13 17 13C15.6 13 14.5 14.1 14.5 15.5C14.5 16.5 15.1 17.4 16 17.8V19H14V17H12Z"/></svg>';
 
             case 'bank':
-                return '<svg viewBox="0 0 100 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M50 8L10 28V34H90V28L50 8ZM18 40V74H28V40H18ZM38 40V74H48V40H38ZM58 40V74H68V40H58ZM78 40V74H88V40H78ZM8 80V90H92V80H8Z"/></svg>';
+                // Classical Bank Pillars & Pediment
+                return '<svg viewBox="0 0 24 24" fill="currentColor" class="crest-svg"><path d="M12 2L2 7V9H22V7L12 2ZM4 10V18H6V10H4ZM8.5 10V18H10.5V10H8.5ZM13.5 10V18H15.5V10H13.5ZM18 10V18H20V10H18ZM2 19V22H22V19H2Z"/></svg>';
 
             case 'aicte':
             case 'technical':
-                return '<svg viewBox="0 0 100 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M50 32C40.06 32 32 40.06 32 50C32 59.94 40.06 68 50 68C59.94 68 68 59.94 68 50C68 40.06 59.94 32 50 32ZM50 42C54.42 42 58 45.58 58 50C58 54.42 54.42 58 50 58C45.58 58 42 54.42 42 50C42 45.58 45.58 42 50 42ZM90 44V36L78.6 34.1C77.8 31.4 76.5 28.9 74.9 26.6L81.7 17.2L74.8 10.3L65.4 17.1C63.1 15.5 60.6 14.2 57.9 13.4L56 2H44L42.1 13.4C39.4 14.2 36.9 15.5 34.6 17.1L25.2 10.3L18.3 17.2L25.1 26.6C23.5 28.9 22.2 31.4 21.4 34.1L10 36V44L21.4 45.9C22.2 48.6 23.5 51.1 25.1 53.4L18.3 62.8L25.2 69.7L34.6 62.9C36.9 64.5 39.4 65.8 42.1 66.6L44 78H56L57.9 66.6C60.6 65.8 63.1 64.5 65.4 62.9L74.8 69.7L81.7 62.8L74.9 53.4C76.5 51.1 77.8 48.6 78.6 45.9L90 44Z"/></svg>';
+                // Technical Gear & Knowledge Flame
+                return '<svg viewBox="0 0 24 24" fill="currentColor" class="crest-svg"><path d="M12 8C9.8 8 8 9.8 8 12C8 14.2 9.8 16 12 16C14.2 16 16 14.2 16 12C16 9.8 14.2 8 12 8ZM12 10C13.1 10 14 10.9 14 12C14 13.1 13.1 14 12 14C10.9 14 10 13.1 10 12C10 10.9 10.9 10 12 10ZM20.5 11.2L18.8 10.9C18.7 10.4 18.4 9.9 18.1 9.4L19.2 8.1L17.9 6.8L16.6 7.9C16.1 7.6 15.6 7.3 15.1 7.2L14.8 5.5H13.2L12.9 7.2C12.4 7.3 11.9 7.6 11.4 7.9L10.1 6.8L8.8 8.1L9.9 9.4C9.6 9.9 9.3 10.4 9.2 10.9L7.5 11.2V12.8L9.2 13.1C9.3 13.6 9.6 14.1 9.9 14.6L8.8 15.9L10.1 17.2L11.4 16.1C11.9 16.4 12.4 16.7 12.9 16.8L13.2 18.5H14.8L15.1 16.8C15.6 16.7 16.1 16.4 16.6 16.1L17.9 17.2L19.2 15.9L18.1 14.6C18.4 14.1 18.7 13.6 18.8 13.1L20.5 12.8V11.2ZM12 2C11 3.5 10.5 5 11 6.5C11.3 6 11.8 5.7 12.2 5.5C12.6 6.5 13.5 7.5 14 7.5C14.5 7.5 15 6 14 4.5C13.2 3.3 12.5 2.5 12 2Z"/></svg>';
 
             case 'cbse':
             case 'education':
-                return '<svg viewBox="0 0 100 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M50 32C42 22 28 20 12 20V74C28 74 42 76 50 86C58 76 72 74 88 74V20C72 20 58 22 50 32ZM46 72C38.6 64.6 26.8 62 18 62V28C26.8 28 38.6 30.6 46 38V72ZM82 62C73.2 62 61.4 64.6 54 72V38C61.4 30.6 73.2 28 82 28V62ZM50 8L47 16H53L50 8ZM32 14L28 20L34 22L32 14ZM68 14L66 22L72 20L68 14Z"/></svg>';
+                // Open Book & Radiating Knowledge
+                return '<svg viewBox="0 0 24 24" fill="currentColor" class="crest-svg"><path d="M12 6C10 4 7 3.5 3 3.5V17C7 17 10 17.5 12 19.5C14 17.5 17 17 21 17V3.5C17 3.5 14 4 12 6ZM11 16.8C9.4 15.4 6.8 15 4.8 15V5.2C6.8 5.2 9.4 5.6 11 6.9V16.8ZM19.2 15C17.2 15 14.6 15.4 13 16.8V6.9C14.6 5.6 17.2 5.2 19.2 5.2V15ZM12 1L11.2 2.8H12.8L12 1ZM7.5 2.5L6.5 4L8 4.5L7.5 2.5ZM16.5 2.5L16 4.5L17.5 4L16.5 2.5Z"/></svg>';
 
             case 'scholarship':
             case 'degree':
-                return '<svg viewBox="0 0 100 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M50 14L6 34L50 54L86 37.6V62H94V34L50 14ZM50 62L22 49.3V66C22 76 34.5 86 50 86C65.5 86 78 76 78 66V49.3L50 62Z"/></svg>';
+                // Graduation Cap & Ribbon
+                return '<svg viewBox="0 0 24 24" fill="currentColor" class="crest-svg"><path d="M12 3L1 8L12 13L21 9V15H23V8L12 3ZM12 15L5 11.8V16C5 18.8 8.1 21 12 21C15.9 21 19 18.8 19 16V11.8L12 15Z"/></svg>';
 
             case 'ashoka':
             default:
-                return '<svg viewBox="0 0 100 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M50 8C43.5 8 38 13.5 38 20C38 24.2 40.2 27.8 43.5 29.8C40 33 34 38 34 46C34 52 38 56 42 58C41 62 40 68 40 72H60C60 68 59 62 58 58C62 56 66 52 66 46C66 38 60 33 56.5 29.8C59.8 27.8 62 24.2 62 20C62 13.5 56.5 8 50 8ZM22 30C18 30 14 34 14 38C14 42 16 45 18 47C16 51 14 56 16 62C18 68 22 70 26 72H34C34 66 34 58 36 54C32 52 28 48 28 42C28 36 32 32 36 30C32 30 26 30 22 30ZM78 30C74 30 68 30 64 30C68 32 72 36 72 42C72 48 68 52 64 54C66 58 66 66 66 72H74C78 70 82 68 84 62C86 56 84 51 82 47C84 45 86 42 86 38C86 34 82 30 78 30ZM20 78H80V84H20V78ZM14 88H86V94H14V88Z"/></svg>';
+                // Ashoka Lion Capital (3 Lions & Base)
+                return '<svg viewBox="0 0 24 24" fill="currentColor" class="crest-svg"><path d="M12 2C10.6 2 9.5 3.1 9.5 4.5C9.5 5.5 10.1 6.3 11 6.7C10 7.8 8.5 9.5 8.5 12C8.5 14 10 15.5 11.5 16V18H6V20H18V18H12.5V16C14 15.5 15.5 14 15.5 12C15.5 9.5 14 7.8 13 6.7C13.9 6.3 14.5 5.5 14.5 4.5C14.5 3.1 13.4 2 12 2ZM5.5 8C4.4 8 3.5 8.9 3.5 10C3.5 11.5 4.8 13 6.5 13.5V16H8V12.5C7 12 6 11 6 10C6 9 5.8 8 5.5 8ZM18.5 8C18.2 8 18 9 18 10C18 11 17 12 16 12.5V16H17.5V13.5C19.2 13 20.5 11.5 20.5 10C20.5 8.9 19.6 8 18.5 8ZM12 13C12.6 13 13 13.4 13 14C13 14.6 12.6 15 12 15C11.4 15 11 14.6 11 14C11 13.4 11.4 13 12 13ZM4 21H20V22.5H4V21Z"/></svg>';
         }
     }
 }
 
-if (!function_exists('detect_agency_meta')) {
-    function detect_agency_meta(string $title, string $categorySlug, string $agencyName = ''): array {
+if (!function_exists('resolve_commission_crest')) {
+    function resolve_commission_crest(string $title, string $categorySlug, string $agencyName = ''): array {
         $haystack = strtolower($title . ' ' . $categorySlug . ' ' . $agencyName);
 
         if (str_contains($haystack, 'rrb') || str_contains($haystack, 'railway') || str_contains($haystack, 'rrc') || str_contains($haystack, 'ntpc')) {
             return [
                 'type' => 'railway',
-                'tag' => 'RRB RAILWAY',
-                'color' => '#059669',
-                'bg_tint' => '#ecfdf5',
-                'action' => 'Apply Online',
-                'action_icon' => 'briefcase'
+                'name' => 'Railway Recruitment Boards (RRB)',
+                'theme_class' => 'theme-railway'
             ];
         }
 
         if (str_contains($haystack, 'police') || str_contains($haystack, 'uppbpb') || str_contains($haystack, 'constable') || str_contains($haystack, 'cisf') || str_contains($haystack, 'bsf') || str_contains($haystack, 'crpf') || str_contains($haystack, 'itbp') || str_contains($haystack, 'ssb') || str_contains($haystack, 'army') || str_contains($haystack, 'defence')) {
             return [
                 'type' => 'police',
-                'tag' => 'POLICE / DEFENCE',
-                'color' => '#d97706',
-                'bg_tint' => '#fffbeb',
-                'action' => 'Check Update',
-                'action_icon' => 'shield-check'
+                'name' => 'Police Recruitment Board',
+                'theme_class' => 'theme-police'
             ];
         }
 
         if (str_contains($haystack, 'neet') || str_contains($haystack, 'medical') || str_contains($haystack, 'aiims') || str_contains($haystack, 'mcc') || str_contains($haystack, 'nbems') || str_contains($haystack, 'nursing')) {
             return [
                 'type' => 'medical',
-                'tag' => 'NTA / NEET',
-                'color' => '#0284c7',
-                'bg_tint' => '#f0f9ff',
-                'action' => 'Check Status',
-                'action_icon' => 'award'
+                'name' => 'NTA / Medical Counselling (MCC)',
+                'theme_class' => 'theme-medical'
             ];
         }
 
         if (str_contains($haystack, 'ibps') || str_contains($haystack, 'sbi') || str_contains($haystack, 'bank') || str_contains($haystack, 'rbi') || str_contains($haystack, 'po / mt')) {
             return [
                 'type' => 'bank',
-                'tag' => 'BANKING',
-                'color' => '#0f766e',
-                'bg_tint' => '#f0fdfa',
-                'action' => 'Apply Online',
-                'action_icon' => 'briefcase'
+                'name' => 'IBPS / Public Sector Banking',
+                'theme_class' => 'theme-bank'
             ];
         }
 
         if (str_contains($haystack, 'aicte') || str_contains($haystack, 'fellowship') || str_contains($haystack, 'technical') || str_contains($haystack, 'diploma') || str_contains($haystack, 'polytechnic')) {
             return [
                 'type' => 'aicte',
-                'tag' => 'AICTE',
-                'color' => '#7c3aed',
-                'bg_tint' => '#f5f3ff',
-                'action' => 'Online Form',
-                'action_icon' => 'file-text'
+                'name' => 'All India Council for Technical Education',
+                'theme_class' => 'theme-aicte'
             ];
         }
 
         if (str_contains($haystack, 'cbse') || str_contains($haystack, 'icse') || str_contains($haystack, 'board') || str_contains($haystack, '10th') || str_contains($haystack, '12th') || str_contains($haystack, 'revaluation') || str_contains($haystack, 'bseb') || str_contains($haystack, 'upmsp')) {
             return [
                 'type' => 'cbse',
-                'tag' => 'BOARD EXAMS',
-                'color' => '#e11d48',
-                'bg_tint' => '#fff1f2',
-                'action' => 'Check Result',
-                'action_icon' => 'check-circle'
+                'name' => 'Central Board of Secondary Education',
+                'theme_class' => 'theme-cbse'
             ];
         }
 
         if (str_contains($haystack, 'upsc') || str_contains($haystack, 'nda') || str_contains($haystack, 'cds') || str_contains($haystack, 'civil services') || str_contains($haystack, 'ias')) {
             return [
                 'type' => 'ashoka',
-                'tag' => 'UPSC',
-                'color' => '#1e3a8a',
-                'bg_tint' => '#eff6ff',
-                'action' => 'View Notice',
-                'action_icon' => 'file-text'
+                'name' => 'Union Public Service Commission (UPSC)',
+                'theme_class' => 'theme-upsc'
             ];
         }
 
         if (str_contains($haystack, 'ssc') || str_contains($haystack, 'cgl') || str_contains($haystack, 'chsl') || str_contains($haystack, 'mts') || str_contains($haystack, 'cpo') || str_contains($haystack, 'je ')) {
             return [
                 'type' => 'ashoka',
-                'tag' => 'SSC',
-                'color' => '#dc2626',
-                'bg_tint' => '#fef2f2',
-                'action' => 'Download Slip',
-                'action_icon' => 'id-card'
+                'name' => 'Staff Selection Commission (SSC)',
+                'theme_class' => 'theme-ssc'
             ];
         }
 
         if (str_contains($haystack, 'scholarship') || str_contains($haystack, 'nsp') || str_contains($haystack, 'scheme')) {
             return [
                 'type' => 'scholarship',
-                'tag' => 'SCHOLARSHIP',
-                'color' => '#2563eb',
-                'bg_tint' => '#eff6ff',
-                'action' => 'Apply Online',
-                'action_icon' => 'external-link'
+                'name' => 'National Scholarship Portal (NSP)',
+                'theme_class' => 'theme-scholarship'
             ];
         }
 
         return [
             'type' => 'ashoka',
-            'tag' => 'STATUTORY NOTICE',
-            'color' => '#1e40af',
-            'bg_tint' => '#eff6ff',
-            'action' => 'View Circular',
-            'action_icon' => 'file-text'
+            'name' => !empty($agencyName) ? $agencyName : 'Official Examination Authority',
+            'theme_class' => 'theme-statutory'
         ];
     }
 }
 ?>
-<section class="sarkari-hot-section" aria-label="Top Trending Official Examinations and Forms">
-    <div class="sarkari-hot-header">
-        <div class="sarkari-hot-title">
-            <?= icon('bolt', 'hot-header-icon') ?>
-            <span>Trending Official Updates</span>
+<section class="gazette-desk-section" aria-label="Official Commission Gazettes and Live Examination Intimations">
+    <div class="gazette-desk-header">
+        <div class="gazette-header-left">
+            <span class="gazette-live-pulse" aria-hidden="true"></span>
+            <h2 class="gazette-header-title">National Examination Gazettes</h2>
+            <span class="gazette-header-rule"></span>
+            <span class="gazette-header-subtitle">Verified Direct Notifications</span>
         </div>
-        <div class="sarkari-hot-badge">
-            <span class="hot-live-dot"></span>
-            <span>Live Official Gazettes</span>
+        <div class="gazette-header-right">
+            <span class="gazette-time-badge">
+                <?= icon('clock', 'gazette-header-clock') ?>
+                <span>Updated <?= date('d M Y') ?></span>
+            </span>
         </div>
     </div>
 
-    <div class="sarkari-hot-grid">
+    <div class="gazette-grid">
         <?php foreach ($hotArticles as $item): 
             $itemAuth = App\Services\AuthorityFactFetcherService::resolveAuthority($item['title'] ?? '', $item['source_url'] ?? '');
             $agencyName = $itemAuth['name'] ?? '';
             $catSlug = $item['category_slug'] ?? $item['category'] ?? 'exam-results';
-            
-            $meta = detect_agency_meta($item['title'] ?? '', $catSlug, $agencyName);
+            $catName = $item['category_name'] ?? 'Notice';
 
-            // Refine action by title keyword
-            $itemTitleLower = strtolower($item['title'] ?? '');
-            $actionLabel = $meta['action'];
-            $actionIcon = $meta['action_icon'];
-            if (str_contains($itemTitleLower, 'result')) {
+            $crest = resolve_commission_crest($item['title'] ?? '', $catSlug, $agencyName);
+            $crestSvg = render_crest_svg($crest['type']);
+
+            // Milestone pill & Action CTA
+            $tLower = strtolower($item['title'] ?? '');
+            if (str_contains($tLower, 'result')) {
+                $statusPill = 'Scorecard Declared';
+                $pillClass = 'pill-result';
                 $actionLabel = 'Check Result';
-                $actionIcon = 'award';
-            } elseif (str_contains($itemTitleLower, 'admit card') || str_contains($itemTitleLower, 'hall ticket') || str_contains($itemTitleLower, 'slip')) {
+            } elseif (str_contains($tLower, 'admit card') || str_contains($tLower, 'hall ticket') || str_contains($tLower, 'slip')) {
+                $statusPill = 'Hall Ticket Live';
+                $pillClass = 'pill-admit';
                 $actionLabel = 'Download Slip';
-                $actionIcon = 'id-card';
-            } elseif (str_contains($itemTitleLower, 'answer key')) {
+            } elseif (str_contains($tLower, 'answer key')) {
+                $statusPill = 'Answer Key Out';
+                $pillClass = 'pill-key';
                 $actionLabel = 'Check Key';
-                $actionIcon = 'check-circle';
-            } elseif (str_contains($itemTitleLower, 'apply') || str_contains($itemTitleLower, 'form') || str_contains($itemTitleLower, 'recruitment')) {
+            } elseif (str_contains($tLower, 'apply') || str_contains($tLower, 'form') || str_contains($tLower, 'recruitment') || str_contains($tLower, 'vacancy')) {
+                $statusPill = 'Online Form Open';
+                $pillClass = 'pill-apply';
                 $actionLabel = 'Apply Online';
-                $actionIcon = 'briefcase';
+            } else {
+                $statusPill = 'Verified Notice';
+                $pillClass = 'pill-default';
+                $actionLabel = 'View Notice';
             }
-
-            $watermarkSvg = get_agency_watermark_svg($meta['type']);
         ?>
-            <article class="sarkari-hot-card" style="--card-accent: <?= e($meta['color']) ?>; --card-tint: <?= e($meta['bg_tint']) ?>;">
-                <!-- Subtle Vector Watermark -->
-                <div class="card-watermark" aria-hidden="true">
-                    <?= $watermarkSvg ?>
+            <article class="gazette-card">
+                <div class="gazette-card-top">
+                    <div class="gazette-crest-box <?= e($crest['theme_class']) ?>" title="<?= e($crest['name']) ?>">
+                        <?= $crestSvg ?>
+                    </div>
+                    <div class="gazette-card-meta">
+                        <span class="gazette-commission-name" title="<?= e($crest['name']) ?>">
+                            <?= e(truncate_text($crest['name'], 28)) ?>
+                        </span>
+                        <div class="gazette-category-line">
+                            <span class="gazette-cat-tag"><?= e($catName) ?></span>
+                            <span class="gazette-dot" aria-hidden="true">•</span>
+                            <time datetime="<?= e($item['published_at'] ?? '') ?>" class="gazette-pubtime notranslate">
+                                <?= time_ago($item['published_at'] ?? 'now') ?>
+                            </time>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="hot-card-top">
-                    <span class="hot-agency-tag" style="color: <?= e($meta['color']) ?>; background-color: <?= e($meta['bg_tint']) ?>; border: 1px solid <?= e($meta['color']) ?>25;">
-                        <?= e($meta['tag']) ?>
-                    </span>
-                    <time datetime="<?= e($item['published_at'] ?? '') ?>" class="hot-card-time notranslate">
-                        <?= time_ago($item['published_at'] ?? 'now') ?>
-                    </time>
-                </div>
-
-                <h2 class="hot-card-title">
+                <h3 class="gazette-card-heading">
                     <a href="<?= url('article/' . $item['slug'] . '/') ?>" title="<?= e($item['title']) ?>">
                         <?= e($item['title']) ?>
                     </a>
-                </h2>
+                </h3>
 
-                <div class="hot-card-bottom">
-                    <a href="<?= url('article/' . $item['slug'] . '/') ?>" class="hot-card-action" style="color: <?= e($meta['color']) ?>;">
+                <div class="gazette-card-bottom">
+                    <span class="gazette-status-badge <?= e($pillClass) ?>">
+                        <?= e($statusPill) ?>
+                    </span>
+                    <a href="<?= url('article/' . $item['slug'] . '/') ?>" class="gazette-action-btn">
                         <span><?= e($actionLabel) ?></span>
-                        <?= icon('arrow-right', 'hot-icon-xs') ?>
+                        <svg class="gazette-arrow" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
                     </a>
                 </div>
             </article>
