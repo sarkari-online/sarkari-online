@@ -130,7 +130,12 @@ class AuthorityFactFetcherService {
         // Central Commissions & Boards
         if (str_contains($lower, 'cbse') || str_contains($lower, 'class 10') || str_contains($lower, 'class 12')) return self::$authorityPortals['cbse'];
         if (str_contains($lower, 'ssc') || str_contains($lower, 'cgl') || str_contains($lower, 'chsl') || str_contains($lower, 'mts') || str_contains($lower, 'cpo') || str_contains($lower, 'havaldar')) return self::$authorityPortals['ssc'];
-        if (str_contains($lower, 'upsc') || str_contains($lower, 'civil services') || str_contains($lower, 'nda') || str_contains($lower, 'cds') || str_contains($lower, 'ifs')) return self::$authorityPortals['upsc'];
+        if (str_contains($lower, 'upsc') || str_contains($lower, 'civil services') || str_contains($lower, 'nda') || str_contains($lower, 'cds') || str_contains($lower, 'ifs')) {
+            if (str_contains($lower, 'admit') || str_contains($lower, 'hall ticket') || str_contains($lower, 'call letter')) {
+                return ['name' => 'UPSC (Union Public Service Commission)', 'portal' => 'https://upsconline.nic.in'];
+            }
+            return self::$authorityPortals['upsc'];
+        }
         if (str_contains($lower, 'rrb') || str_contains($lower, 'railway') || str_contains($lower, 'alp') || str_contains($lower, 'ntpc')) return self::$authorityPortals['rrb'];
         if (str_contains($lower, 'scholarship') || str_contains($lower, 'nsp') || str_contains($lower, 'pmsss') || str_contains($lower, 'yasasvi')) return self::$authorityPortals['nsp'];
         if (str_contains($lower, 'ugc') || str_contains($lower, 'net exam')) return self::$authorityPortals['ugc'];
@@ -241,19 +246,19 @@ CRITICAL RULES:
 5. OFFICIAL PORTAL VERIFICATION:
    - Direct official verification link ({$authority['portal']}).
 
-Return strictly as JSON with this schema:
+Return strictly as JSON with this schema (DO NOT invent fake times; extract ONLY real official timings from the statutory authority bulletin or standard exam pattern):
 {
   "authority_name": "{$authority['name']}",
   "official_portal": "{$authority['portal']}",
   "exam_status": "Confirmed | Awaiting Official Notification | Active Registration | Upcoming Cycle",
   "shift_timings": [
     {
-      "shift": "Morning Shift / Shift 1",
-      "reporting_time": "07:00 AM onwards",
-      "gate_closure": "08:30 AM Sharp (No entry after cutoff)",
-      "exam_timing": "09:00 AM – 12:30 PM",
-      "duration": "210 Minutes",
-      "mode": "Computer Based Test (CBT)"
+      "shift": "Official Paper / Shift Name",
+      "reporting_time": "Official reporting time",
+      "gate_closure": "Official gate closure cutoff time",
+      "exam_timing": "Official exam hours (e.g. 10:00 AM – 12:30 PM)",
+      "duration": "Official test duration (e.g. 150 Minutes)",
+      "mode": "OMR-Based Test / Computer Based Test (CBT)"
     }
   ],
   "dates_schedule": [
