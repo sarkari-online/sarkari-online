@@ -418,8 +418,6 @@ function render_split_watermark(string $type, string $color): string {
                 $articleSlug = $item['slug'] ?? 'latest-updates';
                 $numStr = sprintf('%02d', $i + 1);
                 $watermarkSvg = render_split_watermark($board['watermark'], $board['color']);
-                $actionUrl = !empty($item['source_url']) ? $item['source_url'] : ($board['portal_url'] ?? url('article/' . $articleSlug . '/'));
-                $isExternalAction = !empty($item['source_url']) || !empty($board['portal_url']);
             ?>
                 <article class="lead-card">
                     <!-- Subtle Architectural Watermark Accent (Top-Right) -->
@@ -477,9 +475,9 @@ function render_split_watermark(string $type, string $color): string {
                         </div>
                     </div>
 
-                    <!-- Dual Action Buttons Row -->
+                    <!-- Dual Action Buttons Row (Both link to Sarkari.online article to minimize bounce rate) -->
                     <div class="lead-actions-row">
-                        <a href="<?= e($actionUrl) ?>" <?= $isExternalAction ? 'target="_blank" rel="noopener noreferrer"' : '' ?> class="lead-btn-outline" style="color: <?= $board['color'] ?>; background-color: <?= $board['bg_light'] ?>; border-color: <?= $board['border'] ?>;" title="<?= e($milestone['btn1_text']) ?> — Official Portal">
+                        <a href="<?= url('article/' . $articleSlug . '/') ?>" class="lead-btn-outline" style="color: <?= $board['color'] ?>; background-color: <?= $board['bg_light'] ?>; border-color: <?= $board['border'] ?>;" title="<?= e($milestone['btn1_text']) ?> — Read Full Guide &amp; Details">
                             <?= icon($milestone['btn1_icon'], 'lead-btn-icon') ?>
                             <span><?= e($milestone['btn1_text']) ?></span>
                         </a>
@@ -507,8 +505,6 @@ function render_split_watermark(string $type, string $color): string {
                 $articleTitle = $item['title'] ?? 'Official Recruitment Notification';
                 $articleSlug = $item['slug'] ?? 'latest-updates';
                 $numStr = sprintf('%02d', $i + 1);
-                $feedActionUrl = !empty($item['source_url']) ? $item['source_url'] : ($board['portal_url'] ?? url('article/' . $articleSlug . '/'));
-                $feedIsExternal = !empty($item['source_url']) || !empty($board['portal_url']);
             ?>
                 <article class="feed-compact-card">
                     <!-- Content Details (Clean Typography, No Mismatched Logo Box) -->
@@ -533,7 +529,7 @@ function render_split_watermark(string $type, string $color): string {
 
                         <div class="feed-footer-row">
                             <span class="feed-date-hint"><?= e($milestone['date1_label']) ?>: <strong><?= e($milestone['date1_val']) ?></strong></span>
-                            <a href="<?= e($feedActionUrl) ?>" <?= $feedIsExternal ? 'target="_blank" rel="noopener noreferrer"' : '' ?> class="feed-action-link" style="color: <?= $board['color'] ?>;" title="<?= e($milestone['btn1_text']) ?> — Official Link">
+                            <a href="<?= url('article/' . $articleSlug . '/') ?>" class="feed-action-link" style="color: <?= $board['color'] ?>;" title="<?= e($milestone['btn1_text']) ?> — Read Article">
                                 <?= e($milestone['btn1_text']) ?> →
                             </a>
                         </div>
