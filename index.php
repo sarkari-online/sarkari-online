@@ -56,8 +56,9 @@ $canonicalUrl = SITE_URL . '/';
 $ogType = 'website';
 
 // Fetch Live Articles from Database
-$dbArticles = ArticleService::getLatestPublished(10);
+$dbArticles = ArticleService::getLatestPublished(12);
 if (!empty($dbArticles)) {
+    $hotArticles = array_slice($dbArticles, 0, 8);
     $featured = $dbArticles[0];
     $secondary = array_slice($dbArticles, 1, 4);
     $latestArticles = $dbArticles;
@@ -65,6 +66,7 @@ if (!empty($dbArticles)) {
     $heroData = MockData::getHeroArticles();
     $featured = $heroData['featured'];
     $secondary = $heroData['secondary'];
+    $hotArticles = MockData::getLatestArticles(8);
     $latestArticles = MockData::getLatestArticles(6);
 }
 
