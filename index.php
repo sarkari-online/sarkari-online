@@ -59,7 +59,7 @@ $ogType = 'website';
 $dbArticles = ArticleService::getLatestPublished(10);
 if (!empty($dbArticles)) {
     $featured = $dbArticles[0];
-    $secondary = array_slice($dbArticles, 1, 3);
+    $secondary = array_slice($dbArticles, 1, 4);
     $latestArticles = $dbArticles;
 } else {
     $heroData = MockData::getHeroArticles();
