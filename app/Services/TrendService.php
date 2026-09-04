@@ -111,24 +111,63 @@ class TrendService {
      * Check if similar article already exists in published articles
      */
     public static function existsAsArticle(string $keyword): bool {
+        $clean = mb_strtolower(trim($keyword));
         $normalized = self::normalizeKeyword($keyword);
         $words = explode(' ', $normalized);
-        $keyWords = array_filter($words, fn($w) => strlen($w) > 3);
+        $keyWords = array_values(array_filter($words, fn($w) => strlen($w) >= 3 && !in_array($w, ['the', 'and', 'for', 'with', 'from', 'update', 'latest', 'notification', '2026', '2027'], true)));
 
         if (empty($keyWords)) {
             return false;
         }
 
-        // Check if top 2 keywords match existing article title
-        $searchTerms = array_slice($keyWords, 0, 3);
-        $likePattern = '%' . implode('%', $searchTerms) . '%';
+        // 1. Direct Slug / Keyword match
+        $slugGuess = Sanitizer::slug($keyword);
+        $existingBySlug = Database::fetchOne("SELECT id FROM articles WHERE slug LIKE :s LIMIT 1", ['s' => '%' . mb_substr($slugGuess, 0, 35) . '%']);
+        if ($existingBySlug) return true;
 
-        $existing = Database::fetchOne(
-            "SELECT id FROM articles WHERE title LIKE :pattern LIMIT 1",
-            ['pattern' => $likePattern]
-        );
+        // 2. Specific key entity pairs check (e.g. 'nsp scholarship', 'upsc nda', 'ssc cgl', etc.)
+        $entities = [
+            ['nsp', 'scholarship'],
+            ['national', 'scholarship'],
+            ['upsc', 'nda'],
+            ['upsc', 'cds'],
+            ['ssc', 'je'],
+            ['ssc', 'cgl'],
+            ['ssc', 'chsl'],
+            ['neet', 'ug'],
+            ['jee', 'main'],
+            ['rrb', 'ntpc'],
+            ['rrb', 'recruitment'],
+            ['bpsc', 'tre'],
+            ['sbi', 'po'],
+            ['ibps', 'rrb'],
+            ['cbse', 'board']
+        ];
 
-        return $existing !== null;
+        foreach ($entities as $pair) {
+            if (str_contains($clean, $pair[0]) && str_contains($clean, $pair[1])) {
+                $p1 = '%' . $pair[0] . '%';
+                $p2 = '%' . $pair[1] . '%';
+                $found = Database::fetchOne("SELECT id FROM articles WHERE (LOWER(title) LIKE :p1 AND LOWER(title) LIKE :p2) OR (LOWER(slug) LIKE :p1 AND LOWER(slug) LIKE :p2) LIMIT 1", [
+                    'p1' => $p1,
+                    'p2' => $p2
+                ]);
+                if ($found) return true;
+            }
+        }
+
+        // 3. Match any 2 distinct significant keywords in existing articles
+        if (count($keyWords) >= 2) {
+            $w1 = '%' . $keyWords[0] . '%';
+            $w2 = '%' . $keyWords[1] . '%';
+            $found = Database::fetchOne("SELECT id FROM articles WHERE (LOWER(title) LIKE :w1 AND LOWER(title) LIKE :w2) OR (LOWER(slug) LIKE :w1 AND LOWER(slug) LIKE :w2) LIMIT 1", [
+                'w1' => $w1,
+                'w2' => $w2
+            ]);
+            if ($found) return true;
+        }
+
+        return false;
     }
 
     /**
@@ -137,7 +176,7 @@ class TrendService {
     public static function isRecentlyCovered(string $keyword, int $days = 30): bool {
         $normalized = self::normalizeKeyword($keyword);
         $words = explode(' ', $normalized);
-        $keyWords = array_values(array_filter($words, fn($w) => strlen($w) > 3));
+        $keyWords = array_values(array_filter($words, fn($w) => strlen($w) >= 3 && !in_array($w, ['the', 'and', 'for', 'with', 'from', 'update', 'latest', 'notification', '2026', '2027'], true)));
 
         if (empty($keyWords)) {
             return false;
@@ -393,22 +432,10 @@ class TrendService {
                         $item['id'] = $trendId;
                         $recorded[] = $item;
 
-                        // 🔴 INSTANT AUTO-PUBLISH FOR OFFICIAL BREAKING NOTICES:
-                        // Real breaking news never sits in the 'detected' queue — it generates and publishes immediately!
+                        // Official breaking notices are recorded into approved queue with high score, strictly waiting for the next scheduled slot
                         if (self::isOfficialBreaking($item)) {
-                            Logger::info("🔴 Official Breaking Notice Ingested: '{$item['keyword']}'. Triggering INSTANT fast-track publishing!");
-                            try {
-                                self::markStatus($trendId, 'approved', ['trend_score' => 99]);
-                                $pipeline = new PipelineService();
-                                $gen = $pipeline->generateFromTrend($trendId);
-                                if (!empty($gen['success']) && !empty($gen['article_id'])) {
-                                    $pubService = new PublishingService();
-                                    $pubService->publish((int)$gen['article_id']);
-                                    Logger::info("🔴 Official Breaking Notice published live immediately as Article #{$gen['article_id']}");
-                                }
-                            } catch (Throwable $e) {
-                                Logger::error("Failed to instant publish breaking trend #{$trendId}: " . $e->getMessage());
-                            }
+                            self::markStatus($trendId, 'approved', ['trend_score' => 95]);
+                            Logger::info("Official Breaking Notice prioritized in approved queue: '{$item['keyword']}' (Waiting for next scheduled slot)");
                         }
                     }
                 }

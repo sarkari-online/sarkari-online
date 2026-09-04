@@ -85,8 +85,8 @@ class PipelineService {
         $isBreaking = TrendService::isOfficialBreaking($trend);
 
         // Guard 1: Fixed Slot Timing (10:00 AM, 02:00 PM, 06:00 PM IST)
-        // Manual publishing by admin ($force = true) or Breaking Notices ($isBreaking = true) are 100% UNLIMITED and NEVER blocked.
-        if (!$force && !$isBreaking) {
+        // Manual publishing by admin ($force = true) is 100% UNLIMITED and NEVER blocked.
+        if (!$force) {
             $pendingSlot = AutoCronService::getNextPendingSlot();
             if ($pendingSlot === null) {
                 $schedule = AutoCronService::getISTSlotSchedule();
@@ -98,7 +98,7 @@ class PipelineService {
         }
 
         // Guard 2: 30-Day Anti-Repeat Guard & Same-Day Authority Protection (Bypassed if admin clicked Publish Now)
-        if (!$force && !$isBreaking && (TrendService::isRecentlyCovered($trend['keyword'], 30) || TrendService::isAuthorityCoveredRecently($trend['keyword'], 12))) {
+        if (!$force && (TrendService::isRecentlyCovered($trend['keyword'], 30) || TrendService::isAuthorityCoveredRecently($trend['keyword'], 12))) {
             TrendService::markStatus($trendId, 'rejected', ['raw_payload' => ['reason' => 'Topic or examination authority covered recently']]);
             Logger::info("Skipping Trend #{$trendId}: Similar topic or examination authority already covered recently.");
             return ['success' => false, 'trend_id' => $trendId, 'error' => 'Similar topic or examination authority already covered recently.'];
@@ -199,6 +199,19 @@ class PipelineService {
         } else {
             // Quality Score >= 70 & Safety Gate Passed -> DIRECT LIVE PUBLISH!
             $finalStatus = 'published';
+        }
+
+        // 7b. Strict Slug Collision & Duplicate Check before Database Persistence
+        $targetSlug = mb_substr($seoData['slug_suggestion'], 0, 190);
+        $slugBase = preg_replace('/-\d+$/', '', $targetSlug);
+        $existingBySlug = Database::fetchOne(
+            "SELECT id, title, slug FROM articles WHERE slug = :s OR slug LIKE :s_wild LIMIT 1",
+            ['s' => $targetSlug, 's_wild' => $slugBase . '-%']
+        );
+        if (!$force && $existingBySlug) {
+            TrendService::markStatus($trendId, 'rejected', ['raw_payload' => ['reason' => "Duplicate: Article already exists with matching slug #{$existingBySlug['id']} ({$existingBySlug['slug']})"]]);
+            Logger::warning("Pipeline aborted: Suggested slug '{$targetSlug}' collides with existing Article #{$existingBySlug['id']}. Duplicate generation prevented.");
+            return ['success' => false, 'trend_id' => $trendId, 'error' => "Similar article already exists (Article #{$existingBySlug['id']}: '{$existingBySlug['title']}')."];
         }
 
         // 8. Persist Article in Database directly
