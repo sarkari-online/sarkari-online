@@ -87,9 +87,9 @@ $fallbackPresets = [
     ]
 ];
 
-// Ensure we have 8 articles for the complete 2 + 6 editorial layout
+// Ensure we have 6 articles for the perfectly balanced 2 + 4 editorial layout
 $displayArticles = [];
-for ($i = 0; $i < 8; $i++) {
+for ($i = 0; $i < 6; $i++) {
     $displayArticles[$i] = $hotArticles[$i] ?? $fallbackPresets[$i];
 }
 
@@ -496,11 +496,11 @@ function render_split_watermark(string $type, string $color): string {
         </div>
 
         <!-- ========================================================
-             RIGHT COLUMN: 6 COMPACT NOTIFICATION CARDS (Articles 03 to 08)
+             RIGHT COLUMN: 4 COMPACT NOTIFICATION CARDS (Articles 03 to 06)
              ======================================================== -->
         <div class="split-col-feed">
             <?php 
-            for ($i = 2; $i < 8; $i++): 
+            for ($i = 2; $i < 6; $i++): 
                 $item = $displayArticles[$i];
                 $board = resolve_board_profile($item);
                 $milestone = resolve_article_milestone($item['title'] ?? '');
