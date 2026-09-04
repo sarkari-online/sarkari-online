@@ -286,6 +286,12 @@ class PipelineService {
             ])
         ]);
 
+        // Automatically record slot completed immediately upon autonomous publication
+        if (!$force && !empty($pendingSlot) && $finalStatus === 'published') {
+            AutoCronService::recordSlotCompleted($pendingSlot, $articleId);
+            Logger::info("PipelineService: Scheduled Slot #{$pendingSlot} locked with Article #{$articleId}.");
+        }
+
         Logger::info("🚀 Article #{$articleId} successfully GENERATED and PUBLISHED LIVE on Sarkari.online! (Score: {$finalScore})");
 
         return [
