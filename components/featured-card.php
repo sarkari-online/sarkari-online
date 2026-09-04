@@ -93,17 +93,44 @@ for ($i = 0; $i < 8; $i++) {
     $displayArticles[$i] = $hotArticles[$i] ?? $fallbackPresets[$i];
 }
 
-// Helper: Automatically detect board profile and logo from article metadata
+// Helper: Automatically detect board profile from article metadata (Zero-Logo Scalable System)
 function resolve_board_profile(array $article): array {
     $text = strtolower(($article['title'] ?? '') . ' ' . ($article['category_name'] ?? '') . ' ' . ($article['source_name'] ?? '') . ' ' . ($article['slug'] ?? ''));
 
-    // 1. SSC
+    // 1. SBI (Prioritized before general banking)
+    if (preg_match('/\b(sbi|state bank of india)\b/i', $text)) {
+        return [
+            'board_key' => 'sbi',
+            'board_title' => 'SBI',
+            'board_name' => 'State Bank of India',
+            'color' => '#0284C7',
+            'bg_light' => '#F0F9FF',
+            'border' => '#BAE6FD',
+            'watermark' => 'bank',
+            'portal_url' => 'https://sbi.co.in/web/careers'
+        ];
+    }
+
+    // 2. IBPS / Banking
+    if (preg_match('/\b(ibps|bank|banking|clerk|po|rbi|nabard|specialist officer|crp)\b/i', $text)) {
+        return [
+            'board_key' => 'ibps',
+            'board_title' => 'IBPS',
+            'board_name' => 'Institute of Banking Personnel Selection',
+            'color' => '#1E40AF',
+            'bg_light' => '#EEF2FF',
+            'border' => '#C7D2FE',
+            'watermark' => 'bank',
+            'portal_url' => 'https://ibps.in'
+        ];
+    }
+
+    // 3. SSC
     if (preg_match('/\b(ssc|cgl|chsl|mts|ssc je|cpo|gd constable|stenographer)\b/i', $text)) {
         return [
             'board_key' => 'ssc',
             'board_title' => 'SSC',
             'board_name' => 'Staff Selection Commission',
-            'logo' => 'ssc.png',
             'color' => '#DC2626',
             'bg_light' => '#FEF2F2',
             'border' => '#FECACA',
@@ -112,29 +139,12 @@ function resolve_board_profile(array $article): array {
         ];
     }
 
-    // 2. IBPS / SBI / Banking
-    if (preg_match('/\b(ibps|sbi|bank|banking|clerk|po|rbi|nabard|specialist officer)\b/i', $text)) {
-        $isSBI = strpos($text, 'sbi') !== false;
-        return [
-            'board_key' => 'ibps',
-            'board_title' => $isSBI ? 'SBI Banking' : 'IBPS',
-            'board_name' => $isSBI ? 'State Bank of India' : 'Institute of Banking Personnel Selection',
-            'logo' => 'ibps.png',
-            'color' => '#0284C7',
-            'bg_light' => '#F0F9FF',
-            'border' => '#BAE6FD',
-            'watermark' => 'bank',
-            'portal_url' => $isSBI ? 'https://sbi.co.in/web/careers' : 'https://ibps.in'
-        ];
-    }
-
-    // 3. Indian Railways
+    // 4. Indian Railways
     if (preg_match('/\b(railway|railways|rrb|ntpc|alp|loco pilot|rrc|group d|irctc)\b/i', $text)) {
         return [
             'board_key' => 'railways',
-            'board_title' => 'Indian Railways',
+            'board_title' => 'Railways',
             'board_name' => 'Railway Recruitment Board',
-            'logo' => 'railways.png',
             'color' => '#16A34A',
             'bg_light' => '#F0FDF4',
             'border' => '#BBF7D0',
@@ -143,13 +153,12 @@ function resolve_board_profile(array $article): array {
         ];
     }
 
-    // 4. UPSC
+    // 5. UPSC
     if (preg_match('/\b(upsc|civil services|nda|cds|ias|ips|ifs|capf|epfo|geoscientist)\b/i', $text)) {
         return [
             'board_key' => 'upsc',
             'board_title' => 'UPSC',
             'board_name' => 'Union Public Service Commission',
-            'logo' => 'upsc.png',
             'color' => '#2563EB',
             'bg_light' => '#EFF6FF',
             'border' => '#BFDBFE',
@@ -158,14 +167,27 @@ function resolve_board_profile(array $article): array {
         ];
     }
 
-    // 5. Police Recruitment
+    // 6. BPSC / Bihar State Exams
+    if (preg_match('/\b(bpsc|tre|bssc|bihar)\b/i', $text)) {
+        return [
+            'board_key' => 'bpsc',
+            'board_title' => 'BPSC',
+            'board_name' => 'Bihar Public Service Commission',
+            'color' => '#D97706',
+            'bg_light' => '#FFFBEB',
+            'border' => '#FDE68A',
+            'watermark' => 'parliament',
+            'portal_url' => 'https://bpsc.bih.nic.in'
+        ];
+    }
+
+    // 7. Police Recruitment
     if (preg_match('/\b(police|constable|sub inspector|uppbpb|daroga|cisf|crpf|bsf|itbp)\b/i', $text)) {
         $isUP = strpos($text, 'up ') !== false || strpos($text, 'uttar pradesh') !== false;
         return [
             'board_key' => 'uppolice',
             'board_title' => $isUP ? 'UP Police' : 'Police Recruitment',
             'board_name' => $isUP ? 'Uttar Pradesh Police' : 'Police Recruitment Board',
-            'logo' => 'uppolice.png',
             'color' => '#EA580C',
             'bg_light' => '#FFF7ED',
             'border' => '#FED7AA',
@@ -174,29 +196,40 @@ function resolve_board_profile(array $article): array {
         ];
     }
 
-    // 6. NTA / NEET / JEE / CUET
-    if (preg_match('/\b(nta|neet|jee|cuet|ugc net|counselling|mbbs|iit|medical|seat allotment)\b/i', $text)) {
-        $isMCC = (strpos($text, 'counselling') !== false || strpos($text, 'mcc') !== false);
+    // 8. MCC / Medical Counselling
+    if (preg_match('/\b(mcc|counselling|seat allotment|aiq)\b/i', $text)) {
         return [
-            'board_key' => 'nta',
-            'board_title' => 'NTA',
-            'board_name' => 'National Testing Agency',
-            'logo' => 'nta.png',
+            'board_key' => 'mcc',
+            'board_title' => 'MCC',
+            'board_name' => 'Medical Counselling Committee',
             'color' => '#0D9488',
             'bg_light' => '#F0FDFA',
             'border' => '#99F6E4',
             'watermark' => 'medical',
-            'portal_url' => $isMCC ? 'https://mcc.nic.in' : 'https://nta.ac.in'
+            'portal_url' => 'https://mcc.nic.in'
         ];
     }
 
-    // 7. AICTE / Higher Technical
+    // 9. NTA / NEET / JEE / CUET
+    if (preg_match('/\b(nta|neet|jee|cuet|ugc net|mbbs|iit|medical)\b/i', $text)) {
+        return [
+            'board_key' => 'nta',
+            'board_title' => 'NTA',
+            'board_name' => 'National Testing Agency',
+            'color' => '#0F766E',
+            'bg_light' => '#F0FDFA',
+            'border' => '#99F6E4',
+            'watermark' => 'medical',
+            'portal_url' => 'https://nta.ac.in'
+        ];
+    }
+
+    // 10. AICTE / Higher Technical
     if (preg_match('/\b(aicte|technical education|doctoral fellowship|phd|fellowship|scholarship)\b/i', $text)) {
         return [
             'board_key' => 'aicte',
             'board_title' => 'AICTE',
             'board_name' => 'All India Council for Technical Education',
-            'logo' => 'aicte.png',
             'color' => '#7C3AED',
             'bg_light' => '#FAF5FF',
             'border' => '#E9D5FF',
@@ -205,45 +238,42 @@ function resolve_board_profile(array $article): array {
         ];
     }
 
-    // 8. CBSE / School Boards
+    // 11. CBSE / School Boards
     if (preg_match('/\b(cbse|class 10|class 12|board exam|board result|term 1|term 2|ctet)\b/i', $text)) {
         return [
             'board_key' => 'cbse',
             'board_title' => 'CBSE',
             'board_name' => 'Central Board of Secondary Education',
-            'logo' => 'cbse.png',
             'color' => '#059669',
-            'bg_light' => '#F0FDF4',
+            'bg_light' => '#ECFDF5',
             'border' => '#A7F3D0',
             'watermark' => 'cbse',
             'portal_url' => 'https://cbse.gov.in'
         ];
     }
 
-    // 9. BPSC / State PSC
-    if (preg_match('/\b(bpsc|bihar|tre|bssc)\b/i', $text)) {
+    // 12. DSSSB / Delhi Govt
+    if (preg_match('/\b(dsssb|delhi subordinate)\b/i', $text)) {
         return [
-            'board_key' => 'bpsc',
-            'board_title' => 'BPSC',
-            'board_name' => 'Bihar Public Service Commission',
-            'logo' => 'default.png',
-            'color' => '#0F766E',
-            'bg_light' => '#F0FDFA',
-            'border' => '#99F6E4',
+            'board_key' => 'dsssb',
+            'board_title' => 'DSSSB',
+            'board_name' => 'Delhi Subordinate Services Selection Board',
+            'color' => '#4F46E5',
+            'bg_light' => '#EEF2FF',
+            'border' => '#C7D2FE',
             'watermark' => 'parliament',
-            'portal_url' => 'https://bpsc.bih.nic.in'
+            'portal_url' => 'https://dsssb.delhi.gov.in'
         ];
     }
 
-    // 10. Default Government Authority
+    // 13. Default Government Authority
     return [
         'board_key' => 'gov',
         'board_title' => 'Govt Authority',
         'board_name' => 'Official Statutory Commission',
-        'logo' => 'default.png',
-        'color' => '#1E3A8A',
-        'bg_light' => '#EFF6FF',
-        'border' => '#BFDBFE',
+        'color' => '#334155',
+        'bg_light' => '#F8FAFC',
+        'border' => '#E2E8F0',
         'watermark' => 'parliament',
         'portal_url' => 'https://india.gov.in'
     ];
@@ -391,36 +421,28 @@ function render_split_watermark(string $type, string $color): string {
                 $actionUrl = !empty($item['source_url']) ? $item['source_url'] : ($board['portal_url'] ?? url('article/' . $articleSlug . '/'));
                 $isExternalAction = !empty($item['source_url']) || !empty($board['portal_url']);
             ?>
-                <article class="lead-card">
+                <article class="lead-card" style="border-left: 4px solid <?= $board['color'] ?>;">
                     <!-- Subtle Architectural Watermark Accent (Top-Right) -->
                     <div class="lead-watermark" aria-hidden="true">
                         <?= $watermarkSvg ?>
                     </div>
 
                     <div class="lead-card-top">
-                        <!-- Top Bar: Number Badge + Status Badge -->
+                        <!-- Top Bar: Number Badge + Authority Info + Status Badge -->
                         <div class="lead-topbar">
-                            <span class="lead-num-pill" style="background-color: <?= $board['bg_light'] ?>; color: <?= $board['color'] ?>; border: 1px solid <?= $board['border'] ?>;">
-                                <?= $numStr ?>
-                            </span>
+                            <div class="lead-auth-strip">
+                                <span class="lead-num-pill" style="background-color: <?= $board['bg_light'] ?>; color: <?= $board['color'] ?>; border: 1px solid <?= $board['border'] ?>;">
+                                    <?= $numStr ?>
+                                </span>
+                                <span class="lead-auth-tag" style="color: <?= $board['color'] ?>;">
+                                    <?= e($board['board_title']) ?>
+                                </span>
+                                <span class="lead-auth-sep">•</span>
+                                <span class="lead-board-sub" title="<?= e($board['board_name']) ?>"><?= e($board['board_name']) ?></span>
+                            </div>
                             <span class="lead-badge-status" style="background-color: <?= $milestone['badge_bg'] ?>;">
                                 <?= $milestone['badge'] ?>
                             </span>
-                        </div>
-
-                        <!-- Board Header: Real Official Logo Image + Short & Full Title -->
-                        <div class="lead-board-header">
-                            <div class="lead-board-logo">
-                                <img src="<?= url('assets/images/boards/' . $board['logo']) ?>" 
-                                     alt="<?= e($board['board_title']) ?>" 
-                                     width="44" 
-                                     height="44" 
-                                     loading="lazy">
-                            </div>
-                            <div class="lead-board-info">
-                                <h4 class="lead-board-title"><?= e($board['board_title']) ?></h4>
-                                <span class="lead-board-sub" title="<?= e($board['board_name']) ?>"><?= e($board['board_name']) ?></span>
-                            </div>
                         </div>
 
                         <!-- Prominent Notice Title -->
@@ -488,23 +510,16 @@ function render_split_watermark(string $type, string $color): string {
                 $feedActionUrl = !empty($item['source_url']) ? $item['source_url'] : ($board['portal_url'] ?? url('article/' . $articleSlug . '/'));
                 $feedIsExternal = !empty($item['source_url']) || !empty($board['portal_url']);
             ?>
-                <article class="feed-compact-card">
-                    <!-- Board Logo -->
-                    <div class="feed-logo-box">
-                        <img src="<?= url('assets/images/boards/' . $board['logo']) ?>" 
-                             alt="<?= e($board['board_title']) ?>" 
-                             width="38" 
-                             height="38" 
-                             loading="lazy">
-                    </div>
-
-                    <!-- Content Details -->
+                <article class="feed-compact-card" style="border-left: 3px solid <?= $board['color'] ?>;">
+                    <!-- Content Details (Clean Typography, No Mismatched Logo Box) -->
                     <div class="feed-card-body">
                         <div class="feed-meta-row">
-                            <span class="feed-num-pill" style="color: <?= $board['color'] ?>; background: <?= $board['bg_light'] ?>;">
+                            <span class="feed-num-pill" style="color: <?= $board['color'] ?>; background: <?= $board['bg_light'] ?>; border: 1px solid <?= $board['border'] ?>;">
                                 <?= $numStr ?>
                             </span>
-                            <span class="feed-board-name"><?= e($board['board_title']) ?></span>
+                            <span class="feed-board-name" style="color: <?= $board['color'] ?>;"><?= e($board['board_title']) ?></span>
+                            <span class="feed-cat-dot">•</span>
+                            <span class="feed-cat-label"><?= e($item['category_name'] ?? 'Notice') ?></span>
                             <span class="feed-status-tag" style="background: <?= $milestone['status_bg'] ?>; color: <?= $milestone['status_color'] ?>;">
                                 <?= e($milestone['status_text']) ?>
                             </span>
@@ -512,12 +527,12 @@ function render_split_watermark(string $type, string $color): string {
 
                         <h4 class="feed-card-title">
                             <a href="<?= url('article/' . $articleSlug . '/') ?>" title="<?= e($articleTitle) ?>">
-                                <?= e(truncate_text($articleTitle, 58)) ?>
+                                <?= e(truncate_text($articleTitle, 62)) ?>
                             </a>
                         </h4>
 
                         <div class="feed-footer-row">
-                            <span class="feed-cat-label"><?= e($item['category_name'] ?? 'Notice') ?></span>
+                            <span class="feed-date-hint"><?= e($milestone['date1_label']) ?>: <strong><?= e($milestone['date1_val']) ?></strong></span>
                             <a href="<?= e($feedActionUrl) ?>" <?= $feedIsExternal ? 'target="_blank" rel="noopener noreferrer"' : '' ?> class="feed-action-link" style="color: <?= $board['color'] ?>;" title="<?= e($milestone['btn1_text']) ?> — Official Link">
                                 <?= e($milestone['btn1_text']) ?> →
                             </a>
