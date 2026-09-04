@@ -100,7 +100,6 @@ $lcpImagePreload = !empty($featured['featured_image']) ? url($featured['featured
 
 include __DIR__ . '/components/head.php';
 include __DIR__ . '/components/header.php';
-include __DIR__ . '/components/live-ticker-strip.php';
 ?>
 
 <main class="site-main">
