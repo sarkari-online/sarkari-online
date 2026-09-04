@@ -101,7 +101,10 @@ $publishedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE 
 $rejectedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'rejected'");
 
 $today = date('Y-m-d');
-$todayPublishedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM articles WHERE DATE(published_at) = :today AND status = 'published'", ['today' => $today]);
+// Only count AI-generated autonomous articles for quota display (manual articles are unlimited and exempt)
+$todayAutoPublishedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM articles WHERE DATE(published_at) = :today AND status = 'published' AND ai_generated = 1", ['today' => $today]);
+$todayManualPublishedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM articles WHERE DATE(published_at) = :today AND status = 'published' AND (ai_generated = 0 OR ai_generated IS NULL)", ['today' => $today]);
+$completedSlotsToday = \App\Services\AutoCronService::getCompletedSlotsTodayCount();
 $breakingCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'published' AND (trend_score >= 95 OR source LIKE '%statutory%' OR source LIKE '%nta%' OR source LIKE '%ssc%' OR source LIKE '%upsc%')");
 
 include dirname(__DIR__) . '/components/header.php';
@@ -129,12 +132,12 @@ include dirname(__DIR__) . '/components/header.php';
                 </div>
             </div>
             <p style="font-size: 0.9rem; color: #cbd5e1; line-height: 1.6; margin: 0 0 0.85rem 0;">
-                Real-time statutory notices (NTA, UPSC, SSC, CBSE, State Boards). System maintains <strong>5 Daily Diverse Pillars</strong> (Jobs, Entrance, Results, Tech, Scholarships) and gives <strong>Instant Fast-Track Pass</strong> to Official Breaking Alerts!
+                Real-time statutory notices (NTA, UPSC, SSC, CBSE, State Boards). System auto-publishes <strong>3 articles per day</strong> at fixed slots: <strong>10:00 AM, 2:00 PM, 6:00 PM IST</strong>. Manual publishing by admin is always unlimited and never counted against the daily quota.
             </p>
             <div style="display: flex; flex-wrap: wrap; gap: 1rem; font-size: 0.8125rem; color: #94a3b8; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.75rem;">
-                <div>🔴 <strong>Official Breaking</strong>: Instant government notification (bypasses daily cap).</div>
-                <div>🟢 <strong>Daily Scheduled</strong>: 5 diverse daily pillar guides.</div>
-                <div>⚡ <strong>Publish Now</strong>: Manual 1-click generation and live publishing.</div>
+                <div>🔴 <strong>Official Breaking</strong>: High-priority trend → placed at top of approved queue → publishes at next slot.</div>
+                <div>🟢 <strong>Daily Scheduled</strong>: Auto publishes 1 article per slot (max 3/day: 10 AM, 2 PM, 6 PM).</div>
+                <div>⚡ <strong>Publish Now</strong>: Manual admin publish — unlimited, never blocked.</div>
             </div>
         </div>
     </div>
@@ -142,14 +145,18 @@ include dirname(__DIR__) . '/components/header.php';
 
 <!-- Stats Counter Grid -->
 <div class="stats-grid" style="margin-bottom: 1.5rem;">
-    <div class="stat-card">
-        <span class="stat-card-label">Daily Regular Quota</span>
-        <?php 
-            $targetQuota = (int)\App\Helpers\Env::get('AUTO_PUBLISH_DAILY_LIMIT', 3);
-            $displayTarget = ($todayPublishedCount > $targetQuota) ? $todayPublishedCount : $targetQuota;
-        ?>
-        <span class="stat-card-num" style="color: #1e3a8a;"><?= $todayPublishedCount ?> / <?= $displayTarget ?></span>
+    <div class="stat-card" style="border-left: 4px solid <?= $completedSlotsToday >= 3 ? '#16a34a' : '#2563eb' ?>;">
+        <span class="stat-card-label" style="color: <?= $completedSlotsToday >= 3 ? '#16a34a' : '#2563eb' ?>;">Auto Slots Today</span>
+        <span class="stat-card-num" style="color: <?= $completedSlotsToday >= 3 ? '#16a34a' : '#2563eb' ?>;"><?= $completedSlotsToday ?> / 3</span>
+        <span style="font-size: 0.7rem; color: var(--text-muted); display: block; margin-top: 2px;">10 AM · 2 PM · 6 PM IST</span>
     </div>
+    <?php if ($todayManualPublishedCount > 0): ?>
+    <div class="stat-card" style="border-left: 4px solid #7c3aed;">
+        <span class="stat-card-label" style="color: #7c3aed;">Manual (Admin) Today</span>
+        <span class="stat-card-num" style="color: #7c3aed;"><?= $todayManualPublishedCount ?></span>
+        <span style="font-size: 0.7rem; color: var(--text-muted); display: block; margin-top: 2px;">Never blocks auto slots</span>
+    </div>
+    <?php endif; ?>
     <?php if ($generatingCount > 0): ?>
         <div class="stat-card" style="border: 2px solid #f59e0b; background: #fffbeb;">
             <span class="stat-card-label" style="color: #b45309; font-weight: 800;">⚙️ Generating Live</span>
@@ -169,6 +176,7 @@ include dirname(__DIR__) . '/components/header.php';
         <span class="stat-card-num" style="color: #475569;"><?= $total ?></span>
     </div>
 </div>
+
 
 <!-- Top Action Header & Filter Tabs -->
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
