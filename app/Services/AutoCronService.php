@@ -23,8 +23,8 @@ class AutoCronService {
 
     private const INTERVAL_FETCH     = 1800;  // 30 mins
     private const INTERVAL_ANALYZE   = 1800;  // 30 mins (Conserves AI quota; only analyzes when topics are needed)
-    private const INTERVAL_GENERATE  = 120;   // 2 mins (Fast responsive generation of approved topics)
-    private const INTERVAL_PUBLISH   = 120;   // 2 mins (Fast responsive auto-publishing)
+    private const INTERVAL_GENERATE  = 1800;  // 30 mins (Slot guard controls actual publish time; no need to hammer every 2 mins)
+    private const INTERVAL_PUBLISH   = 1800;  // 30 mins (Slot guard controls actual publish time; no need to hammer every 2 mins)
     private const INTERVAL_BACKLINKS = 14400; // 4 hours
 
     /**
