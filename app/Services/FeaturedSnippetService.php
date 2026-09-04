@@ -275,7 +275,7 @@ class FeaturedSnippetService {
         return 'Official Gazetted Update Live';
     }
 
-    private static function determineStatusBadge(string $title, string $content): array {
+    public static function determineStatusBadge(string $title, string $content): array {
         $t = strtolower($title);
         if (str_contains($t, 'out') || str_contains($t, 'declared') || str_contains($t, 'active') || str_contains($t, 'released')) {
             return ['label' => 'Live Update', 'class' => 'status-live'];

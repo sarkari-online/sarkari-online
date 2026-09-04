@@ -31,7 +31,14 @@ if (preg_match('/^([A-Z0-9]{2,8})\b/', $leadAgency, $m)) {
 }
 
 // 2. Status Badge & Timeline for Lead Bulletin
-$featStatus = App\Services\FeaturedSnippetService::determineStatusBadge($featured['title'] ?? '', $featured['content'] ?? '');
+$tTitleLower = strtolower($featured['title'] ?? '');
+if (str_contains($tTitleLower, 'out') || str_contains($tTitleLower, 'declared') || str_contains($tTitleLower, 'active') || str_contains($tTitleLower, 'released')) {
+    $featStatus = ['label' => 'Live Update', 'class' => 'status-live'];
+} elseif (str_contains($tTitleLower, 'date') || str_contains($tTitleLower, 'schedule') || str_contains($tTitleLower, 'calendar')) {
+    $featStatus = ['label' => 'Confirmed Schedule', 'class' => 'status-confirmed'];
+} else {
+    $featStatus = ['label' => 'Verified Circular', 'class' => 'status-verified'];
+}
 $featContentPlain = strip_tags($featured['content'] ?? '');
 
 // Timeline extraction
