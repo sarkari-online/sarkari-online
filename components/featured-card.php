@@ -421,7 +421,7 @@ function render_split_watermark(string $type, string $color): string {
                 $actionUrl = !empty($item['source_url']) ? $item['source_url'] : ($board['portal_url'] ?? url('article/' . $articleSlug . '/'));
                 $isExternalAction = !empty($item['source_url']) || !empty($board['portal_url']);
             ?>
-                <article class="lead-card" style="border-left: 4px solid <?= $board['color'] ?>;">
+                <article class="lead-card">
                     <!-- Subtle Architectural Watermark Accent (Top-Right) -->
                     <div class="lead-watermark" aria-hidden="true">
                         <?= $watermarkSvg ?>
@@ -510,7 +510,7 @@ function render_split_watermark(string $type, string $color): string {
                 $feedActionUrl = !empty($item['source_url']) ? $item['source_url'] : ($board['portal_url'] ?? url('article/' . $articleSlug . '/'));
                 $feedIsExternal = !empty($item['source_url']) || !empty($board['portal_url']);
             ?>
-                <article class="feed-compact-card" style="border-left: 3px solid <?= $board['color'] ?>;">
+                <article class="feed-compact-card">
                     <!-- Content Details (Clean Typography, No Mismatched Logo Box) -->
                     <div class="feed-card-body">
                         <div class="feed-meta-row">
