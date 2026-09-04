@@ -6740,7 +6740,7 @@ details[open] > .faq-question::before {
     gap: 8px;
     margin-top: 3px;
     position: relative;
-    z-index: 1;
+    z-index: 2;
 }
 
 .lead-btn-outline {
@@ -6757,11 +6757,13 @@ details[open] > .faq-question::before {
     text-decoration: none !important;
     transition: all 0.15s ease;
     white-space: nowrap;
+    cursor: pointer;
 }
 
 .lead-btn-outline:hover {
-    filter: brightness(0.96);
+    filter: brightness(0.94);
     transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 .lead-btn-icon {
@@ -6922,6 +6924,17 @@ details[open] > .faq-question::before {
     font-weight: 700;
     font-size: 10.5px;
     white-space: nowrap;
+    text-decoration: none !important;
+    cursor: pointer;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+}
+
+.feed-action-link:hover {
+    opacity: 0.8;
+    text-decoration: underline !important;
+    transform: translateX(1px);
 }
 
 /* Responsive Grid Breakpoints */

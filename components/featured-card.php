@@ -11,63 +11,85 @@
  */
 
 if (!isset($hotArticles)) {
-    $dbHero = App\Services\ArticleService::getLatestPublished(10);
+    $dbHero = App\Services\ArticleService::getLatestPublished(12);
     if (!empty($dbHero)) {
         $hotArticles = $dbHero;
     } else {
-        $hotArticles = MockData::getLatestArticles(6);
+        $hotArticles = MockData::getLatestArticles(8);
     }
 }
 
-// Fallback presets if database has fewer than 6 articles
+// Fallback presets if database has fewer than 8 articles
 $fallbackPresets = [
     0 => [
         'title' => 'SSC CGL Tier 1 2026: Official Admit Card Download Link Live',
         'slug' => 'ssc-cgl-admit-card-2026',
         'board_key' => 'ssc',
         'category_name' => 'Admit Cards',
-        'published_at' => 'now'
+        'published_at' => 'now',
+        'source_url' => 'https://ssc.gov.in'
     ],
     1 => [
         'title' => 'RRB NTPC 2026: Apply Online for 11,558 Vacancies, Check Syllabus',
         'slug' => 'rrb-ntpc-recruitment-2026',
         'board_key' => 'railways',
         'category_name' => 'Government Jobs',
-        'published_at' => 'now'
+        'published_at' => 'now',
+        'source_url' => 'https://indianrailways.gov.in'
     ],
     2 => [
         'title' => 'UPSC NDA 2 2026 Admit Card Released: Download Exam City Slip',
         'slug' => 'upsc-nda-admit-card-2026',
         'board_key' => 'upsc',
         'category_name' => 'Admit Cards',
-        'published_at' => 'now'
+        'published_at' => 'now',
+        'source_url' => 'https://upsc.gov.in'
     ],
     3 => [
         'title' => 'UP Police Constable Re-Exam 2026: Official Answer Key & OMR Sheet',
         'slug' => 'up-police-constable-answer-key-2026',
         'board_key' => 'uppolice',
         'category_name' => 'Exam Results',
-        'published_at' => 'now'
+        'published_at' => 'now',
+        'source_url' => 'https://uppbpb.gov.in'
     ],
     4 => [
         'title' => 'AICTE Doctoral Fellowship 2026: Eligibility, Stipend & Application',
         'slug' => 'aicte-doctoral-fellowship-2026',
         'board_key' => 'aicte',
         'category_name' => 'Scholarships',
-        'published_at' => 'now'
+        'published_at' => 'now',
+        'source_url' => 'https://www.aicte-india.org'
     ],
     5 => [
         'title' => 'NEET UG Round 2 Counselling 2026: Registration Link & Seat Matrix',
         'slug' => 'neet-ug-counselling-2026',
         'board_key' => 'nta',
         'category_name' => 'Exam Results',
-        'published_at' => 'now'
+        'published_at' => 'now',
+        'source_url' => 'https://mcc.nic.in'
+    ],
+    6 => [
+        'title' => 'IBPS PO Prelims 2026 Result Declared: Direct Scorecard Link Active',
+        'slug' => 'ibps-po-prelims-result-2026',
+        'board_key' => 'ibps',
+        'category_name' => 'Exam Results',
+        'published_at' => 'now',
+        'source_url' => 'https://ibps.in'
+    ],
+    7 => [
+        'title' => 'CBSE Board Exam 2026: Class 10 & 12 Date Sheet & Sample Papers',
+        'slug' => 'cbse-board-exam-date-sheet-2026',
+        'board_key' => 'cbse',
+        'category_name' => 'Board Exams',
+        'published_at' => 'now',
+        'source_url' => 'https://cbse.gov.in'
     ]
 ];
 
-// Ensure we have at least 6 articles
+// Ensure we have 8 articles for the complete 2 + 6 editorial layout
 $displayArticles = [];
-for ($i = 0; $i < 6; $i++) {
+for ($i = 0; $i < 8; $i++) {
     $displayArticles[$i] = $hotArticles[$i] ?? $fallbackPresets[$i];
 }
 
@@ -85,7 +107,8 @@ function resolve_board_profile(array $article): array {
             'color' => '#DC2626',
             'bg_light' => '#FEF2F2',
             'border' => '#FECACA',
-            'watermark' => 'parliament'
+            'watermark' => 'parliament',
+            'portal_url' => 'https://ssc.gov.in'
         ];
     }
 
@@ -100,7 +123,8 @@ function resolve_board_profile(array $article): array {
             'color' => '#0284C7',
             'bg_light' => '#F0F9FF',
             'border' => '#BAE6FD',
-            'watermark' => 'bank'
+            'watermark' => 'bank',
+            'portal_url' => $isSBI ? 'https://sbi.co.in/web/careers' : 'https://ibps.in'
         ];
     }
 
@@ -114,7 +138,8 @@ function resolve_board_profile(array $article): array {
             'color' => '#16A34A',
             'bg_light' => '#F0FDF4',
             'border' => '#BBF7D0',
-            'watermark' => 'train'
+            'watermark' => 'train',
+            'portal_url' => 'https://indianrailways.gov.in'
         ];
     }
 
@@ -128,7 +153,8 @@ function resolve_board_profile(array $article): array {
             'color' => '#2563EB',
             'bg_light' => '#EFF6FF',
             'border' => '#BFDBFE',
-            'watermark' => 'rashtrapati'
+            'watermark' => 'rashtrapati',
+            'portal_url' => 'https://upsc.gov.in'
         ];
     }
 
@@ -143,12 +169,14 @@ function resolve_board_profile(array $article): array {
             'color' => '#EA580C',
             'bg_light' => '#FFF7ED',
             'border' => '#FED7AA',
-            'watermark' => 'police'
+            'watermark' => 'police',
+            'portal_url' => 'https://uppbpb.gov.in'
         ];
     }
 
     // 6. NTA / NEET / JEE / CUET
     if (preg_match('/\b(nta|neet|jee|cuet|ugc net|counselling|mbbs|iit|medical|seat allotment)\b/i', $text)) {
+        $isMCC = (strpos($text, 'counselling') !== false || strpos($text, 'mcc') !== false);
         return [
             'board_key' => 'nta',
             'board_title' => 'NTA',
@@ -157,7 +185,8 @@ function resolve_board_profile(array $article): array {
             'color' => '#0D9488',
             'bg_light' => '#F0FDFA',
             'border' => '#99F6E4',
-            'watermark' => 'medical'
+            'watermark' => 'medical',
+            'portal_url' => $isMCC ? 'https://mcc.nic.in' : 'https://nta.ac.in'
         ];
     }
 
@@ -171,7 +200,8 @@ function resolve_board_profile(array $article): array {
             'color' => '#7C3AED',
             'bg_light' => '#FAF5FF',
             'border' => '#E9D5FF',
-            'watermark' => 'aicte'
+            'watermark' => 'aicte',
+            'portal_url' => 'https://www.aicte-india.org'
         ];
     }
 
@@ -185,7 +215,8 @@ function resolve_board_profile(array $article): array {
             'color' => '#059669',
             'bg_light' => '#F0FDF4',
             'border' => '#A7F3D0',
-            'watermark' => 'cbse'
+            'watermark' => 'cbse',
+            'portal_url' => 'https://cbse.gov.in'
         ];
     }
 
@@ -199,7 +230,8 @@ function resolve_board_profile(array $article): array {
             'color' => '#0F766E',
             'bg_light' => '#F0FDFA',
             'border' => '#99F6E4',
-            'watermark' => 'parliament'
+            'watermark' => 'parliament',
+            'portal_url' => 'https://bpsc.bih.nic.in'
         ];
     }
 
@@ -212,7 +244,8 @@ function resolve_board_profile(array $article): array {
         'color' => '#1E3A8A',
         'bg_light' => '#EFF6FF',
         'border' => '#BFDBFE',
-        'watermark' => 'parliament'
+        'watermark' => 'parliament',
+        'portal_url' => 'https://india.gov.in'
     ];
 }
 
@@ -355,6 +388,8 @@ function render_split_watermark(string $type, string $color): string {
                 $articleSlug = $item['slug'] ?? 'latest-updates';
                 $numStr = sprintf('%02d', $i + 1);
                 $watermarkSvg = render_split_watermark($board['watermark'], $board['color']);
+                $actionUrl = !empty($item['source_url']) ? $item['source_url'] : ($board['portal_url'] ?? url('article/' . $articleSlug . '/'));
+                $isExternalAction = !empty($item['source_url']) || !empty($board['portal_url']);
             ?>
                 <article class="lead-card">
                     <!-- Subtle Architectural Watermark Accent (Top-Right) -->
@@ -422,11 +457,11 @@ function render_split_watermark(string $type, string $color): string {
 
                     <!-- Dual Action Buttons Row -->
                     <div class="lead-actions-row">
-                        <a href="<?= url('article/' . $articleSlug . '/') ?>" class="lead-btn-outline" style="color: <?= $board['color'] ?>; background-color: <?= $board['bg_light'] ?>; border-color: <?= $board['border'] ?>;">
+                        <a href="<?= e($actionUrl) ?>" <?= $isExternalAction ? 'target="_blank" rel="noopener noreferrer"' : '' ?> class="lead-btn-outline" style="color: <?= $board['color'] ?>; background-color: <?= $board['bg_light'] ?>; border-color: <?= $board['border'] ?>;" title="<?= e($milestone['btn1_text']) ?> — Official Portal">
                             <?= icon($milestone['btn1_icon'], 'lead-btn-icon') ?>
                             <span><?= e($milestone['btn1_text']) ?></span>
                         </a>
-                        <a href="<?= url('article/' . $articleSlug . '/') ?>" class="lead-btn-solid" style="background-color: <?= $board['color'] ?>;">
+                        <a href="<?= url('article/' . $articleSlug . '/') ?>" class="lead-btn-solid" style="background-color: <?= $board['color'] ?>;" title="View Complete Details &amp; Guide">
                             <span>View Details</span>
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -439,17 +474,19 @@ function render_split_watermark(string $type, string $color): string {
         </div>
 
         <!-- ========================================================
-             RIGHT COLUMN: 4 COMPACT NOTIFICATION CARDS (Articles 3 to 6)
+             RIGHT COLUMN: 6 COMPACT NOTIFICATION CARDS (Articles 03 to 08)
              ======================================================== -->
         <div class="split-col-feed">
             <?php 
-            for ($i = 2; $i < 6; $i++): 
+            for ($i = 2; $i < 8; $i++): 
                 $item = $displayArticles[$i];
                 $board = resolve_board_profile($item);
                 $milestone = resolve_article_milestone($item['title'] ?? '');
                 $articleTitle = $item['title'] ?? 'Official Recruitment Notification';
                 $articleSlug = $item['slug'] ?? 'latest-updates';
                 $numStr = sprintf('%02d', $i + 1);
+                $feedActionUrl = !empty($item['source_url']) ? $item['source_url'] : ($board['portal_url'] ?? url('article/' . $articleSlug . '/'));
+                $feedIsExternal = !empty($item['source_url']) || !empty($board['portal_url']);
             ?>
                 <article class="feed-compact-card">
                     <!-- Board Logo -->
@@ -481,9 +518,9 @@ function render_split_watermark(string $type, string $color): string {
 
                         <div class="feed-footer-row">
                             <span class="feed-cat-label"><?= e($item['category_name'] ?? 'Notice') ?></span>
-                            <span class="feed-action-link" style="color: <?= $board['color'] ?>;">
+                            <a href="<?= e($feedActionUrl) ?>" <?= $feedIsExternal ? 'target="_blank" rel="noopener noreferrer"' : '' ?> class="feed-action-link" style="color: <?= $board['color'] ?>;" title="<?= e($milestone['btn1_text']) ?> — Official Link">
                                 <?= e($milestone['btn1_text']) ?> →
-                            </span>
+                            </a>
                         </div>
                     </div>
                 </article>
