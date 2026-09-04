@@ -139,8 +139,15 @@ class FeaturedSnippetService {
         $title = $article['title'] ?? '';
         $content = $article['content_html'] ?? $article['content'] ?? '';
         
-        // 1. Authority
-        $authority = $article['source_name'] ?? self::detectAuthority($title, $content);
+        // 1. Authority: Prioritize authoritative resolution over generic database fallback
+        $authority = $article['source_name'] ?? '';
+        $genericNames = ['official statutory authority', 'statutory authority', 'official authority', 'statutory agency', 'government agency', 'statutory examination board / agency'];
+        if (empty($authority) || in_array(strtolower(trim($authority)), $genericNames, true)) {
+            $resolved = AuthorityFactFetcherService::resolveAuthority($title, $article['source_url'] ?? '');
+            $authority = (!empty($resolved['name']) && !in_array(strtolower(trim($resolved['name'])), $genericNames, true))
+                ? $resolved['name'] 
+                : self::detectAuthority($title, $content);
+        }
 
         // 2. Exam/Recruitment Name
         $examName = self::cleanExamName($title);
@@ -151,10 +158,22 @@ class FeaturedSnippetService {
         // 4. Milestone / Timeline
         $timeline = self::extractKeyDate($title, $content, $article['published_at'] ?? '');
 
-        // 5. Official Portal
-        $portalUrl = $article['source_url'] ?? 'https://sarkari.online';
-        $portalDomain = parse_url($portalUrl, PHP_URL_HOST) ?: 'Official Portal';
-        $portalDomain = preg_replace('/^www\./i', '', $portalDomain);
+        // 5. Official Portal: Strictly prevent self-referential sarkari.online link
+        $portalUrl = $article['source_url'] ?? '';
+        if (empty($portalUrl) || str_contains($portalUrl, 'sarkari.online') || str_contains($portalUrl, 'localhost')) {
+            $resolved = AuthorityFactFetcherService::resolveAuthority($title);
+            $portalUrl = (!empty($resolved['portal']) && !str_contains($resolved['portal'], 'sarkari.online'))
+                ? $resolved['portal']
+                : '';
+        }
+
+        if (!empty($portalUrl)) {
+            $portalDomain = parse_url($portalUrl, PHP_URL_HOST) ?: 'Official Portal';
+            $portalDomain = preg_replace('/^www\./i', '', $portalDomain);
+        } else {
+            $portalDomain = 'Official Gazette Bulletin';
+            $portalUrl = null;
+        }
 
         // 6. Action
         $action = self::determineCandidateAction($title);
@@ -170,28 +189,45 @@ class FeaturedSnippetService {
     }
 
     private static function detectAuthority(string $title, string $content): string {
+        $resolved = AuthorityFactFetcherService::resolveAuthority($title);
+        if (!empty($resolved['name']) && !str_contains(strtolower($resolved['name']), 'statutory examination board')) {
+            return $resolved['name'];
+        }
+
         $haystack = strtolower($title . ' ' . substr($content, 0, 1000));
         $map = [
-            'upsc' => 'Union Public Service Commission (UPSC)',
-            'ssc'  => 'Staff Selection Commission (SSC)',
-            'nta'  => 'National Testing Agency (NTA)',
-            'rrb'  => 'Railway Recruitment Board (RRB)',
-            'ibps' => 'Institute of Banking Personnel Selection (IBPS)',
-            'cbse' => 'Central Board of Secondary Education (CBSE)',
-            'ugc'  => 'University Grants Commission (UGC)',
-            'cisce'=> 'Council for the Indian School Certificate Examinations',
-            'dopt' => 'Department of Personnel and Training (DoPT)',
-            'ignou'=> 'Indira Gandhi National Open University (IGNOU)',
-            'uppsc'=> 'Uttar Pradesh Public Service Commission (UPPSC)',
-            'bpsc' => 'Bihar Public Service Commission (BPSC)',
-            'rpsc' => 'Rajasthan Public Service Commission (RPSC)',
-            'mppsc'=> 'Madhya Pradesh Public Service Commission (MPPSC)',
-            'wbjee'=> 'West Bengal Joint Entrance Examinations Board',
-            'josaa'=> 'Joint Seat Allocation Authority (JoSAA)',
-            'csab' => 'Central Seat Allocation Board (CSAB)',
-            'drdo' => 'Defence Research and Development Organisation (DRDO)',
-            'isro' => 'Indian Space Research Organisation (ISRO)',
-            'indian army' => 'Indian Army Recruiting Directorate',
+            'aicte' => 'All India Council for Technical Education (AICTE)',
+            'upsssc'=> 'UP Subordinate Services Selection Commission (UPSSSC)',
+            'upsc'  => 'Union Public Service Commission (UPSC)',
+            'ssc'   => 'Staff Selection Commission (SSC)',
+            'nta'   => 'National Testing Agency (NTA)',
+            'rrb'   => 'Railway Recruitment Board (RRB)',
+            'ibps'  => 'Institute of Banking Personnel Selection (IBPS)',
+            'cbse'  => 'Central Board of Secondary Education (CBSE)',
+            'ugc'   => 'University Grants Commission (UGC)',
+            'dsssb' => 'Delhi Subordinate Services Selection Board (DSSSB)',
+            'cisf'  => 'Central Industrial Security Force (CISF)',
+            'bsf'   => 'Border Security Force (BSF)',
+            'crpf'  => 'Central Reserve Police Force (CRPF)',
+            'itbp'  => 'Indo-Tibetan Border Police (ITBP)',
+            'ssb'   => 'Sashastra Seema Bal (SSB)',
+            'kvs'   => 'Kendriya Vidyalaya Sangathan (KVS)',
+            'nvs'   => 'Navodaya Vidyalaya Samiti (NVS)',
+            'cisce' => 'Council for the Indian School Certificate Examinations',
+            'dopt'  => 'Department of Personnel and Training (DoPT)',
+            'ignou' => 'Indira Gandhi National Open University (IGNOU)',
+            'uppsc' => 'Uttar Pradesh Public Service Commission (UPPSC)',
+            'bpsc'  => 'Bihar Public Service Commission (BPSC)',
+            'rpsc'  => 'Rajasthan Public Service Commission (RPSC)',
+            'mppsc' => 'Madhya Pradesh Public Service Commission (MPPSC)',
+            'hssc'  => 'Haryana Staff Selection Commission (HSSC)',
+            'ukpsc' => 'Uttarakhand Public Service Commission (UKPSC)',
+            'wbjee' => 'West Bengal Joint Entrance Examinations Board',
+            'josaa' => 'Joint Seat Allocation Authority (JoSAA)',
+            'csab'  => 'Central Seat Allocation Board (CSAB)',
+            'drdo'  => 'Defence Research and Development Organisation (DRDO)',
+            'isro'  => 'Indian Space Research Organisation (ISRO)',
+            'indian army' => 'Indian Army (Join Indian Army)',
             'indian air force' => 'Indian Air Force (IAF)',
             'indian navy' => 'Indian Navy (Nausena Bharti)'
         ];
@@ -200,6 +236,11 @@ class FeaturedSnippetService {
             if (str_contains($haystack, $key)) {
                 return $name;
             }
+        }
+
+        // Acronym extractor
+        if (preg_match('/\b([A-Z]{3,8})\b/', $title, $m)) {
+            return $m[1] . ' (Statutory Examination Authority)';
         }
 
         return 'Official Statutory Board / Agency';
@@ -222,6 +263,9 @@ class FeaturedSnippetService {
         if (str_contains($t, 'answer key')) {
             return 'Provisional Key & Objection Live';
         }
+        if (str_contains($t, 'fellowship') || str_contains($t, 'scholarship')) {
+            return 'Scheme Guidelines & Portal Active';
+        }
         if (str_contains($t, 'date') || str_contains($t, 'schedule')) {
             return 'Official Calendar Announced';
         }
@@ -243,17 +287,48 @@ class FeaturedSnippetService {
     }
 
     private static function extractKeyDate(string $title, string $content, string $pubDate): string {
-        // Look for dates like 15 March 2026 or March 15, 2026 or 15/03/2026
-        if (preg_match('/\b(\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+202[67])\b/i', $content, $m)) {
-            return $m[1];
+        $plain = strip_tags($content);
+
+        // Priority 1: Direct application deadline markers
+        if (preg_match('/(?:last\s*date|apply\s*by|deadline|closing\s*date)[:\s]+([0-9]{1,2}(?:st|nd|rd|th)?\s+[A-Za-z]+\s+202[67]|[A-Za-z]+\s+[0-9]{1,2},?\s+202[67]|[0-9]{1,2}[\/\-][0-9]{1,2}[\/\-]202[67])/i', $plain, $m)) {
+            return 'Last Date: ' . trim($m[1]);
         }
-        if (preg_match('/\b((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{1,2},?\s+202[67])\b/i', $content, $m)) {
-            return $m[1];
+
+        // Priority 2: Direct exam date markers
+        if (preg_match('/(?:exam\s*date|exam\s*on|exam\s*schedule|commencing\s*on)[:\s]+([0-9]{1,2}(?:st|nd|rd|th)?\s+[A-Za-z]+\s+202[67]|[A-Za-z]+\s+[0-9]{1,2},?\s+202[67]|[0-9]{1,2}[\/\-][0-9]{1,2}[\/\-]202[67])/i', $plain, $m)) {
+            return 'Exam Date: ' . trim($m[1]);
         }
-        if (!empty($pubDate)) {
-            return date('d F Y', strtotime($pubDate));
+
+        // Priority 3: Direct admit card / result release markers
+        if (preg_match('/(?:admit\s*card\s*release|hall\s*ticket\s*from|result\s*on|result\s*declared\s*on)[:\s]+([0-9]{1,2}(?:st|nd|rd|th)?\s+[A-Za-z]+\s+202[67]|[A-Za-z]+\s+[0-9]{1,2},?\s+202[67])/i', $plain, $m)) {
+            return 'Milestone: ' . trim($m[1]);
         }
-        return date('d F Y');
+
+        // Priority 4: Look for explicit dates in content (excluding today's publish date)
+        if (preg_match_all('/\b(\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+202[67])\b/i', $plain, $matches)) {
+            foreach ($matches[1] as $foundDate) {
+                if (empty($pubDate) || date('Y-m-d', strtotime($foundDate)) !== date('Y-m-d', strtotime($pubDate))) {
+                    return $foundDate;
+                }
+            }
+        }
+
+        // Priority 5: Fallback based on content type - NEVER return publish date as the "Important Timeline"!
+        $t = strtolower($title);
+        if (str_contains($t, 'result')) {
+            return 'Scorecard Download Active';
+        }
+        if (str_contains($t, 'admit card') || str_contains($t, 'hall ticket')) {
+            return 'Hall Ticket Download Live';
+        }
+        if (str_contains($t, 'apply') || str_contains($t, 'recruitment')) {
+            return 'Check Official Notification';
+        }
+        if (str_contains($t, 'fellowship') || str_contains($t, 'scholarship')) {
+            return 'Refer to Scheme Guidelines';
+        }
+
+        return 'As Per Official Schedule';
     }
 
     private static function determineCandidateAction(string $title): string {
@@ -267,9 +342,15 @@ class FeaturedSnippetService {
         if (str_contains($t, 'answer key')) {
             return 'Download Key & Submit Objections';
         }
+        if (str_contains($t, 'fellowship') || str_contains($t, 'scholarship')) {
+            return 'Check Eligibility & Apply Online';
+        }
         if (str_contains($t, 'apply') || str_contains($t, 'form') || str_contains($t, 'recruitment')) {
             return 'Submit Online Application Form';
         }
-        return 'Verify Circular on Portal';
+        if (str_contains($t, 'date') || str_contains($t, 'schedule') || str_contains($t, 'timetable')) {
+            return 'Download Timetable & Exam Shift';
+        }
+        return 'Verify Circular on Official Portal';
     }
 }

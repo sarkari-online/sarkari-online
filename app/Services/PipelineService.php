@@ -129,10 +129,18 @@ class PipelineService {
         $snippet = $rawPayload['snippet'] ?? ($trend['category_hint'] ?? '');
         $verifiedFacts = $factFetcher->fetchFactsForTopic($trend['keyword'], $categorySlug, $trend['url'] ?? '', $snippet);
 
+        $resolvedAuth = AuthorityFactFetcherService::resolveAuthority($trend['keyword'], $trend['url'] ?? '');
+        $authorityName = (!empty($verifiedFacts['authority_name']) && !str_contains(strtolower($verifiedFacts['authority_name']), 'statutory examination board'))
+            ? $verifiedFacts['authority_name']
+            : $resolvedAuth['name'];
+        $officialPortal = (!empty($verifiedFacts['official_portal']) && !str_contains($verifiedFacts['official_portal'], 'sarkari.online'))
+            ? $verifiedFacts['official_portal']
+            : $resolvedAuth['portal'];
+
         $sourceData = [
             'keyword' => $trend['keyword'],
-            'source_name' => $verifiedFacts['authority_name'] ?? ($rawPayload['source_attribution']['name'] ?? $trend['source']),
-            'source_url' => $verifiedFacts['official_portal'] ?? ($trend['url'] ?: 'https://sarkari.online'),
+            'source_name' => $authorityName,
+            'source_url' => $officialPortal,
             'reference' => $verifiedFacts['official_notice_ref'] ?? ($rawPayload['source_attribution']['reference'] ?? ''),
             'notes' => $rawPayload['reasoning'] ?? $trend['keyword'],
             'verified_facts' => $verifiedFacts

@@ -28,6 +28,7 @@ class AuthorityFactFetcherService {
         'nta'       => ['name' => 'NTA (National Testing Agency)', 'portal' => 'https://nta.ac.in'],
         'upsc'      => ['name' => 'UPSC (Union Public Service Commission)', 'portal' => 'https://upsc.gov.in'],
         'ssc'       => ['name' => 'SSC (Staff Selection Commission)', 'portal' => 'https://ssc.gov.in'],
+        'aicte'     => ['name' => 'All India Council for Technical Education (AICTE)', 'portal' => 'https://www.aicte-india.org'],
         'cbse'      => ['name' => 'CBSE (Central Board of Secondary Education)', 'portal' => 'https://cbse.gov.in'],
         'ctet'      => ['name' => 'CTET Unit, CBSE', 'portal' => 'https://ctet.nic.in'],
         'ugc'       => ['name' => 'UGC (University Grants Commission)', 'portal' => 'https://www.ugc.gov.in'],
@@ -37,18 +38,42 @@ class AuthorityFactFetcherService {
         'rrb'       => ['name' => 'Railway Recruitment Boards (RRB)', 'portal' => 'https://indianrailways.gov.in'],
         'ibps'      => ['name' => 'IBPS (Institute of Banking Personnel Selection)', 'portal' => 'https://ibps.in'],
         'sbi'       => ['name' => 'State Bank of India (SBI)', 'portal' => 'https://sbi.co.in/web/careers'],
-        'iaf'       => ['name' => 'Indian Air Force (CASB Agnipath Vayu)', 'portal' => 'https://agnipathvayu.cdac.in'],
+        'iaf'       => ['name' => 'Indian Air Force (IAF / Agnipath Vayu)', 'portal' => 'https://agnipathvayu.cdac.in'],
+        'army'      => ['name' => 'Indian Army (Join Indian Army)', 'portal' => 'https://joinindianarmy.nic.in'],
+        'navy'      => ['name' => 'Indian Navy (Join Indian Navy)', 'portal' => 'https://joinindiannavy.gov.in'],
+        'coastguard'=> ['name' => 'Indian Coast Guard (ICG)', 'portal' => 'https://joinindiancoastguard.cdac.in'],
+        'bsf'       => ['name' => 'Border Security Force (BSF)', 'portal' => 'https://rectt.bsf.gov.in'],
+        'cisf'      => ['name' => 'Central Industrial Security Force (CISF)', 'portal' => 'https://cisfrectt.cisf.gov.in'],
+        'crpf'      => ['name' => 'Central Reserve Police Force (CRPF)', 'portal' => 'https://rect.crpf.gov.in'],
+        'itbp'      => ['name' => 'Indo-Tibetan Border Police (ITBP)', 'portal' => 'https://recruitment.itbpolice.nic.in'],
+        'ssb'       => ['name' => 'Sashastra Seema Bal (SSB)', 'portal' => 'https://ssbrectt.gov.in'],
+        'drdo'      => ['name' => 'DRDO (Defence Research and Development Organisation)', 'portal' => 'https://drdo.gov.in'],
+        'isro'      => ['name' => 'ISRO (Indian Space Research Organisation)', 'portal' => 'https://isro.gov.in'],
+        'kvs'       => ['name' => 'Kendriya Vidyalaya Sangathan (KVS)', 'portal' => 'https://kvsangathan.nic.in'],
+        'nvs'       => ['name' => 'Navodaya Vidyalaya Samiti (NVS)', 'portal' => 'https://navodaya.gov.in'],
+        'dsssb'     => ['name' => 'Delhi Subordinate Services Selection Board (DSSSB)', 'portal' => 'https://dsssb.delhi.gov.in'],
+        'upsssc'    => ['name' => 'UP Subordinate Services Selection Commission (UPSSSC)', 'portal' => 'https://upsssc.gov.in'],
+        'uppbpb'    => ['name' => 'Uttar Pradesh Police Recruitment & Promotion Board (UPPRPB)', 'portal' => 'https://uppbpb.gov.in'],
         'hpbose'    => ['name' => 'HPBOSE (Himachal Pradesh Board of School Education)', 'portal' => 'https://hpbose.org'],
         'ignou'     => ['name' => 'Indira Gandhi National Open University (IGNOU)', 'portal' => 'https://ignouadmission.samarth.edu.in'],
         'coalindia' => ['name' => 'Coal India Limited (CIL)', 'portal' => 'https://coalindia.in'],
         'kpsc'      => ['name' => 'KPSC (Karnataka Public Service Commission)', 'portal' => 'https://kpsc.kar.nic.in'],
         'bpsc'      => ['name' => 'Bihar Public Service Commission (BPSC)', 'portal' => 'https://www.bpsc.bih.nic.in'],
+        'bssc'      => ['name' => 'Bihar Staff Selection Commission (BSSC)', 'portal' => 'https://bssc.bihar.gov.in'],
+        'csbc'      => ['name' => 'Central Selection Board of Constable, Bihar (CSBC)', 'portal' => 'https://csbc.bih.nic.in'],
         'uppsc'     => ['name' => 'UP Public Service Commission (UPPSC)', 'portal' => 'https://uppsc.up.nic.in'],
         'mppsc'     => ['name' => 'MP Public Service Commission (MPPSC)', 'portal' => 'https://mppsc.mp.gov.in'],
         'rpsc'      => ['name' => 'Rajasthan Public Service Commission (RPSC)', 'portal' => 'https://rpsc.rajasthan.gov.in'],
+        'rsmssb'    => ['name' => 'Rajasthan Staff Selection Board (RSMSSB)', 'portal' => 'https://rsmssb.rajasthan.gov.in'],
+        'hssc'      => ['name' => 'Haryana Staff Selection Commission (HSSC)', 'portal' => 'https://hssc.gov.in'],
+        'hpsc'      => ['name' => 'Haryana Public Service Commission (HPSC)', 'portal' => 'https://hpsc.gov.in'],
+        'bseh'      => ['name' => 'Board of School Education Haryana (BSEH)', 'portal' => 'https://bseh.org.in'],
+        'ukpsc'     => ['name' => 'Uttarakhand Public Service Commission (UKPSC)', 'portal' => 'https://psc.uk.gov.in'],
         'bseb'      => ['name' => 'Bihar School Examination Board (BSEB)', 'portal' => 'https://biharboardonline.bihar.gov.in'],
         'upmsp'     => ['name' => 'UPMSP (Uttar Pradesh Madhyamik Shiksha Parishad)', 'portal' => 'https://upmsp.edu.in'],
-        'wbjee'     => ['name' => 'WBJEEB (West Bengal Joint Entrance Examinations Board)', 'portal' => 'https://wbjeeb.nic.in']
+        'wbjee'     => ['name' => 'WBJEEB (West Bengal Joint Entrance Examinations Board)', 'portal' => 'https://wbjeeb.nic.in'],
+        'wbssc'     => ['name' => 'West Bengal Central School Service Commission (WBSSC)', 'portal' => 'https://westbengalssc.com'],
+        'aiims'     => ['name' => 'All India Institute of Medical Sciences (AIIMS)', 'portal' => 'https://aiimsexams.ac.in']
     ];
 
     public function __construct(?Gemini $gemini = null) {
@@ -65,7 +90,7 @@ class AuthorityFactFetcherService {
             'indianexpress.com', 'livemint.com', 'jagran.com', 'amarujala.com', 'news18.com',
             'aajtak.in', 'abplive.com', 'firstpost.com', 'thehindu.com', 'zeenews.india.com',
             'dnaindia.com', 'economictimes.indiatimes.com', 'indiatoday.in', 'career360.com',
-            'shiksha.com', 'collegedunia.com'
+            'shiksha.com', 'collegedunia.com', 'sarkari.online', 'localhost'
         ];
         foreach ($mediaDomains as $domain) {
             if (str_contains(strtolower($sourceUrl), $domain)) {
@@ -76,15 +101,46 @@ class AuthorityFactFetcherService {
 
         $lower = strtolower($topic . ' ' . $sourceUrl);
 
-        // Open Universities & National Portals
-        if (str_contains($lower, 'ignou') || str_contains($lower, 'indira gandhi national open')) {
-            return self::$authorityPortals['ignou'];
-        }
-        if (str_contains($lower, 'coal india') || str_contains($lower, 'cil mt') || str_contains($lower, 'coalindia')) {
-            return self::$authorityPortals['coalindia'];
-        }
+        // 1. National Councils & Technical Bodies
+        if (str_contains($lower, 'aicte')) return self::$authorityPortals['aicte'];
+        if (str_contains($lower, 'ugc') || str_contains($lower, 'net exam')) return self::$authorityPortals['ugc'];
 
-        // State Admission & CET Cells (High Priority)
+        // 2. Multi-letter State Selection Boards (Check BEFORE central SSC to prevent false match)
+        if (str_contains($lower, 'upsssc') || str_contains($lower, 'up pet') || str_contains($lower, 'pet 202')) return self::$authorityPortals['upsssc'];
+        if (str_contains($lower, 'wbssc')) return self::$authorityPortals['wbssc'];
+        if (str_contains($lower, 'hssc') || str_contains($lower, 'haryana ssc') || str_contains($lower, 'haryana cet')) return self::$authorityPortals['hssc'];
+        if (str_contains($lower, 'dsssb')) return self::$authorityPortals['dsssb'];
+        if (str_contains($lower, 'rsmssb')) return self::$authorityPortals['rsmssb'];
+        if (str_contains($lower, 'bssc')) return self::$authorityPortals['bssc'];
+        if (str_contains($lower, 'csbc') || str_contains($lower, 'bihar constable')) return self::$authorityPortals['csbc'];
+        if (str_contains($lower, 'uppbpb') || str_contains($lower, 'up police')) return self::$authorityPortals['uppbpb'];
+
+        // 3. Paramilitary & Police Forces (Check BEFORE generic police)
+        if (str_contains($lower, 'cisf')) return self::$authorityPortals['cisf'];
+        if (str_contains($lower, 'bsf')) return self::$authorityPortals['bsf'];
+        if (str_contains($lower, 'crpf')) return self::$authorityPortals['crpf'];
+        if (str_contains($lower, 'itbp')) return self::$authorityPortals['itbp'];
+        if (str_contains($lower, 'ssb') && !str_contains($lower, 'rsmssb') && !str_contains($lower, 'dsssb') && !str_contains($lower, 'upsssc')) return self::$authorityPortals['ssb'];
+
+        // 4. Defence Forces
+        if (str_contains($lower, 'indian army') || preg_match('/\barmy\b/', $lower)) return self::$authorityPortals['army'];
+        if (str_contains($lower, 'indian navy') || preg_match('/\bnavy\b/', $lower)) return self::$authorityPortals['navy'];
+        if (str_contains($lower, 'air force') || str_contains($lower, 'iaf') || str_contains($lower, 'agniveer vayu') || str_contains($lower, 'afcat')) return self::$authorityPortals['iaf'];
+        if (str_contains($lower, 'coast guard') || str_contains($lower, 'icg')) return self::$authorityPortals['coastguard'];
+        if (str_contains($lower, 'drdo')) return self::$authorityPortals['drdo'];
+        if (str_contains($lower, 'isro')) return self::$authorityPortals['isro'];
+
+        // 5. School Organizations & Teacher Tests
+        if (str_contains($lower, 'kvs') || str_contains($lower, 'kendriya vidyalaya')) return self::$authorityPortals['kvs'];
+        if (str_contains($lower, 'nvs') || str_contains($lower, 'navodaya')) return self::$authorityPortals['nvs'];
+        if (str_contains($lower, 'ctet')) return self::$authorityPortals['ctet'];
+        if (str_contains($lower, 'htet') || str_contains($lower, 'bseh')) return self::$authorityPortals['bseh'];
+
+        // 6. Open Universities & PSUs
+        if (str_contains($lower, 'ignou') || str_contains($lower, 'indira gandhi national open')) return self::$authorityPortals['ignou'];
+        if (str_contains($lower, 'coal india') || str_contains($lower, 'cil mt') || str_contains($lower, 'coalindia')) return self::$authorityPortals['coalindia'];
+
+        // 7. State Admission & CET Cells
         if (str_contains($lower, 'mht cet') || str_contains($lower, 'mahacet') || str_contains($lower, 'cap round')) {
             return ['name' => 'State Common Entrance Test Cell, Maharashtra', 'portal' => 'https://cetcell.mahacet.org'];
         }
@@ -98,51 +154,70 @@ class AuthorityFactFetcherService {
             return ['name' => 'Indian Council of Agricultural Research (ICAR / NTA)', 'portal' => 'https://icar.nta.nic.in'];
         }
 
-        // State Boards & Specific State Commissions (High Priority to prevent false UPSC/SSC fallback)
+        // 8. State Boards & Commissions
         if (str_contains($lower, 'hpbose') || str_contains($lower, 'himachal')) return self::$authorityPortals['hpbose'];
         if (str_contains($lower, 'kpsc') || str_contains($lower, 'karnataka') || str_contains($lower, 'kas ')) return self::$authorityPortals['kpsc'];
         if (str_contains($lower, 'bpsc') || str_contains($lower, 'bihar public service')) return self::$authorityPortals['bpsc'];
         if (str_contains($lower, 'uppsc') || str_contains($lower, 'uttar pradesh public service')) return self::$authorityPortals['uppsc'];
         if (str_contains($lower, 'mppsc') || str_contains($lower, 'madhya pradesh public')) return self::$authorityPortals['mppsc'];
         if (str_contains($lower, 'rpsc') || str_contains($lower, 'rajasthan public')) return self::$authorityPortals['rpsc'];
+        if (str_contains($lower, 'hpsc') || str_contains($lower, 'haryana public')) return self::$authorityPortals['hpsc'];
+        if (str_contains($lower, 'ukpsc') || str_contains($lower, 'uttarakhand public')) return self::$authorityPortals['ukpsc'];
         if (str_contains($lower, 'bseb') || str_contains($lower, 'bihar board')) return self::$authorityPortals['bseb'];
         if (str_contains($lower, 'upmsp') || str_contains($lower, 'up board')) return self::$authorityPortals['upmsp'];
         if (str_contains($lower, 'wbjee')) return self::$authorityPortals['wbjee'];
 
-        // Defence & Armed Forces
-        if (str_contains($lower, 'air force') || str_contains($lower, 'iaf') || str_contains($lower, 'agniveer vayu')) return self::$authorityPortals['iaf'];
-
-        // Banking
+        // 9. Banking
         if (str_contains($lower, 'ibps') || str_contains($lower, 'crp po') || str_contains($lower, 'crp clerk')) return self::$authorityPortals['ibps'];
         if (str_contains($lower, 'sbi po') || str_contains($lower, 'sbi clerk') || str_contains($lower, 'state bank')) return self::$authorityPortals['sbi'];
 
-        // Medical & Entrance
+        // 10. Medical & Entrance
+        if (str_contains($lower, 'aiims')) return self::$authorityPortals['aiims'];
         if (str_contains($lower, 'neet pg') || str_contains($lower, 'dnb') || str_contains($lower, 'fmge') || str_contains($lower, 'natboard') || str_contains($lower, 'nbems')) {
             return self::$authorityPortals['nbems'];
         }
-        if (str_contains($lower, 'ctet')) return self::$authorityPortals['ctet'];
-        if (str_contains($lower, 'jee') || str_contains($lower, 'neet ug') || str_contains($lower, 'cuet') || str_contains($lower, 'nta')) {
+        if (str_contains($lower, 'jee') || str_contains($lower, 'neet ug') || str_contains($lower, 'cuet') || preg_match('/\bnta\b/', $lower)) {
             return self::$authorityPortals['nta'];
         }
         if (str_contains($lower, 'josaa') || str_contains($lower, 'csab')) return self::$authorityPortals['josaa'];
         if (str_contains($lower, 'mcc') || str_contains($lower, 'neet counselling')) return self::$authorityPortals['mcc'];
 
-        // Central Commissions & Boards
+        // 11. Central Commissions & Boards (Use word boundaries for ssc to prevent matching upsssc/wbssc)
         if (str_contains($lower, 'cbse') || str_contains($lower, 'class 10') || str_contains($lower, 'class 12')) return self::$authorityPortals['cbse'];
-        if (str_contains($lower, 'ssc') || str_contains($lower, 'cgl') || str_contains($lower, 'chsl') || str_contains($lower, 'mts') || str_contains($lower, 'cpo') || str_contains($lower, 'havaldar')) return self::$authorityPortals['ssc'];
-        if (str_contains($lower, 'upsc') || str_contains($lower, 'civil services') || str_contains($lower, 'nda') || str_contains($lower, 'cds') || str_contains($lower, 'ifs')) {
+        if (preg_match('/\bssc\b/', $lower) || str_contains($lower, 'cgl') || str_contains($lower, 'chsl') || str_contains($lower, 'mts') || str_contains($lower, 'cpo') || str_contains($lower, 'havaldar') || str_contains($lower, 'ssc je')) {
+            return self::$authorityPortals['ssc'];
+        }
+        if (preg_match('/\bupsc\b/', $lower) || str_contains($lower, 'civil services') || str_contains($lower, 'nda') || str_contains($lower, 'cds') || str_contains($lower, 'ifs')) {
             if (str_contains($lower, 'admit') || str_contains($lower, 'hall ticket') || str_contains($lower, 'call letter')) {
                 return ['name' => 'UPSC (Union Public Service Commission)', 'portal' => 'https://upsconline.nic.in'];
             }
             return self::$authorityPortals['upsc'];
         }
-        if (str_contains($lower, 'rrb') || str_contains($lower, 'railway') || str_contains($lower, 'alp') || str_contains($lower, 'ntpc')) return self::$authorityPortals['rrb'];
+        if (preg_match('/\brrb\b/', $lower) || str_contains($lower, 'railway') || str_contains($lower, 'alp') || str_contains($lower, 'ntpc')) return self::$authorityPortals['rrb'];
         if (str_contains($lower, 'scholarship') || str_contains($lower, 'nsp') || str_contains($lower, 'pmsss') || str_contains($lower, 'yasasvi')) return self::$authorityPortals['nsp'];
-        if (str_contains($lower, 'ugc') || str_contains($lower, 'net exam')) return self::$authorityPortals['ugc'];
+
+        // 12. Fallback: Check if sourceUrl is a genuine external official/university portal (.gov.in, .nic.in, .ac.in, .edu.in, .org)
+        if (!empty($sourceUrl) && filter_var($sourceUrl, FILTER_VALIDATE_URL)) {
+            $host = parse_url($sourceUrl, PHP_URL_HOST);
+            if ($host && !str_contains($host, 'sarkari.online')) {
+                return [
+                    'name' => 'Statutory Examination Board / Agency',
+                    'portal' => $sourceUrl
+                ];
+            }
+        }
+
+        // 13. Dynamic Acronym Extraction Fallback (Extract e.g. "UPESSC" or "AIIMS" from headline)
+        if (preg_match('/\b([A-Z]{3,8})\b/', $topic, $acr)) {
+            return [
+                'name' => $acr[1] . ' (Statutory Examination Body)',
+                'portal' => ''
+            ];
+        }
 
         return [
-            'name' => 'Official Statutory Authority',
-            'portal' => !empty($sourceUrl) && filter_var($sourceUrl, FILTER_VALIDATE_URL) ? $sourceUrl : 'https://sarkari.online'
+            'name' => 'Statutory Examination Board / Agency',
+            'portal' => ''
         ];
     }
 

@@ -66,21 +66,18 @@ foreach ($mediaDomains as $mDomain) {
         break;
     }
 }
-if ($isMediaUrl) {
-    $topicLower = strtolower(($article['title'] ?? '') . ' ' . ($article['slug'] ?? ''));
-    if (str_contains($topicLower, 'ignou')) {
-        $sourceName = 'Indira Gandhi National Open University (IGNOU)';
-        $sourceUrl = 'https://ignouadmission.samarth.edu.in';
-        $sourceRef = 'Official Admission Portal (ignouadmission.samarth.edu.in)';
-    } elseif (str_contains($topicLower, 'coal india')) {
-        $sourceName = 'Coal India Limited (CIL)';
-        $sourceUrl = 'https://coalindia.in';
-        $sourceRef = 'Official Recruitment Portal (coalindia.in)';
-    } else {
-        $sourceUrl = null;
-        $sourceName = 'Official Statutory Authority';
-        $sourceRef = 'Official Public Gazette / Portal Release';
+if ($isMediaUrl || empty($sourceUrl) || str_contains(strtolower((string)$sourceUrl), 'sarkari.online') || str_contains(strtolower((string)$sourceUrl), 'localhost')) {
+    $resolvedAuth = \App\Services\AuthorityFactFetcherService::resolveAuthority($article['title'] ?? '');
+    $sourceName = $resolvedAuth['name'];
+    $sourceUrl = (!empty($resolvedAuth['portal']) && !str_contains($resolvedAuth['portal'], 'sarkari.online')) ? $resolvedAuth['portal'] : null;
+    $sourceRef = 'Official Authority Bulletin (' . ($sourceUrl ? preg_replace('/^www\./i', '', parse_url($sourceUrl, PHP_URL_HOST)) : 'Gazette Release') . ')';
+} elseif (empty($sourceName) || in_array(strtolower(trim($sourceName)), ['official statutory authority', 'statutory authority', 'official authority', 'statutory agency'], true)) {
+    $resolvedAuth = \App\Services\AuthorityFactFetcherService::resolveAuthority($article['title'] ?? '', $sourceUrl);
+    $sourceName = $resolvedAuth['name'];
+    if (empty($sourceUrl) && !empty($resolvedAuth['portal']) && !str_contains($resolvedAuth['portal'], 'sarkari.online')) {
+        $sourceUrl = $resolvedAuth['portal'];
     }
+    $sourceRef = 'Official Public Gazette / Portal Release';
 }
 
 // SEO Setup
