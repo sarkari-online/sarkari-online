@@ -350,6 +350,12 @@ class TrendService {
             return ['qualified' => false, 'reason' => 'Topic rejected: Generic synthetic placeholder without specific exam/notification event.'];
         }
 
+        // 2c. Strict Student Search-Action Intent Gate
+        $intentCheck = self::isHighStudentActionIntent($keyword);
+        if (!$intentCheck['pass']) {
+            return ['qualified' => false, 'reason' => 'Topic rejected: ' . $intentCheck['reason']];
+        }
+
         // 3. Blacklist: Political figures, entertainment, sports, crime, and non-educational noise
         $blacklist = [
             'mamata banerjee', 'rahul gandhi', 'narendra modi', 'arvind kejriwal', 'amit shah', 'yogi adityanath',
@@ -378,6 +384,64 @@ class TrendService {
         }
 
         return ['qualified' => true, 'reason' => 'Passed qualification checks.'];
+    }
+
+    /**
+     * Check if a topic has high student search-action intent and filter out administrative noise
+     */
+    public static function isHighStudentActionIntent(string $keyword): array {
+        $kwLower = mb_strtolower(trim($keyword));
+
+        // 1. Must be a meaningful query (at least 10 characters and 2+ words)
+        if (mb_strlen($kwLower) < 10 || count(explode(' ', $kwLower)) < 2) {
+            return ['pass' => false, 'reason' => 'Too short or single-word query lacking actionable student context.'];
+        }
+
+        // 2. Reject Administrative, Legal, Political, and Bureaucratic Noise
+        $noisePhrases = [
+            'sc told', 'supreme court', 'court told', 'high court', 'plea filed', 'hearing', 'pil',
+            'stays', 'stay order', 'cm says', 'minister says', 'says cm', 'says minister',
+            'centre tells', 'centre working on', 'three-language', 'language policy', 'attendance system',
+            'dress code', 'paper leak shadow', 'looks for spaces', 'candidates protest', 'protest against',
+            'technical glitches', 'technical glitch', 'committee forms', 'committee formed', 'examines grievances',
+            'inquiry committee', 'probe ordered', 'fir registered', 'arrested'
+        ];
+
+        foreach ($noisePhrases as $noise) {
+            if (str_contains($kwLower, $noise)) {
+                return ['pass' => false, 'reason' => "Administrative noise / non-actionable policy gossip detected ('{$noise}')."];
+            }
+        }
+
+        // 3. Reject outdated historical cycles (2020-2025) unless referencing the current 2026/2027 cycle
+        if (preg_match('/\b(202[0-5])\b/', $kwLower) && !preg_match('/\b(202[6-9]|20[3-9]\d)\b/', $kwLower)) {
+            return ['pass' => false, 'reason' => 'Outdated historical exam cycle detected (prior to 2026).'];
+        }
+
+        // 4. Must contain at least one High-Search-Intent Milestone Token
+        $intentTokens = [
+            'admit card', 'hall ticket', 'city slip', 'city intimation', 'call letter', 'shift timing',
+            'apply online', 'application form', 'application', 'applications', 'apply', 'registration', 'eligibility',
+            'vacancy', 'vacancies', 'posts', 'recruitment', 'notification', 'last date', 'extended till', 'otr', 'form correction',
+            'answer key', 'omr sheet', 'response sheet', 'objection window', 'challenge',
+            'result declared', 'result announced', 'result', 'scorecard', 'rank card', 'merit list', 'cutoff', 'cut off',
+            'exam date', 'exam schedule', 'schedule', 'datesheet', 'timetable', 'counselling', 'seat allotment',
+            'scholarship', 'fellowship', 'stipend', 'syllabus', 'exam pattern'
+        ];
+
+        $hasIntent = false;
+        foreach ($intentTokens as $token) {
+            if (str_contains($kwLower, $token)) {
+                $hasIntent = true;
+                break;
+            }
+        }
+
+        if (!$hasIntent) {
+            return ['pass' => false, 'reason' => 'Topic lacks a high-volume student action milestone (admit card, result, apply, answer key, cutoff, dates, scholarship).'];
+        }
+
+        return ['pass' => true, 'reason' => 'High student action intent verified.'];
     }
 
     /**

@@ -236,6 +236,14 @@ class AutoCronService {
                 continue;
             }
 
+            // Strict Student Search-Action Intent Gate (Pre-AI check to save API quota)
+            $intentCheck = TrendService::isHighStudentActionIntent($trend['keyword']);
+            if (!$intentCheck['pass']) {
+                TrendService::markStatus($trendId, 'rejected', ['raw_payload' => ['reason' => $intentCheck['reason']]]);
+                Logger::info("AutoCron analyze: Trend #{$trendId} rejected (" . $intentCheck['reason'] . ")");
+                continue;
+            }
+
             try {
                 $rawPayload = !empty($trend['raw_payload'])
                     ? (is_array($trend['raw_payload']) ? $trend['raw_payload'] : (json_decode($trend['raw_payload'], true) ?: []))

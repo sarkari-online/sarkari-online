@@ -43,19 +43,29 @@ TAXONOMY CATEGORIES AVAILABLE:
 - student-technology (DigiLocker, ABC ID, APAAR ID, SSC OTR, EdTech & Free Skilling)
 
 CRITICAL RULES:
-1. OFFICIAL SOURCES VS DEMAND SIGNALS:
+1. MANDATORY HIGH STUDENT SEARCH INTENT:
+   - Approve (publish_recommendation: true, priority_score 85-98) ONLY when students have an immediate, personal, and actionable need:
+     a) Active Online Application / Recruitment Notification (Start date, Last date, Vacancies, Eligibility, Direct Portal Link)
+     b) Admit Card / Hall Ticket / Exam City Slip Release (Download link, Shift timings, Reporting rules)
+     c) Official Answer Key & OMR Sheet / Objection Challenge Window
+     d) Result Declaration, Scorecard Download Link & Category Cut-Off Marks
+     e) Confirmed Official Exam Schedule / Timetable / Postponement Notice
+     f) National/State Scholarship Registration & Direct Benefit Transfer (NSP, PMSSS, etc.)
+2. STRICT REJECTION OF ADMINISTRATIVE NOISE, LEGAL CASES & GOSSIP:
+   - Strictly REJECT (publish_recommendation: false, priority_score < 50) any of the following:
+     * Court hearings, PILs, legal pleas, Supreme Court/High Court arguments ("SC told", "High Court stays", "plea filed", "hearing postponed")
+     * Political rhetoric, ministerial speeches, or policy proposals without gazette notifications ("says CM", "minister says", "centre working on proposal")
+     * School administrative/disciplinary rules (e.g. "attendance system across schools", "dress code row")
+     * Investigation reports, technical glitches, candidate protests, exam center space searches, or inquiry committees
+     * Unverified speculative rumors ("likely today", "expected this week") lacking an official authority notice
+3. TEMPORAL FRESHNESS & PROACTIVE ADVANCE NOTICE:
+   - Operating Year: 2026/2027. Strictly REJECT (publish_recommendation: false) any old, expired historical exam/recruitment cycles (2025, 2024, 2023).
+   - If an exam date or registration deadline has ALREADY expired/concluded in the past, REJECT it (publish_recommendation: false) because past notices are useless for students.
+4. OFFICIAL SOURCES VS DEMAND SIGNALS:
    - Official statutory portals (.gov.in, .nic.in, .ac.in) are the primary factual authority.
    - Google Trends RSS represents user search demand signal only — ground truth must be verified against official authority.
-2. GENUINE STUDENT VALUE OVER QUOTA:
-   - Prioritize actionable student information (official dates, direct portal instructions, eligibility criteria, registration steps).
-   - Never recommend publishing merely to meet daily quotas. Only approve if genuine, useful, non-trivial information exists for students.
-3. Avoid low-value clickbait rumors (e.g., unofficial "likely today" speculation without authority notice).
-4. If similar articles already exist, assess duplicate risk. Only recommend publishing if there is a genuine new update.
-5. TEMPORAL FRESHNESS & PROACTIVE ADVANCE NOTICE:
-   - Operating Year: 2026/2027. Strictly REJECT (publish_recommendation: false) any old, expired historical exam/recruitment cycles (2025, 2024, 2023).
-   - PROACTIVE TIMING: Prioritize upcoming events detected in ADVANCE (registration opening, admit card release, exam schedules, counselling rounds, answer key objections).
-   - If an exam date or registration deadline has ALREADY expired/concluded in the past, REJECT it (publish_recommendation: false) because same-day/past notices are useless for students.
-6. NATIONAL SKILLING & TECH EMPOWERMENT: Proactively APPROVE (publish_recommendation: true) under 'student-technology' or 'scholarships' any national skill development initiatives (NSDC, Skill India, PMKVY), Free Cloud/AI certifications (AWS, Microsoft, Google, NASSCOM), and government-backed digital learning programs offering concrete career value to Indian students.
+5. NATIONAL SKILLING & TECH EMPOWERMENT:
+   - Proactively APPROVE (publish_recommendation: true) under 'student-technology' or 'scholarships' any national skill development initiatives (NSDC, Skill India, PMKVY), Free Cloud/AI certifications (AWS, Microsoft, Google, NASSCOM), and government-backed digital learning programs offering concrete career value to Indian students.
 PROMPT;
 
         $existingList = empty($existingArticles) ? "None" : implode("\n- ", array_map(function($a) {
