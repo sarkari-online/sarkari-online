@@ -56,11 +56,7 @@ class OfficialSourcesAdapter implements TrendSourceInterface {
             }
         }
 
-        // 2. If RSS fetches yield nothing, fallback to DB sources with intelligent unique keywords
-        if (empty($results)) {
-            $results = $this->fetchFromDbSources($limit);
-        }
-
+        // 2. Return collected items from official RSS feeds (do NOT generate synthetic placeholders)
         return array_slice($results, 0, $limit);
     }
 
@@ -123,57 +119,7 @@ class OfficialSourcesAdapter implements TrendSourceInterface {
         return $results;
     }
 
-    /**
-     * Fallback: Build specific unique keyword from DB source name + current date context
-     */
-    private function fetchFromDbSources(int $limit): array {
-        $results = [];
 
-        try {
-            $sources = Database::fetchAll("SELECT * FROM sources WHERE is_active = 1 LIMIT 10");
-            if (empty($sources)) return [];
-
-            $monthYear = date('F Y'); // e.g. "August 2026"
-
-            foreach ($sources as $source) {
-                if (count($results) >= $limit) break;
-
-                $name = $source['name'];
-                $categoryHint = $this->inferCategoryHint($name);
-
-                // Generate a specific, unique keyword so it doesn't get deduplicated immediately
-                $keyword = "{$name} Latest Notification {$monthYear}: Exam Schedule, Result and Recruitment Update";
-
-                $results[] = [
-                    'keyword'      => $keyword,
-                    'source'       => mb_strtolower($name),
-                    'url'          => $source['base_url'],
-                    'trend_score'  => 90,
-                    'category_hint'=> $categoryHint,
-                    'snippet'      => "Latest statutory announcements and regulatory updates from {$name} official portal.",
-                    'detected_at'  => date('Y-m-d H:i:s'),
-                    'raw_payload'  => [
-                        'source_id'   => $source['id'],
-                        'source_name' => $name
-                    ]
-                ];
-            }
-        } catch (Throwable $e) {
-            Logger::warning('OfficialSourcesAdapter DB fallback error: ' . $e->getMessage());
-        }
-
-        return $results;
-    }
-
-    private function inferCategoryHint(string $sourceName): string {
-        $lower = mb_strtolower($sourceName);
-        if (str_contains($lower, 'cbse') || str_contains($lower, 'board')) return 'school-boards';
-        if (str_contains($lower, 'upsc') || str_contains($lower, 'ssc') || str_contains($lower, 'railway') || str_contains($lower, 'rrb')) return 'government-jobs';
-        if (str_contains($lower, 'ugc') || str_contains($lower, 'mcc') || str_contains($lower, 'university')) return 'higher-education';
-        if (str_contains($lower, 'nta') || str_contains($lower, 'josaa') || str_contains($lower, 'jee') || str_contains($lower, 'neet')) return 'entrance-exams';
-        if (str_contains($lower, 'scholarship') || str_contains($lower, 'nsp')) return 'scholarships';
-        return 'exam-dates';
-    }
 
     private function fetchUrl(string $url): ?string {
         $ch = curl_init($url);

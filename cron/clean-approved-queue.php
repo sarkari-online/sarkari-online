@@ -31,12 +31,28 @@ if ($approvedCountBefore <= 3) {
     exit(0);
 }
 
-// 2. Fetch the top 3 freshest, highest-scoring approved trends to keep
+// 1b. First permanently reject any synthetic generic placeholder topics
+Database::query("
+    UPDATE trends 
+    SET status = 'rejected',
+        raw_payload = JSON_SET(COALESCE(raw_payload, '{}'), '$.reason', 'Purged: Synthetic placeholder topic')
+    WHERE status IN ('approved', 'detected', 'analyzing')
+      AND (
+          keyword LIKE '%Exam Schedule, Result and Recruitment Update%'
+          OR keyword LIKE '%Latest Notification%Exam Schedule%'
+          OR keyword LIKE '%Latest Notification September 2026%'
+          OR keyword LIKE '%Latest Notification August 2026%'
+      )
+");
+
+$approvedCountBefore = (int)Database::fetchValue("SELECT COUNT(*) FROM trends WHERE status = 'approved'");
+
+// 2. Fetch the top 3 freshest, highest-scoring authentic approved trends to keep
 $topApproved = Database::fetchAll("
     SELECT id, keyword, trend_score, created_at 
     FROM trends 
     WHERE status = 'approved' 
-    ORDER BY trend_score DESC, created_at DESC 
+    ORDER BY trend_score DESC, id DESC 
     LIMIT 3
 ");
 

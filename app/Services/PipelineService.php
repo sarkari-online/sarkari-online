@@ -53,6 +53,13 @@ class PipelineService {
             return ['success' => false, 'trend_id' => $trendId, 'error' => 'Trend not found.'];
         }
 
+        // Guard 0: Strictly reject generic placeholder topics without specific exam/recruitment events
+        if (!$force && TrendService::isGenericPlaceholderKeyword($trend['keyword'])) {
+            TrendService::markStatus($trendId, 'rejected', ['raw_payload' => ['reason' => 'Generic placeholder topic rejected']]);
+            Logger::info("Skipping Trend #{$trendId}: Generic placeholder topic rejected ('{$trend['keyword']}').");
+            return ['success' => false, 'trend_id' => $trendId, 'error' => 'Generic placeholder topic rejected.'];
+        }
+
         // Check if article already generated from this trend
         if (!empty($trend['processed_at'])) {
             $existing = Database::fetchOne("SELECT id, status FROM articles WHERE trend_id = :tid LIMIT 1", ['tid' => $trendId]);
@@ -423,8 +430,8 @@ class PipelineService {
      * Run batch article generation on approved trends
      */
     public function processApprovedTrends(int $targetPublished = 1): array {
-        // Fetch up to 10 approved candidates to smoothly skip any already-covered topics
-        $sql = "SELECT id FROM trends WHERE status = 'approved' ORDER BY trend_score DESC, id ASC LIMIT 10";
+        // Prioritize newest trends (id DESC) with highest scores, strictly rejecting generic placeholders
+        $sql = "SELECT id, keyword FROM trends WHERE status = 'approved' ORDER BY trend_score DESC, id DESC LIMIT 25";
         $approved = Database::fetchAll($sql);
 
         $results = [];
@@ -435,12 +442,19 @@ class PipelineService {
                 break;
             }
 
+            // Reject synthetic or generic placeholder keywords
+            if (TrendService::isGenericPlaceholderKeyword($tr['keyword'] ?? '')) {
+                TrendService::markStatus((int)$tr['id'], 'rejected', ['raw_payload' => ['reason' => 'Generic placeholder topic rejected']]);
+                Logger::info("PipelineService: Purged generic placeholder trend #{$tr['id']} ('{$tr['keyword']}')");
+                continue;
+            }
+
             try {
                 $res = $this->generateFromTrend((int)$tr['id']);
                 $results[] = $res;
                 if (!empty($res['success']) && ($res['status'] ?? '') !== 'already_generated') {
                     $publishedCount++;
-                    break; // Strictly stop after 1 article to enforce 45-minute pacing
+                    break; // Strictly stop after 1 article to enforce scheduled slot pacing
                 }
             } catch (Throwable $e) {
                 Logger::error("Failed to generate article for Trend #{$tr['id']}: " . $e->getMessage());

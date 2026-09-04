@@ -70,6 +70,29 @@ class TrendService {
     }
 
     /**
+     * Check if a keyword is a generic synthetic placeholder that lacks specific exam/event context
+     */
+    public static function isGenericPlaceholderKeyword(string $keyword): bool {
+        $kwLower = mb_strtolower(trim($keyword));
+
+        // Reject generic template patterns
+        if (preg_match('/latest\s+notification\b.*exam\s+schedule/i', $kwLower)) {
+            return true;
+        }
+        if (preg_match('/exam\s+schedule,\s*result\s+and\s+recruitment\s+update/i', $kwLower)) {
+            return true;
+        }
+        if (preg_match('/latest\s+notification\s+[a-z]+\s+202\d/i', $kwLower)) {
+            return true;
+        }
+        if (preg_match('/latest\s+notification\s*:\s*exam\s+schedule/i', $kwLower)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Check if trend already exists in trends table
      */
     public static function existsAsTrend(string $keyword, int $days = 7): bool {
@@ -195,9 +218,9 @@ class TrendService {
                 $tid = (int)$t['id'];
                 $kw = self::normalizeKeyword($t['keyword']);
 
-                // If already published as article OR already seen in this batch OR recently covered
-                if (self::existsAsArticle($t['keyword']) || self::isRecentlyCovered($t['keyword'], 20) || in_array($kw, $seenKeywords, true)) {
-                    self::markStatus($tid, 'rejected', ['raw_payload' => ['reason' => 'Duplicate/Repetitive backlog cleanup']]);
+                // If generic placeholder OR already published as article OR already seen in this batch OR recently covered
+                if (self::isGenericPlaceholderKeyword($t['keyword']) || self::existsAsArticle($t['keyword']) || self::isRecentlyCovered($t['keyword'], 20) || in_array($kw, $seenKeywords, true)) {
+                    self::markStatus($tid, 'rejected', ['raw_payload' => ['reason' => 'Generic placeholder or repetitive backlog cleanup']]);
                     $cleaned++;
                 } else {
                     $seenKeywords[] = $kw;
@@ -241,6 +264,11 @@ class TrendService {
         // 2. Strict Education & Recruitment Relevance Gate
         if (!self::isEducationRelevant($keyword, $trendData['snippet'] ?? '')) {
             return ['qualified' => false, 'reason' => 'Topic rejected: Not relevant to student exams, results, recruitments, or scholarships.'];
+        }
+
+        // 2b. Reject generic synthetic placeholder topics
+        if (self::isGenericPlaceholderKeyword($keyword)) {
+            return ['qualified' => false, 'reason' => 'Topic rejected: Generic synthetic placeholder without specific exam/notification event.'];
         }
 
         // 3. Blacklist: Political figures, entertainment, sports, crime, and non-educational noise

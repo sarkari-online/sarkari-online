@@ -229,6 +229,13 @@ class AutoCronService {
                 continue;
             }
 
+            // Reject generic synthetic placeholder topics
+            if (TrendService::isGenericPlaceholderKeyword($trend['keyword'])) {
+                TrendService::markStatus($trendId, 'rejected', ['raw_payload' => ['reason' => 'Generic placeholder topic rejected']]);
+                Logger::info("AutoCron analyze: Trend #{$trendId} rejected (generic placeholder topic)");
+                continue;
+            }
+
             try {
                 $rawPayload = !empty($trend['raw_payload'])
                     ? (is_array($trend['raw_payload']) ? $trend['raw_payload'] : (json_decode($trend['raw_payload'], true) ?: []))
