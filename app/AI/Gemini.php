@@ -253,6 +253,7 @@ class Gemini {
 
     /**
      * Resilient JSON extractor and repair engine
+     * Recovers from truncated streams, unescaped HTML attribute quotes, control chars, and missing closing tags.
      */
     public static function extractAndRepairJson(string $rawText): ?array {
         $clean = trim($rawText);
@@ -273,48 +274,121 @@ class Gemini {
             $clean = $extracted;
         }
 
-        // 3. Find outermost JSON object or array bounds
+        // 3. Find outermost bounds
         $firstBrace = strpos($clean, '{');
         $firstBracket = strpos($clean, '[');
 
-        $startPos = false;
-        $isObject = false;
-
-        if ($firstBrace !== false && ($firstBracket === false || $firstBrace < $firstBracket)) {
-            $startPos = $firstBrace;
-            $isObject = true;
-            $endPos = strrpos($clean, '}');
-        } elseif ($firstBracket !== false) {
-            $startPos = $firstBracket;
-            $isObject = false;
-            $endPos = strrpos($clean, ']');
+        if ($firstBrace === false && $firstBracket === false) {
+            return null;
         }
 
-        if ($startPos !== false && isset($endPos) && $endPos !== false && $endPos > $startPos) {
-            $substring = substr($clean, $startPos, $endPos - $startPos + 1);
-            $decoded = json_decode($substring, true);
-            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                return $decoded;
-            }
+        $startPos = ($firstBrace !== false && ($firstBracket === false || $firstBrace < $firstBracket))
+            ? $firstBrace
+            : $firstBracket;
 
-            // 4. Attempt light syntax repair (remove trailing commas before closing braces/brackets)
-            $repaired = preg_replace('/,\s*([\}\]])/', '$1', $substring);
-            $decodedRepaired = json_decode($repaired, true);
-            if (json_last_error() === JSON_ERROR_NONE && is_array($decodedRepaired)) {
-                return $decodedRepaired;
-            }
+        $targetSub = substr($clean, $startPos);
 
-            // 5. Attempt control character / unescaped newline repair inside strings
-            $sanitized = preg_replace_callback('/"([^"\\\\]*(?:\\\\.[^"\\\\]*)*)"/s', function ($matches) {
-                return '"' . str_replace(["\r\n", "\r", "\n", "\t"], ['\n', '\n', '\n', '\t'], $matches[1]) . '"';
-            }, $repaired);
-            $decodedSanitized = json_decode($sanitized, true);
-            if (json_last_error() === JSON_ERROR_NONE && is_array($decodedSanitized)) {
-                return $decodedSanitized;
-            }
+        // 4. Try direct decode of substring
+        $decoded = json_decode($targetSub, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            return $decoded;
+        }
+
+        // 5. Repair unescaped quotes inside HTML tags
+        $fixedHtmlQuotes = self::repairHtmlQuotes($targetSub);
+        $decoded = json_decode($fixedHtmlQuotes, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            return $decoded;
+        }
+
+        // 6. Repair unescaped control chars (newlines, tabs) inside JSON strings
+        $sanitized = self::sanitizeControlCharsInStrings($fixedHtmlQuotes);
+        $decoded = json_decode($sanitized, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            return $decoded;
+        }
+
+        // 7. Remove trailing commas before closing braces/brackets
+        $trailingFixed = preg_replace('/,\s*([\}\]])/', '$1', $sanitized);
+        $decoded = json_decode($trailingFixed, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            return $decoded;
+        }
+
+        // 8. Auto-close truncated JSON (unclosed strings, braces, brackets)
+        $autoClosed = self::autoCloseTruncatedJson($trailingFixed);
+        $decoded = json_decode($autoClosed, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            return $decoded;
+        }
+
+        // 9. Auto-closing on the original targetSub with control char fix
+        $autoClosedOrig = self::autoCloseTruncatedJson(self::sanitizeControlCharsInStrings($targetSub));
+        $decoded = json_decode($autoClosedOrig, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            return $decoded;
         }
 
         return null;
+    }
+
+    private static function repairHtmlQuotes(string $json): string {
+        return preg_replace_callback('/<[a-zA-Z0-9]+(?:\s+[^>]*?)?>/s', function($match) {
+            $tag = $match[0];
+            return preg_replace_callback('/(\s+[a-zA-Z0-9_\-]+)\s*=\s*(["\'])(.*?)\2/s', function($attrMatch) {
+                $attrName = $attrMatch[1];
+                $attrVal = str_replace('"', '\"', str_replace('\"', '"', $attrMatch[3]));
+                return $attrName . '=\"' . $attrVal . '\"';
+            }, $tag);
+        }, $json);
+    }
+
+    private static function sanitizeControlCharsInStrings(string $str): string {
+        return preg_replace_callback('/"([^"\\\\]*(?:\\\\.[^"\\\\]*)*)"/s', function ($matches) {
+            return '"' . str_replace(["\r\n", "\r", "\n", "\t"], ['\n', '\n', '\n', '\t'], $matches[1]) . '"';
+        }, $str);
+    }
+
+    private static function autoCloseTruncatedJson(string $sub): string {
+        $inString = false;
+        $isEscaped = false;
+        $stack = [];
+        $len = strlen($sub);
+
+        for ($i = 0; $i < $len; $i++) {
+            $char = $sub[$i];
+            if ($isEscaped) {
+                $isEscaped = false;
+                continue;
+            }
+            if ($char === "\\") {
+                $isEscaped = true;
+                continue;
+            }
+            if ($char === "\"") {
+                $inString = !$inString;
+                continue;
+            }
+            if (!$inString) {
+                if ($char === "{" || $char === "[") {
+                    $stack[] = ($char === "{") ? "}" : "]";
+                } elseif ($char === "}" || $char === "]") {
+                    if (!empty($stack) && end($stack) === $char) {
+                        array_pop($stack);
+                    }
+                }
+            }
+        }
+
+        $repaired = $sub;
+        if ($inString) {
+            $repaired .= '"';
+        }
+        $repaired = preg_replace('/,\s*$/', '', $repaired);
+        while (!empty($stack)) {
+            $repaired .= array_pop($stack);
+        }
+        return $repaired;
     }
 
     /**

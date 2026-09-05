@@ -14,6 +14,7 @@ require_once dirname(__DIR__) . '/config.php';
 use App\Database\Database;
 use App\Services\PipelineService;
 use App\Services\PublishingService;
+use App\Services\TrendService;
 use App\Helpers\Logger;
 
 ini_set('memory_limit', '512M');
@@ -48,8 +49,10 @@ try {
     } else {
         echo "[" . date('Y-m-d H:i:s') . "] FAILED: " . ($res['error'] ?? 'Unknown error') . "\n";
         Logger::error("CLI Background: Generation failed for Trend #{$trendId}: " . ($res['error'] ?? 'Unknown error'));
+        TrendService::markStatus($trendId, 'approved');
     }
 } catch (\Throwable $e) {
     echo "[" . date('Y-m-d H:i:s') . "] EXCEPTION: " . $e->getMessage() . "\n";
     Logger::error("CLI Background exception for Trend #{$trendId}: " . $e->getMessage());
+    TrendService::markStatus($trendId, 'approved');
 }

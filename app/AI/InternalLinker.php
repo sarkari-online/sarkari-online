@@ -116,28 +116,37 @@ Return your response strictly as a JSON object with this exact schema:
 }
 USER_PROMPT;
 
-        $response = $this->gemini->generateJson($userPrompt, [
-            'stage' => 'internal_linking',
-            'system_instruction' => $systemInstruction,
-            'temperature' => 0.1
-        ]);
+        try {
+            $response = $this->gemini->generateJson($userPrompt, [
+                'stage' => 'internal_linking',
+                'system_instruction' => $systemInstruction,
+                'temperature' => 0.1
+            ]);
 
-        $data = $response['data'];
+            $data = $response['data'];
 
-        // Validate that inserted links only point to valid catalog slugs
-        $sanitizedLinks = [];
-        if (!empty($data['links_inserted']) && is_array($data['links_inserted'])) {
-            foreach ($data['links_inserted'] as $link) {
-                if (isset($link['target_slug']) && in_array($link['target_slug'], $validSlugs, true)) {
-                    $sanitizedLinks[] = $link;
+            // Validate that inserted links only point to valid catalog slugs
+            $sanitizedLinks = [];
+            if (!empty($data['links_inserted']) && is_array($data['links_inserted'])) {
+                foreach ($data['links_inserted'] as $link) {
+                    if (isset($link['target_slug']) && in_array($link['target_slug'], $validSlugs, true)) {
+                        $sanitizedLinks[] = $link;
+                    }
                 }
             }
-        }
 
-        return [
-            'linked_content' => !empty($data['linked_content']) ? $data['linked_content'] : $content,
-            'links_inserted' => $sanitizedLinks,
-            'count' => count($sanitizedLinks)
-        ];
+            return [
+                'linked_content' => !empty($data['linked_content']) ? $data['linked_content'] : $content,
+                'links_inserted' => $sanitizedLinks,
+                'count' => count($sanitizedLinks)
+            ];
+        } catch (\Throwable $e) {
+            \App\Helpers\Logger::warning("InternalLinker AI linking bypassed: " . $e->getMessage());
+            return [
+                'linked_content' => $content,
+                'links_inserted' => [],
+                'count' => 0
+            ];
+        }
     }
 }
