@@ -4,6 +4,10 @@
 
 User-agent: *
 Allow: /
+Allow: /latest-jobs/
+Allow: /state-jobs/
+Allow: /jobs/
+Allow: /tools/
 Allow: /article/
 Allow: /category/
 Allow: /about/
@@ -13,6 +17,22 @@ Allow: /ai-policy/
 Allow: /privacy-policy/
 Allow: /terms/
 Allow: /disclaimer/
+
+# Explicitly Allow AI Search Engines (ChatGPT Search, Perplexity, Google Gemini)
+User-agent: GPTBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
 
 # Disallow Internal Search Result Pages (Google Search Essentials Standard)
 Disallow: /search/
