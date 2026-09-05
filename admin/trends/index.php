@@ -70,7 +70,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 
 // Auto-heal any stale analyzing trends older than 3 minutes
 try {
-    Database::query("UPDATE trends SET status = 'detected' WHERE status = 'analyzing' AND updated_at < DATE_SUB(NOW(), INTERVAL 3 MINUTE)");
+    Database::query("UPDATE trends SET status = 'detected' WHERE status = 'analyzing' AND analyzed_at < DATE_SUB(NOW(), INTERVAL 3 MINUTE)");
 } catch (Throwable $e) {}
 
 // Fetch Trends with Pagination & Filter

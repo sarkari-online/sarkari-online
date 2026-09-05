@@ -56,13 +56,14 @@ class PerformanceFeedbackService {
             if ($syntheticArticles !== null) {
                 $articles = $syntheticArticles;
             } else {
+                AnalyticsService::ensureTableExists();
                 $articles = Database::fetchAll(
                     "SELECT a.id, a.title, a.slug, a.category_id, a.published_at, a.updated_at,
-                            COUNT(ae.id) as lifetime_views,
-                            SUM(CASE WHEN ae.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1 ELSE 0 END) as recent_7d_views,
-                            SUM(CASE WHEN ae.created_at >= DATE_SUB(NOW(), INTERVAL 14 DAY) AND ae.created_at < DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1 ELSE 0 END) as previous_7d_views
+                            COUNT(pv.id) as lifetime_views,
+                            SUM(CASE WHEN pv.viewed_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1 ELSE 0 END) as recent_7d_views,
+                            SUM(CASE WHEN pv.viewed_at >= DATE_SUB(NOW(), INTERVAL 14 DAY) AND pv.viewed_at < DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1 ELSE 0 END) as previous_7d_views
                      FROM articles a
-                     LEFT JOIN analytics_events ae ON ae.article_id = a.id
+                     LEFT JOIN page_views pv ON pv.article_id = a.id
                      WHERE a.status = 'published'
                      GROUP BY a.id
                      ORDER BY lifetime_views DESC"
