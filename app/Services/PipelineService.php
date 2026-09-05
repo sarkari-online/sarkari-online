@@ -182,6 +182,12 @@ class PipelineService {
             if (!empty($seoOptimizedContent)) {
                 $linking['linked_content'] = $seoOptimizedContent;
             }
+            if (empty($seoData['seo_title']) || mb_strlen($seoData['seo_title']) > 65) {
+                $seoData['seo_title'] = SEOManagerService::generateHighCtrTitle($polished['edited_title']);
+            }
+            if (empty($seoData['meta_description']) || mb_strlen($seoData['meta_description']) > 180) {
+                $seoData['meta_description'] = SEOManagerService::generateHighCtrDescription($polished['edited_title'], $linking['linked_content']);
+            }
         } catch (Throwable $e) {
             Logger::warning("SEOManagerService content audit warning: " . $e->getMessage());
         }

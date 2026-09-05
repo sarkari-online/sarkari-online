@@ -56,8 +56,17 @@ class SEOManagerService {
     }
 
     /**
+     * Clean candidate subject string to remove generic event suffixes
+     */
+    public static function cleanEntitySubject(string $candidate): string {
+        $cleaned = preg_replace('/\b(?:Exam\s+Dates?|Exam\s+Schedule|Notification|Admit\s+Cards?|Hall\s+Tickets?|Answer\s+Keys?|Scorecards?)\b/i', '', $candidate);
+        $cleaned = preg_replace('/\s+/', ' ', trim($cleaned));
+        return (mb_strlen($cleaned) >= 4) ? $cleaned : $candidate;
+    }
+
+    /**
      * Extract the core exam, recruitment, or utility entity from title
-     * (e.g. "SSC OTR", "Bank of Baroda Recruitment", "RRB NTPC 2026", "UPSC OTR")
+     * (e.g. "SSC OTR", "Bank of Baroda Recruitment 2026", "RRB NTPC 2026", "NEET PG 2026", "UPSC OTR")
      */
     public static function extractPrimarySubject(string $title): string {
         $clean = trim($title);
@@ -66,8 +75,8 @@ class SEOManagerService {
         if (str_contains($clean, ':')) {
             $parts = explode(':', $clean, 2);
             $candidate = trim($parts[0]);
-            if (mb_strlen($candidate) >= 4 && mb_strlen($candidate) <= 45) {
-                return $candidate;
+            if (mb_strlen($candidate) >= 4 && mb_strlen($candidate) <= 50) {
+                return self::cleanEntitySubject($candidate);
             }
         }
 
@@ -75,68 +84,123 @@ class SEOManagerService {
         if (str_contains($clean, ' - ')) {
             $parts = explode(' - ', $clean, 2);
             $candidate = trim($parts[0]);
-            if (mb_strlen($candidate) >= 4 && mb_strlen($candidate) <= 45) {
-                return $candidate;
+            if (mb_strlen($candidate) >= 4 && mb_strlen($candidate) <= 50) {
+                return self::cleanEntitySubject($candidate);
             }
         }
 
         // Extract first 4-5 meaningful words as subject
         $words = explode(' ', $clean);
         $subjectWords = array_slice($words, 0, min(5, count($words)));
-        return implode(' ', $subjectWords);
+        return self::cleanEntitySubject(implode(' ', $subjectWords));
+    }
+
+    /**
+     * Check if a heading already contains the core identifier tokens of the subject
+     */
+    public static function hasSubjectIdentifier(string $heading, string $subject): bool {
+        $headingLower = mb_strtolower($heading);
+        $subjectLower = mb_strtolower($subject);
+
+        if (str_contains($headingLower, $subjectLower)) {
+            return true;
+        }
+
+        $ignoreWords = ['exam', 'date', 'dates', 'recruitment', 'notification', 'online', 'apply', '2024', '2025', '2026', '2027', 'form', 'posts', 'vacancy', 'vacancies', 'for', 'and', 'the', 'with', 'about', 'guide'];
+        $words = preg_split('/[\s\-_:,()]+/', $subjectLower);
+        $coreTokens = [];
+        foreach ($words as $w) {
+            $w = trim($w);
+            if (mb_strlen($w) >= 3 && !in_array($w, $ignoreWords, true)) {
+                $coreTokens[] = $w;
+            }
+        }
+
+        if (empty($coreTokens)) {
+            return str_contains($headingLower, mb_substr($subjectLower, 0, 8));
+        }
+
+        $matchCount = 0;
+        foreach ($coreTokens as $token) {
+            if (str_contains($headingLower, $token)) {
+                $matchCount++;
+            }
+        }
+
+        return $matchCount >= max(1, (int)ceil(count($coreTokens) * 0.6));
     }
 
     /**
      * Transform generic headings into search-intent rich headings
      */
     public static function optimizeSubheadings(string $html, string $subject): string {
-        $headingPatterns = [
-            // Generic Overview
-            '/<h2\b([^>]*)>\s*(?:Overview|Recruitment\s+Overview|Notification\s+Overview|Notification\s+Details|Important\s+Highlights)\s*<\/h2>/i' =>
-                "<h2$1>{$subject}: Overview & Recruitment Notification Highlights</h2>",
+        return preg_replace_callback('/<h2\b([^>]*)>(.*?)<\/h2>/is', function($matches) use ($subject) {
+            $attrs = $matches[1];
+            $originalInner = $matches[2];
+            $text = trim(strip_tags($originalInner));
 
-            // Generic Dates & Timeline
-            '/<h2\b([^>]*)>\s*(?:Important\s+Dates|Key\s+Dates|Schedule|Exam\s+Dates|Application\s+Timeline|Timeline|Important\s+Schedule)\s*<\/h2>/i' =>
-                "<h2$1>{$subject}: Important Schedule & Application Timeline</h2>",
+            // If heading already has the primary subject identity, leave it intact!
+            if (self::hasSubjectIdentifier($text, $subject)) {
+                return "<h2{$attrs}>{$originalInner}</h2>";
+            }
 
-            // Generic Eligibility
-            '/<h2\b([^>]*)>\s*(?:Eligibility|Eligibility\s+Criteria|Eligibility\s+Requirements|Who\s+Can\s+Apply|Educational\s+Qualifications)\s*<\/h2>/i' =>
-                "<h2$1>Detailed Eligibility Criteria & Requirements for {$subject}</h2>",
+            // Map generic patterns to intent-rich query headings
+            if (preg_match('/(?:latest\s+official\s+update|latest\s+update|official\s+circular|recent\s+announcement|circular\s+update)/i', $text)) {
+                return "<h2{$attrs}>{$subject}: Latest Official Circular & Notification Update</h2>";
+            }
+            if (preg_match('/(?:overview|highlights|notification\s+details|recruitment\s+summary)/i', $text)) {
+                return "<h2{$attrs}>{$subject}: Overview & Official Notification Highlights</h2>";
+            }
+            if (preg_match('/(?:schedule|key\s+dates|important\s+dates|exam\s+dates|application\s+timeline|timeline|cutoff\s+deadlines|deadlines)/i', $text)) {
+                return "<h2{$attrs}>{$subject}: Official Schedule, Key Dates & Application Timeline</h2>";
+            }
+            if (preg_match('/(?:shift\s+timings|exam\s+day\s+guidelines|reporting\s+time|entry\s+rules|shift\s+schedule)/i', $text)) {
+                return "<h2{$attrs}>{$subject}: Shift Timings, Reporting Hours & Exam Day Guidelines</h2>";
+            }
+            if (preg_match('/(?:dress\s+code|prohibited\s+items|security\s+frisking|hall\s+rules|exam\s+day\s+rules)/i', $text)) {
+                return "<h2{$attrs}>{$subject}: Dress Code, Exam Hall Rules & Prohibited Items</h2>";
+            }
+            if (preg_match('/(?:exam\s+pattern|marking\s+scheme|negative\s+marking|question\s+paper\s+pattern|syllabus)/i', $text)) {
+                return "<h2{$attrs}>{$subject}: Exam Pattern, Total Marks & Negative Marking Scheme</h2>";
+            }
+            if (preg_match('/(?:preparation\s+strategy|recommended\s+books|study\s+plan|preparation\s+tips|subject\s+weightage)/i', $text)) {
+                return "<h2{$attrs}>{$subject}: Preparation Strategy, Recommended Books & Study Guide</h2>";
+            }
+            if (preg_match('/(?:cut\s*off|expected\s+cutoff|qualifying\s+marks|previous\s+year\s+cutoff)/i', $text)) {
+                return "<h2{$attrs}>{$subject}: Category-Wise Expected Cut-Off Marks & Qualifying Criteria</h2>";
+            }
+            if (preg_match('/(?:result|scorecard|merit\s+list|rank\s+card)/i', $text)) {
+                return "<h2{$attrs}>{$subject}: Result Direct Link, Scorecard & Cut-Off Marks</h2>";
+            }
+            if (preg_match('/(?:eligibility|educational\s+qualification|age\s+limit|who\s+can\s+apply)/i', $text)) {
+                return "<h2{$attrs}>Detailed Eligibility Criteria & Educational Requirements for {$subject}</h2>";
+            }
+            if (preg_match('/(?:how\s+to\s+apply|application\s+process|registration\s+steps|step-by-step|procedure)/i', $text)) {
+                return "<h2{$attrs}>Step-by-Step Online Registration & Application Guide for {$subject}</h2>";
+            }
+            if (preg_match('/(?:selection\s+process|selection\s+stages|mode\s+of\s+selection)/i', $text)) {
+                return "<h2{$attrs}>{$subject}: Selection Process, Stages & Evaluation Criteria</h2>";
+            }
+            if (preg_match('/(?:admit\s+card|hall\s+ticket|city\s+slip|call\s+letter)/i', $text)) {
+                return "<h2{$attrs}>{$subject}: Admit Card Direct Download Link & Shift Timings</h2>";
+            }
+            if (preg_match('/(?:documents?\s+required|required\s+documents?|mandatory\s+documents?|document\s+checklist|certificates?)/i', $text)) {
+                return "<h2{$attrs}>Mandatory Required Documents Checklist & Verification Rules for {$subject}</h2>";
+            }
+            if (preg_match('/(?:faqs?|frequently\s+asked\s+questions?)/i', $text)) {
+                return "<h2{$attrs}>Frequently Asked Questions (FAQs) About {$subject}</h2>";
+            }
+            if (preg_match('/(?:direct\s+links?|official\s+links?|important\s+links?|portal\s+links?|official\s+authority)/i', $text)) {
+                return "<h2{$attrs}>Official Authority Verification & Direct Portal Links for {$subject}</h2>";
+            }
 
-            // Generic Application Guide
-            '/<h2\b([^>]*)>\s*(?:How\s+to\s+Apply|Application\s+Process|Registration\s+Steps|Step\s+by\s+Step\s+Process)\s*<\/h2>/i' =>
-                "<h2$1>Step-by-Step Online Registration & Application Guide for {$subject}</h2>",
+            // Generic catch-all for any other H2 that lacks subject and is under 60 chars
+            if (mb_strlen($text) >= 4 && mb_strlen($text) <= 60) {
+                return "<h2{$attrs}>{$subject}: {$text}</h2>";
+            }
 
-            // Generic Selection Process
-            '/<h2\b([^>]*)>\s*(?:Selection\s+Process|Selection\s+Stages|Mode\s+of\s+Selection)\s*<\/h2>/i' =>
-                "<h2$1>{$subject}: Selection Process, Exam Stages & Marking Scheme</h2>",
-
-            // Generic Admit Card
-            '/<h2\b([^>]*)>\s*(?:Admit\s+Card|Hall\s+Ticket|City\s+Slip)\s*<\/h2>/i' =>
-                "<h2$1>{$subject}: Admit Card Direct Download Link & Exam Shift Timings</h2>",
-
-            // Generic Result / Cutoff
-            '/<h2\b([^>]*)>\s*(?:Result|Scorecard|Merit\s+List|Cut\s*off|Cutoffs)\s*<\/h2>/i' =>
-                "<h2$1>{$subject}: Result Direct Link, Scorecard & Category Cut-Off Marks</h2>",
-
-            // Generic Documents Checklist
-            '/<h2\b([^>]*)>\s*(?:Documents\s+Required|Required\s+Documents|Mandatory\s+Documents|Document\s+Checklist)\s*<\/h2>/i' =>
-                "<h2$1>Mandatory Required Documents Checklist for {$subject}</h2>",
-
-            // Generic FAQs
-            '/<h2\b([^>]*)>\s*(?:FAQs|Frequently\s+Asked\s+Questions)\s*<\/h2>/i' =>
-                "<h2$1>Frequently Asked Questions (FAQs) About {$subject}</h2>",
-
-            // Generic Direct Links
-            '/<h2\b([^>]*)>\s*(?:Direct\s+Links|Official\s+Links|Important\s+Links)\s*<\/h2>/i' =>
-                "<h2$1>Official Authority Verification & Direct Portal Links for {$subject}</h2>",
-        ];
-
-        foreach ($headingPatterns as $pattern => $replacement) {
-            $html = preg_replace($pattern, $replacement, $html);
-        }
-
-        return $html;
+            return "<h2{$attrs}>{$originalInner}</h2>";
+        }, $html);
     }
 
     /**

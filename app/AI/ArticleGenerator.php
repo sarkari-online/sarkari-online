@@ -127,22 +127,22 @@ CURRENT DATE: {$currentDateFormatted}
 VERIFIED SOURCE CONTEXT:
 {$sourceFactsJson}
 
-DYNAMIC STRUCTURE GUIDELINES (Provide rich, comprehensive depth of 1,000 to 1,400+ words with engaging storytelling and HTML tables):
+DYNAMIC STRUCTURE GUIDELINES (Every <h2> heading MUST contain the specific Examination/Recruitment entity name, e.g. "NEET PG 2026: Shift Timings & Guidelines". NEVER output generic headings without the subject):
 - Compelling narrative introduction blending the human aspirant context with direct answers: What happened, who is affected, when, and immediate action required.
-- <h2>Overview & Official Notification Highlights</h2> (Detailed contextual breakdown of vacancies, posts, and why this cycle matters)
-- <h2>Official Schedule, Key Dates & Cutoff Deadlines</h2> (MANDATORY HTML <table>: If this is an exam, list Shift Timings, Reporting, and Gate Close Cutoff. If this is a Counselling/CAP Admission/Registration round, list Option Entry Start/End Dates, Allotment Date, Seat Acceptance Window, and Physical Reporting Deadlines with exact cutoff hours.)
-- <h2>Detailed Eligibility Criteria, Age Limits & Qualifications</h2> (Clear breakdown of category relaxations, educational qualifications, and reservation rules)
-- <h2>Step-by-Step Procedure & Online Candidate Instructions</h2> (Empathetic mentor guide: navigation breadcrumbs, photograph/signature dimensions, avoiding server payment timeouts)
-- <h2>Mandatory Documents Checklist</h2> (Original Photo ID proofs, mark sheets, allotment letters, caste/domicile/EWS validity rules)
-- <h2>Frequently Asked Questions (FAQs)</h2> (5-6 genuine search questions with thorough, direct verified answers)
-- <h2>Official Authority Verification & Direct Portal Links</h2>
+- <h2>[Entity/Exam Name]: Overview & Official Notification Highlights</h2> (Detailed contextual breakdown of vacancies, posts, and why this cycle matters)
+- <h2>[Entity/Exam Name]: Official Schedule, Key Dates & Cutoff Deadlines</h2> (MANDATORY HTML <table>: If this is an exam, list Shift Timings, Reporting, and Gate Close Cutoff. If this is a Counselling/CAP Admission/Registration round, list Option Entry Start/End Dates, Allotment Date, Seat Acceptance Window, and Physical Reporting Deadlines with exact cutoff hours.)
+- <h2>Detailed Eligibility Criteria, Age Limits & Qualifications for [Entity/Exam Name]</h2> (Clear breakdown of category relaxations, educational qualifications, and reservation rules)
+- <h2>Step-by-Step Online Application & Registration Guide for [Entity/Exam Name]</h2> (Empathetic mentor guide: navigation breadcrumbs, photograph/signature dimensions, avoiding server payment timeouts)
+- <h2>Mandatory Documents Checklist & Verification Rules for [Entity/Exam Name]</h2> (Original Photo ID proofs, mark sheets, allotment letters, caste/domicile/EWS validity rules)
+- <h2>Frequently Asked Questions (FAQs) About [Entity/Exam Name]</h2> (5-6 genuine search questions with thorough, direct verified answers)
+- <h2>Official Authority Verification & Direct Portal Links for [Entity/Exam Name]</h2>
 
 Return strictly as JSON with this exact schema:
 {
   "title": "100% Unique search-intent headline under 80 chars (NEVER copied verbatim from source)",
   "excerpt": "Direct 2-sentence summary outlining what happened and key action (under 160 characters)",
   "direct_answer": "Crisp 35-45 word direct factual answer answering the core student search query (who, what, when, immediate action) specifically crafted for Google Position 0 Featured Snippet",
-  "content": "<h2>Latest Official Update</h2><p>...</p>...",
+  "content": "<h2>[Entity/Exam Name]: Latest Official Circular & Update</h2><p>...</p>...",
   "primary_search_intent": "Core query intent",
   "search_queries": [
     "search query 1",
