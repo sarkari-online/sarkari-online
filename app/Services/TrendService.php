@@ -509,7 +509,8 @@ class TrendService {
         $kwLower = mb_strtolower($keyword);
         $tier1Entities = [
             'rrb', 'railway', 'ntpc', 'group d', 'alp', 'technician',
-            'ssc cgl', 'ssc gd', 'ssc chsl', 'ssc mts', 'ssc je', 'ssc cpo', 'ssc constable',
+            'ssc', 'ssc cgl', 'ssc gd', 'ssc chsl', 'ssc mts', 'ssc je', 'ssc cpo', 'ssc constable',
+            'upsc', 'upsc otr', 'otr', 'one-time registration',
             'sbi po', 'sbi clerk', 'ibps po', 'ibps clerk', 'ibps rrb',
             'neet', 'jee main', 'jee advanced', 'cuet', 'ctet', 'gate 202', 'ugc net',
             'up police', 'bpsc teacher', 'bpsc tre', 'bihar police', 'rajasthan reet', 'mp police',
