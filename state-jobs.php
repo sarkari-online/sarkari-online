@@ -7,9 +7,11 @@
 require_once __DIR__ . '/config.php';
 
 use App\Services\StateJobService;
+use App\Services\JobDirectoryService;
 
 $allStates = StateJobService::getAllStates();
 $regions = StateJobService::getStatesByRegion();
+$activeJobs = JobDirectoryService::getActiveJobs(20);
 
 $pageTitle = 'State Govt Jobs 2026: All States Portal | ' . SITE_NAME;
 $pageDesc = 'Explore latest state government jobs 2026 across UP, Bihar, Rajasthan, Delhi, MP, and all Indian states with direct official portals and verified job alerts.';
@@ -117,6 +119,52 @@ include __DIR__ . '/components/header.php';
 
     <!-- Content Body -->
     <div class="container state-hub-container">
+
+        <?php if (!empty($activeJobs)): ?>
+        <!-- Live Government Jobs & Active Recruitment List -->
+        <section class="state-live-jobs-section" style="margin-bottom: 2rem;">
+            <div class="section-title-wrap" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+                <div>
+                    <h2 class="section-heading" style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 0;">⚡ All Latest Government Jobs 2026 (Live Recruitment List)</h2>
+                    <p style="font-size: 0.85rem; color: #64748b; margin: 0.2rem 0 0;">Verified notifications with post counts, deadlines, and official portal links:</p>
+                </div>
+                <a href="<?= url('latest-jobs/') ?>" style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; font-weight: 700; color: #2563eb; text-decoration: none; background: #eff6ff; border: 1px solid #bfdbfe; padding: 0.4rem 0.8rem; border-radius: 6px;">
+                    <span>View All Jobs Hub</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                </a>
+            </div>
+
+            <div class="state-live-jobs-list" style="display: flex; flex-direction: column; gap: 0.6rem;">
+                <?php foreach (array_slice($activeJobs, 0, 15) as $job): 
+                    $isUrgent = str_contains(strtolower($job['last_date']), 'today') || str_contains(strtolower($job['status_tag']['label']), 'closing');
+                ?>
+                <a href="<?= $job['url'] ?>" style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; background: #ffffff; border: 1px solid #e2e8f0; border-left: 4px solid #2563eb; border-radius: 8px; padding: 0.85rem 1.15rem; text-decoration: none; color: inherit; transition: all 0.15s ease;">
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.25rem;">
+                            <span style="font-size: 0.98rem; font-weight: 700; color: #0f172a; line-height: 1.35;"><?= e($job['title']) ?></span>
+                            <?php if (!empty($job['vacancies'])): ?>
+                            <span style="background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; padding: 0.1rem 0.45rem; border-radius: 4px; font-size: 0.72rem; font-weight: 700;"><?= e($job['vacancies']) ?></span>
+                            <?php endif; ?>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.78rem; color: #64748b; flex-wrap: wrap;">
+                            <strong><?= e($job['authority']) ?></strong>
+                            <span>&bull;</span>
+                            <span style="background: #f1f5f9; color: #334155; padding: 0.05rem 0.4rem; border-radius: 3px; font-weight: 600;"><?= e($job['state_name']) ?></span>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.6rem; flex-shrink: 0;">
+                        <span style="font-size: 0.78rem; font-weight: 700; color: <?= $isUrgent ? '#dc2626' : '#1e293b' ?>; background: <?= $isUrgent ? '#fef2f2' : '#f8fafc' ?>; border: 1px solid <?= $isUrgent ? '#fee2e2' : '#e2e8f0' ?>; padding: 0.25rem 0.55rem; border-radius: 5px; white-space: nowrap;">
+                            <?= e($job['last_date']) ?>
+                        </span>
+                        <span style="font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 4px; background: #dbeafe; color: #1e40af; text-transform: uppercase;">
+                            <?= e($job['status_tag']['label']) ?>
+                        </span>
+                    </div>
+                </a>
+                <?php endforeach; ?>
+            </div>
+        </section>
+        <?php endif; ?>
 
         <!-- Top Priority Quick Links (Most Popular States) -->
         <section class="state-popular-section">

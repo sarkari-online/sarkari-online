@@ -25,6 +25,12 @@ if (!empty($cleanPath) && $cleanPath !== 'index.php') {
         }
     }
 
+    // Dynamic Latest Jobs Directory Router: route /latest-jobs
+    if ($cleanPath === 'latest-jobs' || $cleanPath === 'latest-jobs/') {
+        require __DIR__ . '/latest-jobs.php';
+        exit;
+    }
+
     // Dynamic State Jobs Hub Router: route /state-jobs
     if ($cleanPath === 'state-jobs' || $cleanPath === 'state-jobs/') {
         require __DIR__ . '/state-jobs.php';

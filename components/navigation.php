@@ -10,7 +10,7 @@ $primaryNavLinks = [
     ['label' => 'Results', 'url' => 'category/exam-results/'],
     ['label' => 'Admit Cards', 'url' => 'category/admit-cards/'],
     ['label' => 'Exam Dates', 'url' => 'category/exam-dates/'],
-    ['label' => 'Govt Jobs', 'url' => 'category/government-jobs/'],
+    ['label' => 'Latest Jobs', 'url' => 'latest-jobs/'],
     ['label' => 'Scholarships', 'url' => 'category/scholarships/'],
 ];
 
