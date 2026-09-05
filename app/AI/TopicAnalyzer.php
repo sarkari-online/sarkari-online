@@ -1,12 +1,14 @@
 <?php
 /**
- * EduPulse - Topic Analyzer AI Service
- * Analyzes emerging trends against Indian education taxonomy, verifies authenticity requirements,
- * checks duplicate risks against existing library, and computes priority scores.
+ * Sarkari.online - Topic Analyzer AI Service (100-Point Weighted Intent Engine)
+ * Analyzes emerging trends against Indian education taxonomy, verifies tiered authority,
+ * evaluates 100-point priority scores, enforces hard quality gates, and tags content types.
  */
 
 namespace App\AI;
 
+use App\Services\TopicDiscoveryEngine;
+use App\Services\AuthorityVerificationService;
 use Exception;
 
 class TopicAnalyzer {
@@ -26,9 +28,25 @@ class TopicAnalyzer {
      * @return array Structured analysis output
      */
     public function analyze(string $trendKeyword, array $sourceInfo = [], array $existingArticles = []): array {
+        // Step 1: Pre-AI Hard Quality Gate Evaluation (Saves API Quota)
+        $gateResult = TopicDiscoveryEngine::evaluateHardQualityGates($trendKeyword, $sourceInfo);
+        if (!$gateResult['pass']) {
+            return [
+                'publish_recommendation' => false,
+                'publishing_tier' => 'rejected',
+                'category' => 'career-guides',
+                'priority_score' => 20,
+                'content_type' => 'explainer',
+                'search_intent' => 'informational',
+                'suggested_original_angle' => 'Rejected by Hard Quality Gate',
+                'duplicate_risk' => 'high',
+                'reasoning' => 'Hard Quality Gate rejection: ' . $gateResult['reason']
+            ];
+        }
+
         $systemInstruction = <<<PROMPT
-You are a senior editorial director for an Indian Education, Exams & Career intelligence portal.
-Your task is to analyze emerging keywords/trends and evaluate whether our portal should publish an original report.
+You are a senior editorial director and search strategist for Sarkari.online (India's authoritative Government Jobs, Exams & Career intelligence portal).
+Your task is to analyze emerging keywords/trends and score them using our 100-Point Multi-Factor Priority Scoring Model.
 
 TAXONOMY CATEGORIES AVAILABLE:
 - exam-results (Scorecards, rank lists, merit lists, marksheets)
@@ -39,46 +57,36 @@ TAXONOMY CATEGORIES AVAILABLE:
 - college-updates (JoSAA, CSAB, DU CSAS, UGC fee refund & norms, university admissions, college cutoffs)
 - school-boards (CBSE, ICSE, State Boards 10th/12th updates)
 - scholarships (NSP, PMSSS, PM YASASVI, institutional financial aids, student fee waivers)
-- career-guides (Preparation strategies, subject roadmaps, syllabus breakdowns)
-- student-technology (DigiLocker, ABC ID, APAAR ID, SSC OTR, EdTech & Free Skilling)
+- career-guides (Preparation strategies, subject roadmaps, syllabus breakdowns, 7th CPC salaries)
+- student-technology (STUDENT_DIGITAL_SERVICES: DigiLocker, ABC ID, APAAR ID, SSC OTR, UPSC OTR)
 
-CRITICAL RULES:
-1. MANDATORY HIGH SEARCH VOLUME & STUDENT ACTION INTENT:
-   - TIER 1 — MEGA NATIONAL SEARCH INTENT (publish_recommendation: true, priority_score 96-99):
-     MUST APPROVE topics involving examinations, recruitments, and student utilities that command massive search volumes (100,000 to 2,000,000+ monthly queries across India):
-     * Central Mega Recruitments: RRB (NTPC CEN 05/2024 & CEN 06/2024, Group D, ALP, Technician, RPF), SSC (CGL, GD Constable, CHSL, MTS, JE, CPO), Banking (SBI PO, SBI Clerk, IBPS PO, IBPS Clerk, IBPS RRB), UPSC (Civil Services, NDA, CDS), Defence Agniveer.
-     * National Entrance Exams: NEET UG, JEE Main, CUET UG, CTET, GATE, UGC NET.
-     * Mega State Recruitments: UP Police Constable, Bihar BPSC Teacher (TRE 4.0), Bihar Police, Rajasthan REET, MP Police.
-     * Essential Student Digital Services: DigiLocker APAAR ID Card Download (One Nation One Student ID), ABC ID Create Online, NSP Scholarship 2026-27 Registration & Face Auth.
-     AND the topic must represent an active student milestone:
-       a) Active Online Application / Recruitment Notification (Start date, Last date, Vacancies, Eligibility, Direct Portal Link)
-       b) Admit Card / Hall Ticket / Exam City Slip Release (Download link, Shift timings, Reporting rules)
-       c) Official Answer Key & OMR Sheet / Objection Challenge Window
-       d) Result Declaration, Scorecard Download Link & Category Cut-Off Marks
-       e) Confirmed Official Exam Schedule / Timetable / Postponement Notice
-       f) National/State Scholarship Registration & Direct Benefit Transfer (NSP, PMSSS, etc.)
-       g) Comprehensive Syllabus, Exam Pattern, and Marking Scheme Blueprint
+17 DISTINCT CONTENT TYPES:
+1. news_update, 2. recruitment_page, 3. exam_guide, 4. result_page, 5. admit_card,
+6. answer_key, 7. cutoff_analysis, 8. scholarship_page, 9. admission_page, 10. career_guide,
+11. salary_guide, 12. eligibility_guide, 13. syllabus_guide, 14. comparison_page,
+15. explainer, 16. resource_pdf, 17. official_hub.
 
-   - TIER 2 — SECTORAL & STATE COMMISSIONS (publish_recommendation: true, priority_score 80-89):
-     State PSCs, High Court recruitments, or Navratna PSUs (ONGC, IOCL, BEL, SAIL, Coal India) with 500+ vacancies and broad public demand.
+100-POINT SCORING BREAKDOWN:
+- Search Demand (30 pts): Mega National (>500k = 28-30), High State/Sectoral (>100k = 22-27), Medium (>20k = 15-21), Low (<10).
+- Trend & Seasonality (15 pts): Active live milestone / notification release right now (13-15), evergreen steady (9-12), off-season (<8).
+- Relevance to Audience (15 pts): Direct student/aspirant utility (14-15), general policy/interest (8-12), irrelevant (<5).
+- Search Intent Strength (15 pts): Direct action (Apply Online, Admit Card, Result, Cut Off = 14-15), informational (10-13), vague (<7).
+- SERP Opportunity (10 pts): Better tabular data, PDF direct links, or speed advantage over competitors (8-10).
+- Freshness Potential (5 pts): Multi-stage lifecycle updates (Answer key → Result → Cutoff → DV = 5).
+- Monetization Value (5 pts): High-intent preparation & education CPC value (4-5).
+- Internal Ecosystem (5 pts): Natural interlinking with parent commission hub and sibling guides (4-5).
 
-2. STRICT REJECTION OF ADMINISTRATIVE NOISE, GRIEVANCE CELLS, LEGAL CASES & FLUFF:
-   - Strictly REJECT (publish_recommendation: false, priority_score < 40) any of the following:
-     * Grievance portals, feedback forms, complaint cells, helpdesks, helpline numbers, or RTI queries (e.g. "Grievance portal opened", "how to submit issues", "feedback system"). Students do NOT search for administrative grievance desks; this produces zero traffic.
-     * Court hearings, PILs, legal pleas, Supreme Court/High Court arguments ("SC told", "High Court stays", "plea filed", "hearing postponed").
-     * Political rhetoric, ministerial speeches, or policy proposals without gazette notifications ("says CM", "minister says", "centre working on proposal", "cabinet discusses").
-     * School administrative/disciplinary rules (e.g. "attendance system across schools", "dress code row", "mobile phone ban", "school bag policy").
-     * Micro-recruitments with fewer than 50 vacancies or contractual walk-in interviews.
-     * Investigation reports, paper leak probes, FIR registrations, arrests, candidate protests, exam center space searches, or inquiry committees.
-     * Unverified speculative rumors ("likely today", "expected this week") lacking an official statutory circular.
-3. TEMPORAL FRESHNESS & PROACTIVE ADVANCE NOTICE:
-   - Operating Year: 2026/2027. Strictly REJECT (publish_recommendation: false) any old, expired historical exam/recruitment cycles (2025, 2024, 2023).
-   - If an exam date or registration deadline has ALREADY expired/concluded in the past, REJECT it (publish_recommendation: false) because past notices are useless for students.
-4. OFFICIAL SOURCES VS DEMAND SIGNALS:
-   - Official statutory portals (.gov.in, .nic.in, .ac.in) are the primary factual authority.
-   - Google Trends RSS represents user search demand signal only — ground truth must be verified against official authority.
-5. NATIONAL SKILLING & TECH EMPOWERMENT:
-   - Proactively APPROVE (publish_recommendation: true, priority_score 95-97) under 'student-technology' or 'scholarships' any national digital identity initiatives (DigiLocker, APAAR ID, ABC ID), national skill development (NSDC, Skill India, NATS 2.0), and government-backed digital learning programs offering concrete career value to Indian students.
+TIERED PUBLISHING GATES:
+- 90+ Priority: Mega National Milestone (RRB, SSC, UPSC, Bank, NEET, JEE, DigiLocker/APAAR). Auto-Approved for fast-track publishing.
+- 80-89 Approved: Solid Sectoral/State recruitment or comprehensive career blueprint. Standard publishing queue.
+- 65-79 Review/Wait: Needs active notice confirmation or higher demand signal.
+- <65 Reject: Low intent, micro-vacancies (<50), administrative noise.
+
+HARD QUALITY GATES (ALWAYS OVERRIDE SCORE TO REJECT IF TRIGGERED):
+- Expired year cycles (2024, 2023) or concluded application deadlines.
+- Administrative noise, grievance desks, PILs, legal hearing gossip ("SC told", "plea filed", "protest").
+- Duplicate search intent (>80% overlap with existing articles).
+- Speculative rumors lacking an official statutory circular (.gov.in, .nic.in, ibps.in, nta.ac.in, cbse.gov.in).
 PROMPT;
 
         $existingList = empty($existingArticles) ? "None" : implode("\n- ", array_map(function($a) {
@@ -86,11 +94,11 @@ PROMPT;
         }, $existingArticles));
 
         $sourceContext = "Source Name: " . ($sourceInfo['source_name'] ?? 'Not specified') . "\n";
-        $sourceContext .= "Source URL: " . ($sourceInfo['source_url'] ?? 'Not specified') . "\n";
+        $sourceContext .= "Source URL: " . ($sourceInfo['source_url'] ?? ($sourceInfo['url'] ?? 'Not specified')) . "\n";
         $sourceContext .= "Source Snippet: " . ($sourceInfo['snippet'] ?? 'Not specified') . "\n";
 
         $userPrompt = <<<USER_PROMPT
-Please analyze the following trend:
+Please evaluate the following trend against our 100-Point Scoring Model:
 
 TREND KEYWORD: {$trendKeyword}
 
@@ -103,14 +111,25 @@ EXISTING RELATED ARTICLES IN OUR DATABASE:
 Return your response strictly as a JSON object with this exact schema:
 {
   "publish_recommendation": true/false,
+  "priority_score": 92,
+  "publishing_tier": "priority | approved | review_wait | rejected",
   "category": "category-slug-from-allowed-list",
-  "search_intent": "informational | direct_action | deadline_tracking | comparison",
-  "priority_score": 85,
-  "article_type": "breaking_notice | comprehensive_guide | step_by_step_process | analysis",
-  "required_source_type": "statutory_authority | government_portal | university_bulletin",
+  "content_type": "one_of_the_17_content_types",
+  "search_intent": "informational | transactional | time_sensitive | navigational | comparison",
+  "scoring_breakdown": {
+    "demand": 28,
+    "trend": 14,
+    "relevance": 15,
+    "intent": 14,
+    "serp": 8,
+    "freshness": 5,
+    "monetization": 4,
+    "ecosystem": 4
+  },
+  "canonical_topic": "Consolidated clean canonical headline for this search intent",
   "suggested_original_angle": "Actionable explanation of the unique value angle for Indian aspirants",
   "duplicate_risk": "low | medium | high",
-  "reasoning": "Brief explanation of why this topic should or should not be published"
+  "reasoning": "Brief justification of scores and tier"
 }
 USER_PROMPT;
 
@@ -123,12 +142,17 @@ USER_PROMPT;
         $data = $response['data'];
 
         // Validate required keys
-        $requiredKeys = ['publish_recommendation', 'category', 'priority_score', 'suggested_original_angle', 'duplicate_risk'];
+        $requiredKeys = ['publish_recommendation', 'category', 'priority_score', 'content_type'];
         foreach ($requiredKeys as $key) {
             if (!array_key_exists($key, $data)) {
                 throw new Exception("TopicAnalyzer response missing required field: {$key}");
             }
         }
+
+        // Apply strict Tiered Publishing Gate override
+        $tierInfo = TopicDiscoveryEngine::classifyPublishingTier((int)$data['priority_score']);
+        $data['publishing_tier'] = $tierInfo['tier'];
+        $data['publish_recommendation'] = in_array($tierInfo['tier'], ['priority', 'approved'], true);
 
         return $data;
     }

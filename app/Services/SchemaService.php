@@ -1,18 +1,17 @@
 <?php
 /**
- * Sarkari.online - Automated Rich Schema Injection Service
- * Generates NewsArticle, FAQPage, Event, HowTo JSON-LD structured data
- * for maximum Google Rich Results eligibility.
+ * Sarkari.online - Modern Schema & Structured Data Service
+ * Implements supported Google Search structured data: NewsArticle, Article, BreadcrumbList,
+ * and restricted JobPosting (strictly for individual active recruitment vacancies).
+ * (HowTo and FAQPage rich-result schemas are deprecated/removed per modern Google Search standards).
  */
 
 namespace App\Services;
 
-use App\Database\Database;
-
 class SchemaService {
 
     /**
-     * Generate all applicable JSON-LD schema blocks for an article
+     * Generate all currently supported JSON-LD schema blocks for an article
      */
     public static function generate(array $article, string $categorySlug = ''): array {
         $schemas = [];
@@ -24,13 +23,10 @@ class SchemaService {
         $image   = !empty($article['featured_image']) ? url($article['featured_image']) : url('assets/images/default-share.jpg');
         $desc    = strip_tags($article['excerpt'] ?? $article['meta_description'] ?? '');
 
-        // All Sarkari.online articles are official statutory exam & recruitment news bulletins
-        $articleType = 'NewsArticle';
-
-        // 1. Primary Article / NewsArticle Schema
+        // 1. Primary Article / NewsArticle Schema (100% supported by Google Search)
         $primarySchema = [
             '@context'         => 'https://schema.org',
-            '@type'            => $articleType,
+            '@type'            => 'NewsArticle',
             'headline'         => $title,
             'description'      => $desc,
             'url'              => $url,
@@ -63,35 +59,13 @@ class SchemaService {
                 '@id'   => $url
             ],
             'inLanguage'       => 'en-IN',
-            'isAccessibleForFree' => true
+            'isAccessibleForFree' => true,
+            'articleSection'   => $article['category_name'] ?? 'Education'
         ];
-
-        if ($articleType === 'NewsArticle') {
-            $primarySchema['articleSection'] = $article['category_name'] ?? 'Education';
-        }
 
         $schemas[] = $primarySchema;
 
-        // 2. FAQPage Schema — detect FAQ content
-        $faqs = self::extractFAQs($content, $article);
-        if (!empty($faqs)) {
-            $schemas[] = [
-                '@context'   => 'https://schema.org',
-                '@type'      => 'FAQPage',
-                'mainEntity' => array_map(function($faq) {
-                    return [
-                        '@type'          => 'Question',
-                        'name'           => $faq['question'],
-                        'acceptedAnswer' => [
-                            '@type' => 'Answer',
-                            'text'  => strip_tags($faq['answer'])
-                        ]
-                    ];
-                }, $faqs)
-            ];
-        }
-
-        // 3. BreadcrumbList Schema for Article
+        // 2. BreadcrumbList Schema (Crucial for mobile and desktop SERP breadcrumbs)
         $schemas[] = [
             '@context' => 'https://schema.org',
             '@type' => 'BreadcrumbList',
@@ -117,29 +91,37 @@ class SchemaService {
             ]
         ];
 
-        // 4. Event Schema — ONLY if a verified future exam ISO date exists
-        $examCategories = ['entrance-exams', 'recruitment', 'government-jobs', 'results', 'admit-cards'];
-        if (in_array($categorySlug, $examCategories, true)) {
-            $examDate = self::extractExamDate($content);
-            if (!empty($examDate) && strtotime($examDate) !== false) {
+        // 3. Restricted JobPosting Schema (Strictly for individual recruitment vacancies with verified deadline)
+        // Must NEVER be applied to syllabus, salary guides, admit cards, or result pages
+        $contentType = $article['content_type'] ?? '';
+        $isActualRecruitment = ($contentType === 'recruitment_page')
+            || (str_contains(mb_strtolower($title), 'recruitment') && str_contains(mb_strtolower($title), 'apply online'))
+            || (str_contains(mb_strtolower($title), 'vacancy') && str_contains(mb_strtolower($title), 'posts'));
+
+        if ($isActualRecruitment && !str_contains(mb_strtolower($title), 'syllabus') && !str_contains(mb_strtolower($title), 'admit card') && !str_contains(mb_strtolower($title), 'result')) {
+            $deadlineDate = self::extractDeadlineDate($content);
+            if (!empty($deadlineDate)) {
                 $schemas[] = [
-                    '@context'  => 'https://schema.org',
-                    '@type'     => 'Event',
-                    'name'      => $title,
+                    '@context' => 'https://schema.org',
+                    '@type' => 'JobPosting',
+                    'title' => $title,
                     'description' => $desc,
-                    'url'       => $url,
-                    'startDate' => date('Y-m-d', strtotime($examDate)),
-                    'organizer' => [
+                    'datePosted' => $pubDate,
+                    'validThrough' => date('c', strtotime($deadlineDate . ' 23:59:59')),
+                    'employmentType' => 'FULL_TIME',
+                    'hiringOrganization' => [
                         '@type' => 'Organization',
-                        'name'  => $article['source_name'] ?? 'Statutory Authority',
-                        'url'   => $article['source_url'] ?? SITE_URL
+                        'name' => $article['source_name'] ?? 'Government of India / Statutory Commission',
+                        'sameAs' => $article['source_url'] ?? SITE_URL
                     ],
-                    'eventStatus'   => 'https://schema.org/EventScheduled',
-                    'eventAttendanceMode' => 'https://schema.org/OnlineEventAttendanceMode',
-                    'location' => [
-                        '@type' => 'VirtualLocation',
-                        'url'   => $article['source_url'] ?? SITE_URL
-                    ]
+                    'jobLocation' => [
+                        '@type' => 'Place',
+                        'address' => [
+                            '@type' => 'PostalAddress',
+                            'addressCountry' => 'IN'
+                        ]
+                    ],
+                    'url' => $url
                 ];
             }
         }
@@ -160,79 +142,23 @@ class SchemaService {
     }
 
     /**
-     * Extract FAQ pairs from article content or stored FAQ data
+     * Try to extract an active future application deadline date from article content
      */
-    private static function extractFAQs(string $content, array $article): array {
-        $faqs = [];
-
-        // Check stored FAQ JSON field
-        if (!empty($article['faqs'])) {
-            $stored = is_array($article['faqs']) ? $article['faqs'] : json_decode($article['faqs'], true);
-            if (is_array($stored) && !empty($stored)) {
-                return array_slice($stored, 0, 5);
-            }
-        }
-
-        // Extract from H3 question patterns in content
-        preg_match_all('/<h3[^>]*>([^<]+\?)<\/h3>\s*(<p[^>]*>[\s\S]*?<\/p>)/i', $content, $matches);
-        for ($i = 0; $i < min(count($matches[1]), 5); $i++) {
-            $question = trim(strip_tags($matches[1][$i]));
-            $answer   = trim(strip_tags($matches[2][$i]));
-            if (strlen($question) > 10 && strlen($answer) > 20) {
-                $faqs[] = ['question' => $question, 'answer' => $answer];
-            }
-        }
-
-        return $faqs;
-    }
-
-    /**
-     * Detect step-by-step content patterns
-     */
-    private static function hasStepContent(string $content): bool {
-        return preg_match('/<ol[^>]*>/i', $content)
-            || preg_match('/step\s*[1-9]/i', $content)
-            || preg_match('/how to apply/i', $content);
-    }
-
-    /**
-     * Extract steps from ordered list or Step N patterns
-     */
-    private static function extractSteps(string $content): array {
-        $steps = [];
-
-        // Try ordered list
-        if (preg_match('/<ol[^>]*>([\s\S]*?)<\/ol>/i', $content, $olMatch)) {
-            preg_match_all('/<li[^>]*>([\s\S]*?)<\/li>/i', $olMatch[1], $liMatches);
-            foreach (array_slice($liMatches[1], 0, 8) as $i => $li) {
-                $text = trim(strip_tags($li));
-                if (strlen($text) > 10) {
-                    $steps[] = ['name' => 'Step ' . ($i + 1), 'text' => $text];
-                }
-            }
-        }
-
-        return $steps;
-    }
-
-    /**
-     * Try to extract an exam date from article content
-     */
-    private static function extractExamDate(string $content): ?string {
-        // Match patterns like "15 September 2026", "September 15, 2026", "2026-09-15"
+    private static function extractDeadlineDate(string $content): ?string {
         $patterns = [
-            '/\b(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(202[5-9])\b/i',
-            '/\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(202[5-9])\b/i',
+            '/(?:last\s*date|apply\s*by|deadline|closing\s*date)\s*[:\-]?\s*(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(202[5-9])/i',
+            '/(?:last\s*date|apply\s*by|deadline)\s*[:\-]?\s*(\d{1,2})[\/\-](\d{1,2})[\/\-](202[5-9])/i'
         ];
+
         foreach ($patterns as $pattern) {
             if (preg_match($pattern, $content, $m)) {
-                $dateStr = $m[0];
-                $ts = strtotime($dateStr);
+                $ts = strtotime($m[0]);
                 if ($ts && $ts > time()) {
                     return date('Y-m-d', $ts);
                 }
             }
         }
+
         return null;
     }
 }

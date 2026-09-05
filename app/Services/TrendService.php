@@ -17,6 +17,7 @@ use App\Services\TrendSources\RssFeedAdapter;
 use App\Services\TrendSources\OfficialSourcesAdapter;
 use App\Services\TrendSources\EvergreenTopicsAdapter;
 use App\Services\TrendSources\GovtJobsAdapter;
+use App\Services\TrendSources\SearchIntentDiscoveryAdapter;
 use Exception;
 use Throwable;
 
@@ -29,9 +30,10 @@ class TrendService {
         if (!empty($adapters)) {
             $this->adapters = $adapters;
         } else {
-            // Default built-in source adapters: Live Official Portals, Govt Jobs Radar, Evergreen Catalog, Exam RSS Feeds, and Google Trends
+            // Default built-in source adapters: Live Official Portals, Search-Intent Engine, Govt Jobs Radar, Evergreen Catalog, Exam RSS Feeds, and Google Trends
             $this->adapters = [
                 new OfficialSourcesAdapter(),
+                new SearchIntentDiscoveryAdapter(),
                 new GovtJobsAdapter(),
                 new EvergreenTopicsAdapter(),
                 new RssFeedAdapter(),
