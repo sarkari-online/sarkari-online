@@ -109,6 +109,13 @@ class JobDirectoryService {
         // Determine status tag (intelligent deadline & lifecycle tracker)
         $statusTag = self::determineStatusTag($deadlineInfo['raw_date'] ?? '', $title);
 
+        $displayDeadline = $deadlineInfo['formatted'];
+        if ($statusTag['type'] === 'notice') {
+            $displayDeadline = 'Dates Postponed';
+        } elseif ($statusTag['type'] === 'closed') {
+            $displayDeadline = str_contains($displayDeadline, 'Closed') ? $displayDeadline : "{$displayDeadline} (Closed)";
+        }
+
         return [
             'id'             => (int)$row['id'],
             'title'          => $displayTitle,
@@ -117,7 +124,7 @@ class JobDirectoryService {
             'url'            => function_exists('url') ? \url('article/' . $slug . '/') : ('/article/' . $slug . '/'),
             'authority'      => $authority,
             'vacancies'      => $vacancies,
-            'last_date'      => $deadlineInfo['formatted'],
+            'last_date'      => $displayDeadline,
             'last_date_raw'  => $deadlineInfo['raw_date'],
             'status_tag'     => $statusTag,
             'state_name'     => $stateInfo['name'],
@@ -307,9 +314,41 @@ class JobDirectoryService {
     }
 
     /**
+     * Parse various date formats commonly found in Indian recruitment notifications
+     */
+    public static function parseDateTimestamp(?string $dateStr): ?int {
+        if (empty($dateStr)) {
+            return null;
+        }
+
+        // Replace parentheses with spaces to keep time intact without bracket syntax breaking strtotime
+        $clean = trim(preg_replace('/[()]/', ' ', $dateStr));
+        // Remove ordinal suffixes like 2nd, 3rd, 24th
+        $clean = preg_replace('/\b(st|nd|rd|th)\b/i', '', $clean);
+        // Remove common non-date words
+        $clean = preg_replace('/\b(tentative|expected|extended|online|form|till|up\s+to|upto)\b/i', '', $clean);
+        $clean = preg_replace('/\s+/', ' ', trim($clean));
+
+        $ts = strtotime($clean);
+        if ($ts !== false) {
+            return $ts;
+        }
+
+        // Fallback: extract specific date pattern "September 02, 2026" or "02 September 2026"
+        if (preg_match('/\b([0-9]{1,2}\s+[A-Za-z]+\s+[0-9]{4}|[A-Za-z]+\s+[0-9]{1,2},?\s+[0-9]{4})\b/', $dateStr, $m)) {
+            $ts = strtotime($m[1]);
+            if ($ts !== false) {
+                return $ts;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Determine status badge based on deadline and title lifecycle
      */
-     public static function determineStatusTag(?string $rawDate, string $title = ''): array {
+    public static function determineStatusTag(?string $rawDate, string $title = ''): array {
         $lowerTitle = strtolower($title);
         if (str_contains($lowerTitle, 'postponed') || str_contains($lowerTitle, 'deferred') || str_contains($lowerTitle, 'cancelled')) {
             return ['label' => 'Postponed', 'type' => 'notice'];
@@ -324,9 +363,9 @@ class JobDirectoryService {
             return ['label' => 'Last Date Today', 'type' => 'urgent'];
         }
 
-        // Try date parsing
-        $ts = strtotime($rawDate);
-        if ($ts !== false) {
+        // Try robust date parsing
+        $ts = self::parseDateTimestamp($rawDate);
+        if ($ts !== null) {
             $todayStart = strtotime('today midnight');
             $targetStart = strtotime(date('Y-m-d', $ts) . ' midnight');
             $diffDays = (int)round(($targetStart - $todayStart) / 86400);
