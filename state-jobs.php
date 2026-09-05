@@ -69,6 +69,40 @@ $schemaJson = json_encode([
 include __DIR__ . '/components/head.php';
 include __DIR__ . '/components/header.php';
 ?>
+<style>
+.state-job-item-row:last-child {
+    border-bottom: none !important;
+}
+.state-job-item-row:hover {
+    background-color: #f8fafc !important;
+}
+.state-job-item-row:hover .state-job-title {
+    color: #dc2626 !important;
+    text-decoration: underline !important;
+}
+.state-job-item-row:hover .state-job-apply-btn {
+    background: #2563eb !important;
+    color: #ffffff !important;
+    border-color: #2563eb !important;
+}
+@media (max-width: 768px) {
+    .state-job-item-row {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.5rem !important;
+        padding: 0.8rem 0.9rem !important;
+    }
+    .state-job-item-row > div:first-child > div:last-child {
+        padding-left: 0 !important;
+    }
+    .state-job-action-col {
+        width: 100% !important;
+        justify-content: space-between !important;
+        border-top: 1px dashed #f1f5f9 !important;
+        padding-top: 0.4rem !important;
+    }
+}
+</style>
 
 <main class="site-main state-hub-main" style="padding-top: 0; width: 100%; max-width: 100%;">
 
@@ -134,30 +168,34 @@ include __DIR__ . '/components/header.php';
                 </a>
             </div>
 
-            <div class="state-live-jobs-list" style="display: flex; flex-direction: column; gap: 0.6rem;">
+            <div class="state-jobs-list-card" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); overflow: hidden;">
                 <?php foreach (array_slice($activeJobs, 0, 15) as $job): 
                     $isUrgent = str_contains(strtolower($job['last_date']), 'today') || str_contains(strtolower($job['status_tag']['label']), 'closing');
                 ?>
-                <a href="<?= $job['url'] ?>" style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; background: #ffffff; border: 1px solid #e2e8f0; border-left: 4px solid #2563eb; border-radius: 8px; padding: 0.85rem 1.15rem; text-decoration: none; color: inherit; transition: all 0.15s ease;">
+                <a href="<?= $job['url'] ?>" class="state-job-item-row" style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.85rem 1.15rem; border-bottom: 1px solid #f1f5f9; text-decoration: none; color: inherit; transition: background-color 0.15s ease;">
                     <div style="flex: 1; min-width: 0;">
-                        <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.25rem;">
-                            <span style="font-size: 0.98rem; font-weight: 700; color: #0f172a; line-height: 1.35;"><?= e($job['title']) ?></span>
+                        <div style="display: flex; align-items: baseline; gap: 0.45rem; flex-wrap: wrap; margin-bottom: 0.25rem;">
+                            <span style="color: #dc2626; font-size: 1.2rem; line-height: 1; font-weight: bold;" aria-hidden="true">&bull;</span>
+                            <span class="state-job-title" style="font-size: 0.98rem; font-weight: 700; color: #1e3a8a; line-height: 1.35;"><?= e($job['title']) ?></span>
                             <?php if (!empty($job['vacancies'])): ?>
-                            <span style="background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; padding: 0.1rem 0.45rem; border-radius: 4px; font-size: 0.72rem; font-weight: 700;"><?= e($job['vacancies']) ?></span>
+                            <span style="color: #15803d; font-size: 0.82rem; font-weight: 700;">(<?= e($job['vacancies']) ?>)</span>
                             <?php endif; ?>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.78rem; color: #64748b; flex-wrap: wrap;">
-                            <strong><?= e($job['authority']) ?></strong>
+                        <div style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.78rem; color: #64748b; flex-wrap: wrap; padding-left: 1rem;">
+                            <span style="font-weight: 600; color: #475569;"><?= e($job['authority']) ?></span>
                             <span>&bull;</span>
-                            <span style="background: #f1f5f9; color: #334155; padding: 0.05rem 0.4rem; border-radius: 3px; font-weight: 600;"><?= e($job['state_name']) ?></span>
+                            <span style="background: #f1f5f9; color: #334155; padding: 0.05rem 0.4rem; border-radius: 3px; font-weight: 600; border: 1px solid #e2e8f0;"><?= e($job['state_name']) ?></span>
+                            <span>&bull;</span>
+                            <span>Updated <?= !empty($job['published_at']) ? date('M d, Y', strtotime($job['published_at'])) : date('M d, Y') ?></span>
                         </div>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 0.6rem; flex-shrink: 0;">
-                        <span style="font-size: 0.78rem; font-weight: 700; color: <?= $isUrgent ? '#dc2626' : '#1e293b' ?>; background: <?= $isUrgent ? '#fef2f2' : '#f8fafc' ?>; border: 1px solid <?= $isUrgent ? '#fee2e2' : '#e2e8f0' ?>; padding: 0.25rem 0.55rem; border-radius: 5px; white-space: nowrap;">
+                    <div class="state-job-action-col" style="display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0;">
+                        <span style="font-size: 0.8rem; font-weight: <?= $isUrgent ? '700' : '600' ?>; color: <?= $isUrgent ? '#dc2626' : '#475569' ?>; white-space: nowrap;">
                             <?= e($job['last_date']) ?>
                         </span>
-                        <span style="font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 4px; background: #dbeafe; color: #1e40af; text-transform: uppercase;">
-                            <?= e($job['status_tag']['label']) ?>
+                        <span class="state-job-apply-btn" style="display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.75rem; font-weight: 700; color: #2563eb; background: #eff6ff; border: 1px solid #bfdbfe; padding: 0.3rem 0.65rem; border-radius: 4px; white-space: nowrap; transition: all 0.15s ease;">
+                            <span>Apply</span>
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
                         </span>
                     </div>
                 </a>

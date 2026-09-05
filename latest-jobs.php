@@ -239,36 +239,35 @@ include __DIR__ . '/components/header.php';
     border-color: #2563eb;
 }
 
-/* Jobs Feed Table / Cards */
+/* Jobs Feed Table / List (Clean Authentic Minimalist UI) */
 .jobs-feed-container {
     margin-bottom: 2.5rem;
+}
+.jobs-list-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
 }
 .job-item-card {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1.25rem;
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-left: 4px solid #2563eb;
-    border-radius: 8px;
     padding: 1rem 1.25rem;
-    margin-bottom: 0.75rem;
-    transition: all 0.2s ease;
+    border-bottom: 1px solid #f1f5f9;
+    background: #ffffff;
+    transition: background-color 0.15s ease;
     text-decoration: none;
     color: inherit;
 }
-.job-item-card:hover {
-    border-color: #93c5fd;
-    border-left-color: #1d4ed8;
-    box-shadow: 0 6px 20px -4px rgba(37, 99, 235, 0.12);
-    transform: translateY(-1px);
+.job-item-card:last-child {
+    border-bottom: none;
 }
-.job-item-card.state-rj { border-left-color: #b45309; }
-.job-item-card.state-br { border-left-color: #0f766e; }
-.job-item-card.state-up { border-left-color: #1e3a8a; }
-.job-item-card.state-mp { border-left-color: #6d28d9; }
-.job-item-card.state-pb { border-left-color: #be123c; }
+.job-item-card:hover {
+    background-color: #f8fafc;
+}
 
 .job-main-info {
     flex: 1;
@@ -276,57 +275,65 @@ include __DIR__ . '/components/header.php';
 }
 .job-title-row {
     display: flex;
-    align-items: center;
-    gap: 0.6rem;
+    align-items: baseline;
+    gap: 0.5rem;
     flex-wrap: wrap;
     margin-bottom: 0.35rem;
 }
+.job-bullet {
+    color: #dc2626;
+    font-size: 1.25rem;
+    line-height: 1;
+    font-weight: bold;
+    user-select: none;
+    flex-shrink: 0;
+}
 .job-link-title {
-    font-size: 1.05rem;
+    font-size: 1.02rem;
     font-weight: 700;
-    color: #0f172a;
-    line-height: 1.35;
+    color: #1e3a8a;
+    line-height: 1.4;
     text-decoration: none;
 }
 .job-item-card:hover .job-link-title {
-    color: #2563eb;
+    color: #dc2626;
+    text-decoration: underline;
 }
 .job-vacancy-badge {
-    background: #dcfce7;
-    color: #166534;
-    border: 1px solid #bbf7d0;
-    padding: 0.15rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.75rem;
+    color: #15803d;
+    font-size: 0.85rem;
     font-weight: 700;
     white-space: nowrap;
 }
 .job-meta-row {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.65rem;
     font-size: 0.8rem;
     color: #64748b;
     flex-wrap: wrap;
+    padding-left: 1.15rem;
 }
 .job-meta-tag {
     display: inline-flex;
     align-items: center;
     gap: 0.3rem;
+    font-weight: 600;
+    color: #475569;
 }
 .job-state-tag {
     background: #f1f5f9;
     color: #334155;
     padding: 0.1rem 0.45rem;
-    border-radius: 3px;
+    border-radius: 4px;
     font-weight: 600;
     font-size: 0.72rem;
+    border: 1px solid #e2e8f0;
 }
 .job-action-col {
     display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.4rem;
+    align-items: center;
+    gap: 0.85rem;
     flex-shrink: 0;
 }
 .job-deadline-badge {
@@ -334,50 +341,51 @@ include __DIR__ . '/components/header.php';
     align-items: center;
     gap: 0.35rem;
     font-size: 0.82rem;
-    font-weight: 700;
-    color: #dc2626;
-    background: #fef2f2;
-    border: 1px solid #fee2e2;
-    padding: 0.3rem 0.65rem;
-    border-radius: 6px;
+    font-weight: 600;
+    color: #475569;
     white-space: nowrap;
 }
-.job-deadline-badge.normal {
-    color: #0f172a;
-    background: #f8fafc;
-    border-color: #e2e8f0;
-}
-.job-status-pill {
-    font-size: 0.72rem;
+.job-deadline-badge.urgent {
+    color: #dc2626;
     font-weight: 700;
-    padding: 0.15rem 0.45rem;
-    border-radius: 4px;
-    text-transform: uppercase;
 }
-.job-status-pill.active {
-    background: #dbeafe;
-    color: #1e40af;
+.job-apply-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #2563eb;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    padding: 0.35rem 0.75rem;
+    border-radius: 5px;
+    white-space: nowrap;
+    transition: all 0.15s ease;
 }
-.job-status-pill.urgent {
-    background: #fee2e2;
-    color: #991b1b;
-    animation: pulse 2s infinite;
+.job-item-card:hover .job-apply-btn {
+    background: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
 }
 
 @media (max-width: 768px) {
     .job-item-card {
         flex-direction: column;
         align-items: flex-start;
-        gap: 0.75rem;
-        padding: 0.9rem 1rem;
+        gap: 0.65rem;
+        padding: 0.85rem 1rem;
+    }
+    .job-meta-row {
+        padding-left: 0;
     }
     .job-action-col {
         width: 100%;
-        flex-direction: row;
+        display: flex;
         justify-content: space-between;
         align-items: center;
-        border-top: 1px dashed #e2e8f0;
-        padding-top: 0.6rem;
+        border-top: 1px dashed #f1f5f9;
+        padding-top: 0.5rem;
     }
     .jobs-hero-title {
         font-size: 1.65rem;
@@ -450,41 +458,42 @@ include __DIR__ . '/components/header.php';
 
         <!-- Live Jobs List Section -->
         <div class="jobs-feed-container">
-            <div id="jobsListWrap">
+            <div class="jobs-list-card" id="jobsListWrap">
                 <?php foreach ($allJobs as $job): 
-                    $stateCodeClass = 'state-' . strtolower($job['state_code']);
                     $isUrgent = str_contains(strtolower($job['last_date']), 'today') || str_contains(strtolower($job['status_tag']['label']), 'closing');
                 ?>
-                <a href="<?= $job['url'] ?>" class="job-item-card <?= $stateCodeClass ?>" 
+                <a href="<?= $job['url'] ?>" class="job-item-card" 
                    data-title="<?= e(strtolower($job['title'])) ?>" 
                    data-authority="<?= e(strtolower($job['authority'])) ?>"
                    data-state="<?= e(strtolower($job['state_slug'])) ?>">
                     
                     <div class="job-main-info">
                         <div class="job-title-row">
+                            <span class="job-bullet" aria-hidden="true">&bull;</span>
                             <span class="job-link-title"><?= e($job['title']) ?></span>
                             <?php if (!empty($job['vacancies'])): ?>
-                            <span class="job-vacancy-badge"><?= e($job['vacancies']) ?></span>
+                            <span class="job-vacancy-badge">(<?= e($job['vacancies']) ?>)</span>
                             <?php endif; ?>
                         </div>
                         
                         <div class="job-meta-row">
-                            <span class="job-meta-tag">
-                                <strong><?= e($job['authority']) ?></strong>
-                            </span>
+                            <span class="job-meta-tag"><?= e($job['authority']) ?></span>
                             <span>&bull;</span>
                             <span class="job-state-tag"><?= e($job['state_name']) ?></span>
                             <span>&bull;</span>
-                            <span>Updated: <?= !empty($job['published_at']) ? date('M d, Y', strtotime($job['published_at'])) : date('M d, Y') ?></span>
+                            <span>Updated <?= !empty($job['published_at']) ? date('M d, Y', strtotime($job['published_at'])) : date('M d, Y') ?></span>
                         </div>
                     </div>
 
                     <div class="job-action-col">
                         <div class="job-deadline-badge <?= $isUrgent ? 'urgent' : 'normal' ?>">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                             <span><?= e($job['last_date']) ?></span>
                         </div>
-                        <span class="job-status-pill <?= $job['status_tag']['type'] ?>"><?= e($job['status_tag']['label']) ?></span>
+                        <span class="job-apply-btn">
+                            <span>Apply Online</span>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                        </span>
                     </div>
 
                 </a>
