@@ -386,6 +386,7 @@ class PublishingService {
             return [
                 'success' => false,
                 'reason'  => 'daily_limit_reached',
+                'published_today' => $todayCount,
                 'completed_slots' => $completedSlots,
                 'daily_limit'     => $this->dailyLimit,
                 'items'   => []
@@ -401,6 +402,7 @@ class PublishingService {
             return [
                 'success' => false,
                 'reason'  => 'slot_locked',
+                'published_today' => $todayCount,
                 'completed_slots' => $completedSlots,
                 'next_slot'       => $schedule['next_slot_name'],
                 'items'   => []
@@ -413,6 +415,7 @@ class PublishingService {
             return [
                 'success' => false,
                 'reason'  => 'slot_capacity_zero',
+                'published_today' => $todayCount,
                 'items'   => []
             ];
         }

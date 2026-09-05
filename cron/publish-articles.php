@@ -41,7 +41,9 @@ try {
         $heldCount      = 0;
 
         if (($result['reason'] ?? '') === 'slot_locked') {
-            echo "  -> [SLOT LOCKED] {$result['published_today']}/{$maxBatch} published today. Next slot: {$result['next_slot']}\n";
+            $pubCount = $result['published_today'] ?? $result['completed_slots'] ?? 0;
+            $nextSlot = $result['next_slot'] ?? 'Next Window';
+            echo "  -> [SLOT LOCKED] {$pubCount}/{$maxBatch} published today. Next slot: {$nextSlot}\n";
         } elseif (!empty($result['items'])) {
             foreach ($result['items'] as $item) {
                 $conf   = isset($item['verification_confidence']) ? " [{$item['verification_confidence']}% confidence]" : '';
