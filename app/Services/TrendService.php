@@ -324,12 +324,13 @@ class TrendService {
      */
     public static function purgeDuplicateTrends(): int {
         try {
-            $deleted = (int)Database::query(
+            $stmt = Database::query(
                 "DELETE t1 FROM trends t1
                  INNER JOIN trends t2 
                  WHERE t1.id < t2.id 
                    AND t1.normalized_hash = t2.normalized_hash"
             );
+            $deleted = $stmt->rowCount();
             if ($deleted > 0) {
                 Logger::info("TrendService: Purged {$deleted} duplicate trend rows from database.");
             }
