@@ -70,26 +70,6 @@ class SchemaService {
             $primarySchema['articleSection'] = $article['category_name'] ?? 'Education';
         }
 
-        // Inject Google Sitelinks deep navigation anchors (hasPart schema)
-        if (preg_match_all('/<h2\b[^>]*>(.*?)<\/h2>/is', $content, $hMatches)) {
-            $hasPart = [];
-            foreach ($hMatches[1] as $rawH2) {
-                $hText = trim(strip_tags($rawH2));
-                if (!empty($hText)) {
-                    $slug = trim(strtolower(preg_replace('/[^a-zA-Z0-9]+/u', '-', $hText)), '-');
-                    $hasPart[] = [
-                        '@type'               => 'WebPageElement',
-                        'isAccessibleForFree' => true,
-                        'cssSelector'         => '#' . $slug,
-                        'name'                => $hText
-                    ];
-                }
-            }
-            if (!empty($hasPart)) {
-                $primarySchema['hasPart'] = array_slice($hasPart, 0, 6);
-            }
-        }
-
         $schemas[] = $primarySchema;
 
         // 2. FAQPage Schema — detect FAQ content
@@ -111,53 +91,57 @@ class SchemaService {
             ];
         }
 
-        // 3. HowTo Schema — detect step-by-step content
-        if (self::hasStepContent($content)) {
-            $steps = self::extractSteps($content);
-            if (!empty($steps)) {
-                $schemas[] = [
-                    '@context'    => 'https://schema.org',
-                    '@type'       => 'HowTo',
-                    'name'        => $title,
-                    'description' => $desc,
-                    'step'        => array_map(function($step, $i) {
-                        return [
-                            '@type'    => 'HowToStep',
-                            'position' => $i + 1,
-                            'name'     => $step['name'],
-                            'text'     => strip_tags($step['text'])
-                        ];
-                    }, $steps, array_keys($steps))
-                ];
-            }
-        }
+        // 3. BreadcrumbList Schema for Article
+        $schemas[] = [
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => [
+                [
+                    '@type' => 'ListItem',
+                    'position' => 1,
+                    'name' => 'Home',
+                    'item' => rtrim(SITE_URL, '/') . '/'
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 2,
+                    'name' => $article['category_name'] ?? 'Education',
+                    'item' => url('category/' . ($categorySlug ?: 'career-guides') . '/')
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 3,
+                    'name' => $title,
+                    'item' => $url
+                ]
+            ]
+        ];
 
-        // 4. Event Schema — for exam/recruitment categories
-        $examCategories = ['entrance-exams', 'recruitment', 'government-jobs', 'results', 'admit-card'];
+        // 4. Event Schema — ONLY if a verified future exam ISO date exists
+        $examCategories = ['entrance-exams', 'recruitment', 'government-jobs', 'results', 'admit-cards'];
         if (in_array($categorySlug, $examCategories, true)) {
             $examDate = self::extractExamDate($content);
-            $eventSchema = [
-                '@context'  => 'https://schema.org',
-                '@type'     => 'Event',
-                'name'      => $title,
-                'description' => $desc,
-                'url'       => $url,
-                'organizer' => [
-                    '@type' => 'Organization',
-                    'name'  => $article['source_name'] ?? 'Government of India',
-                    'url'   => $article['source_url'] ?? 'https://india.gov.in'
-                ],
-                'eventStatus'   => 'https://schema.org/EventScheduled',
-                'eventAttendanceMode' => 'https://schema.org/OnlineEventAttendanceMode',
-                'location' => [
-                    '@type' => 'VirtualLocation',
-                    'url'   => $article['source_url'] ?? 'https://india.gov.in'
-                ]
-            ];
-            if ($examDate) {
-                $eventSchema['startDate'] = $examDate;
+            if (!empty($examDate) && strtotime($examDate) !== false) {
+                $schemas[] = [
+                    '@context'  => 'https://schema.org',
+                    '@type'     => 'Event',
+                    'name'      => $title,
+                    'description' => $desc,
+                    'url'       => $url,
+                    'startDate' => date('Y-m-d', strtotime($examDate)),
+                    'organizer' => [
+                        '@type' => 'Organization',
+                        'name'  => $article['source_name'] ?? 'Statutory Authority',
+                        'url'   => $article['source_url'] ?? SITE_URL
+                    ],
+                    'eventStatus'   => 'https://schema.org/EventScheduled',
+                    'eventAttendanceMode' => 'https://schema.org/OnlineEventAttendanceMode',
+                    'location' => [
+                        '@type' => 'VirtualLocation',
+                        'url'   => $article['source_url'] ?? SITE_URL
+                    ]
+                ];
             }
-            $schemas[] = $eventSchema;
         }
 
         return $schemas;

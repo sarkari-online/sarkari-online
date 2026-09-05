@@ -144,6 +144,38 @@ foreach ($allArticles as $art) {
     }
 }
 
+// ── 4. Sanitize Meta Descriptions & Titles for Ahrefs Compliance ───────────
+$metaArticles = Database::fetchAll("SELECT id, title, meta_title, meta_description, excerpt FROM articles WHERE status = 'published'");
+$metaFixed = 0;
+foreach ($metaArticles as $mArt) {
+    $updates = [];
+    $desc = trim($mArt['meta_description'] ?? '');
+
+    // If description is empty or too short (< 60 chars)
+    if (mb_strlen($desc) < 60) {
+        $cleanExcerpt = strip_tags($mArt['excerpt'] ?? '');
+        $newDesc = !empty($cleanExcerpt) && mb_strlen($cleanExcerpt) >= 60 
+            ? $cleanExcerpt 
+            : "Get official alerts for {$mArt['title']} on Sarkari.online. Check eligibility, exam dates, syllabus, and online application details.";
+        $desc = mb_substr($newDesc, 0, 155);
+        $updates['meta_description'] = $desc;
+    } 
+    // If description is too long (> 160 chars)
+    elseif (mb_strlen($desc) > 160) {
+        $desc = mb_substr($desc, 0, 155);
+        $lastSpace = mb_strrpos($desc, ' ');
+        if ($lastSpace !== false) {
+            $desc = mb_substr($desc, 0, $lastSpace);
+        }
+        $updates['meta_description'] = rtrim($desc, '.,;') . '.';
+    }
+
+    if (!empty($updates)) {
+        Database::update('articles', $updates, 'id = :id', ['id' => $mArt['id']]);
+        $metaFixed++;
+    }
+}
+
 $elapsed = round(microtime(true) - $startTime, 2);
-echo "[" . date('Y-m-d H:i:s') . "] SEO Audit complete: {$canonicalFixed} canonicals fixed, {$duplicatesFound} duplicate titles, {$orphansFixed} orphans fixed. ({$elapsed}s)\n";
+echo "[" . date('Y-m-d H:i:s') . "] SEO Audit complete: {$canonicalFixed} canonicals fixed, {$duplicatesFound} duplicate titles, {$orphansFixed} orphans fixed, {$metaFixed} meta descriptions normalized. ({$elapsed}s)\n";
 Logger::info("Cron seo-audit finished", ['canonicals' => $canonicalFixed, 'duplicates' => $duplicatesFound, 'orphans' => $orphansFixed]);

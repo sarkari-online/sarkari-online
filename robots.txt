@@ -3,6 +3,16 @@
 # ==============================================================================
 
 User-agent: *
+User-agent: GPTBot
+User-agent: ChatGPT-User
+User-agent: Google-Extended
+User-agent: PerplexityBot
+User-agent: ClaudeBot
+User-agent: anthropic-ai
+User-agent: Applebot-Extended
+User-agent: CCBot
+User-agent: cohere-ai
+User-agent: Bytespider
 Allow: /
 Allow: /latest-jobs/
 Allow: /state-jobs/
@@ -17,22 +27,6 @@ Allow: /ai-policy/
 Allow: /privacy-policy/
 Allow: /terms/
 Allow: /disclaimer/
-
-# Explicitly Allow AI Search Engines (ChatGPT Search, Perplexity, Google Gemini)
-User-agent: GPTBot
-Allow: /
-
-User-agent: PerplexityBot
-Allow: /
-
-User-agent: Google-Extended
-Allow: /
-
-User-agent: ClaudeBot
-Allow: /
-
-User-agent: Applebot-Extended
-Allow: /
 
 # Disallow Internal Search Result Pages (Google Search Essentials Standard)
 Disallow: /search/
