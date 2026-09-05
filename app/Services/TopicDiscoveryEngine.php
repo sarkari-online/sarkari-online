@@ -212,20 +212,22 @@ class TopicDiscoveryEngine {
 
     /**
      * Build standard Search Volume Attribution payload with 5 distinct signals
-     * (Applicant/registration counts must NEVER be represented as search volume)
+     * (Applicant/registration counts must NEVER be represented as search volume;
+     * discovery clustering is explicitly treated as an opportunity heuristic)
      */
-    public static function buildSearchVolumePayload(?int $exactVolume, string $demandTier, string $applicantScale, string $confidence = 'unverified'): array {
+    public static function buildSearchVolumePayload(?int $exactVolume, string $opportunityTier, string $applicantScale, string $confidence = 'unverified'): array {
         return [
             'exact_keyword_volume' => [
                 'value' => $exactVolume, // null if actual volume is unverified
                 'confidence' => $confidence
             ],
-            'cluster_search_demand' => [
-                'tier' => $demandTier,
-                'signal_source' => 'search_intent_clustering'
+            'cluster_discovery_opportunity' => [
+                'opportunity_tier' => $opportunityTier,
+                'signal_type' => 'discovery_opportunity_clustering',
+                'basis' => 'national_search_intent_matrix'
             ],
             'applicant_scale' => [
-                'tier' => $applicantScale,
+                'applicant_tier' => $applicantScale,
                 'source' => 'official_commission_historical_filings'
             ],
             'trend_signal' => 'active_cycle',

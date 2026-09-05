@@ -27,7 +27,8 @@ class SearchIntentDiscoveryAdapter implements TrendSourceInterface {
     private const CLUSTERS = [
         'GOVERNMENT_JOBS' => [
             'category' => 'government-jobs',
-            'scale' => 'mega_1m_plus',
+            'opportunity_tier' => 'tier_1_national_priority',
+            'applicant_scale' => 'mega_applicant_pool',
             'authority' => 'https://www.india.gov.in',
             'entities' => [
                 'Central Government Jobs', 'State Government Jobs', 'Government Jobs in India',
@@ -42,7 +43,8 @@ class SearchIntentDiscoveryAdapter implements TrendSourceInterface {
         ],
         'SARKARI_RESULT' => [
             'category' => 'exam-results',
-            'scale' => 'mega_1m_plus',
+            'opportunity_tier' => 'tier_1_national_priority',
+            'applicant_scale' => 'mega_applicant_pool',
             'authority' => 'https://sarkari.online',
             'entities' => [
                 'Sarkari Result', 'Central & State Exam Results', 'Government Recruitment Result',
@@ -55,7 +57,8 @@ class SearchIntentDiscoveryAdapter implements TrendSourceInterface {
         ],
         'SSC' => [
             'category' => 'government-jobs',
-            'scale' => 'mega_1m_plus',
+            'opportunity_tier' => 'tier_1_national_priority',
+            'applicant_scale' => 'mega_applicant_pool',
             'authority' => 'https://ssc.gov.in',
             'entities' => [
                 'SSC CGL', 'SSC CHSL', 'SSC GD Constable', 'SSC MTS', 'SSC CPO Sub Inspector',
@@ -70,7 +73,8 @@ class SearchIntentDiscoveryAdapter implements TrendSourceInterface {
         ],
         'RAILWAY_RRB' => [
             'category' => 'government-jobs',
-            'scale' => 'mega_1m_plus',
+            'opportunity_tier' => 'tier_1_national_priority',
+            'applicant_scale' => 'mega_applicant_pool',
             'authority' => 'https://indianrailways.gov.in',
             'entities' => [
                 'RRB NTPC (Graduate & Undergraduate)', 'RRB Group D Level 1', 'RRB ALP Assistant Loco Pilot',
@@ -86,7 +90,8 @@ class SearchIntentDiscoveryAdapter implements TrendSourceInterface {
         ],
         'UPSC' => [
             'category' => 'government-jobs',
-            'scale' => 'mega_1m_plus',
+            'opportunity_tier' => 'tier_1_national_priority',
+            'applicant_scale' => 'mega_applicant_pool',
             'authority' => 'https://upsc.gov.in',
             'entities' => [
                 'UPSC Civil Services (IAS/IPS/IFS)', 'UPSC NDA & NA', 'UPSC CDS Combined Defence Services',
@@ -101,7 +106,8 @@ class SearchIntentDiscoveryAdapter implements TrendSourceInterface {
         ],
         'BANKING' => [
             'category' => 'government-jobs',
-            'scale' => 'mega_1m_plus',
+            'opportunity_tier' => 'tier_1_national_priority',
+            'applicant_scale' => 'mega_applicant_pool',
             'authority' => 'https://ibps.in',
             'entities' => [
                 'SBI PO Probationary Officer', 'SBI Clerk Junior Associate', 'IBPS PO Management Trainee',
@@ -117,7 +123,8 @@ class SearchIntentDiscoveryAdapter implements TrendSourceInterface {
         ],
         'POLICE' => [
             'category' => 'government-jobs',
-            'scale' => 'high_100k_500k',
+            'opportunity_tier' => 'tier_2_state_or_sectoral',
+            'applicant_scale' => 'high_applicant_pool',
             'authority' => 'https://uppbpb.gov.in',
             'entities' => [
                 'UP Police Constable & SI', 'Delhi Police Constable & Head Constable', 'Bihar Police Constable & SI',
@@ -132,7 +139,8 @@ class SearchIntentDiscoveryAdapter implements TrendSourceInterface {
         ],
         'DEFENCE' => [
             'category' => 'government-jobs',
-            'scale' => 'high_100k_500k',
+            'opportunity_tier' => 'tier_2_state_or_sectoral',
+            'applicant_scale' => 'high_applicant_pool',
             'authority' => 'https://joinindianarmy.nic.in',
             'entities' => [
                 'Indian Army Agniveer Recruitment Rally', 'Indian Navy Agniveer (SSR & MR)',
@@ -147,7 +155,8 @@ class SearchIntentDiscoveryAdapter implements TrendSourceInterface {
         ],
         'TEACHING' => [
             'category' => 'government-jobs',
-            'scale' => 'mega_1m_plus',
+            'opportunity_tier' => 'tier_1_national_priority',
+            'applicant_scale' => 'mega_applicant_pool',
             'authority' => 'https://ctet.nic.in',
             'entities' => [
                 'CTET Central Teacher Eligibility Test', 'UPTET Uttar Pradesh Teacher Eligibility Test',
@@ -163,7 +172,8 @@ class SearchIntentDiscoveryAdapter implements TrendSourceInterface {
         ],
         'STATE_EXAMS' => [
             'category' => 'government-jobs',
-            'scale' => 'high_100k_500k',
+            'opportunity_tier' => 'tier_2_state_or_sectoral',
+            'applicant_scale' => 'high_applicant_pool',
             'authority' => 'https://bpsc.bih.nic.in',
             'entities' => [
                 'BPSC Combined Competitive Exam (CCE)', 'UPPSC Combined State / Upper Subordinate Exam',
@@ -179,7 +189,8 @@ class SearchIntentDiscoveryAdapter implements TrendSourceInterface {
         ],
         'NEET' => [
             'category' => 'entrance-exams',
-            'scale' => 'mega_1m_plus',
+            'opportunity_tier' => 'tier_1_national_priority',
+            'applicant_scale' => 'mega_applicant_pool',
             'authority' => 'https://nta.ac.in',
             'entities' => [
                 'NEET UG National Eligibility cum Entrance Test', 'NEET PG Medical Entrance Exam',
@@ -194,7 +205,8 @@ class SearchIntentDiscoveryAdapter implements TrendSourceInterface {
         ],
         'JEE' => [
             'category' => 'entrance-exams',
-            'scale' => 'mega_1m_plus',
+            'opportunity_tier' => 'tier_1_national_priority',
+            'applicant_scale' => 'mega_applicant_pool',
             'authority' => 'https://nta.ac.in',
             'entities' => [
                 'JEE Main Session 1 & Session 2', 'JEE Advanced Engineering Entrance Exam'
@@ -208,7 +220,8 @@ class SearchIntentDiscoveryAdapter implements TrendSourceInterface {
         ],
         'BOARD_EXAMS' => [
             'category' => 'school-boards',
-            'scale' => 'mega_1m_plus',
+            'opportunity_tier' => 'tier_1_national_priority',
+            'applicant_scale' => 'mega_applicant_pool',
             'authority' => 'https://cbse.gov.in',
             'entities' => [
                 'CBSE Board Class 10 & Class 12', 'UP Board High School & Intermediate',
@@ -223,7 +236,8 @@ class SearchIntentDiscoveryAdapter implements TrendSourceInterface {
         ],
         'SCHOLARSHIPS' => [
             'category' => 'scholarships',
-            'scale' => 'high_100k_500k',
+            'opportunity_tier' => 'tier_2_state_or_sectoral',
+            'applicant_scale' => 'high_applicant_pool',
             'authority' => 'https://scholarships.gov.in',
             'entities' => [
                 'NSP National Scholarship Portal Central Sector Scheme', 'PM YASASVI Scholarship for OBC/EBC/DNT',
@@ -237,7 +251,8 @@ class SearchIntentDiscoveryAdapter implements TrendSourceInterface {
         ],
         'COLLEGE_ADMISSIONS' => [
             'category' => 'college-updates',
-            'scale' => 'high_100k_500k',
+            'opportunity_tier' => 'tier_2_state_or_sectoral',
+            'applicant_scale' => 'high_applicant_pool',
             'authority' => 'https://cuet.nta.nic.in',
             'entities' => [
                 'CUET UG Common University Entrance Test', 'CUET PG Post Graduate Entrance Test',
@@ -250,7 +265,8 @@ class SearchIntentDiscoveryAdapter implements TrendSourceInterface {
         ],
         'CAREER_SALARY_ELIGIBILITY' => [
             'category' => 'career-guides',
-            'scale' => 'high_100k_500k',
+            'opportunity_tier' => 'tier_2_state_or_sectoral',
+            'applicant_scale' => 'high_applicant_pool',
             'authority' => 'https://www.india.gov.in',
             'entities' => [
                 '7th Pay Commission Pay Matrix', 'Government Jobs Salary After 10th & 12th',
@@ -264,7 +280,8 @@ class SearchIntentDiscoveryAdapter implements TrendSourceInterface {
         ],
         'STUDENT_DIGITAL_SERVICES' => [
             'category' => 'student-technology',
-            'scale' => 'high_100k_500k',
+            'opportunity_tier' => 'tier_2_state_or_sectoral',
+            'applicant_scale' => 'high_applicant_pool',
             'authority' => 'https://digilocker.gov.in',
             'entities' => [
                 'DigiLocker Student Marksheet & Migration Certificate',
@@ -340,12 +357,13 @@ class SearchIntentDiscoveryAdapter implements TrendSourceInterface {
                             'value' => null, // Explicitly null without fabrication
                             'confidence' => 'unverified'
                         ],
-                        'cluster_search_demand' => [
-                            'tier' => $cluster['scale'],
-                            'signal_source' => 'search_intent_clustering'
+                        'cluster_discovery_opportunity' => [
+                            'opportunity_tier' => $cluster['opportunity_tier'],
+                            'signal_type' => 'discovery_opportunity_clustering', // Explicit discovery signal, NOT measured search volume!
+                            'basis' => 'national_search_intent_matrix'
                         ],
                         'applicant_scale' => [
-                            'tier' => $cluster['scale'],
+                            'applicant_tier' => $cluster['applicant_scale'],
                             'source' => 'official_commission_historical_filings'
                         ],
                         'trend_signal' => 'active_cycle',

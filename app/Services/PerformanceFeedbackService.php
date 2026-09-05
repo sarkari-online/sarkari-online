@@ -17,7 +17,7 @@ class PerformanceFeedbackService {
     /**
      * Default Configurable Heuristic Thresholds
      */
-    private const DEFAULT_HEURISTICS = [
+    public const DEFAULT_HEURISTICS = [
         'min_sample_size'           => 25,    // Minimum views/events required before statistical evaluation
         'min_observation_days'      => 14,    // Observation period required before evaluating trend direction
         'expand_view_threshold'     => 40,    // Pageviews required to trigger topic cluster expansion
@@ -31,33 +31,43 @@ class PerformanceFeedbackService {
      * Run performance evaluation across published articles using configurable heuristics
      * 
      * @param array $customHeuristics Optional override for heuristic parameters
+     * @param array|null $syntheticArticles Optional in-memory articles array for deterministic synthetic testing
+     * @param bool $persistToDb Whether to persist discovered seeds to DB (false during testing)
      * @return array Summary of actions executed
      */
-    public static function evaluate(array $customHeuristics = []): array {
+    public static function evaluate(array $customHeuristics = [], ?array $syntheticArticles = null, bool $persistToDb = true): array {
         $heuristics = array_merge(self::DEFAULT_HEURISTICS, $customHeuristics);
 
         $summary = [
             'total_analyzed' => 0,
             'refreshed' => 0,
+            'refreshed_articles' => [],
             'expanded' => 0,
+            'expanded_seeds' => [],
             'cannibalization_flagged' => 0,
+            'cannibalization_pairs' => [],
             'retired' => 0,
+            'retired_articles' => [],
             'discovered_queries' => 0
         ];
 
         try {
-            // 1. Fetch published articles with recent 7-day and lifetime traffic telemetry
-            $articles = Database::fetchAll(
-                "SELECT a.id, a.title, a.slug, a.category_id, a.published_at, a.updated_at,
-                        COUNT(ae.id) as lifetime_views,
-                        SUM(CASE WHEN ae.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1 ELSE 0 END) as recent_7d_views,
-                        SUM(CASE WHEN ae.created_at >= DATE_SUB(NOW(), INTERVAL 14 DAY) AND ae.created_at < DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1 ELSE 0 END) as previous_7d_views
-                 FROM articles a
-                 LEFT JOIN analytics_events ae ON ae.article_id = a.id
-                 WHERE a.status = 'published'
-                 GROUP BY a.id
-                 ORDER BY lifetime_views DESC"
-            );
+            // Fetch articles from database or use provided synthetic dataset
+            if ($syntheticArticles !== null) {
+                $articles = $syntheticArticles;
+            } else {
+                $articles = Database::fetchAll(
+                    "SELECT a.id, a.title, a.slug, a.category_id, a.published_at, a.updated_at,
+                            COUNT(ae.id) as lifetime_views,
+                            SUM(CASE WHEN ae.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1 ELSE 0 END) as recent_7d_views,
+                            SUM(CASE WHEN ae.created_at >= DATE_SUB(NOW(), INTERVAL 14 DAY) AND ae.created_at < DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1 ELSE 0 END) as previous_7d_views
+                     FROM articles a
+                     LEFT JOIN analytics_events ae ON ae.article_id = a.id
+                     WHERE a.status = 'published'
+                     GROUP BY a.id
+                     ORDER BY lifetime_views DESC"
+                );
+            }
 
             if (empty($articles)) {
                 return $summary;
@@ -68,9 +78,9 @@ class PerformanceFeedbackService {
 
             foreach ($articles as $art) {
                 $artId = (int)$art['id'];
-                $lifetimeViews = (int)$art['lifetime_views'];
-                $recentViews = (int)$art['recent_7d_views'];
-                $previousViews = (int)$art['previous_7d_views'];
+                $lifetimeViews = (int)($art['lifetime_views'] ?? ($art['view_count'] ?? 0));
+                $recentViews = (int)($art['recent_7d_views'] ?? 0);
+                $previousViews = (int)($art['previous_7d_views'] ?? 0);
                 $ageDays = ($now - strtotime($art['published_at'])) / 86400;
 
                 // Determine trend direction (growing, stable, declining)
@@ -81,34 +91,45 @@ class PerformanceFeedbackService {
                     $trendDirection = 'declining';
                 }
 
-                // Determine query intent class
+                // Determine query intent class and lifecycle
                 $lifecycle = TopicDiscoveryEngine::resolveTopicLifecycle($art['title']);
 
-                // --- HEURISTIC ACTION A: EXPAND ---
+                // --- HEURISTIC ACTION A: EXPAND & NEW DISCOVERY ---
                 // Requires: Sample size met, top-performing views, and growing or stable trend
                 if ($lifetimeViews >= $heuristics['expand_view_threshold'] && in_array($trendDirection, ['growing', 'stable'], true)) {
                     $expandedSeeds = self::generateSubTopicSeeds($art['title']);
                     if (count($expandedSeeds) >= $heuristics['min_query_diversity']) {
                         foreach ($expandedSeeds as $seed) {
-                            $hash = TrendService::normalizedHash($seed);
-                            $exists = Database::fetchOne("SELECT id FROM trends WHERE normalized_hash = :hash LIMIT 1", ['hash' => $hash]);
-                            if (!$exists) {
-                                Database::insert('trends', [
-                                    'keyword' => $seed,
-                                    'normalized_hash' => $hash,
-                                    'source' => 'Performance Feedback Loop (Expanded Intent)',
-                                    'url' => SITE_URL . '/article/' . $art['slug'] . '/',
-                                    'trend_score' => 88,
-                                    'category_hint' => 'career-guides',
-                                    'status' => 'detected',
-                                    'raw_payload' => json_encode([
-                                        'origin_article_id' => $artId,
-                                        'origin_title' => $art['title'],
-                                        'feedback_action' => 'expand_sub_intent',
-                                        'trend_direction' => $trendDirection,
-                                        'sample_size' => $lifetimeViews
-                                    ])
-                                ]);
+                            $summary['discovered_queries']++;
+                            $summary['expanded_seeds'][] = [
+                                'seed' => $seed,
+                                'origin_article_id' => $artId,
+                                'trend_direction' => $trendDirection
+                            ];
+
+                            if ($persistToDb) {
+                                $hash = TrendService::normalizedHash($seed);
+                                $exists = Database::fetchOne("SELECT id FROM trends WHERE normalized_hash = :hash LIMIT 1", ['hash' => $hash]);
+                                if (!$exists) {
+                                    Database::insert('trends', [
+                                        'keyword' => $seed,
+                                        'normalized_hash' => $hash,
+                                        'source' => 'Performance Feedback Loop (Expanded Intent)',
+                                        'url' => SITE_URL . '/article/' . ($art['slug'] ?? '') . '/',
+                                        'trend_score' => 88,
+                                        'category_hint' => 'career-guides',
+                                        'status' => 'detected',
+                                        'raw_payload' => json_encode([
+                                            'origin_article_id' => $artId,
+                                            'origin_title' => $art['title'],
+                                            'feedback_action' => 'expand_sub_intent',
+                                            'trend_direction' => $trendDirection,
+                                            'sample_size' => $lifetimeViews
+                                        ])
+                                    ]);
+                                    $summary['expanded']++;
+                                }
+                            } else {
                                 $summary['expanded']++;
                             }
                         }
@@ -121,6 +142,11 @@ class PerformanceFeedbackService {
                     if (preg_match('/\b(202[45])\b/', $art['title'], $ym)) {
                         Logger::info("PerformanceFeedback: Article #{$artId} has outdated year {$ym[1]} under {$trendDirection} trend. Flagged for refresh.");
                         $summary['refreshed']++;
+                        $summary['refreshed_articles'][] = [
+                            'article_id' => $artId,
+                            'title' => $art['title'],
+                            'outdated_year' => $ym[1]
+                        ];
                     }
                 }
 
@@ -129,11 +155,18 @@ class PerformanceFeedbackService {
                 if ($ageDays > $heuristics['retire_dormant_days'] && $recentViews === 0 && $lifecycle === 'CLOSED') {
                     Logger::info("PerformanceFeedback: Article #{$artId} ('{$art['title']}') is a dormant concluded notice (>180d, 0 views). Flagged as ARCHIVE_CANDIDATE.");
                     $summary['retired']++;
+                    $summary['retired_articles'][] = [
+                        'article_id' => $artId,
+                        'title' => $art['title'],
+                        'lifecycle' => 'CLOSED'
+                    ];
                 }
             }
 
             // --- HEURISTIC ACTION D: MERGE / Cannibalization Detection ---
-            $summary['cannibalization_flagged'] = self::detectCannibalization($articles, $heuristics['cannibalization_threshold']);
+            $cannibalizationResult = self::detectCannibalization($articles, $heuristics['cannibalization_threshold']);
+            $summary['cannibalization_flagged'] = $cannibalizationResult['count'];
+            $summary['cannibalization_pairs'] = $cannibalizationResult['pairs'];
 
             Logger::info("PerformanceFeedback completed: " . json_encode($summary));
             return $summary;
@@ -147,7 +180,7 @@ class PerformanceFeedbackService {
     /**
      * Generate logical long-tail sub-topic seeds with diverse query intents
      */
-    private static function generateSubTopicSeeds(string $title): array {
+    public static function generateSubTopicSeeds(string $title): array {
         $seeds = [];
         $cleanTitle = trim(preg_replace('/\s*[-–—|].*$/', '', $title));
 
@@ -165,8 +198,9 @@ class PerformanceFeedbackService {
     /**
      * Detect pairs of articles with overlapping search intent exceeding configurable threshold
      */
-    private static function detectCannibalization(array $articles, float $threshold): int {
+    public static function detectCannibalization(array $articles, float $threshold): array {
         $flagged = 0;
+        $pairs = [];
         $count = min(count($articles), 60);
 
         for ($i = 0; $i < $count; $i++) {
@@ -186,12 +220,17 @@ class PerformanceFeedbackService {
                 $overlap = count($intersection) / max(count($w1), count($w2));
 
                 if ($overlap >= $threshold) {
-                    Logger::warning("PerformanceFeedback: Search intent cannibalization ({$overlap}) detected between Article #{$a1['id']} ('{$a1['title']}') and Article #{$a2['id']} ('{$a2['title']}').");
                     $flagged++;
+                    $pairs[] = [
+                        'article_1' => ['id' => $a1['id'], 'title' => $a1['title']],
+                        'article_2' => ['id' => $a2['id'], 'title' => $a2['title']],
+                        'overlap' => round($overlap * 100, 1)
+                    ];
+                    Logger::warning("PerformanceFeedback: Search intent cannibalization ({$overlap}) detected between Article #{$a1['id']} ('{$a1['title']}') and Article #{$a2['id']} ('{$a2['title']}').");
                 }
             }
         }
 
-        return $flagged;
+        return ['count' => $flagged, 'pairs' => $pairs];
     }
 }
