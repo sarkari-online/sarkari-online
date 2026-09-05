@@ -199,8 +199,11 @@ include __DIR__ . '/components/header.php';
 
                 <!-- Featured Image -->
                 <div class="article-featured-media">
-                    <?php if (!empty($article['featured_image']) && file_exists(__DIR__ . '/' . ltrim($article['featured_image'], '/'))): ?>
-                        <img src="<?= e(url($article['featured_image'])) ?>" alt="<?= e($article['featured_image_alt'] ?? $article['title']) ?>" width="880" height="495" loading="eager" fetchpriority="high" decoding="async">
+                    <?php if (!empty($article['featured_image']) && file_exists(__DIR__ . '/' . ltrim($article['featured_image'], '/'))): 
+                        $artImgAlt = !empty($article['featured_image_alt']) ? $article['featured_image_alt'] : ($article['title'] ?? 'Official Exam Notification');
+                        $artImgTitle = $article['title'] ?? $artImgAlt;
+                    ?>
+                        <img src="<?= e(url($article['featured_image'])) ?>" alt="<?= e($artImgAlt) ?>" title="<?= e($artImgTitle) ?>" width="880" height="495" loading="eager" fetchpriority="high" decoding="async">
                     <?php else: ?>
                         <?= render_thumbnail_svg($article['category_slug'] ?? 'exam-results', $article['title'], 880, 495) ?>
                     <?php endif; ?>

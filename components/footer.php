@@ -15,7 +15,7 @@
                 <!-- Column 1: Brand & Purpose -->
                 <div class="footer-col footer-col-brand">
                     <a href="<?= url() ?>" class="footer-brand-logo" aria-label="<?= e(SITE_NAME) ?>">
-                        <img src="<?= asset('sarkari-logo-white.png') ?>" alt="<?= e(SITE_NAME) ?>" style="height: 38px; width: auto; max-width: 175px; object-fit: contain; display: block;">
+                        <img src="<?= asset('sarkari-logo-white.png') ?>" alt="<?= e(SITE_NAME) ?> - Sarkari Result &amp; Latest Govt Jobs" title="<?= e(SITE_NAME) ?> - Official Public Employment &amp; Examination Portal" style="height: 38px; width: auto; max-width: 175px; object-fit: contain; display: block;">
                     </a>
                     <p class="footer-brand-desc">
                         An independent digital news observatory providing verified schedules, recruitment circulars, and scholarship gazettes for students and competitive exam aspirants across India.

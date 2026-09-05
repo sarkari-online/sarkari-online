@@ -16,7 +16,7 @@
             <a href="<?= url() ?>" class="site-brand" aria-label="<?= e(SITE_NAME) ?> - Back to homepage">
                 <picture>
                     <source srcset="<?= asset('sarkari-logo-transparent.webp') ?>" type="image/webp">
-                    <img src="<?= asset('sarkari-logo-transparent.png') ?>" alt="<?= e(SITE_NAME) ?>" class="site-logo-img" width="185" height="48" fetchpriority="high" decoding="async">
+                    <img src="<?= asset('sarkari-logo-transparent.png') ?>" alt="<?= e(SITE_NAME) ?> - Sarkari Result &amp; Latest Govt Jobs 2026" title="<?= e(SITE_NAME) ?> - Official Education &amp; Recruitment Portal" class="site-logo-img" width="185" height="48" fetchpriority="high" decoding="async">
                 </picture>
             </a>
 
@@ -106,7 +106,7 @@
     <div class="mobile-nav-panel">
         <div class="mobile-nav-header">
             <div class="site-brand">
-                <img src="<?= asset('sarkari-logo-transparent.png') ?>" alt="<?= e(SITE_NAME) ?>" class="site-logo-img" style="height: 38px; width: auto;">
+                <img src="<?= asset('sarkari-logo-transparent.png') ?>" alt="<?= e(SITE_NAME) ?> - Sarkari Result &amp; Latest Govt Jobs 2026" title="<?= e(SITE_NAME) ?> - Official Education &amp; Recruitment Portal" class="site-logo-img" width="185" height="48" style="height: 38px; width: auto;">
             </div>
             <button type="button" class="header-btn mobile-nav-close" aria-label="Close navigation menu">
                 <?= icon('close') ?>

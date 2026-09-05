@@ -174,7 +174,7 @@ $adminPageTitle = $adminPageTitle ?? 'Admin Dashboard';
     <!-- Sidebar Navigation -->
     <aside class="admin-sidebar">
         <a href="<?= url('admin/') ?>" class="admin-brand" style="padding: 1.15rem 1.25rem;">
-            <img src="<?= asset('sarkari-logo-white.png') ?>" alt="Sarkari.online CMS" style="height: 32px; width: auto; max-width: 170px; object-fit: contain; display: block;">
+            <img src="<?= asset('sarkari-logo-white.png') ?>" alt="Sarkari.online CMS" title="Sarkari.online CMS" style="height: 32px; width: auto; max-width: 170px; object-fit: contain; display: block;">
         </a>
         <nav class="admin-nav">
             <a href="<?= url('admin/') ?>" class="admin-nav-item <?= ($adminPageKey ?? '') === 'dashboard' ? 'active' : '' ?>">

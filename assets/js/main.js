@@ -632,6 +632,65 @@ document.addEventListener('DOMContentLoaded', () => {
             };
         }
     }
+
+    // 8. Automatic Image SEO Audit & Auto-Healer (Guarantees 100% ALT & TITLE attributes)
+    function auditAndHealAllImages() {
+        try {
+            const allImages = document.querySelectorAll('img');
+            allImages.forEach((img) => {
+                let currentAlt = (img.getAttribute('alt') || '').trim();
+                let currentTitle = (img.getAttribute('title') || '').trim();
+
+                // If ALT is missing or empty
+                if (!currentAlt) {
+                    const parentAnchor = img.closest('a');
+                    const closestHeading = img.closest('article, .exam-update-card, div')?.querySelector('h1, h2, h3, h4');
+                    const resolvedAlt = parentAnchor?.getAttribute('aria-label') || closestHeading?.textContent?.trim() || 'Sarkari.online Exam & Job Notice';
+                    currentAlt = resolvedAlt.replace(/\s+/g, ' ').trim();
+                    img.setAttribute('alt', currentAlt);
+                }
+
+                // If TITLE is missing or empty
+                if (!currentTitle) {
+                    currentTitle = currentAlt || 'Sarkari.online Portal';
+                    img.setAttribute('title', currentTitle);
+                }
+            });
+        } catch (e) {
+            // Non-blocking fallback
+        }
+    }
+
+    // Execute immediately on DOM ready
+    auditAndHealAllImages();
+
+    // Execute again after window fully loads (for third-party widgets like Google Translate, Ads)
+    window.addEventListener('load', () => {
+        setTimeout(auditAndHealAllImages, 500);
+        setTimeout(auditAndHealAllImages, 2000);
+    });
+
+    // Observe dynamically inserted images
+    if ('MutationObserver' in window) {
+        const imgObserver = new MutationObserver((mutations) => {
+            let hasNewImages = false;
+            for (let i = 0; i < mutations.length; i++) {
+                const added = mutations[i].addedNodes;
+                for (let j = 0; j < added.length; j++) {
+                    const node = added[j];
+                    if (node.nodeType === 1 && (node.tagName === 'IMG' || (node.querySelector && node.querySelector('img')))) {
+                        hasNewImages = true;
+                        break;
+                    }
+                }
+                if (hasNewImages) break;
+            }
+            if (hasNewImages) {
+                auditAndHealAllImages();
+            }
+        });
+        imgObserver.observe(document.body, { childList: true, subtree: true });
+    }
 });
 
 

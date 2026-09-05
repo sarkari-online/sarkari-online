@@ -103,7 +103,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 <body>
     <div class="login-card">
         <div class="login-header">
-            <img src="<?= asset('sarkari-logo-transparent.png') ?>" alt="Sarkari.online" style="height: 42px; width: auto; margin: 0 auto 0.75rem auto; display: block;">
+            <img src="<?= asset('sarkari-logo-transparent.png') ?>" alt="Sarkari.online" title="Sarkari.online CMS Portal" style="height: 42px; width: auto; margin: 0 auto 0.75rem auto; display: block;">
             <h1 class="login-title" style="font-size: 1.35rem;">Sarkari.online CMS</h1>
             <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.25rem;">Authorized Staff Sign In</p>
         </div>
