@@ -93,14 +93,14 @@ class TrendService {
     }
 
     /**
-     * Check if trend already exists in trends table
+     * Check if trend already exists in trends table (including previously rejected/processed items)
      */
-    public static function existsAsTrend(string $keyword, int $days = 7): bool {
+    public static function existsAsTrend(string $keyword, int $days = 14): bool {
         $hash = self::normalizedHash($keyword);
         $since = date('Y-m-d H:i:s', strtotime("-{$days} days"));
 
         $existing = Database::fetchOne(
-            "SELECT id FROM trends WHERE normalized_hash = :hash AND status IN ('detected', 'analyzing', 'approved', 'generated', 'published') AND detected_at >= :since LIMIT 1",
+            "SELECT id FROM trends WHERE normalized_hash = :hash AND (created_at >= :since OR detected_at >= :since) LIMIT 1",
             ['hash' => $hash, 'since' => $since]
         );
 
@@ -317,6 +317,27 @@ class TrendService {
     }
 
     /**
+     * Purge duplicate trends from database, retaining only the single latest record per normalized_hash
+     */
+    public static function purgeDuplicateTrends(): int {
+        try {
+            $deleted = (int)Database::query(
+                "DELETE t1 FROM trends t1
+                 INNER JOIN trends t2 
+                 WHERE t1.id < t2.id 
+                   AND t1.normalized_hash = t2.normalized_hash"
+            );
+            if ($deleted > 0) {
+                Logger::info("TrendService: Purged {$deleted} duplicate trend rows from database.");
+            }
+            return $deleted;
+        } catch (Throwable $e) {
+            Logger::error("purgeDuplicateTrends error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    /**
      * Check whether topic matches allowed categories
      */
     public static function isAllowedCategory(?string $categoryHint): bool {
@@ -507,6 +528,9 @@ class TrendService {
                 Logger::error("Adapter {$adapter->getSourceId()} failed: " . $e->getMessage());
             }
         }
+
+        // Auto-purge any duplicate historical trends in database
+        self::purgeDuplicateTrends();
 
         return $recorded;
     }

@@ -21,8 +21,9 @@ class RssFeedAdapter implements TrendSourceInterface {
         $this->sourceId = $sourceId;
         $this->sourceName = $sourceName;
         $this->feedUrls = !empty($feedUrls) ? $feedUrls : [
-            'https://feeds.feedburner.com/ndtvnews-education',
-            'https://timesofindia.indiatimes.com/rssfeeds/913168846.cms',
+            'https://www.hindustantimes.com/feeds/rss/education/rssfeed.xml',
+            'https://www.news18.com/commonfeeds/v1/eng/rss/education-career.xml',
+            'https://www.livemint.com/rss/education',
             'https://indianexpress.com/section/education/feed/',
             'https://pib.gov.in/RssMain.aspx?ModId=6',
         ];

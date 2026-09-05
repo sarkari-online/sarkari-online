@@ -31,7 +31,12 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 
         if ($action === 'clean_backlog') {
             $cleaned = TrendService::cleanRepetitiveBacklog();
-            $message = "Cleaned {$cleaned} repetitive topics from the approved queue.";
+            $purged = TrendService::purgeDuplicateTrends();
+            $message = "Cleaned {$cleaned} repetitive topics from approved queue and purged {$purged} duplicate records.";
+            $messageType = 'success';
+        } elseif ($action === 'purge_duplicates') {
+            $purged = TrendService::purgeDuplicateTrends();
+            $message = "Successfully purged {$purged} duplicate trend records from database.";
             $messageType = 'success';
         } elseif ($trendId > 0) {
             if ($action === 'publish_now') {
@@ -194,6 +199,12 @@ include dirname(__DIR__) . '/components/header.php';
         <a href="<?= url('admin/trends/?status=detected') ?>" class="btn btn-sm <?= $statusFilter === 'detected' ? 'btn-primary' : 'btn-outline' ?>">Detected (<?= $detectedCount ?>)</a>
         <a href="<?= url('admin/trends/?status=published') ?>" class="btn btn-sm <?= $statusFilter === 'published' ? 'btn-primary' : 'btn-outline' ?>">Published (<?= $publishedCount ?>)</a>
         <a href="<?= url('admin/trends/?status=rejected') ?>" class="btn btn-sm <?= $statusFilter === 'rejected' ? 'btn-primary' : 'btn-outline' ?>">Rejected (<?= $rejectedCount ?>)</a>
+        <form method="POST" style="display: inline-block; margin: 0;">
+            <?= CSRF::input() ?>
+            <button type="submit" name="action" value="purge_duplicates" class="btn btn-sm btn-outline" style="color: #64748b; border-color: #cbd5e1; font-weight: 600;" title="Purge duplicate rejected entries to keep database clean" onclick="return confirm('Purge redundant duplicate trend records from database?');">
+                🧹 Purge Duplicates
+            </button>
+        </form>
     </div>
 </div>
 

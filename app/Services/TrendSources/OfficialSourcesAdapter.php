@@ -19,18 +19,11 @@ class OfficialSourcesAdapter implements TrendSourceInterface {
 
     // Official statutory RSS feeds for Indian education authorities
     private array $officialFeeds = [
-        'https://nta.ac.in/feed/'                             => ['name' => 'NTA', 'category' => 'exam-dates', 'score' => 95],
-        'https://upsc.gov.in/rss-feeds/latest-news'           => ['name' => 'UPSC', 'category' => 'government-jobs', 'score' => 95],
-        'https://ssc.gov.in/rss'                               => ['name' => 'SSC', 'category' => 'government-jobs', 'score' => 95],
-        'https://cbse.gov.in/cbsenew/rss.html'                 => ['name' => 'CBSE', 'category' => 'school-boards', 'score' => 95],
-        'https://www.ugc.gov.in/rss/feed.xml'                  => ['name' => 'UGC', 'category' => 'higher-education', 'score' => 92],
-        'https://pib.gov.in/RssMain.aspx?ModId=6'              => ['name' => 'PIB Education', 'category' => 'career-guides', 'score' => 90],
-        'https://josaa.nic.in/rss'                             => ['name' => 'JoSAA', 'category' => 'entrance-exams', 'score' => 95],
-        'https://mcc.nic.in/rss'                               => ['name' => 'MCC', 'category' => 'entrance-exams', 'score' => 93],
+        'https://pib.gov.in/RssMain.aspx?ModId=6' => ['name' => 'PIB Education', 'category' => 'career-guides', 'score' => 90],
     ];
 
     public function __construct() {
-        $this->timeout = (int)Env::get('TRENDS_FETCH_TIMEOUT', 15);
+        $this->timeout = min(6, (int)Env::get('TRENDS_FETCH_TIMEOUT', 15));
     }
 
     public function getSourceId(): string {
