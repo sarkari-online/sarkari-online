@@ -366,9 +366,39 @@ class AutoCronService {
             if (!empty($val)) {
                 $decoded = is_array($val) ? $val : json_decode($val, true);
                 if (is_array($decoded) && ($decoded['date'] ?? '') === $today) {
-                    return $decoded;
+                    $default = $decoded;
                 }
             }
+        } catch (Throwable $e) {}
+
+        // Ground-Truth Verification: Inspect actual articles published today in MySQL
+        // If an article was already published in a slot window today, that slot is guaranteed completed!
+        try {
+            $todayArticles = Database::fetchAll(
+                "SELECT id, published_at FROM articles 
+                 WHERE DATE(published_at) = :today 
+                   AND status = 'published' 
+                   AND (ai_generated = 1 OR trend_id IS NOT NULL)
+                 ORDER BY published_at ASC",
+                ['today' => $today]
+            );
+
+            foreach ($todayArticles as $art) {
+                $h = (int)date('H', strtotime($art['published_at']));
+                $slotMatched = null;
+                if ($h >= 10 && $h < 14) {
+                    $slotMatched = 1; // Morning Slot 1 (10:00 AM to 01:59 PM IST)
+                } elseif ($h >= 14 && $h < 18) {
+                    $slotMatched = 2; // Noon Slot 2 (02:00 PM to 05:59 PM IST)
+                } elseif ($h >= 18) {
+                    $slotMatched = 3; // Evening Slot 3 (06:00 PM to 11:59 PM IST)
+                }
+
+                if ($slotMatched && !in_array($slotMatched, $default['completed_slots'], true)) {
+                    $default['completed_slots'][] = $slotMatched;
+                }
+            }
+            sort($default['completed_slots']);
         } catch (Throwable $e) {}
 
         return $default;

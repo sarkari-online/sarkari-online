@@ -40,11 +40,11 @@ try {
         }
     }
 
-    // Optional sweep of review queue only if the current IST time slot has remaining capacity
+    // Optional sweep of review queue ONLY if zero articles were generated from trends and current slot is pending
     $pendingSlot = \App\Services\AutoCronService::getNextPendingSlot();
     $pubService  = new \App\Services\PublishingService();
 
-    if ($pendingSlot !== null && !$pubService->isDailyLimitReached()) {
+    if ($generatedCount === 0 && $pendingSlot !== null && !$pubService->isDailyLimitReached()) {
         $pubResult = $pubService->processPublishQueue(1);
         if (!empty($pubResult['items'])) {
             foreach ($pubResult['items'] as $pItem) {
