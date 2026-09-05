@@ -114,7 +114,7 @@ class JobDirectoryService {
             'title'          => $displayTitle,
             'original_title' => $title,
             'slug'           => $slug,
-            'url'            => url('article/' . $slug . '/'),
+            'url'            => function_exists('url') ? \url('article/' . $slug . '/') : ('/article/' . $slug . '/'),
             'authority'      => $authority,
             'vacancies'      => $vacancies,
             'last_date'      => $deadlineInfo['formatted'],
