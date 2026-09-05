@@ -338,15 +338,18 @@ class SearchIntentDiscoveryAdapter implements TrendSourceInterface {
                     'search_demand' => [
                         'exact_keyword_volume' => [
                             'value' => null, // Explicitly null without fabrication
-                            'source' => 'commission_applicant_scale',
-                            'period' => 'monthly',
-                            'country' => 'IN',
-                            'confidence' => 'high'
+                            'confidence' => 'unverified'
                         ],
-                        'cluster_demand' => [
-                            'scale' => $cluster['scale'],
-                            'authority_domain' => parse_url($cluster['authority'], PHP_URL_HOST)
-                        ]
+                        'cluster_search_demand' => [
+                            'tier' => $cluster['scale'],
+                            'signal_source' => 'search_intent_clustering'
+                        ],
+                        'applicant_scale' => [
+                            'tier' => $cluster['scale'],
+                            'source' => 'official_commission_historical_filings'
+                        ],
+                        'trend_signal' => 'active_cycle',
+                        'official_event_signal' => 'statutory_portal_bulletin'
                     ],
                     'authority_tier' => $authCheck['tier'],
                     'authority_confidence' => $authCheck['confidence']

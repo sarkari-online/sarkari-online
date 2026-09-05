@@ -40,38 +40,74 @@ class TopicDiscoveryEngine {
      * Check if a candidate topic overlaps >80% with an existing published article's search intent
      */
     public static function checkDuplicateSearchIntent(string $keyword): array {
-        $canonical = self::extractCanonicalIntent($keyword);
-        $candidateWords = array_filter(explode(' ', $canonical), fn($w) => strlen($w) > 2);
+        try {
+            $canonical = self::extractCanonicalIntent($keyword);
+            $candidateWords = array_filter(explode(' ', $canonical), fn($w) => strlen($w) > 2);
 
-        if (empty($candidateWords)) {
+            if (empty($candidateWords)) {
+                return ['is_duplicate' => false, 'matched_id' => null, 'overlap' => 0];
+            }
+
+            // Check against recent published articles
+            $articles = Database::fetchAll("SELECT id, title, slug FROM articles WHERE status = 'published' ORDER BY id DESC LIMIT 200");
+
+            foreach ($articles as $art) {
+                $artCanonical = self::extractCanonicalIntent($art['title']);
+                $artWords = array_filter(explode(' ', $artCanonical), fn($w) => strlen($w) > 2);
+
+                if (empty($artWords)) {
+                    continue;
+                }
+
+                $intersection = array_intersect($candidateWords, $artWords);
+                $overlap = count($intersection) / max(count($candidateWords), count($artWords));
+
+                if ($overlap >= 0.80) {
+                    return [
+                        'is_duplicate' => true,
+                        'matched_id' => (int)$art['id'],
+                        'matched_title' => $art['title'],
+                        'overlap' => round($overlap * 100, 1)
+                    ];
+                }
+            }
+
+            return ['is_duplicate' => false, 'matched_id' => null, 'overlap' => 0];
+        } catch (\Throwable $e) {
+            Logger::error("checkDuplicateSearchIntent error: " . $e->getMessage());
             return ['is_duplicate' => false, 'matched_id' => null, 'overlap' => 0];
         }
+    }
 
-        // Check against recent published articles
-        $articles = Database::fetchAll("SELECT id, title, slug FROM articles WHERE status = 'published' ORDER BY id DESC LIMIT 200");
+    /**
+     * Determine the lifecycle state of a topic (ACTIVE, HISTORICAL_BENCHMARK, EVERGREEN_PREPARATION, EVERGREEN_SYLLABUS, EVERGREEN_CAREER, CLOSED, ARCHIVE_CANDIDATE)
+     */
+    public static function resolveTopicLifecycle(string $keyword): string {
+        $kwLower = mb_strtolower($keyword);
 
-        foreach ($articles as $art) {
-            $artCanonical = self::extractCanonicalIntent($art['title']);
-            $artWords = array_filter(explode(' ', $artCanonical), fn($w) => strlen($w) > 2);
-
-            if (empty($artWords)) {
-                continue;
-            }
-
-            $intersection = array_intersect($candidateWords, $artWords);
-            $overlap = count($intersection) / max(count($candidateWords), count($artWords));
-
-            if ($overlap >= 0.80) {
-                return [
-                    'is_duplicate' => true,
-                    'matched_id' => (int)$art['id'],
-                    'matched_title' => $art['title'],
-                    'overlap' => round($overlap * 100, 1)
-                ];
-            }
+        // Historical value intents that are permanently valuable to aspirants
+        if (preg_match('/(cut\s*off|cutoff|merit list|scorecard|result|marksheet)/i', $kwLower)) {
+            return preg_match('/\b(202[0-5])\b/i', $kwLower) ? 'HISTORICAL_BENCHMARK' : 'ACTIVE';
         }
 
-        return ['is_duplicate' => false, 'matched_id' => null, 'overlap' => 0];
+        if (preg_match('/(previous year paper|model paper|question paper|answer key|response sheet)/i', $kwLower)) {
+            return 'EVERGREEN_PREPARATION';
+        }
+
+        if (preg_match('/(syllabus|exam pattern|negative marking|marking scheme)/i', $kwLower)) {
+            return 'EVERGREEN_SYLLABUS';
+        }
+
+        if (preg_match('/(salary|pay matrix|pay scale|in-hand salary|grade pay|job profile|eligibility|age limit)/i', $kwLower)) {
+            return 'EVERGREEN_CAREER';
+        }
+
+        // Concluded transactional registration/apply forms for expired years
+        if (preg_match('/\b(202[0-4])\b/i', $kwLower) && preg_match('/(apply online|registration form|admit card download)/i', $kwLower)) {
+            return 'CLOSED';
+        }
+
+        return 'ACTIVE';
     }
 
     /**
@@ -79,14 +115,20 @@ class TopicDiscoveryEngine {
      * 
      * @param string $keyword
      * @param array $sourceInfo
-     * @return array ['pass' => bool, 'reason' => string|null]
+     * @return array ['pass' => bool, 'reason' => string|null, 'lifecycle' => string]
      */
     public static function evaluateHardQualityGates(string $keyword, array $sourceInfo = []): array {
         $kwLower = mb_strtolower($keyword);
+        $lifecycle = self::resolveTopicLifecycle($keyword);
 
-        // 1. Expired Historical Cycles
-        if (preg_match('/\b(202[0-4])\b/i', $kwLower)) {
-            return ['pass' => false, 'reason' => 'Expired historical cycle (pre-2025).'];
+        // 1. Check Lifecycle — Never auto-reject historical results, cutoffs, papers, syllabus, or salaries!
+        // Only reject if an expired cycle actively claims an active registration/apply-online window
+        if ($lifecycle === 'CLOSED') {
+            return [
+                'pass' => false,
+                'reason' => 'Application/Registration cycle concluded (CLOSED). Historical benchmarks and syllabus remain preserved under historical/evergreen lifecycle.',
+                'lifecycle' => 'CLOSED'
+            ];
         }
 
         // 2. Administrative Noise / Speculation / PIL Hearing Fluff
@@ -98,7 +140,7 @@ class TopicDiscoveryEngine {
         ];
         foreach ($fluffPatterns as $fp) {
             if (str_contains($kwLower, $fp)) {
-                return ['pass' => false, 'reason' => "Administrative noise / non-actionable gossip ('{$fp}')."];
+                return ['pass' => false, 'reason' => "Administrative noise / non-actionable gossip ('{$fp}').", 'lifecycle' => $lifecycle];
             }
         }
 
@@ -117,11 +159,12 @@ class TopicDiscoveryEngine {
         if ($dupCheck['is_duplicate']) {
             return [
                 'pass' => false,
-                'reason' => "Search intent duplicates Article #{$dupCheck['matched_id']} ('{$dupCheck['matched_title']}') with {$dupCheck['overlap']}% overlap."
+                'reason' => "Search intent duplicates Article #{$dupCheck['matched_id']} ('{$dupCheck['matched_title']}') with {$dupCheck['overlap']}% overlap.",
+                'lifecycle' => $lifecycle
             ];
         }
 
-        return ['pass' => true, 'reason' => null];
+        return ['pass' => true, 'reason' => null, 'lifecycle' => $lifecycle];
     }
 
     /**
@@ -168,21 +211,25 @@ class TopicDiscoveryEngine {
     }
 
     /**
-     * Build standard Search Volume Attribution payload (Zero fabricated numbers)
+     * Build standard Search Volume Attribution payload with 5 distinct signals
+     * (Applicant/registration counts must NEVER be represented as search volume)
      */
-    public static function buildSearchVolumePayload(?int $exactVolume, string $source, string $scale, string $confidence = 'high'): array {
+    public static function buildSearchVolumePayload(?int $exactVolume, string $demandTier, string $applicantScale, string $confidence = 'unverified'): array {
         return [
             'exact_keyword_volume' => [
-                'value' => $exactVolume, // explicitly null if unverified
-                'source' => $source,
-                'period' => 'monthly',
-                'country' => 'IN',
+                'value' => $exactVolume, // null if actual volume is unverified
                 'confidence' => $confidence
             ],
-            'cluster_demand' => [
-                'scale' => $scale, // e.g. 'mega_1m_plus', 'high_100k_500k', 'medium_20k_100k'
-                'basis' => 'Official examination commission registration volume'
-            ]
+            'cluster_search_demand' => [
+                'tier' => $demandTier,
+                'signal_source' => 'search_intent_clustering'
+            ],
+            'applicant_scale' => [
+                'tier' => $applicantScale,
+                'source' => 'official_commission_historical_filings'
+            ],
+            'trend_signal' => 'active_cycle',
+            'official_event_signal' => 'statutory_portal_bulletin'
         ];
     }
 }

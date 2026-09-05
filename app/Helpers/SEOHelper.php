@@ -52,14 +52,7 @@ class SEOHelper {
             ],
             'url' => $siteUrl,
             'description' => SITE_DESCRIPTION,
-            'potentialAction' => [
-                '@type' => 'SearchAction',
-                'target' => [
-                    '@type' => 'EntryPoint',
-                    'urlTemplate' => url('search/?q={search_term_string}')
-                ],
-                'query-input' => 'required name=search_term_string'
-            ]
+            'inLanguage' => 'en-IN'
         ];
 
         return json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);

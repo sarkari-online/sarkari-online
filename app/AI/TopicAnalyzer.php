@@ -83,7 +83,7 @@ TIERED PUBLISHING GATES:
 - <65 Reject: Low intent, micro-vacancies (<50), administrative noise.
 
 HARD QUALITY GATES (ALWAYS OVERRIDE SCORE TO REJECT IF TRIGGERED):
-- Expired year cycles (2024, 2023) or concluded application deadlines.
+- Concluded transactional application forms for expired years (e.g. "Apply online 2023"). NOTE: Do NOT reject historical results, previous cutoffs, answer keys, question papers, salary, or syllabus, which remain permanently valuable for student preparation.
 - Administrative noise, grievance desks, PILs, legal hearing gossip ("SC told", "plea filed", "protest").
 - Duplicate search intent (>80% overlap with existing articles).
 - Speculative rumors lacking an official statutory circular (.gov.in, .nic.in, ibps.in, nta.ac.in, cbse.gov.in).
