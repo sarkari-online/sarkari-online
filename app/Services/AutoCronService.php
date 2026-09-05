@@ -85,7 +85,19 @@ class AutoCronService {
             if (($now - ($state['fetch'] ?? 0)) >= self::INTERVAL_FETCH) {
                 $tasksDue[] = 'fetch';
             }
-            if (($now - ($state['analyze'] ?? 0)) >= self::INTERVAL_ANALYZE) {
+            $isAnalyzeDue = (($now - ($state['analyze'] ?? 0)) >= self::INTERVAL_ANALYZE);
+            // Auto-Replenish: If approved queue has 0 items and detected topics exist, analyze automatically in background without waiting 30m
+            if (!$isAnalyzeDue && ($now - ($state['analyze'] ?? 0)) >= 60) {
+                try {
+                    $apprCount = (int)Database::fetchValue("SELECT COUNT(*) FROM trends WHERE status = 'approved' LIMIT 1");
+                    $detCount = (int)Database::fetchValue("SELECT COUNT(*) FROM trends WHERE status = 'detected' LIMIT 1");
+                    if ($apprCount === 0 && $detCount > 0) {
+                        $isAnalyzeDue = true;
+                    }
+                } catch (Throwable $e) {}
+            }
+
+            if ($isAnalyzeDue) {
                 $tasksDue[] = 'analyze';
             }
             if (($now - ($state['generate'] ?? 0)) >= self::INTERVAL_GENERATE) {
