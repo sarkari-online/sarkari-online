@@ -85,6 +85,26 @@ include __DIR__ . '/components/header.php';
     color: #ffffff !important;
     border-color: #2563eb !important;
 }
+.state-job-apply-btn.closed {
+    color: #475569 !important;
+    background: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+}
+.state-job-item-row:hover .state-job-apply-btn.closed {
+    background: #64748b !important;
+    color: #ffffff !important;
+    border-color: #64748b !important;
+}
+.state-job-apply-btn.notice {
+    color: #b45309 !important;
+    background: #fef3c7 !important;
+    border-color: #fde68a !important;
+}
+.state-job-item-row:hover .state-job-apply-btn.notice {
+    background: #d97706 !important;
+    color: #ffffff !important;
+    border-color: #d97706 !important;
+}
 @media (max-width: 768px) {
     .state-job-item-row {
         flex-direction: column !important;
@@ -170,7 +190,10 @@ include __DIR__ . '/components/header.php';
 
             <div class="state-jobs-list-card" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); overflow: hidden;">
                 <?php foreach (array_slice($activeJobs, 0, 15) as $job): 
-                    $isUrgent = str_contains(strtolower($job['last_date']), 'today') || str_contains(strtolower($job['status_tag']['label']), 'closing');
+                    $statusType = $job['status_tag']['type'] ?? 'active';
+                    $isUrgent = ($statusType === 'urgent') || str_contains(strtolower($job['last_date']), 'today');
+                    $isClosed = ($statusType === 'closed');
+                    $isNotice = ($statusType === 'notice');
                 ?>
                 <a href="<?= $job['url'] ?>" class="state-job-item-row" style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.85rem 1.15rem; border-bottom: 1px solid #f1f5f9; text-decoration: none; color: inherit; transition: background-color 0.15s ease;">
                     <div style="flex: 1; min-width: 0;">
@@ -190,11 +213,11 @@ include __DIR__ . '/components/header.php';
                         </div>
                     </div>
                     <div class="state-job-action-col" style="display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0;">
-                        <span style="font-size: 0.8rem; font-weight: <?= $isUrgent ? '700' : '600' ?>; color: <?= $isUrgent ? '#dc2626' : '#475569' ?>; white-space: nowrap;">
+                        <span style="font-size: 0.8rem; font-weight: <?= $isUrgent ? '700' : '600' ?>; color: <?= $isUrgent ? '#dc2626' : ($isClosed ? '#64748b' : ($isNotice ? '#d97706' : '#475569')) ?>; white-space: nowrap;">
                             <?= e($job['last_date']) ?>
                         </span>
-                        <span class="state-job-apply-btn" style="display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.75rem; font-weight: 700; color: #2563eb; background: #eff6ff; border: 1px solid #bfdbfe; padding: 0.3rem 0.65rem; border-radius: 4px; white-space: nowrap; transition: all 0.15s ease;">
-                            <span>Apply</span>
+                        <span class="state-job-apply-btn <?= $isClosed ? 'closed' : ($isNotice ? 'notice' : '') ?>" style="display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.75rem; font-weight: 700; color: #2563eb; background: #eff6ff; border: 1px solid #bfdbfe; padding: 0.3rem 0.65rem; border-radius: 4px; white-space: nowrap; transition: all 0.15s ease;">
+                            <span><?= $isClosed ? 'View Details' : ($isNotice ? 'Check Notice' : 'Apply') ?></span>
                             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
                         </span>
                     </div>

@@ -106,8 +106,8 @@ class JobDirectoryService {
         // Clean display title (ensure it looks official and clear)
         $displayTitle = self::cleanJobTitle($title, $vacancies);
 
-        // Determine status tag
-        $statusTag = self::determineStatusTag($deadlineInfo['raw_date'] ?? '');
+        // Determine status tag (intelligent deadline & lifecycle tracker)
+        $statusTag = self::determineStatusTag($deadlineInfo['raw_date'] ?? '', $title);
 
         return [
             'id'             => (int)$row['id'],
@@ -307,9 +307,14 @@ class JobDirectoryService {
     }
 
     /**
-     * Determine status badge
+     * Determine status badge based on deadline and title lifecycle
      */
-    public static function determineStatusTag(?string $rawDate): array {
+     public static function determineStatusTag(?string $rawDate, string $title = ''): array {
+        $lowerTitle = strtolower($title);
+        if (str_contains($lowerTitle, 'postponed') || str_contains($lowerTitle, 'deferred') || str_contains($lowerTitle, 'cancelled')) {
+            return ['label' => 'Postponed', 'type' => 'notice'];
+        }
+
         if (empty($rawDate)) {
             return ['label' => 'Apply Online', 'type' => 'active'];
         }
@@ -322,19 +327,18 @@ class JobDirectoryService {
         // Try date parsing
         $ts = strtotime($rawDate);
         if ($ts !== false) {
-            $diffDays = (int)ceil(($ts - time()) / 86400);
+            $todayStart = strtotime('today midnight');
+            $targetStart = strtotime(date('Y-m-d', $ts) . ' midnight');
+            $diffDays = (int)round(($targetStart - $todayStart) / 86400);
+
             if ($diffDays < 0) {
-                // If it was just today
-                if (date('Y-m-d', $ts) === date('Y-m-d')) {
-                    return ['label' => 'Last Date Today', 'type' => 'urgent'];
-                }
-                return ['label' => 'Apply Online', 'type' => 'active'];
+                return ['label' => 'Application Closed', 'type' => 'closed'];
             }
             if ($diffDays === 0) {
                 return ['label' => 'Last Date Today', 'type' => 'urgent'];
             }
             if ($diffDays <= 3) {
-                return ['label' => "Closing Soon ({$diffDays}d)", 'type' => 'urgent'];
+                return ['label' => "Closing in {$diffDays}d", 'type' => 'urgent'];
             }
         }
 

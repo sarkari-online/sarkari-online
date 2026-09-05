@@ -349,6 +349,14 @@ include __DIR__ . '/components/header.php';
     color: #dc2626;
     font-weight: 700;
 }
+.job-deadline-badge.closed {
+    color: #64748b;
+    background: #f1f5f9;
+}
+.job-deadline-badge.notice {
+    color: #d97706;
+    background: #fffbeb;
+}
 .job-apply-btn {
     display: inline-flex;
     align-items: center;
@@ -367,6 +375,26 @@ include __DIR__ . '/components/header.php';
     background: #2563eb;
     color: #ffffff;
     border-color: #2563eb;
+}
+.job-apply-btn.closed {
+    color: #475569;
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+.job-item-card:hover .job-apply-btn.closed {
+    background: #64748b;
+    color: #ffffff;
+    border-color: #64748b;
+}
+.job-apply-btn.notice {
+    color: #b45309;
+    background: #fef3c7;
+    border-color: #fde68a;
+}
+.job-item-card:hover .job-apply-btn.notice {
+    background: #d97706;
+    color: #ffffff;
+    border-color: #d97706;
 }
 
 @media (max-width: 768px) {
@@ -460,7 +488,11 @@ include __DIR__ . '/components/header.php';
         <div class="jobs-feed-container">
             <div class="jobs-list-card" id="jobsListWrap">
                 <?php foreach ($allJobs as $job): 
-                    $isUrgent = str_contains(strtolower($job['last_date']), 'today') || str_contains(strtolower($job['status_tag']['label']), 'closing');
+                    $statusType = $job['status_tag']['type'] ?? 'active';
+                    $statusLabel = $job['status_tag']['label'] ?? 'Apply Online';
+                    $isUrgent = ($statusType === 'urgent') || str_contains(strtolower($job['last_date']), 'today');
+                    $isClosed = ($statusType === 'closed');
+                    $isNotice = ($statusType === 'notice');
                 ?>
                 <a href="<?= $job['url'] ?>" class="job-item-card" 
                    data-title="<?= e(strtolower($job['title'])) ?>" 
@@ -486,12 +518,12 @@ include __DIR__ . '/components/header.php';
                     </div>
 
                     <div class="job-action-col">
-                        <div class="job-deadline-badge <?= $isUrgent ? 'urgent' : 'normal' ?>">
+                        <div class="job-deadline-badge <?= $isUrgent ? 'urgent' : ($isClosed ? 'closed' : ($isNotice ? 'notice' : 'normal')) ?>">
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                             <span><?= e($job['last_date']) ?></span>
                         </div>
-                        <span class="job-apply-btn">
-                            <span>Apply Online</span>
+                        <span class="job-apply-btn <?= $isClosed ? 'closed' : ($isNotice ? 'notice' : '') ?>">
+                            <span><?= $isClosed ? 'View Details' : ($isNotice ? 'Check Notice' : 'Apply Online') ?></span>
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
                         </span>
                     </div>
