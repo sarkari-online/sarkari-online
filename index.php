@@ -184,8 +184,8 @@ include __DIR__ . '/components/header.php';
                     <?= icon('briefcase') ?>
                     <span>Latest Government Jobs</span>
                 </h2>
-                <a href="<?= url('category/government-jobs/') ?>" class="section-link-more">
-                    All Recruitment <?= icon('chevron-right', 'icon-sm') ?>
+                <a href="<?= url('latest-jobs/') ?>" class="section-link-more">
+                    Jobs Directory <?= icon('chevron-right', 'icon-sm') ?>
                 </a>
             </div>
 

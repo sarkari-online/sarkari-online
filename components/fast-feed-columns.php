@@ -9,6 +9,7 @@
 
 use App\Database\Database;
 use App\Services\ArticleService;
+use App\Services\JobDirectoryService;
 
 // Column 1: Results & Scorecards
 $resultsFeed = Database::fetchAll("
@@ -38,31 +39,42 @@ if (empty($admitFeed)) {
     $admitFeed = ArticleService::getLatestPublished(8, 2);
 }
 
-// Column 3: Latest Government Jobs & Application Forms
-$jobsFeed = Database::fetchAll("
-    SELECT a.id, a.title, a.slug, a.published_at, a.source_name, c.slug as category_slug, c.name as category_name
-    FROM articles a
-    JOIN categories c ON a.category_id = c.id
-    WHERE a.status = 'published' 
-      AND (c.slug IN ('government-jobs', 'scholarships', 'entrance-exams') OR a.title LIKE '%Apply%' OR a.title LIKE '%Recruitment%' OR a.title LIKE '%Posts%' OR a.title LIKE '%Fellowship%' OR a.title LIKE '%Vacancy%')
-    ORDER BY a.published_at DESC, a.id DESC 
-    LIMIT 8
-");
+// Column 3: Latest Government Jobs with Live Vacancies & Deadlines
+$jobsFeed = JobDirectoryService::getActiveJobs(8);
 if (empty($jobsFeed)) {
-    $jobsFeed = ArticleService::getLatestPublished(8, 6);
+    $jobsFeed = Database::fetchAll("
+        SELECT a.id, a.title, a.slug, a.published_at, a.source_name, c.slug as category_slug, c.name as category_name
+        FROM articles a
+        JOIN categories c ON a.category_id = c.id
+        WHERE a.status = 'published' 
+          AND (c.slug IN ('government-jobs', 'scholarships', 'entrance-exams') OR a.title LIKE '%Apply%' OR a.title LIKE '%Recruitment%' OR a.title LIKE '%Posts%' OR a.title LIKE '%Fellowship%' OR a.title LIKE '%Vacancy%')
+        ORDER BY a.published_at DESC, a.id DESC 
+        LIMIT 8
+    ");
 }
 
 // Helper to extract a short clean badge from title or source_name
 function get_feed_badge(array $item): string {
     $title = $item['title'] ?? '';
-    if (preg_match('/\b(UPSC|SSC|NTA|NEET|JEE|RRB|IBPS|CBSE|AICTE|UPSSSC|DSSSB|CISF|BSF|CRPF|ITBP|SSB|BPSC|RPSC|UPPSC|MPPSC|HSSC|WBPSC|IGNOU|SBI)\b/i', $title, $m)) {
+    if (preg_match('/\b(UPSC|SSC|NTA|NEET|JEE|RRB|IBPS|CBSE|AICTE|UPSSSC|DSSSB|CISF|BSF|CRPF|ITBP|SSB|BPSC|RPSC|UPPSC|MPPSC|HSSC|WBPSC|IGNOU|SBI|RVUNL)\b/i', $title, $m)) {
         return strtoupper($m[1]);
+    }
+    if (stripos($title, 'Bank of Baroda') !== false) {
+        return 'BOB';
+    }
+    if (stripos($title, 'Punjab PTI') !== false) {
+        return 'PUNJAB';
+    }
+    if (!empty($item['authority']) && $item['authority'] !== 'Public Recruitment Board') {
+        if (preg_match('/\(([A-Z]{2,8})\)/', $item['authority'], $m)) {
+            return $m[1];
+        }
     }
     $source = $item['source_name'] ?? '';
     if (!empty($source) && preg_match('/\(([A-Z]{2,8})\)/', $source, $m)) {
         return $m[1];
     }
-    return $item['category_name'] ?? 'Notice';
+    return $item['category_name'] ?? 'Govt Job';
 }
 ?>
 
@@ -189,17 +201,41 @@ function get_feed_badge(array $item): string {
             </div>
 
             <ul class="fast-feed-list">
-                <?php foreach ($jobsFeed as $item): ?>
+                <?php foreach ($jobsFeed as $item): 
+                    $itemUrl = !empty($item['url']) ? $item['url'] : url('article/' . $item['slug'] . '/');
+                    $deadlineText = $item['last_date'] ?? ('Updated ' . date('d M Y', strtotime($item['published_at'] ?? 'now')));
+                    $statusType = $item['status_tag']['type'] ?? 'active';
+                    $statusLabel = $item['status_tag']['label'] ?? 'Apply Online';
+                    $isUrgent = ($statusType === 'urgent') || str_contains(strtolower($deadlineText), 'today');
+                    $isClosed = ($statusType === 'closed');
+                    $isNotice = ($statusType === 'notice');
+
+                    $actionText = 'Apply';
+                    $actionColor = '#059669';
+                    if ($isClosed) {
+                        $actionText = 'Closed';
+                        $actionColor = '#64748b';
+                    } elseif ($isNotice) {
+                        $actionText = 'Postponed';
+                        $actionColor = '#d97706';
+                    } elseif ($isUrgent) {
+                        $actionText = 'Today';
+                        $actionColor = '#dc2626';
+                    }
+                ?>
                     <li class="fast-feed-item">
-                        <a href="<?= url('article/' . $item['slug'] . '/') ?>" class="fast-feed-item-link">
+                        <a href="<?= $itemUrl ?>" class="fast-feed-item-link">
                             <div class="item-headline-row">
                                 <span class="item-agency-tag tag-jobs"><?= e(get_feed_badge($item)) ?></span>
                                 <span class="item-title"><?= e($item['title']) ?></span>
                             </div>
                             <div class="item-meta-row">
-                                <span class="item-date"><?= date('d M Y', strtotime($item['published_at'])) ?></span>
-                                <span class="item-action-link">
-                                    <span>Apply Online</span>
+                                <span class="item-date" style="font-size: 0.72rem; font-weight: <?= $isUrgent ? '700' : '600' ?>; color: <?= $isUrgent ? '#dc2626' : ($isClosed ? '#94a3b8' : ($isNotice ? '#d97706' : '#475569')) ?>; display: inline-flex; align-items: center; gap: 4px;">
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                    <span><?= e($deadlineText) ?></span>
+                                </span>
+                                <span class="item-action-link" style="color: <?= $actionColor ?>;">
+                                    <span><?= $actionText ?></span>
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
                                 </span>
                             </div>
@@ -209,8 +245,8 @@ function get_feed_badge(array $item): string {
             </ul>
 
             <div class="fast-feed-col-footer">
-                <a href="<?= url('category/government-jobs/') ?>" class="col-footer-link">
-                    <span>View All Jobs</span>
+                <a href="<?= url('latest-jobs/') ?>" class="col-footer-link">
+                    <span>View All Latest Jobs Directory</span>
                     <?= icon('arrow-right', 'footer-arrow-icon') ?>
                 </a>
             </div>
