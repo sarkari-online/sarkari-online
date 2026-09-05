@@ -30,6 +30,73 @@ class EvergreenTopicsAdapter implements TrendSourceInterface {
     private function getCatalog(): array {
         return [
             // =========================================================================
+            // CATEGORY 0: TIER 1 MEGA NATIONAL EXAMINATIONS & RECRUITMENTS (Score 98-99)
+            // =========================================================================
+            [
+                'keyword' => 'RRB NTPC 2026: CBT 1 Exam Schedule, Shift Timings and Hall Ticket Direct Link',
+                'source' => 'Railway Recruitment Boards (RRB)',
+                'url' => 'https://indianrailways.gov.in',
+                'category_hint' => 'admit-cards',
+                'trend_score' => 99,
+                'snippet' => 'Official Railway Recruitment Board CEN 05/2024 and CEN 06/2024 computer based test dates, shift schedules, city slip download, and e-call letter guidelines.'
+            ],
+            [
+                'keyword' => 'SSC GD Constable 2026: Application Status, Exam Dates and Physical Test (PST/PET) Guidelines',
+                'source' => 'Staff Selection Commission (SSC)',
+                'url' => 'https://ssc.gov.in',
+                'category_hint' => 'government-jobs',
+                'trend_score' => 99,
+                'snippet' => 'Staff Selection Commission Constable GD recruitment in CAPFs, SSF, and Rifleman in Assam Rifles exam dates, application status check, and physical standards.'
+            ],
+            [
+                'keyword' => 'SSC CGL 2026: Tier 1 & Tier 2 Exam Pattern, Syllabus Breakdown and Cut-Off Analysis',
+                'source' => 'Staff Selection Commission (SSC)',
+                'url' => 'https://ssc.gov.in',
+                'category_hint' => 'career-guides',
+                'trend_score' => 98,
+                'snippet' => 'Comprehensive Combined Graduate Level examination scheme, module-wise negative marking, computer knowledge test qualifying marks, and category cutoffs.'
+            ],
+            [
+                'keyword' => 'NEET UG 2026: Eligibility Criteria, Information Bulletin and Step-by-Step Registration Guide',
+                'source' => 'National Testing Agency (NTA)',
+                'url' => 'https://nta.ac.in',
+                'category_hint' => 'entrance-exams',
+                'trend_score' => 98,
+                'snippet' => 'NTA National Eligibility cum Entrance Test undergraduate bulletin, mandatory age limits, qualifying subjects code, application fee, and document upload specs.'
+            ],
+            [
+                'keyword' => 'BPSC Teacher (TRE 4.0) Recruitment 2026: Vacancy Distribution, Eligibility and Online Application',
+                'source' => 'Bihar Public Service Commission (BPSC)',
+                'url' => 'https://www.bpsc.bih.nic.in',
+                'category_hint' => 'government-jobs',
+                'trend_score' => 98,
+                'snippet' => 'Bihar Public Service Commission School Teacher Phase 4 recruitment, primary, middle, secondary, and higher secondary vacancy details, CTET/STET qualification.'
+            ],
+            [
+                'keyword' => 'UP Police Constable 2026: Selection Stages, Written Cut-Off Marks and Physical Standards Guide',
+                'source' => 'Uttar Pradesh Police Recruitment & Promotion Board (UPPRPB)',
+                'url' => 'https://uppbpb.gov.in',
+                'category_hint' => 'government-jobs',
+                'trend_score' => 98,
+                'snippet' => 'UPPRPB 60,244 police constable selection process, document verification (DV), physical standard test (PST), physical efficiency test (PET), and cutoff marks.'
+            ],
+            [
+                'keyword' => 'CTET 2026: Paper 1 & Paper 2 Syllabus, Eligibility and DigiLocker Marksheet Download',
+                'source' => 'Central Board of Secondary Education (CBSE)',
+                'url' => 'https://ctet.nic.in',
+                'category_hint' => 'entrance-exams',
+                'trend_score' => 97,
+                'snippet' => 'Central Teacher Eligibility Test qualifying marks for General/OBC/SC/ST, lifetime certificate validity, Paper 1 and 2 syllabus, and DigiLocker security PIN.'
+            ],
+            [
+                'keyword' => 'SBI Clerk 2026: Junior Associates Notification, State-wise Vacancies and Prelims Preparation Blueprint',
+                'source' => 'State Bank of India (SBI)',
+                'url' => 'https://sbi.co.in/web/careers',
+                'category_hint' => 'government-jobs',
+                'trend_score' => 97,
+                'snippet' => 'State Bank of India Junior Associates customer support and sales recruitment, state-wise language proficiency test (LPT), exam pattern, and cutoffs.'
+            ],
+            // =========================================================================
             // CATEGORY 1: STUDENT TECHNOLOGY & DIGITAL IDENTITY (~70% Default Focus)
             // =========================================================================
             [

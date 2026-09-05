@@ -28,9 +28,10 @@ class TrendService {
         if (!empty($adapters)) {
             $this->adapters = $adapters;
         } else {
-            // Default built-in source adapters: Live Official Portals, Exam RSS Feeds, and Google Trends
+            // Default built-in source adapters: Live Official Portals, Evergreen High-Volume Catalog, Exam RSS Feeds, and Google Trends
             $this->adapters = [
                 new OfficialSourcesAdapter(),
+                new EvergreenTopicsAdapter(),
                 new RssFeedAdapter(),
                 new GoogleTrendsAdapter()
             ];
@@ -418,14 +419,19 @@ class TrendService {
             return ['pass' => false, 'reason' => 'Too short or single-word query lacking actionable student context.'];
         }
 
-        // 2. Reject Administrative, Legal, Political, and Bureaucratic Noise
+        // 2. Reject Administrative, Legal, Political, Grievances, and Bureaucratic Noise
         $noisePhrases = [
+            'grievance', 'grievance portal', 'grievance cell', 'redressal portal', 'complaint portal',
+            'feedback portal', 'feedback form', 'helpdesk', 'helpline', 'toll free', 'toll-free',
             'sc told', 'supreme court', 'court told', 'high court', 'plea filed', 'hearing', 'pil',
             'stays', 'stay order', 'cm says', 'minister says', 'says cm', 'says minister',
             'centre tells', 'centre working on', 'three-language', 'language policy', 'attendance system',
-            'dress code', 'paper leak shadow', 'looks for spaces', 'candidates protest', 'protest against',
-            'technical glitches', 'technical glitch', 'committee forms', 'committee formed', 'examines grievances',
-            'inquiry committee', 'probe ordered', 'fir registered', 'arrested'
+            'attendance rule', 'dress code', 'uniform rule', 'mobile phone ban', 'school bag policy',
+            'paper leak shadow', 'paper leak probe', 'cbi probe', 'cbi registers', 'looks for spaces',
+            'candidates protest', 'protest against', 'technical glitches', 'technical glitch',
+            'committee forms', 'committee formed', 'panel formed', 'examines grievances', 'inquiry committee',
+            'probe ordered', 'fir registered', 'arrested', 'walk-in interview for', 'contractual vacancy',
+            'guest faculty interview'
         ];
 
         foreach ($noisePhrases as $noise) {
@@ -494,6 +500,30 @@ class TrendService {
     }
 
     /**
+     * Determine search-volume tier for an Indian education topic:
+     * Tier 1 (Massive national volume 100,000 to 2,000,000+ monthly): 1
+     * Tier 2 (State PSCs, High Courts, PSUs): 2
+     * Tier 3 (General): 3
+     */
+    public static function getSearchVolumeTier(string $keyword): int {
+        $kwLower = mb_strtolower($keyword);
+        $tier1Entities = [
+            'rrb', 'railway', 'ntpc', 'group d', 'alp', 'technician',
+            'ssc cgl', 'ssc gd', 'ssc chsl', 'ssc mts', 'ssc je', 'ssc cpo', 'ssc constable',
+            'sbi po', 'sbi clerk', 'ibps po', 'ibps clerk', 'ibps rrb',
+            'neet', 'jee main', 'jee advanced', 'cuet', 'ctet', 'gate 202', 'ugc net',
+            'up police', 'bpsc teacher', 'bpsc tre', 'bihar police', 'rajasthan reet', 'mp police',
+            'apaar id', 'abc id', 'digilocker', 'national scholarship portal', 'nsp'
+        ];
+        foreach ($tier1Entities as $entity) {
+            if (str_contains($kwLower, $entity)) {
+                return 1;
+            }
+        }
+        return 2;
+    }
+
+    /**
      * Fetch from all registered adapters, filter duplicates, and record new detected trends
      */
     public function fetchAllSources(int $limitPerSource = 10): array {
@@ -517,8 +547,18 @@ class TrendService {
                         $item['id'] = $trendId;
                         $recorded[] = $item;
 
-                        // Official breaking notices are recorded into approved queue with high score, strictly waiting for the next scheduled slot
-                        if (self::isOfficialBreaking($item)) {
+                        // Tier 1 Mega National Searches get elevated priority score
+                        $tier = self::getSearchVolumeTier($item['keyword']);
+                        $isBreaking = self::isOfficialBreaking($item);
+
+                        if ($tier === 1 && $isBreaking) {
+                            self::markStatus($trendId, 'approved', ['trend_score' => 99]);
+                            Logger::info("Tier 1 Official Breaking Notice prioritized (score 99): '{$item['keyword']}'");
+                        } elseif ($tier === 1) {
+                            $initialScore = max(97, (int)($item['trend_score'] ?? 97));
+                            self::markStatus($trendId, 'approved', ['trend_score' => $initialScore]);
+                            Logger::info("Tier 1 Mega National Topic prioritized in approved queue (score {$initialScore}): '{$item['keyword']}'");
+                        } elseif ($isBreaking) {
                             self::markStatus($trendId, 'approved', ['trend_score' => 95]);
                             Logger::info("Official Breaking Notice prioritized in approved queue: '{$item['keyword']}' (Waiting for next scheduled slot)");
                         }

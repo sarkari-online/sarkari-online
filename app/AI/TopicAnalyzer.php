@@ -43,21 +43,34 @@ TAXONOMY CATEGORIES AVAILABLE:
 - student-technology (DigiLocker, ABC ID, APAAR ID, SSC OTR, EdTech & Free Skilling)
 
 CRITICAL RULES:
-1. MANDATORY HIGH STUDENT SEARCH INTENT:
-   - Approve (publish_recommendation: true, priority_score 85-98) ONLY when students have an immediate, personal, and actionable need:
-     a) Active Online Application / Recruitment Notification (Start date, Last date, Vacancies, Eligibility, Direct Portal Link)
-     b) Admit Card / Hall Ticket / Exam City Slip Release (Download link, Shift timings, Reporting rules)
-     c) Official Answer Key & OMR Sheet / Objection Challenge Window
-     d) Result Declaration, Scorecard Download Link & Category Cut-Off Marks
-     e) Confirmed Official Exam Schedule / Timetable / Postponement Notice
-     f) National/State Scholarship Registration & Direct Benefit Transfer (NSP, PMSSS, etc.)
-2. STRICT REJECTION OF ADMINISTRATIVE NOISE, LEGAL CASES & GOSSIP:
-   - Strictly REJECT (publish_recommendation: false, priority_score < 50) any of the following:
-     * Court hearings, PILs, legal pleas, Supreme Court/High Court arguments ("SC told", "High Court stays", "plea filed", "hearing postponed")
-     * Political rhetoric, ministerial speeches, or policy proposals without gazette notifications ("says CM", "minister says", "centre working on proposal")
-     * School administrative/disciplinary rules (e.g. "attendance system across schools", "dress code row")
-     * Investigation reports, technical glitches, candidate protests, exam center space searches, or inquiry committees
-     * Unverified speculative rumors ("likely today", "expected this week") lacking an official authority notice
+1. MANDATORY HIGH SEARCH VOLUME & STUDENT ACTION INTENT:
+   - TIER 1 — MEGA NATIONAL SEARCH INTENT (publish_recommendation: true, priority_score 96-99):
+     MUST APPROVE topics involving examinations, recruitments, and student utilities that command massive search volumes (100,000 to 2,000,000+ monthly queries across India):
+     * Central Mega Recruitments: RRB (NTPC CEN 05/2024 & CEN 06/2024, Group D, ALP, Technician, RPF), SSC (CGL, GD Constable, CHSL, MTS, JE, CPO), Banking (SBI PO, SBI Clerk, IBPS PO, IBPS Clerk, IBPS RRB), UPSC (Civil Services, NDA, CDS), Defence Agniveer.
+     * National Entrance Exams: NEET UG, JEE Main, CUET UG, CTET, GATE, UGC NET.
+     * Mega State Recruitments: UP Police Constable, Bihar BPSC Teacher (TRE 4.0), Bihar Police, Rajasthan REET, MP Police.
+     * Essential Student Digital Services: DigiLocker APAAR ID Card Download (One Nation One Student ID), ABC ID Create Online, NSP Scholarship 2026-27 Registration & Face Auth.
+     AND the topic must represent an active student milestone:
+       a) Active Online Application / Recruitment Notification (Start date, Last date, Vacancies, Eligibility, Direct Portal Link)
+       b) Admit Card / Hall Ticket / Exam City Slip Release (Download link, Shift timings, Reporting rules)
+       c) Official Answer Key & OMR Sheet / Objection Challenge Window
+       d) Result Declaration, Scorecard Download Link & Category Cut-Off Marks
+       e) Confirmed Official Exam Schedule / Timetable / Postponement Notice
+       f) National/State Scholarship Registration & Direct Benefit Transfer (NSP, PMSSS, etc.)
+       g) Comprehensive Syllabus, Exam Pattern, and Marking Scheme Blueprint
+
+   - TIER 2 — SECTORAL & STATE COMMISSIONS (publish_recommendation: true, priority_score 80-89):
+     State PSCs, High Court recruitments, or Navratna PSUs (ONGC, IOCL, BEL, SAIL, Coal India) with 500+ vacancies and broad public demand.
+
+2. STRICT REJECTION OF ADMINISTRATIVE NOISE, GRIEVANCE CELLS, LEGAL CASES & FLUFF:
+   - Strictly REJECT (publish_recommendation: false, priority_score < 40) any of the following:
+     * Grievance portals, feedback forms, complaint cells, helpdesks, helpline numbers, or RTI queries (e.g. "Grievance portal opened", "how to submit issues", "feedback system"). Students do NOT search for administrative grievance desks; this produces zero traffic.
+     * Court hearings, PILs, legal pleas, Supreme Court/High Court arguments ("SC told", "High Court stays", "plea filed", "hearing postponed").
+     * Political rhetoric, ministerial speeches, or policy proposals without gazette notifications ("says CM", "minister says", "centre working on proposal", "cabinet discusses").
+     * School administrative/disciplinary rules (e.g. "attendance system across schools", "dress code row", "mobile phone ban", "school bag policy").
+     * Micro-recruitments with fewer than 50 vacancies or contractual walk-in interviews.
+     * Investigation reports, paper leak probes, FIR registrations, arrests, candidate protests, exam center space searches, or inquiry committees.
+     * Unverified speculative rumors ("likely today", "expected this week") lacking an official statutory circular.
 3. TEMPORAL FRESHNESS & PROACTIVE ADVANCE NOTICE:
    - Operating Year: 2026/2027. Strictly REJECT (publish_recommendation: false) any old, expired historical exam/recruitment cycles (2025, 2024, 2023).
    - If an exam date or registration deadline has ALREADY expired/concluded in the past, REJECT it (publish_recommendation: false) because past notices are useless for students.
@@ -65,7 +78,7 @@ CRITICAL RULES:
    - Official statutory portals (.gov.in, .nic.in, .ac.in) are the primary factual authority.
    - Google Trends RSS represents user search demand signal only — ground truth must be verified against official authority.
 5. NATIONAL SKILLING & TECH EMPOWERMENT:
-   - Proactively APPROVE (publish_recommendation: true) under 'student-technology' or 'scholarships' any national skill development initiatives (NSDC, Skill India, PMKVY), Free Cloud/AI certifications (AWS, Microsoft, Google, NASSCOM), and government-backed digital learning programs offering concrete career value to Indian students.
+   - Proactively APPROVE (publish_recommendation: true, priority_score 95-97) under 'student-technology' or 'scholarships' any national digital identity initiatives (DigiLocker, APAAR ID, ABC ID), national skill development (NSDC, Skill India, NATS 2.0), and government-backed digital learning programs offering concrete career value to Indian students.
 PROMPT;
 
         $existingList = empty($existingArticles) ? "None" : implode("\n- ", array_map(function($a) {
