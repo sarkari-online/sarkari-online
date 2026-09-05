@@ -199,6 +199,16 @@ if (!$isAdminSession):
         <script type="application/ld+json">
         <?= SEOHelper::siteNavigationSchema() ?>
         </script>
+
+        <!-- Schema.org BreadcrumbList Structured Data (Google Rich Breadcrumbs) -->
+        <script type="application/ld+json">
+        <?= SEOHelper::homepageBreadcrumbSchema() ?>
+        </script>
+
+        <!-- Schema.org FAQPage Structured Data (Google Rich FAQ Accordion) -->
+        <script type="application/ld+json">
+        <?= SEOHelper::homepageFaqSchema() ?>
+        </script>
     <?php endif; ?>
 </head>
 <body>

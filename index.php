@@ -397,6 +397,71 @@ include __DIR__ . '/components/header.php';
             </div>
         </section>
 
+        <!-- 9. Frequently Asked Questions (FAQ) Section -->
+        <section class="content-section" aria-labelledby="sec-home-faq" style="margin-top: 2.5rem; margin-bottom: 2rem;">
+            <div class="section-header" style="margin-bottom: 1.25rem;">
+                <h2 class="section-title" id="sec-home-faq">
+                    <?= icon('help-circle') ?>
+                    <span>Frequently Asked Questions — Sarkari.online</span>
+                </h2>
+                <p style="font-size: 0.875rem; color: var(--text-muted); margin-top: 0.25rem;">
+                    Answers to common questions about latest government jobs, admit cards, results, and statutory notifications.
+                </p>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+                <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.15rem 1.25rem;">
+                    <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-heading); margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="color: var(--color-primary);"><?= icon('check-circle', 'icon-xs') ?></span>
+                        What is Sarkari.online and what services does it provide?
+                    </h3>
+                    <p style="font-size: 0.875rem; color: var(--text-body); line-height: 1.6; margin: 0;">
+                        Sarkari.online is India's dedicated public recruitment and educational information portal providing real-time verified alerts for Sarkari Result, Latest Government Jobs 2026, Admit Cards, Exam Dates, Answer Keys, and State PSC notifications.
+                    </p>
+                </div>
+
+                <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.15rem 1.25rem;">
+                    <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-heading); margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="color: var(--color-primary);"><?= icon('check-circle', 'icon-xs') ?></span>
+                        How can candidates find Latest Government Jobs 2026 on Sarkari.online?
+                    </h3>
+                    <p style="font-size: 0.875rem; color: var(--text-body); line-height: 1.6; margin: 0;">
+                        Candidates can visit the Sarkari.online Latest Jobs directory (<a href="<?= url('latest-jobs/') ?>" style="color: var(--color-primary); text-decoration: underline; font-weight: 600;">sarkari.online/latest-jobs/</a>) to filter active recruitments by Central and State categories, check total vacancies, application start and last dates, and access direct official application links.
+                    </p>
+                </div>
+
+                <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.15rem 1.25rem;">
+                    <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-heading); margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="color: var(--color-primary);"><?= icon('check-circle', 'icon-xs') ?></span>
+                        How to download Admit Cards and check Sarkari Exam Results?
+                    </h3>
+                    <p style="font-size: 0.875rem; color: var(--text-body); line-height: 1.6; margin: 0;">
+                        Navigate to the dedicated <a href="<?= url('category/admit-cards/') ?>" style="color: var(--color-primary); text-decoration: underline; font-weight: 600;">Admit Cards</a> or <a href="<?= url('category/exam-results/') ?>" style="color: var(--color-primary); text-decoration: underline; font-weight: 600;">Exam Results</a> sections on Sarkari.online, select your examination board (SSC, RRB, UPSC, Banking, or State PSCs), and access verified direct links with step-by-step guidance to download hall tickets or check merit lists.
+                    </p>
+                </div>
+
+                <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.15rem 1.25rem;">
+                    <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-heading); margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="color: var(--color-primary);"><?= icon('check-circle', 'icon-xs') ?></span>
+                        Are all job notifications on Sarkari.online officially verified?
+                    </h3>
+                    <p style="font-size: 0.875rem; color: var(--text-body); line-height: 1.6; margin: 0;">
+                        Yes, every job notification, examination calendar, and scorecard link on Sarkari.online is authenticated directly from official statutory government portals and commission gazettes before publication.
+                    </p>
+                </div>
+
+                <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.15rem 1.25rem;">
+                    <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-heading); margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="color: var(--color-primary);"><?= icon('check-circle', 'icon-xs') ?></span>
+                        Does Sarkari.online cover State Government Jobs for all 28 states?
+                    </h3>
+                    <p style="font-size: 0.875rem; color: var(--text-body); line-height: 1.6; margin: 0;">
+                        Yes, Sarkari.online provides dedicated state-level recruitment hubs (<a href="<?= url('state-jobs/') ?>" style="color: var(--color-primary); text-decoration: underline; font-weight: 600;">sarkari.online/state-jobs/</a>) covering all 28 Indian States and Union Territories, including UP, Bihar, Rajasthan, MP, Haryana, Delhi, and other state subordinate selection boards.
+                    </p>
+                </div>
+            </div>
+        </section>
+
     </div>
 </main>
 
