@@ -20,6 +20,7 @@ use App\Helpers\Sanitizer;
 use App\Services\WebVitalsService;
 use App\Services\AuthorityFactFetcherService;
 use App\Services\SEOManagerService;
+use App\Services\ArticleUpdateService;
 use Exception;
 use Throwable;
 
@@ -239,6 +240,32 @@ class PipelineService {
             ['s' => $targetSlug, 's_wild' => $slugBase . '-%']
         );
         if (!$force && $existingBySlug) {
+            // Check if this new trend has meaningful new factual updates for the existing article!
+            try {
+                $updateService = new ArticleUpdateService();
+                $updateRes = $updateService->processArticleUpdate((int)$existingBySlug['id'], $sourceData);
+                if (!empty($updateRes['updated'])) {
+                    TrendService::markStatus($trendId, 'published', [
+                        'processed_at' => date('Y-m-d H:i:s'),
+                        'raw_payload' => array_merge($rawPayload, [
+                            'updated_existing_article_id' => $existingBySlug['id'],
+                            'change_summary' => $updateRes['change_summary'] ?? 'Updated with new official circular facts'
+                        ])
+                    ]);
+                    Logger::info("🚀 Article #{$existingBySlug['id']} AUTOMATICALLY UPDATED with new official circular facts from Trend #{$trendId}!");
+                    return [
+                        'success' => true,
+                        'article_id' => (int)$existingBySlug['id'],
+                        'trend_id' => $trendId,
+                        'title' => $existingBySlug['title'],
+                        'status' => 'published',
+                        'updated' => true
+                    ];
+                }
+            } catch (Throwable $e) {
+                Logger::warning("Auto-update attempt on Article #{$existingBySlug['id']} failed: " . $e->getMessage());
+            }
+
             TrendService::markStatus($trendId, 'rejected', ['raw_payload' => ['reason' => "Duplicate: Article already exists with matching slug #{$existingBySlug['id']} ({$existingBySlug['slug']})"]]);
             Logger::warning("Pipeline aborted: Suggested slug '{$targetSlug}' collides with existing Article #{$existingBySlug['id']}. Duplicate generation prevented.");
             return ['success' => false, 'trend_id' => $trendId, 'error' => "Similar article already exists (Article #{$existingBySlug['id']}: '{$existingBySlug['title']}')."];
