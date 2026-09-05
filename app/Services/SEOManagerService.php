@@ -91,13 +91,17 @@ class SEOManagerService {
      */
     public static function optimizeSubheadings(string $html, string $subject): string {
         $headingPatterns = [
-            // Generic Dates
-            '/<h2\b([^>]*)>\s*(?:Important\s+Dates|Key\s+Dates|Schedule|Exam\s+Dates)\s*<\/h2>/i' =>
-                "<h2$1>{$subject}: Important Schedule & Key Dates</h2>",
+            // Generic Overview
+            '/<h2\b([^>]*)>\s*(?:Overview|Recruitment\s+Overview|Notification\s+Overview|Notification\s+Details|Important\s+Highlights)\s*<\/h2>/i' =>
+                "<h2$1>{$subject}: Overview & Recruitment Notification Highlights</h2>",
+
+            // Generic Dates & Timeline
+            '/<h2\b([^>]*)>\s*(?:Important\s+Dates|Key\s+Dates|Schedule|Exam\s+Dates|Application\s+Timeline|Timeline|Important\s+Schedule)\s*<\/h2>/i' =>
+                "<h2$1>{$subject}: Important Schedule & Application Timeline</h2>",
 
             // Generic Eligibility
-            '/<h2\b([^>]*)>\s*(?:Eligibility|Eligibility\s+Criteria|Who\s+Can\s+Apply)\s*<\/h2>/i' =>
-                "<h2$1>Detailed Eligibility Criteria & Required Qualifications for {$subject}</h2>",
+            '/<h2\b([^>]*)>\s*(?:Eligibility|Eligibility\s+Criteria|Eligibility\s+Requirements|Who\s+Can\s+Apply|Educational\s+Qualifications)\s*<\/h2>/i' =>
+                "<h2$1>Detailed Eligibility Criteria & Requirements for {$subject}</h2>",
 
             // Generic Application Guide
             '/<h2\b([^>]*)>\s*(?:How\s+to\s+Apply|Application\s+Process|Registration\s+Steps|Step\s+by\s+Step\s+Process)\s*<\/h2>/i' =>
@@ -115,13 +119,9 @@ class SEOManagerService {
             '/<h2\b([^>]*)>\s*(?:Result|Scorecard|Merit\s+List|Cut\s*off|Cutoffs)\s*<\/h2>/i' =>
                 "<h2$1>{$subject}: Result Direct Link, Scorecard & Category Cut-Off Marks</h2>",
 
-            // Generic Overview
-            '/<h2\b([^>]*)>\s*(?:Overview|Notification\s+Details|Important\s+Highlights)\s*<\/h2>/i' =>
-                "<h2$1>{$subject}: Overview & Official Notification Highlights</h2>",
-
             // Generic Documents Checklist
-            '/<h2\b([^>]*)>\s*(?:Documents\s+Required|Mandatory\s+Documents|Document\s+Checklist)\s*<\/h2>/i' =>
-                "<h2$1>Mandatory Documents Checklist & Verification Rules for {$subject}</h2>",
+            '/<h2\b([^>]*)>\s*(?:Documents\s+Required|Required\s+Documents|Mandatory\s+Documents|Document\s+Checklist)\s*<\/h2>/i' =>
+                "<h2$1>Mandatory Required Documents Checklist for {$subject}</h2>",
 
             // Generic FAQs
             '/<h2\b([^>]*)>\s*(?:FAQs|Frequently\s+Asked\s+Questions)\s*<\/h2>/i' =>
