@@ -56,8 +56,9 @@ use App\Services\CategoryService;
 use App\Services\TrendService;
 
 // SEO Meta Variables
-$pageTitle = 'Indian Education, Exams, Results & Career Alerts';
-$pageDesc = 'Authentic real-time updates on NEET, JEE, UPSC, SSC, CBSE, State board results, admit cards, exam dates, government jobs, and scholarships across India.';
+$pageTitle = 'Sarkari.online : Sarkari Result, Latest Govt Jobs & Admit Card 2026';
+$pageDesc = 'Sarkari.online provides verified real-time alerts for Sarkari Result, Latest Government Jobs 2026, Admit Cards, Exam Dates, Answer Keys, and Results across India.';
+$pageKeywords = 'sarkari.online, sarkari online, sarkari result, sarkari result 2026, latest govt jobs, sarkari naukri 2026, admit card, exam dates, answer key';
 $canonicalUrl = SITE_URL . '/';
 $ogType = 'website';
 
@@ -112,6 +113,9 @@ include __DIR__ . '/components/header.php';
 
 <main class="site-main">
     <div class="container">
+        <h1 class="sr-only" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0;">
+            Sarkari.online — Sarkari Result, Latest Government Jobs, Admit Cards &amp; Examination Alerts 2026
+        </h1>
 
         <!-- 1. Hero Editorial Section (Featured + Secondary) -->
         <?php include __DIR__ . '/components/featured-card.php'; ?>

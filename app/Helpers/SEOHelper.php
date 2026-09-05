@@ -10,40 +10,88 @@ namespace App\Helpers;
 class SEOHelper {
 
     /**
-     * Generate Organization JSON-LD
+     * Generate Organization JSON-LD with verified branding & Knowledge Graph identifiers
      */
     public static function organizationSchema(): string {
+        $siteUrl = rtrim(SITE_URL, '/') . '/';
         $schema = [
             '@context' => 'https://schema.org',
             '@type' => 'EducationalOrganization',
             'name' => SITE_NAME,
-            'url' => SITE_URL,
+            'alternateName' => ['Sarkari Online', 'sarkari.online', 'SarkariOnline', 'Sarkari Result'],
+            'url' => $siteUrl,
             'description' => SITE_DESCRIPTION,
             'logo' => [
                 '@type' => 'ImageObject',
-                'url' => url('assets/images/logo.png')
+                'url' => url('assets/favicon-192x192.png'),
+                'width' => 192,
+                'height' => 192
             ],
-            'sameAs' => []
+            'sameAs' => [
+                'https://twitter.com/SarkariOnline'
+            ]
         ];
 
         return json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
     }
 
     /**
-     * Generate WebSite JSON-LD with Sitelinks Searchbox
+     * Generate WebSite JSON-LD adhering to Google Site Names & Sitelinks Searchbox specifications
      */
     public static function websiteSchema(): string {
+        $siteUrl = rtrim(SITE_URL, '/') . '/';
         $schema = [
             '@context' => 'https://schema.org',
             '@type' => 'WebSite',
             'name' => SITE_NAME,
-            'url' => SITE_URL,
+            'alternateName' => [
+                'Sarkari Online',
+                'SarkariOnline',
+                'sarkari.online',
+                'Sarkari Result Online'
+            ],
+            'url' => $siteUrl,
             'description' => SITE_DESCRIPTION,
             'potentialAction' => [
                 '@type' => 'SearchAction',
-                'target' => url('search/?q={search_term_string}'),
+                'target' => [
+                    '@type' => 'EntryPoint',
+                    'urlTemplate' => url('search/?q={search_term_string}')
+                ],
                 'query-input' => 'required name=search_term_string'
             ]
+        ];
+
+        return json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+    }
+
+    /**
+     * Generate SiteNavigationElement JSON-LD for Google Sitelinks Rich Snippets
+     */
+    public static function siteNavigationSchema(): string {
+        $navItems = [
+            ['name' => 'Latest Government Jobs 2026', 'url' => url('latest-jobs/'), 'description' => 'Online form, vacancies & last dates'],
+            ['name' => 'Sarkari Exam Results', 'url' => url('category/exam-results/'), 'description' => 'Live scorecards & merit lists'],
+            ['name' => 'Admit Cards & Hall Tickets', 'url' => url('category/admit-cards/'), 'description' => 'Direct download links & exam city slips'],
+            ['name' => 'State Government Jobs (All 28 States)', 'url' => url('state-jobs/'), 'description' => 'Regional PSC & Subordinate board alerts'],
+            ['name' => 'Exam Dates & Schedules', 'url' => url('category/exam-dates/'), 'description' => 'Official calendars & notification dates'],
+            ['name' => 'Student Utilities & Calculators', 'url' => url('tools/'), 'description' => 'Salary, CGPA, and Age calculators']
+        ];
+
+        $elements = [];
+        foreach ($navItems as $index => $item) {
+            $elements[] = [
+                '@type' => 'SiteNavigationElement',
+                'position' => $index + 1,
+                'name' => $item['name'],
+                'description' => $item['description'],
+                'url' => $item['url']
+            ];
+        }
+
+        $schema = [
+            '@context' => 'https://schema.org',
+            '@graph' => $elements
         ];
 
         return json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);

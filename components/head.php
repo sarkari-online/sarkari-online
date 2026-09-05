@@ -186,12 +186,18 @@ if (!$isAdminSession):
     </script>
 
     <?php 
-    $reqUri = $_SERVER['REQUEST_URI'] ?? '/';
-    if (($ogType ?? '') === 'website' && ($reqUri === '/' || $reqUri === BASE_PATH || $reqUri === BASE_PATH . '/')): 
+    $rawPath = trim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH), '/');
+    $isHomePage = ($rawPath === '' || $rawPath === 'index.php' || $rawPath === 'automation' || $rawPath === 'automation/index.php');
+    if (($ogType ?? '') === 'website' && $isHomePage): 
     ?>
-        <!-- Schema.org WebSite Structured Data -->
+        <!-- Schema.org WebSite Structured Data (Google Site Names & Searchbox) -->
         <script type="application/ld+json">
         <?= SEOHelper::websiteSchema() ?>
+        </script>
+
+        <!-- Schema.org SiteNavigationElement Structured Data (Google Rich Sitelinks) -->
+        <script type="application/ld+json">
+        <?= SEOHelper::siteNavigationSchema() ?>
         </script>
     <?php endif; ?>
 </head>
