@@ -41,6 +41,7 @@ Disallow: /*?q=*
 Disallow: /*?s=*
 
 # Disallow Internal & Protected Directories
+Disallow: /cdn-cgi/
 Disallow: /admin/
 Disallow: /api/
 Disallow: /app/

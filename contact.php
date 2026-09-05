@@ -290,8 +290,8 @@ include __DIR__ . '/components/header.php';
                         <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.25rem;">
                             <strong style="color: #0f172a; display: block; margin-bottom: 0.35rem;">Direct Digital Desks:</strong>
                             <p style="font-size: 0.875rem; color: #475569; line-height: 1.6;">
-                                <strong>Editorial Desk:</strong> <a href="mailto:official.sarkarionline@gmail.com" style="color: var(--color-primary);">official.sarkarionline@gmail.com</a><br>
-                                <strong>Grievance Officer:</strong> <a href="mailto:official.sarkarionline@gmail.com" style="color: var(--color-primary);">official.sarkarionline@gmail.com</a><br>
+                                <strong>Editorial Desk:</strong> <!--email_off--><a href="mailto:official.sarkarionline@gmail.com" style="color: var(--color-primary);">official.sarkarionline@gmail.com</a><!--/email_off--><br>
+                                <strong>Grievance Officer:</strong> <!--email_off--><a href="mailto:official.sarkarionline@gmail.com" style="color: var(--color-primary);">official.sarkarionline@gmail.com</a><!--/email_off--><br>
                                 <strong>Response Commitment:</strong> Formally acknowledged within 24 hours.
                             </p>
                         </div>

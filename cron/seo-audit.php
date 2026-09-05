@@ -58,6 +58,20 @@ foreach ($articlesWithCards as $cArt) {
     }
 }
 
+// ── 0c. Clean legacy dead link to non-existent CBSE board exam 2027 article ───
+$cbseDeadLinkArticles = Database::fetchAll("SELECT id, content FROM articles WHERE content LIKE '%cbse-class-10-and-12-board-exam-2027%'");
+foreach ($cbseDeadLinkArticles as $cArt) {
+    $cleaned = str_replace(
+        '/article/cbse-class-10-and-12-board-exam-2027-loc-registration-sample-papers-cbse-gov-in/',
+        'https://cbse.gov.in',
+        $cArt['content']
+    );
+    if ($cleaned !== $cArt['content']) {
+        Database::update('articles', ['content' => $cleaned], 'id = :id', ['id' => $cArt['id']]);
+        echo "  -> [DEAD LINK HEALED] Article #{$cArt['id']}: replaced dead CBSE internal link with official cbse.gov.in link\n";
+    }
+}
+
 // ── 1. Fix broken / missing canonical URLs ─────────────────────────────────
 $articles = Database::fetchAll(
     "SELECT id, slug, canonical_url FROM articles WHERE status = 'published'"

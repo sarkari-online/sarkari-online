@@ -15,6 +15,18 @@ if (str_starts_with($cleanPath, 'automation')) {
 }
 
 if (!empty($cleanPath) && $cleanPath !== 'index.php') {
+    // Cloudflare Email Protection Graceful Redirect: prevent 404 on email-protection
+    if (str_starts_with($cleanPath, 'cdn-cgi/')) {
+        header('Location: ' . url('contact/'), true, 301);
+        exit;
+    }
+
+    // Historical 301 Redirect for legacy deleted CBSE test slug
+    if (str_starts_with($cleanPath, 'article/cbse-class-10-and-12-board-exam-2027')) {
+        header('Location: ' . url('category/exam-dates/'), true, 301);
+        exit;
+    }
+
     // Dynamic Tool Router: route any /tools/{slug} to its php file
     if (str_starts_with($cleanPath, 'tools/')) {
         $toolSlug = trim(substr($cleanPath, 6), '/');

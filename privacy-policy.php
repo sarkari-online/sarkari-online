@@ -122,7 +122,7 @@ include __DIR__ . '/components/header.php';
                 <div class="info-callout" style="background-color: #f8fafc; border-left-color: #1e3a8a; color: #0f172a;">
                     <p><strong>Grievance &amp; Compliance Officer:</strong> Editorial Grievance Desk</p>
                     <p><strong>Organization:</strong> <?= e(SITE_NAME) ?> Media Bureau</p>
-                    <p><strong>Registered Email:</strong> <a href="mailto:official.sarkarionline@gmail.com"><code>official.sarkarionline@gmail.com</code></a></p>
+                    <p><strong>Registered Email:</strong> <!--email_off--><a href="mailto:official.sarkarionline@gmail.com"><code>official.sarkarionline@gmail.com</code></a><!--/email_off--></p>
                     <p><strong>Response Timeline:</strong> All privacy inquiries, data deletion requests, or grievances are formally acknowledged within 24 hours and redressed within 15 working days.</p>
                 </div>
 

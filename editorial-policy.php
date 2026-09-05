@@ -64,7 +64,7 @@ include __DIR__ . '/components/header.php';
                 </p>
                 <p>
                     <?php $contactEmailVal = \App\Services\SettingsService::get('EDITORIAL_CONTACT_EMAIL', 'official.sarkarionline@gmail.com'); ?>
-                    To report an error, readers can email <a href="mailto:<?= e($contactEmailVal) ?>"><?= e($contactEmailVal) ?></a> with supporting official links.
+                    To report an error, readers can email <!--email_off--><a href="mailto:<?= e($contactEmailVal) ?>"><?= e($contactEmailVal) ?></a><!--/email_off--> with supporting official links.
                 </p>
             </div>
         </article>

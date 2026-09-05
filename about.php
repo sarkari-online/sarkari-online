@@ -74,7 +74,7 @@ include __DIR__ . '/components/header.php';
                 <div class="info-callout" style="background-color: #f8fafc; border-left-color: #1e3a8a; color: #0f172a;">
                     <p><strong>Registered Bureau:</strong> Sarkari.online Media &amp; Educational Research Bureau</p>
                     <p><strong>Registered Address:</strong> Barakhamba Road, Connaught Place, New Delhi, Delhi 110001, India</p>
-                    <p><strong>Editorial Email:</strong> <a href="mailto:official.sarkarionline@gmail.com"><code>official.sarkarionline@gmail.com</code></a></p>
+                    <p><strong>Editorial Email:</strong> <!--email_off--><a href="mailto:official.sarkarionline@gmail.com"><code>official.sarkarionline@gmail.com</code></a><!--/email_off--></p>
                     <p><strong>Operating Hours:</strong> Monday &ndash; Friday, 9:30 AM &ndash; 6:30 PM IST</p>
                 </div>
 
@@ -85,7 +85,7 @@ include __DIR__ . '/components/header.php';
 
                 <h2>Contact the Editorial Desk</h2>
                 <p>
-                    For news tips, factual corrections, institutional press releases, or grievance submissions, visit our <a href="<?= url('contact/') ?>">Contact &amp; Grievance Redressal Page</a> or write directly to <a href="mailto:official.sarkarionline@gmail.com"><code>official.sarkarionline@gmail.com</code></a>.
+                    For news tips, factual corrections, institutional press releases, or grievance submissions, visit our <a href="<?= url('contact/') ?>">Contact &amp; Grievance Redressal Page</a> or write directly to <!--email_off--><a href="mailto:official.sarkarionline@gmail.com"><code>official.sarkarionline@gmail.com</code></a><!--/email_off-->.
                 </p>
             </div>
         </article>
