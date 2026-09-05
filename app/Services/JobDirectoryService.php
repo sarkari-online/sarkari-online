@@ -86,6 +86,11 @@ class JobDirectoryService {
         $content = $row['content'] ?? '';
         $slug = $row['slug'] ?? '';
 
+        // Filter out non-job noise (grievance portals, admit cards, answer keys, results, fellowships)
+        if (preg_match('/\b(?:Grievance|Helpdesk|Complaint|Court|Stay Order|Admit Card Out|Hall Ticket Out|Answer Key|Scorecard Link|Result Declared|Fellowship|Scholarship)\b/i', $title)) {
+            return null;
+        }
+
         // Extract total vacancies (e.g. "1100 Posts", "32,388 Vacancies", "14582 Posts")
         $vacancies = self::extractVacancies($title, $content);
 
@@ -163,9 +168,9 @@ class JobDirectoryService {
         }
 
         // Check HTML table rows for Last Date / Application End
-        if (preg_match('/<(?:td|th)[^>]*>(?:Last\s+Date(?:\s+to\s+Apply)?|Application\s+End|Registration\s+Closes?|Closing\s+Date)<\/(?:td|th)>\s*<(?:td|th)[^>]*>(.*?)<\/(?:td|th)>/is', $content, $m)) {
+        if (preg_match('/<(?:td|th)[^>]*>[^<]*(?:Last\s+Date|Application\s+Deadline|Closing\s+Date|Application\s+End|End\s+Date)[^<]*<\/(?:td|th)>\s*<(?:td|th)[^>]*>(.*?)<\/(?:td|th)>/is', $content, $m)) {
             $raw = trim(strip_tags($m[1]));
-            if (!empty($raw) && mb_strlen($raw) <= 35) {
+            if (!empty($raw) && mb_strlen($raw) <= 45 && !str_contains(strtolower($raw), 'notify')) {
                 return [
                     'formatted' => 'Last Date: ' . $raw,
                     'raw_date'  => $raw
@@ -173,8 +178,9 @@ class JobDirectoryService {
             }
         }
 
-        // Check general text regex
-        if (preg_match('/(?:Last\s+Date|Application\s+Deadline|Closing\s+Date)\s*[:\-–]\s*([0-9]{1,2}\s+[A-Za-z]+\s+202[67]|[A-Za-z]+\s+[0-9]{1,2},?\s+202[67])/i', $content, $m)) {
+        // Check general text regex in content
+        $cleanContent = strip_tags(mb_substr($content, 0, 3000));
+        if (preg_match('/\b(?:Last\s+Date|Deadline|Closing\s+Date|Apply\s+by|Apply\s+on\s+or\s+before)\b.{0,60}?\b([0-9]{1,2}(?:st|nd|rd|th)?\s+[A-Za-z]+\s+202[67]|[A-Za-z]+\s+[0-9]{1,2},?\s+202[67])\b/is', $cleanContent, $m)) {
             $raw = trim($m[1]);
             return [
                 'formatted' => 'Last Date: ' . $raw,
@@ -183,7 +189,7 @@ class JobDirectoryService {
         }
 
         return [
-            'formatted' => 'Check Notification',
+            'formatted' => 'Apply Online',
             'raw_date'  => null
         ];
     }
