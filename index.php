@@ -113,9 +113,26 @@ include __DIR__ . '/components/header.php';
 
 <main class="site-main">
     <div class="container">
-        <h1 class="sr-only" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0;">
-            Sarkari.online — Sarkari Result, Latest Government Jobs, Admit Cards &amp; Examination Alerts 2026
-        </h1>
+        <!-- Portal Lead Header / Semantic Visible H1 -->
+        <div class="portal-welcome-strip" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; padding: 0.75rem 1.15rem; margin-bottom: 1.25rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+            <div style="display: flex; align-items: center; gap: 0.65rem;">
+                <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: #eff6ff; color: var(--color-primary); flex-shrink: 0;">
+                    <?= icon('award', 'icon-sm') ?>
+                </span>
+                <h1 style="font-size: 1.05rem; font-weight: 700; color: var(--text-heading); margin: 0; line-height: 1.35; letter-spacing: -0.01em;">
+                    Sarkari.online — Sarkari Result, Latest Government Jobs &amp; Admit Card 2026
+                </h1>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+                <span class="badge" style="background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; font-size: 0.72rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.2rem 0.55rem; border-radius: 9999px;">
+                    <span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                    Live Updates
+                </span>
+                <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 500;">
+                    <?= date('d M Y') ?>
+                </span>
+            </div>
+        </div>
 
         <!-- 1. Hero Editorial Section (Featured + Secondary) -->
         <?php include __DIR__ . '/components/featured-card.php'; ?>
