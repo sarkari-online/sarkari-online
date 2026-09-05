@@ -19,6 +19,7 @@ use App\Helpers\Logger;
 use App\Helpers\Sanitizer;
 use App\Services\WebVitalsService;
 use App\Services\AuthorityFactFetcherService;
+use App\Services\SEOManagerService;
 use Exception;
 use Throwable;
 
@@ -169,6 +170,21 @@ class PipelineService {
 
         // 5. Search Engine Optimization (SEO)
         $seoData = $this->seoGen->generate($polished['edited_title'], $linking['linked_content'], $categorySlug);
+
+        // 5b. Senior SEO Manager: Audit & Enhance Keyword Placement, Subheadings & Links
+        try {
+            $targetKeywords = $seoData['target_keywords'] ?? [];
+            $seoOptimizedContent = SEOManagerService::auditAndOptimizeContent(
+                $polished['edited_title'],
+                $linking['linked_content'],
+                $targetKeywords
+            );
+            if (!empty($seoOptimizedContent)) {
+                $linking['linked_content'] = $seoOptimizedContent;
+            }
+        } catch (Throwable $e) {
+            Logger::warning("SEOManagerService content audit warning: " . $e->getMessage());
+        }
 
         // 6. Calculate 8-Dimension Quality Score (Total 100 points)
         $quality = $this->calculateQualityScore([
