@@ -152,8 +152,10 @@ include dirname(__DIR__) . '/components/header.php';
 <div class="stats-grid" style="margin-bottom: 1.5rem;">
     <div class="stat-card" style="border-left: 4px solid <?= $completedSlotsToday >= 3 ? '#16a34a' : '#2563eb' ?>;">
         <span class="stat-card-label" style="color: <?= $completedSlotsToday >= 3 ? '#16a34a' : '#2563eb' ?>;">Auto Slots Today</span>
-        <span class="stat-card-num" style="color: <?= $completedSlotsToday >= 3 ? '#16a34a' : '#2563eb' ?>;"><?= $completedSlotsToday ?> / 3</span>
-        <span style="font-size: 0.7rem; color: var(--text-muted); display: block; margin-top: 2px;">10 AM · 2 PM · 6 PM IST</span>
+        <span class="stat-card-num" style="color: <?= $completedSlotsToday >= 3 ? '#16a34a' : '#2563eb' ?>;"><?= $completedSlotsToday ?> / 3 <span style="font-size: 0.85rem; font-weight: 600; color: #64748b;">(<?= $todayAutoPublishedCount ?> published)</span></span>
+        <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 2px;">
+            <?= $completedSlotsToday === 1 ? 'Slot 1 Done · Next: Slot 2 at 2 PM IST' : ($completedSlotsToday === 2 ? 'Slots 1 & 2 Done · Next: Slot 3 at 6 PM IST' : ($completedSlotsToday >= 3 ? 'All 3 Slots Complete Today' : 'Next: Slot 1 at 10 AM IST')) ?>
+        </span>
     </div>
     <?php if ($todayManualPublishedCount > 0): ?>
     <div class="stat-card" style="border-left: 4px solid #7c3aed;">
