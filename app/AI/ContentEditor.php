@@ -86,10 +86,20 @@ USER_PROMPT;
             ]);
 
             $data = $response['data'];
+            $editedContent = !empty($data['edited_content']) ? $data['edited_content'] : $content;
+
+            // Integrity Guard: If Gemini truncated the output so edited_content is less than 65% of original draft,
+            // fall back to the full original draft so we never publish a cut-off or truncated article!
+            $origLen = mb_strlen(strip_tags($content));
+            $editedLen = mb_strlen(strip_tags($editedContent));
+            if ($editedLen < (0.65 * $origLen) && $origLen > 300) {
+                Logger::warning("ContentEditor: Polished output was truncated ({$editedLen} chars vs original {$origLen} chars). Safely preserving complete draft content.");
+                $editedContent = $content;
+            }
 
             return [
                 'edited_title' => !empty($data['edited_title']) ? $data['edited_title'] : $title,
-                'edited_content' => !empty($data['edited_content']) ? $data['edited_content'] : $content,
+                'edited_content' => $editedContent,
                 'readability_score' => (int)($data['readability_score'] ?? 88),
                 'improvements_made' => $data['improvements_made'] ?? []
             ];

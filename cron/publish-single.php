@@ -29,10 +29,11 @@ if ($trendId <= 0) {
 echo "[" . date('Y-m-d H:i:s') . "] Starting background generation for Trend #{$trendId}...\n";
 Logger::info("CLI Background: Starting generation for Trend #{$trendId} into Review Queue");
 
-// If trend was already generated as an unpublished draft in review, purge old draft to regenerate fresh with latest authority facts & timetable
+// If trend was already generated (or if --force is requested), purge old draft to regenerate fresh with full authority facts & timetable
 $existing = Database::fetchOne("SELECT id, status FROM articles WHERE trend_id = :tid LIMIT 1", ['tid' => $trendId]);
-if ($existing && $existing['status'] === 'review') {
-    echo "[" . date('Y-m-d H:i:s') . "] Purging outdated draft Article #{$existing['id']} to regenerate fresh with exact authority timetable...\n";
+$forceRegen = in_array('--force', $argv, true);
+if ($existing && ($existing['status'] === 'review' || $forceRegen)) {
+    echo "[" . date('Y-m-d H:i:s') . "] Purging outdated Article #{$existing['id']} to regenerate fresh with full depth...\n";
     Database::query("DELETE FROM article_checks WHERE article_id = :id", ['id' => $existing['id']]);
     Database::query("DELETE FROM articles WHERE id = :id", ['id' => $existing['id']]);
     Database::update('trends', ['processed_at' => null], 'id = :id', ['id' => $trendId]);
