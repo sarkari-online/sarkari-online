@@ -351,6 +351,12 @@ class SearchIntentDiscoveryAdapter implements TrendSourceInterface {
                     'cluster' => $clusterKey,
                     'entity' => $entity,
                     'intent' => $intent,
+                    'opportunity_tier' => $cluster['opportunity_tier'],
+                    'cluster_discovery_opportunity' => [
+                        'opportunity_tier' => $cluster['opportunity_tier'],
+                        'signal_type' => 'discovery_opportunity_clustering',
+                        'basis' => 'national_search_intent_matrix'
+                    ],
                     'year_cycle' => $isEvergreen ? 'evergreen' : (string)$currentYear,
                     'search_demand' => [
                         'exact_keyword_volume' => [
