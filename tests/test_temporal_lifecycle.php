@@ -29,7 +29,7 @@ use App\Services\TemporalFactService;
 use App\Services\TemporalContentValidator;
 use App\Services\AuthorityVerificationService;
 
-$totalTests = 20;
+$totalTests = 21;
 $passedTests = 0;
 $failedTests = 0;
 $errors = [];
@@ -172,6 +172,7 @@ $facts8 = [
     'exam_date' => [
         'fact_name' => 'exam_date',
         'fact_value' => 'October 10, 2026',
+        'status' => 'completed',
         'valid_until' => '2026-10-10 23:59:59'
     ]
 ];
@@ -367,6 +368,33 @@ $test20Pass = ($akEvent['type'] === 'answer_key' && $akEvent['is_final_outcome']
               ($finalResEvent['type'] === 'result' && $finalResEvent['is_final_outcome'] === true);
 
 recordTestResult(20, "Post-exam event taxonomy distinguishes answer_key, provisional_merit, scorecard vs final outcome", $test20Pass, "AK outcome=" . ($akEvent['is_final_outcome'] ? 'true' : 'false') . ", PML outcome=" . ($pmlEvent['is_final_outcome'] ? 'true' : 'false') . ", Final outcome=" . ($finalResEvent['is_final_outcome'] ? 'true' : 'false'));
+
+// -------------------------------------------------------------------------
+// TEST 21: exam_date passed + zero postponement + NO evidence of conduct MUST NOT become EXAM_COMPLETED
+// -------------------------------------------------------------------------
+$now21 = new DateTimeImmutable('2026-10-15 19:00:00', $tz);
+$facts21 = [
+    'application_end' => [
+        'fact_name' => 'application_end',
+        'fact_value' => 'September 02, 2026',
+        'valid_until' => '2026-09-02 23:59:59'
+    ],
+    'admit_card_date' => [
+        'fact_name' => 'admit_card_date',
+        'fact_value' => 'October 01, 2026'
+    ],
+    'exam_date' => [
+        'fact_name' => 'exam_date',
+        'fact_value' => 'October 10, 2026',
+        'valid_until' => '2026-10-10 23:59:59',
+        'status' => 'verified' // Date announced, but NO authoritative evidence that exam was actually conducted
+    ]
+];
+$state21 = TemporalFactService::resolveLifecycle(0, $facts21, null, null, $now21);
+// MUST NOT become EXAM_COMPLETED without authoritative evidence of conduct! Preserves safest lifecycle: ADMIT_CARD_RELEASED
+$test21Pass = ($state21 !== TemporalFactService::LIFECYCLE_EXAM_COMPLETED) && 
+              ($state21 === TemporalFactService::LIFECYCLE_ADMIT_CARD_RELEASED || $state21 === TemporalFactService::LIFECYCLE_CLOSED);
+recordTestResult(21, "Exam date passed + zero postponement + NO evidence of conduct MUST NOT become EXAM_COMPLETED", $test21Pass, "Resolved: {$state21} (safest lifecycle preserved, completion uncertainty prevented)");
 
 echo "\n========================================================================\n";
 echo "   RESULTS: {$passedTests}/{$totalTests} PASSED, {$failedTests} FAILED\n";

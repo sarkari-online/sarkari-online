@@ -426,7 +426,25 @@ class TemporalRevalidationService {
             }
         }
 
-        // Exam concluded without postponement -> Transition to EXAM_COMPLETED
+        // INVARIANT (Rule 1 / TEST 21):
+        // Absence of a postponement notice is NOT proof that an exam occurred.
+        // Authoritative evidence of actual conduct/completion is required (conduct notice, answer key, scorecard, or completed status).
+        // If completion evidence is unavailable, preserve safest current lifecycle and flag for verification.
+        $hasConductedEvidence = 
+            (!empty($portalText) && (
+                preg_match('/(?:exam|examination|cbt)\s+(?:concluded|conducted|held|completed)\s+successfully/i', $portalText) ||
+                preg_match('/(?:answer\s*key|response\s*sheet|provisional\s+key)\s+(?:for\s+exam\s+held|is\s+released)/i', $portalText)
+            )) ||
+            !empty($facts['answer_key']) ||
+            !empty($facts['scorecard']) ||
+            (($facts['exam_date']['status'] ?? '') === 'completed');
+
+        if (!$hasConductedEvidence) {
+            Logger::warning("Article #{$articleId}: Exam date passed ({$examVal}), zero postponement found, but NO authoritative completion evidence. Preserving ADMIT_CARD_RELEASED and flagging for verification.");
+            return ['success' => true, 'action' => 'exam_completion_unverified', 'flag' => 'needs_verification'];
+        }
+
+        // Exam concluded with verified conduct evidence -> Transition to EXAM_COMPLETED
         $oldContent = $articleData['content'];
         $oldTitle = $articleData['title'];
         $examDateFormatted = $examTime->format('F d, Y');

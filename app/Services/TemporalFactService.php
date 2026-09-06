@@ -464,6 +464,9 @@ class TemporalFactService {
         // 1) A future exam date does NOT mean EXAM_COMPLETED (remains CLOSED/ADMIT_CARD_RELEASED).
         // 2) If official postponement, cancellation, or reschedule has been recorded, it MUST NOT become EXAM_COMPLETED!
         // 3) Operational cutoff 18:00 IST is retained as a timing boundary, not as the sole factual proof.
+        // 4) Absence of a postponement notice is NOT proof that an exam occurred (TEST 21).
+        //    Authoritative evidence of actual conduct/completion is REQUIRED (status='completed'/'conducted', answer_key, scorecard, or explicit verification).
+        //    Without authoritative evidence of conduct, preserve the safest current lifecycle and do NOT assume EXAM_COMPLETED.
         $examVal = $factValues['exam_date'] ?? null;
         if (!empty($examVal) && !self::isUnannouncedValue($examVal)) {
             $isPostponed = !empty($factValues['exam_postponement']) ||
@@ -471,8 +474,17 @@ class TemporalFactService {
                            (isset($factRows['exam_date']) && in_array(strtolower($factRows['exam_date']['status'] ?? ''), ['postponed', 'cancelled', 'rescheduled'], true));
 
             if (!$isPostponed) {
+                $hasCompletionEvidence = 
+                    (isset($factRows['exam_date']) && in_array(strtolower($factRows['exam_date']['status'] ?? ''), ['completed', 'conducted', 'held'], true)) ||
+                    in_array(strtolower($factValues['exam_status'] ?? ''), ['completed', 'conducted', 'held'], true) ||
+                    !empty($factValues['answer_key']) ||
+                    !empty($factValues['answer_key_date']) ||
+                    !empty($factValues['scorecard']) ||
+                    !empty($factValues['final_merit_list']) ||
+                    !empty($factValues['result_date']);
+
                 $examTime = self::parseDateIST($examVal, '18:00:00');
-                if ($examTime !== null && $now > $examTime) {
+                if ($examTime !== null && $now > $examTime && $hasCompletionEvidence) {
                     return self::LIFECYCLE_EXAM_COMPLETED;
                 }
             }
