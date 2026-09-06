@@ -8,6 +8,7 @@
 
 $isCli = (php_sapi_name() === 'cli');
 $adminKey = isset($_GET['key']) ? trim($_GET['key']) : '';
+$isDryRun = isset($_GET['dry_run']) || (isset($argv) && in_array('--dry-run', $argv, true));
 
 require_once dirname(__DIR__) . '/config.php';
 
@@ -192,7 +193,17 @@ if (!empty($preconditionFailures)) {
     exit(1);
 }
 
-echo "✅ All preconditions satisfied. Beginning Transactional Execution...\n\n";
+echo "✅ All preconditions satisfied.\n\n";
+
+if ($isDryRun) {
+    echo "================================================================================\n";
+    echo "🛡️ DRY RUN ACTIVE: Preconditions verified with 0 failures.\n";
+    echo "NO WRITES, DML, OR MUTATIONS WERE PERFORMED. EXECUTION TERMINATED SAFELY.\n";
+    echo "================================================================================\n";
+    exit(0);
+}
+
+echo "Beginning Transactional Execution...\n\n";
 
 // 4. TRANSACTIONAL EXECUTION
 $db->beginTransaction();
