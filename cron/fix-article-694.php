@@ -45,19 +45,21 @@ $db = Database::getConnection();
 
 // 1. Locate Article #694
 $article = Database::fetchOne(
-    "SELECT * FROM articles WHERE id = 694 OR slug = 'bpsc-combined-state-exam-2026-admit-card' LIMIT 1"
+    "SELECT * FROM articles WHERE id = 694 OR slug IN ('bpsc-combined-state-exam-2026-admit-card', 'bpsc-72nd-cce-prelims-2026-admit-card') LIMIT 1"
 );
 
 if (!$article) {
-    die("❌ FATAL: Target article (ID 694 / slug 'bpsc-combined-state-exam-2026-admit-card') not found in database!\n");
+    die("❌ FATAL: Target article (ID 694) not found in database!\n");
 }
 
 $articleId = (int)$article['id'];
 $slug = $article['slug'];
+$newSlug = 'bpsc-72nd-cce-prelims-2026-admit-card';
 
 echo "Found Target Article:\n";
 echo "  - ID        : {$articleId}\n";
-echo "  - Slug      : {$slug}\n";
+echo "  - Curr Slug : {$slug}\n";
+echo "  - Target Slug: {$newSlug}\n";
 echo "  - Curr Title: {$article['title']}\n";
 echo "  - Lifecycle : {$article['lifecycle_status']}\n\n";
 
@@ -253,6 +255,7 @@ if ($isDryRun) {
 // 3. Apply Live Update to Article #694
 $stmt = $db->prepare(
     "UPDATE articles SET
+        slug = :new_slug,
         title = :title,
         excerpt = :excerpt,
         content = :content,
@@ -267,20 +270,20 @@ $stmt = $db->prepare(
         source_role = 'authority_primary',
         claim_verified_at = NOW(),
         updated_at = NOW()
-     WHERE id = :id AND slug = :slug"
+     WHERE id = :id"
 );
 
 $stmt->execute([
+    'new_slug' => $newSlug,
     'title' => $newTitle,
     'excerpt' => $newExcerpt,
     'content' => $newContent,
     'meta_title' => $newTitle,
     'meta_description' => $newExcerpt,
-    'id' => $articleId,
-    'slug' => $slug
+    'id' => $articleId
 ]);
 
-echo "✅ Article #694 successfully updated in database.\n\n";
+echo "✅ Article #694 successfully updated in database (Slug: {$newSlug}).\n\n";
 
 // 4. Update or Insert Temporal Facts for Article #694
 // exam_date = October 25, 2026
@@ -303,8 +306,9 @@ $updatedArticle = Database::fetchOne("SELECT * FROM articles WHERE id = :id", ['
 $countPublished = (int)$db->query("SELECT COUNT(*) FROM articles WHERE status = 'published'")->fetchColumn();
 
 echo "  - Verified ID             : {$updatedArticle['id']}\n";
-echo "  - Verified Slug           : {$updatedArticle['slug']} (PRESERVED: " . ($updatedArticle['slug'] === $slug ? "YES" : "NO") . ")\n";
+echo "  - Verified Slug           : {$updatedArticle['slug']} (Canonical: " . ($updatedArticle['slug'] === $newSlug ? "YES" : "NO") . ")\n";
 echo "  - Verified Title          : {$updatedArticle['title']}\n";
+echo "  - Verified Meta Title     : {$updatedArticle['meta_title']}\n";
 echo "  - Verified Authority Tier : {$updatedArticle['authority_tier']}\n";
 echo "  - Verified Source Role    : {$updatedArticle['source_role']}\n";
 echo "  - Total Published Articles: {$countPublished}\n";

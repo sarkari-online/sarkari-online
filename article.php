@@ -21,8 +21,16 @@ $allowDraft = $isPreview && Auth::check();
 // Fetch from Database
 $article = $slug !== '' ? ArticleService::getBySlug($slug, $allowDraft) : null;
 
-// 301 SEO Fallback: If old slug requested (e.g. 2026 -> 2027 or vice versa), auto-redirect permanently
+// 301 SEO Fallback: If old or renamed slug requested, auto-redirect permanently
 if (!$article && $slug !== '') {
+    $legacySlugRedirects = [
+        'bpsc-combined-state-exam-2026-admit-card' => 'bpsc-72nd-cce-prelims-2026-admit-card',
+    ];
+    if (isset($legacySlugRedirects[$slug])) {
+        header("Location: " . url('article/' . $legacySlugRedirects[$slug] . '/'), true, 301);
+        exit;
+    }
+
     $altSlug = str_contains($slug, '2026') ? str_replace('2026', '2027', $slug) : (str_contains($slug, '2027') ? str_replace('2027', '2026', $slug) : null);
     if ($altSlug) {
         $altArticle = ArticleService::getBySlug($altSlug, $allowDraft);
