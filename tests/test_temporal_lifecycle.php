@@ -30,7 +30,7 @@ use App\Services\TemporalContentValidator;
 use App\Services\AuthorityVerificationService;
 use App\Services\TemporalRevalidationService;
 
-$totalTests = 23;
+$totalTests = 24;
 $passedTests = 0;
 $failedTests = 0;
 $errors = [];
@@ -518,6 +518,56 @@ $test23Pass = ($extractedExtensionDate23 === 'October 10, 2026') &&
               $isIdempotent23;
 
 recordTestResult(23, "Official deadline extension (Sept 30 -> Oct 10) supersedes old fact, preserves audit trail, and maintains ACTIVE state", $test23Pass, "Oct 02: {$state23_extended} -> Oct 11: {$state23_expired}, Idempotent: " . ($isIdempotent23 ? 'true' : 'false') . ", Prior fact: superseded");
+
+// -------------------------------------------------------------------------
+// TEST 24: Array Fact Shape TypeError Regression (Production 2 PM Pipeline Bug)
+// -------------------------------------------------------------------------
+// PipelineService::extractTemporalFacts() returns facts formatted as:
+// ['application_end' => ['value' => 'September 30, 2026', 'source_url' => 'https://hssc.gov.in'], ...]
+// Before the fix, absence of 'fact_name' caused resolveLifecycle and TemporalContentValidator
+// to pass the raw associative array directly into isUnannouncedValue(?string $val), throwing a fatal TypeError.
+$now24 = new DateTimeImmutable('2026-09-06 14:00:00', $tz);
+$pipelineExtractedFacts = [
+    'application_end' => [
+        'value' => 'September 30, 2026',
+        'source_url' => 'https://hssc.gov.in'
+    ],
+    'exam_date' => [
+        'value' => 'To Be Announced',
+        'source_url' => 'https://hssc.gov.in'
+    ],
+    'result_date' => [
+        'value' => null,
+        'source_url' => 'https://hssc.gov.in'
+    ],
+    'admit_card_date' => [
+        'value' => 'TBA',
+        'source_url' => 'https://hssc.gov.in'
+    ]
+];
+
+// 1. Verify isUnannouncedValue handles both string and array shapes directly without TypeError
+$isTbaArray = TemporalFactService::isUnannouncedValue($pipelineExtractedFacts['exam_date']);
+$isNullArray = TemporalFactService::isUnannouncedValue($pipelineExtractedFacts['result_date']);
+$isAnnouncedArray = TemporalFactService::isUnannouncedValue($pipelineExtractedFacts['application_end']);
+
+// 2. Verify resolveLifecycle resolves safely without TypeError to ACTIVE
+$state24 = TemporalFactService::resolveLifecycle(0, $pipelineExtractedFacts, 'government-jobs', 'HSSC CET 2026', $now24);
+
+// 3. Verify TemporalContentValidator normalizes array-shaped facts without TypeError or provenance failures
+$audit24 = TemporalContentValidator::validate([
+    'title' => 'HSSC Haryana CET 2026: Apply Online & Schedule',
+    'content' => '<p>The Haryana Staff Selection Commission has invited applications. The last date to apply online is September 30, 2026.</p><p>Last Date: September 30, 2026</p><a href="https://hssc.gov.in">Apply Online</a>',
+    'source_url' => 'https://hssc.gov.in'
+], $pipelineExtractedFacts, $state24, $now24);
+
+$test24Pass = ($isTbaArray === true) &&
+              ($isNullArray === true) &&
+              ($isAnnouncedArray === false) &&
+              ($state24 === TemporalFactService::LIFECYCLE_ACTIVE) &&
+              ($audit24['pass'] === true);
+
+recordTestResult(24, "Array-shaped temporal facts from PipelineService execute without TypeError across lifecycle & validation", $test24Pass, "TBA array=" . ($isTbaArray ? 'true' : 'false') . ", NULL array=" . ($isNullArray ? 'true' : 'false') . ", Announced array=" . ($isAnnouncedArray ? 'true' : 'false') . ", Lifecycle={$state24}, Validator pass=" . ($audit24['pass'] ? 'true' : 'false'));
 
 echo "\n========================================================================\n";
 echo "   RESULTS: {$passedTests}/{$totalTests} PASSED, {$failedTests} FAILED\n";
