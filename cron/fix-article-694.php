@@ -24,6 +24,7 @@ require_once dirname(__DIR__) . '/config.php';
 use App\Database\Database;
 use App\Helpers\Env;
 use App\Services\FeaturedSnippetService;
+use App\Services\TemporalFactService;
 
 if (!$isCli && $adminKey !== Env::get('ADMIN_ACCESS_KEY', 'Ajay-bytecode-cyber-security')) {
     http_response_code(403);
@@ -62,20 +63,9 @@ echo "  - Lifecycle : {$article['lifecycle_status']}\n\n";
 
 // 2. Prepare Canonical Corrections
 $newTitle = 'BPSC 72nd CCE Prelims 2026 Admit Card: Release Status, Exam Date & Official Notice';
-$newExcerpt = 'BPSC 72nd Combined Competitive Examination (CCE) Prelims 2026 admit cards have not yet been released. The Bihar Public Service Commission has scheduled the preliminary exam for October 25, 2026. Check official release updates, exam pattern, and notice details on bpsc.bih.nic.in.';
+$newExcerpt = 'BPSC 72nd Combined Competitive Examination (CCE) Prelims 2026 admit cards have not yet been released. The Bihar Public Service Commission has scheduled the preliminary exam for October 25, 2026.';
 
-$directAnswer = 'The BPSC 72nd Combined Competitive Examination (CCE) Prelims 2026 admit cards are NOT yet released. The Bihar Public Service Commission (BPSC) has officially scheduled the preliminary examination for October 25, 2026. Official e-admit cards will be hosted on bpsc.bih.nic.in and onlinebpsc.bihar.gov.in approximately one to two weeks prior to the examination.';
-
-$rawPayload = [
-    'direct_answer' => $directAnswer,
-    'authority_name' => 'Bihar Public Service Commission (BPSC)',
-    'exam_name' => 'BPSC 72nd Combined (Preliminary) Competitive Examination (CCE) 2026',
-    'exam_short_name' => 'BPSC 72nd CCE Prelims 2026',
-    'advertisement_number' => '01/2026',
-    'admit_card_status' => 'Not Released',
-    'exam_date' => 'October 25, 2026'
-];
-
+// Content HTML
 $newContent = <<<HTML
 <p class="lead">The <strong>Bihar Public Service Commission (BPSC)</strong> has officially scheduled the <strong>72nd Combined (Preliminary) Competitive Examination (CCE) 2026</strong> for <strong>October 25, 2026</strong>. As of now, the preliminary examination admit cards <strong>have not been released</strong>. Candidates who completed the online registration process under Advertisement No. 01/2026 are advised to track official commission notices on the portal (<a href="https://bpsc.bih.nic.in" target="_blank" rel="noopener noreferrer nofollow">bpsc.bih.nic.in</a>) and avoid unverified rumours regarding earlier download windows.</p>
 
@@ -246,8 +236,7 @@ if ($isDryRun) {
         'content' => $newContent,
         'lifecycle_status' => 'active',
         'source_name' => 'Bihar Public Service Commission (BPSC)',
-        'source_url' => 'https://bpsc.bih.nic.in',
-        'raw_payload' => json_encode($rawPayload)
+        'source_url' => 'https://bpsc.bih.nic.in'
     ]);
     $renderedBox = FeaturedSnippetService::render($testArticle);
     
@@ -267,7 +256,6 @@ $stmt = $db->prepare(
         title = :title,
         excerpt = :excerpt,
         content = :content,
-        raw_payload = :raw_payload,
         lifecycle_status = 'active',
         source_name = 'Bihar Public Service Commission (BPSC)',
         source_url = 'https://bpsc.bih.nic.in',
@@ -284,7 +272,6 @@ $stmt->execute([
     'title' => $newTitle,
     'excerpt' => $newExcerpt,
     'content' => $newContent,
-    'raw_payload' => json_encode($rawPayload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
     'id' => $articleId,
     'slug' => $slug
 ]);
@@ -297,22 +284,9 @@ echo "✅ Article #694 successfully updated in database.\n\n";
 $hasTemporalTable = (bool)$db->query("SHOW TABLES LIKE 'article_temporal_facts'")->fetchColumn();
 
 if ($hasTemporalTable) {
-    // Upsert exam_date
-    $stmtFact = $db->prepare(
-        "INSERT INTO article_temporal_facts (article_id, fact_name, fact_value, valid_until, source_url, status, created_at, updated_at)
-         VALUES (:article_id, 'exam_date', 'October 25, 2026', '2026-10-25 14:00:00', 'https://bpsc.bih.nic.in', 'verified', NOW(), NOW())
-         ON DUPLICATE KEY UPDATE fact_value = 'October 25, 2026', valid_until = '2026-10-25 14:00:00', status = 'verified', updated_at = NOW()"
-    );
-    $stmtFact->execute(['article_id' => $articleId]);
-
-    // Upsert admit_card_date as unannounced / NULL
-    $stmtFactCard = $db->prepare(
-        "INSERT INTO article_temporal_facts (article_id, fact_name, fact_value, valid_until, source_url, status, created_at, updated_at)
-         VALUES (:article_id, 'admit_card_date', 'Not Announced', NULL, 'https://bpsc.bih.nic.in', 'unannounced', NOW(), NOW())
-         ON DUPLICATE KEY UPDATE fact_value = 'Not Announced', valid_until = NULL, status = 'unannounced', updated_at = NOW()"
-    );
-    $stmtFactCard->execute(['article_id' => $articleId]);
-    echo "✅ Article temporal facts updated (exam_date = October 25, 2026; admit_card_date = Not Announced / unannounced).\n\n";
+    TemporalFactService::recordFact($articleId, 'exam_date', 'October 25, 2026', 'https://bpsc.bih.nic.in');
+    TemporalFactService::recordFact($articleId, 'admit_card_date', null, 'https://bpsc.bih.nic.in');
+    echo "✅ Article temporal facts updated (exam_date = October 25, 2026; admit_card_date = unannounced / NULL).\n\n";
 }
 
 // 5. Post-Execution Invariant Verification
