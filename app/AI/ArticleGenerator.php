@@ -112,6 +112,10 @@ SENIOR WRITER STORYTELLING & EDITORIAL MANDATE:
    - The article title MUST NOT copy the source news wire or topic headline verbatim.
    - Craft a fresh, 100% unique, authoritative, high-CTR headline containing high-volume primary search keywords (e.g. Exam Name, Year, Stage/Round, Actionable Search Terms like "Option Entry Begins", "Scorecard Link Released", "Shift Timings & Entry Rules", "Eligibility & Steps").
    - Maximum length: 70–80 characters. Clear, concise, and professional.
+15. NEVER USE TRANSIENT RELATIVE TIME WORDS ("TODAY", "TONIGHT", "TOMORROW", "LAST DATE TODAY"):
+   - Articles stay on the internet permanently. A headline claiming "Last Date Today" becomes factually false and misleading after 24 hours!
+   - NEVER use "Today", "Tonight", "Tomorrow", "Yesterday", "Last Date Today", "Closing Today", or "Hours Left" in titles, excerpts, direct answers, or section headings.
+   - ALWAYS use specific calendar dates (e.g. "Deadline September 02", "Application Window & Schedule", "Registration Dates & Eligibility").
 SYS;
 
         $sourceFactsJson = json_encode($sourceData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);

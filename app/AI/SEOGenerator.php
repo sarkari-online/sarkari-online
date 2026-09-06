@@ -35,6 +35,7 @@ SEO SPECIFICATIONS:
 - SLUG: 3 to 6 words, lowercase, hyphen-separated, containing only letters and numbers (e.g. "mht-cet-2026-cap-round-4-option-entry").
 - KEYWORDS: Array of 6 to 8 high-intent Indian student search queries (e.g. ["MHT CET CAP round 4 option entry", "MHT CET 2026 option form dates", "how to fill MHT CET option form"]).
 - FAQS: Generate 2 to 3 genuinely useful FAQs that students or aspirants frequently ask. Do NOT generate obvious or generic fluff. Provide concise, 1-2 sentence direct answers.
+- NEVER USE TRANSIENT RELATIVE WORDS: Strictly never use "Today", "Tonight", "Tomorrow", "Last Date Today", "Closing Today" in seo_title, meta_description, or excerpt. Always use specific calendar dates or evergreen search phrasing.
 PROMPT;
 
         $plainContent = substr(strip_tags($content), 0, 2500);

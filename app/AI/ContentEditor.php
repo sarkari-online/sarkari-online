@@ -55,6 +55,8 @@ MASTER EDITORIAL EDITING RULES:
    - NEVER copy the source news wire headline verbatim. Include the exact exam name, year (2026/2027), and primary actionable search terms (e.g. "Option Entry Begins", "Scorecard Link", "Shift Timings", "Eligibility & Steps").
 9. JSON COMPLIANCE:
    - In `edited_content`, use single quotes for HTML attributes (e.g. <a href='https://...'>) or ensure double quotes are properly escaped as \\" to guarantee strict JSON validity.
+10. STRIP TRANSIENT RELATIVE WORDS:
+   - Remove "today", "tonight", "tomorrow", "last date today", "closing today" from headlines, excerpts, and body text. Replace with the exact calendar date or current recruitment milestone status.
 PROMPT;
 
         $userPrompt = <<<USER_PROMPT
