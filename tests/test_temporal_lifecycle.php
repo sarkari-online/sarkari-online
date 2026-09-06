@@ -29,7 +29,7 @@ use App\Services\TemporalFactService;
 use App\Services\TemporalContentValidator;
 use App\Services\AuthorityVerificationService;
 
-$totalTests = 18;
+$totalTests = 20;
 $passedTests = 0;
 $failedTests = 0;
 $errors = [];
@@ -321,6 +321,53 @@ $parsedDateNull2 = TemporalFactService::parseDateIST('Awaiting Official Circular
 $test18Pass = ($parsedDateNull === null) && ($parsedDateNull2 === null);
 recordTestResult(18, "Missing official date remains strictly NULL (zero date hallucination)", $test18Pass, "TBA parsed=" . var_export($parsedDateNull, true));
 
+// -------------------------------------------------------------------------
+// TEST 19: Exam date passed + official postponement MUST NOT become EXAM_COMPLETED
+// -------------------------------------------------------------------------
+$now19 = new DateTimeImmutable('2026-10-15 19:00:00', $tz);
+$facts19 = [
+    'application_end' => [
+        'fact_name' => 'application_end',
+        'fact_value' => 'September 02, 2026',
+        'valid_until' => '2026-09-02 23:59:59'
+    ],
+    'admit_card_date' => [
+        'fact_name' => 'admit_card_date',
+        'fact_value' => 'October 01, 2026'
+    ],
+    'exam_date' => [
+        'fact_name' => 'exam_date',
+        'fact_value' => 'October 10, 2026',
+        'valid_until' => '2026-10-10 23:59:59'
+    ],
+    'exam_postponement' => [
+        'fact_name' => 'exam_postponement',
+        'fact_value' => 'Examination postponed by official notification dated Oct 08',
+        'status' => 'verified'
+    ]
+];
+$state19 = TemporalFactService::resolveLifecycle(0, $facts19, null, null, $now19);
+$test19Pass = ($state19 !== TemporalFactService::LIFECYCLE_EXAM_COMPLETED) && 
+              ($state19 === TemporalFactService::LIFECYCLE_ADMIT_CARD_RELEASED || $state19 === TemporalFactService::LIFECYCLE_CLOSED);
+recordTestResult(19, "Exam date passed + official postponement MUST NOT become EXAM_COMPLETED", $test19Pass, "Resolved: {$state19} (prevented false EXAM_COMPLETED)");
+
+// -------------------------------------------------------------------------
+// TEST 20: Post-exam event classification distinguishes answer_key, provisional_merit, scorecard vs final result
+// -------------------------------------------------------------------------
+$akEvent = TemporalFactService::classifyPostExamEvent("Notice: Provisional Answer Key and Candidate Response Sheet Released. Submit Objections up to Oct 20.");
+$pmlEvent = TemporalFactService::classifyPostExamEvent("Notification: Provisional Merit List for Document Verification Published on Portal.");
+$scEvent = TemporalFactService::classifyPostExamEvent("Candidate Scorecard and Individual Marks Link Now Active on Official Login Portal.");
+$finalMeritEvent = TemporalFactService::classifyPostExamEvent("Final Selection: Final Merit List and Recommendation List of Selected Candidates Declared.");
+$finalResEvent = TemporalFactService::classifyPostExamEvent("Examination Final Result Declared. Download Selection List and Category-Wise Cut Off.");
+
+$test20Pass = ($akEvent['type'] === 'answer_key' && $akEvent['is_final_outcome'] === false) &&
+              ($pmlEvent['type'] === 'provisional_merit_list' && $pmlEvent['is_final_outcome'] === false) &&
+              ($scEvent['type'] === 'scorecard' && $scEvent['is_final_outcome'] === false) &&
+              ($finalMeritEvent['type'] === 'final_merit_list' && $finalMeritEvent['is_final_outcome'] === true) &&
+              ($finalResEvent['type'] === 'result' && $finalResEvent['is_final_outcome'] === true);
+
+recordTestResult(20, "Post-exam event taxonomy distinguishes answer_key, provisional_merit, scorecard vs final outcome", $test20Pass, "AK outcome=" . ($akEvent['is_final_outcome'] ? 'true' : 'false') . ", PML outcome=" . ($pmlEvent['is_final_outcome'] ? 'true' : 'false') . ", Final outcome=" . ($finalResEvent['is_final_outcome'] ? 'true' : 'false'));
+
 echo "\n========================================================================\n";
 echo "   RESULTS: {$passedTests}/{$totalTests} PASSED, {$failedTests} FAILED\n";
 echo "========================================================================\n";
@@ -332,6 +379,6 @@ if ($failedTests > 0) {
     }
     exit(1);
 } else {
-    echo "🎉 ALL 18 DETERMINISTIC TESTS PASSED WITH 100% SUCCESS!\n";
+    echo "🎉 ALL {$totalTests} DETERMINISTIC TESTS PASSED WITH 100% SUCCESS!\n";
     exit(0);
 }

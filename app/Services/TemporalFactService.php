@@ -20,17 +20,24 @@ class TemporalFactService {
 
     public const TIMEZONE = 'Asia/Kolkata';
 
-    // Core Lifecycle States
+    // Complete Temporal Recruitment Lifecycle Stages
     public const LIFECYCLE_DRAFT                = 'draft';
     public const LIFECYCLE_UPCOMING             = 'upcoming';
     public const LIFECYCLE_ACTIVE               = 'active';
     public const LIFECYCLE_CLOSED               = 'closed';
-    public const LIFECYCLE_EXAM_COMPLETED       = 'exam_completed';
     public const LIFECYCLE_ADMIT_CARD_RELEASED  = 'admit_card_released';
+    public const LIFECYCLE_EXAM_COMPLETED       = 'exam_completed';
     public const LIFECYCLE_RESULT_RELEASED      = 'result_released';
     public const LIFECYCLE_HISTORICAL           = 'historical';
     public const LIFECYCLE_EVERGREEN            = 'evergreen';
     public const LIFECYCLE_ARCHIVED             = 'archived';
+
+    // Post-Exam Event Classification Taxonomy
+    public const EVENT_ANSWER_KEY               = 'answer_key';
+    public const EVENT_PROVISIONAL_MERIT        = 'provisional_merit_list';
+    public const EVENT_SCORECARD                = 'scorecard';
+    public const EVENT_FINAL_MERIT_LIST         = 'final_merit_list';
+    public const EVENT_FINAL_RESULT             = 'result';
 
     // Supported Critical Fact Names
     public const VALID_FACT_NAMES = [
@@ -40,7 +47,14 @@ class TemporalFactService {
         'fee_deadline',
         'admit_card_date',
         'exam_date',
+        'exam_status',
+        'exam_postponement',
         'answer_key_date',
+        'answer_key',
+        'provisional_merit_list',
+        'final_merit_list',
+        'scorecard',
+        'final_result',
         'result_date',
         'counselling_date',
         'document_verification_date'
@@ -130,6 +144,76 @@ class TemporalFactService {
         }
 
         return false;
+    }
+
+    /**
+     * Classify post-exam official events into distinct categories.
+     * Distinguishes:
+     * - answer_key (NOT a result, does not trigger RESULT_RELEASED)
+     * - provisional_merit_list (interim selection list, does not trigger RESULT_RELEASED)
+     * - scorecard (marks link, does not trigger RESULT_RELEASED unless final result declared)
+     * - final_merit_list (final outcome, triggers RESULT_RELEASED)
+     * - result (final outcome, triggers RESULT_RELEASED)
+     *
+     * @param string $text Portal text snippet or event description
+     * @return array|null ['type' => string, 'is_final_outcome' => bool, 'label' => string]
+     */
+    public static function classifyPostExamEvent(string $text): ?array {
+        $lower = strtolower($text);
+
+        // 1. Answer Key (Objection management, response sheet — NOT a result)
+        if (preg_match('/(?:provisional\s+|final\s+)?answer\s*key|response\s*sheet|candidate\s*key|objection\s*management/i', $lower)) {
+            return [
+                'type' => self::EVENT_ANSWER_KEY,
+                'is_final_outcome' => false,
+                'label' => 'Answer Key Released'
+            ];
+        }
+
+        // 2. Provisional Merit List (Interim / provisional selection list — NOT the final selection outcome)
+        if (preg_match('/provisional\s+(?:merit\s+list|selection\s+list|select\s+list|shortlist|allotment)/i', $lower)) {
+            return [
+                'type' => self::EVENT_PROVISIONAL_MERIT,
+                'is_final_outcome' => false,
+                'label' => 'Provisional Merit List'
+            ];
+        }
+
+        // 3. Final Merit List (Definitive final selection list concluding recruitment)
+        if (preg_match('/final\s+(?:merit\s+list|selection\s+list|select\s+list|recommendation\s+list|allocation)/i', $lower)) {
+            return [
+                'type' => self::EVENT_FINAL_MERIT_LIST,
+                'is_final_outcome' => true,
+                'label' => 'Final Merit List Out'
+            ];
+        }
+
+        // 4. Standalone Scorecard / Marks link
+        if (preg_match('/(?:view\s+|download\s+)?scorecard|score\s*card|individual\s*marks|marks\s*(?:sheet|portal|login)/i', $lower)) {
+            if (preg_match('/(?:final\s+result|examination\s+result)\s+(?:is\s+)?(?:declared|announced|published)/i', $lower)) {
+                return [
+                    'type' => self::EVENT_FINAL_RESULT,
+                    'is_final_outcome' => true,
+                    'label' => 'Result Declared'
+                ];
+            }
+            return [
+                'type' => self::EVENT_SCORECARD,
+                'is_final_outcome' => false,
+                'label' => 'Scorecard Available'
+            ];
+        }
+
+        // 5. Official Result (Declared / Released / Announced)
+        if (preg_match('/(?:recruitment\s+|examination\s+|exam\s+|final\s+)?result\s+(?:is\s+)?(?:declared|announced|published|released|out)/i', $lower)) {
+            return [
+                'type' => self::EVENT_FINAL_RESULT,
+                'is_final_outcome' => true,
+                'label' => 'Result Declared'
+            ];
+        }
+
+        return null;
     }
 
     /**
@@ -352,36 +436,45 @@ class TemporalFactService {
         }
 
         // 2. Check RESULT_RELEASED
-        // CRITICAL: A future announced result date does NOT mean RESULT_RELEASED!
-        // Only if result has ACTUALLY been released:
-        // Either status is marked 'released' or result_date <= now in IST
-        $resultVal = $factValues['result_date'] ?? null;
+        // CRITICAL INVARIANT:
+        // A future announced result date does NOT mean RESULT_RELEASED!
+        // Intermediate events (answer_key, provisional_merit_list, standalone scorecard) do NOT mean RESULT_RELEASED!
+        // Only when authoritative source confirms the definitive final result or final merit list selection outcome.
+        $resultVal = $factValues['final_result'] ?? ($factValues['final_merit_list'] ?? ($factValues['result_date'] ?? null));
         if (!empty($resultVal) && !self::isUnannouncedValue($resultVal)) {
             $resultTime = self::parseDateIST($resultVal, '00:00:00');
             $isExplicitlyReleased = false;
-            if (isset($factRows['result_date'])) {
-                $row = $factRows['result_date'];
-                if (($row['status'] ?? '') === 'released' || str_contains(strtolower($row['fact_value'] ?? ''), 'declared') || str_contains(strtolower($row['fact_value'] ?? ''), 'released')) {
+            $resRow = $factRows['final_result'] ?? ($factRows['final_merit_list'] ?? ($factRows['result_date'] ?? null));
+            if ($resRow !== null) {
+                $status = strtolower($resRow['status'] ?? '');
+                $valStr = strtolower($resRow['fact_value'] ?? '');
+                if ($status === 'released' || str_contains($valStr, 'declared') || str_contains($valStr, 'released') || str_contains($valStr, 'out')) {
                     $isExplicitlyReleased = true;
                 }
             }
 
-            if ($resultTime !== null && $now >= $resultTime) {
-                return self::LIFECYCLE_RESULT_RELEASED;
-            }
-            if ($isExplicitlyReleased) {
+            if (($resultTime !== null && $now >= $resultTime) || $isExplicitlyReleased) {
+                // RESULT_RELEASED is the permanent active lifecycle state (NEVER auto-archived)
                 return self::LIFECYCLE_RESULT_RELEASED;
             }
         }
 
         // 3. Check EXAM_COMPLETED
-        // CRITICAL: A future exam date does NOT mean EXAM_COMPLETED!
-        // Application closed Sept 2, exam date announced for Oct 10 -> current state before Oct 10 is CLOSED, NOT EXAM_COMPLETED!
+        // CRITICAL INVARIANT: Exam completion must NOT be based on time alone!
+        // 1) A future exam date does NOT mean EXAM_COMPLETED (remains CLOSED/ADMIT_CARD_RELEASED).
+        // 2) If official postponement, cancellation, or reschedule has been recorded, it MUST NOT become EXAM_COMPLETED!
+        // 3) Operational cutoff 18:00 IST is retained as a timing boundary, not as the sole factual proof.
         $examVal = $factValues['exam_date'] ?? null;
         if (!empty($examVal) && !self::isUnannouncedValue($examVal)) {
-            $examTime = self::parseDateIST($examVal, '23:59:59');
-            if ($examTime !== null && $now > $examTime) {
-                return self::LIFECYCLE_EXAM_COMPLETED;
+            $isPostponed = !empty($factValues['exam_postponement']) ||
+                           in_array(strtolower($factValues['exam_status'] ?? ''), ['postponed', 'cancelled', 'rescheduled', 'deferred'], true) ||
+                           (isset($factRows['exam_date']) && in_array(strtolower($factRows['exam_date']['status'] ?? ''), ['postponed', 'cancelled', 'rescheduled'], true));
+
+            if (!$isPostponed) {
+                $examTime = self::parseDateIST($examVal, '18:00:00');
+                if ($examTime !== null && $now > $examTime) {
+                    return self::LIFECYCLE_EXAM_COMPLETED;
+                }
             }
         }
 

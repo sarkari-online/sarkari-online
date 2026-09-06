@@ -361,6 +361,11 @@ class TemporalRevalidationService {
 
     /**
      * Stage 4: Revalidate ADMIT_CARD_RELEASED articles (Checks if exam has actually completed)
+     *
+     * INVARIANT: EXAM_COMPLETED MUST NOT BE BASED ON TIME ALONE!
+     * Operational cutoff: 18:00 IST on exam date is retained as a timing boundary, not the sole factual proof.
+     * Re-check authoritative source to verify there is NO official postponement, cancellation, or rescheduling.
+     * Only allow EXAM_COMPLETED when authoritative source confirms absence of postponement.
      */
     private static function revalidateAdmitCardStage(int $articleId, array $articleData, array $facts, DateTimeImmutable $now): array {
         $examFact = $facts['exam_date'] ?? null;
@@ -370,46 +375,101 @@ class TemporalRevalidationService {
             return ['success' => true, 'action' => 'admit_card_no_exam_date'];
         }
 
-        $examTime = TemporalFactService::parseDateIST($examVal, '23:59:59');
-        if ($examTime !== null && $now > $examTime) {
-            // Exam has actually concluded in Asia/Kolkata -> Transition to EXAM_COMPLETED
-            $oldContent = $articleData['content'];
-            $oldTitle = $articleData['title'];
-            $examDateFormatted = $examTime->format('F d, Y');
-
-            $newTitle = preg_replace('/(?::\s*Admit Card Released|\(Admit Card Released\)).*$/i', ': Exam Concluded, Answer Key & Cutoff Updates', $oldTitle);
-            if ($newTitle === $oldTitle) {
-                $newTitle .= ' — Exam Concluded';
-            }
-
-            $examBanner = "<div class='notice-box notice-info' style='background:#f8fafc;border-left:4px solid #0284c7;padding:12px 16px;margin:16px 0;border-radius:4px;'><strong>Exam Concluded</strong> — The examination concluded on {$examDateFormatted}. Candidates are currently awaiting the official provisional answer key release and objection submission window.</div>";
-            $newContent = preg_replace('/(<h2>.*?<\/h2>)/i', $examBanner . '$1', $oldContent, 1);
-
-            Database::insert('article_updates', [
-                'article_id' => $articleId,
-                'old_content' => $oldContent,
-                'new_content' => $newContent,
-                'reason' => "Autonomous lifecycle transition: Exam date ({$examDateFormatted} IST) passed. Transitioned to EXAM_COMPLETED.",
-                'source_url' => $articleData['source_url'],
-                'created_at' => $now->format('Y-m-d H:i:s')
-            ]);
-
-            Database::update('articles', [
-                'title' => Sanitizer::string($newTitle),
-                'content' => Sanitizer::html($newContent),
-                'lifecycle_status' => TemporalFactService::LIFECYCLE_EXAM_COMPLETED,
-                'updated_at' => $now->format('Y-m-d H:i:s')
-            ], 'id = :id', ['id' => $articleId]);
-
-            Logger::info("Article #{$articleId} transitioned from ADMIT_CARD_RELEASED to EXAM_COMPLETED.");
-            return ['success' => true, 'action' => 'exam_completed'];
+        // Operational cutoff: 18:00 IST on exam date
+        $examTime = TemporalFactService::parseDateIST($examVal, '18:00:00');
+        if ($examTime === null || $now <= $examTime) {
+            return ['success' => true, 'action' => 'admit_card_active'];
         }
 
-        return ['success' => true, 'action' => 'admit_card_active'];
+        // Check if database already has a recorded postponement or cancellation
+        if (!empty($facts['exam_postponement']) || in_array(strtolower($facts['exam_status']['fact_value'] ?? ''), ['postponed', 'cancelled', 'rescheduled', 'deferred'], true)) {
+            Logger::info("Article #{$articleId}: Exam date passed but postponement already recorded. Will NOT transition to EXAM_COMPLETED.");
+            return ['success' => true, 'action' => 'exam_postponed_known'];
+        }
+
+        // Operational cutoff passed -> Re-check authoritative source for postponement/cancellation notices
+        $sourceUrl = $articleData['source_url'] ?? '';
+        if (!empty($sourceUrl) && filter_var($sourceUrl, FILTER_VALIDATE_URL)) {
+            $portalText = (new AuthorityFactFetcherService())->fetchPortalText($sourceUrl);
+            if (!empty($portalText)) {
+                // Check for official postponement or reschedule
+                if (preg_match('/(?:exam|examination|cbt|paper)\s+(?:has\s+been\s+|is\s+)?(?:postponed|cancelled|rescheduled|deferred|put on hold)/i', $portalText) ||
+                    preg_match('/(?:postponement|cancellation|rescheduling)\s+of\s+(?:the\s+)?(?:exam|examination)/i', $portalText)) {
+
+                    TemporalFactService::recordFact($articleId, 'exam_postponement', 'Postponed by official notice', $sourceUrl, [
+                        'source_type' => 'official',
+                        'confidence' => 'high',
+                        'status' => 'verified'
+                    ]);
+
+                    $oldContent = $articleData['content'];
+                    $postponeBanner = "<div class='notice-box notice-warning' style='background:#fefce8;border-left:4px solid #eab308;padding:12px 16px;margin:16px 0;border-radius:4px;'><strong>Notice: Examination Postponed</strong> — The examination previously scheduled for {$examVal} has been postponed by official notification. Candidates are advised to monitor the official portal at <a href='{$sourceUrl}' target='_blank' rel='noopener noreferrer'>{$sourceUrl}</a> for rescheduled dates.</div>";
+                    $newContent = preg_replace('/(<h2>.*?<\/h2>)/i', $postponeBanner . '$1', $oldContent, 1);
+
+                    Database::insert('article_updates', [
+                        'article_id' => $articleId,
+                        'old_content' => $oldContent,
+                        'new_content' => $newContent,
+                        'reason' => "Official postponement verified on portal ({$sourceUrl}) after scheduled exam date. Prevented EXAM_COMPLETED transition.",
+                        'source_url' => $sourceUrl,
+                        'created_at' => $now->format('Y-m-d H:i:s')
+                    ]);
+
+                    Database::update('articles', [
+                        'content' => Sanitizer::html($newContent),
+                        'updated_at' => $now->format('Y-m-d H:i:s')
+                    ], 'id = :id', ['id' => $articleId]);
+
+                    Logger::warning("Article #{$articleId}: Exam date passed, but official postponement detected. Maintained ADMIT_CARD_RELEASED/POSTPONED.");
+                    return ['success' => true, 'action' => 'exam_postponed'];
+                }
+            }
+        }
+
+        // Exam concluded without postponement -> Transition to EXAM_COMPLETED
+        $oldContent = $articleData['content'];
+        $oldTitle = $articleData['title'];
+        $examDateFormatted = $examTime->format('F d, Y');
+
+        $newTitle = preg_replace('/(?::\s*Admit Card Released|\(Admit Card Released\)).*$/i', ': Exam Concluded, Answer Key & Cutoff Updates', $oldTitle);
+        if ($newTitle === $oldTitle) {
+            $newTitle .= ' — Exam Concluded';
+        }
+
+        $examBanner = "<div class='notice-box notice-info' style='background:#f8fafc;border-left:4px solid #0284c7;padding:12px 16px;margin:16px 0;border-radius:4px;'><strong>Exam Concluded</strong> — The examination concluded on {$examDateFormatted}. Candidates are currently awaiting the official provisional answer key release and objection submission window.</div>";
+        $newContent = preg_replace('/(<h2>.*?<\/h2>)/i', $examBanner . '$1', $oldContent, 1);
+
+        Database::insert('article_updates', [
+            'article_id' => $articleId,
+            'old_content' => $oldContent,
+            'new_content' => $newContent,
+            'reason' => "Autonomous lifecycle transition: Exam date ({$examDateFormatted} IST) concluded with zero official postponement. Transitioned to EXAM_COMPLETED.",
+            'source_url' => $articleData['source_url'],
+            'created_at' => $now->format('Y-m-d H:i:s')
+        ]);
+
+        Database::update('articles', [
+            'title' => Sanitizer::string($newTitle),
+            'content' => Sanitizer::html($newContent),
+            'lifecycle_status' => TemporalFactService::LIFECYCLE_EXAM_COMPLETED,
+            'updated_at' => $now->format('Y-m-d H:i:s')
+        ], 'id = :id', ['id' => $articleId]);
+
+        Logger::info("Article #{$articleId} transitioned from ADMIT_CARD_RELEASED to EXAM_COMPLETED.");
+        return ['success' => true, 'action' => 'exam_completed'];
     }
 
     /**
-     * Stage 5: Revalidate EXAM_COMPLETED articles (Checks for official Result declaration)
+     * Stage 5: Revalidate EXAM_COMPLETED articles
+     *
+     * Distinguishes post-exam official events:
+     * - answer_key (NOT a result, does NOT trigger RESULT_RELEASED)
+     * - provisional_merit_list (interim selection list, does NOT trigger RESULT_RELEASED)
+     * - scorecard (standalone marks link, does NOT trigger RESULT_RELEASED unless final result declared)
+     * - final_merit_list / result (ONLY these trigger RESULT_RELEASED)
+     *
+     * INVARIANT: RESULT_RELEASED remains the permanent active lifecycle state after result publication.
+     * Do NOT automatically change lifecycle_status to ARCHIVED merely because result was released!
      */
     private static function revalidateExamCompletedStage(int $articleId, array $articleData, array $facts, DateTimeImmutable $now): array {
         $sourceUrl = $articleData['source_url'] ?? '';
@@ -418,7 +478,7 @@ class TemporalRevalidationService {
         }
 
         // 6-hour rate-limit guard
-        $resFact = $facts['result_date'] ?? null;
+        $resFact = $facts['result_date'] ?? ($facts['final_result'] ?? null);
         $lastVerified = !empty($resFact['verified_at']) ? strtotime($resFact['verified_at']) : 0;
         if (($now->getTimestamp() - $lastVerified) < self::SOURCE_FRESHNESS_INTERVAL) {
             return ['success' => true, 'action' => 'exam_completed_cached'];
@@ -429,34 +489,141 @@ class TemporalRevalidationService {
             return ['success' => true, 'action' => 'exam_completed_portal_empty'];
         }
 
-        // Check for official Result declaration
-        if (preg_match('/(?:result|scorecard|merit list)\s+(?:is\s+)?(?:declared|released|published|available|out)/i', $portalText, $resMatch)) {
-            TemporalFactService::recordFact($articleId, 'result_date', $now->format('F d, Y'), $sourceUrl, [
+        // Classify the post-exam event using official event classification
+        $event = TemporalFactService::classifyPostExamEvent($portalText);
+        if ($event === null) {
+            if (!empty($resFact['id'])) {
+                Database::update('article_temporal_facts', ['verified_at' => $now->format('Y-m-d H:i:s')], 'id = :id', ['id' => $resFact['id']]);
+            }
+            return ['success' => true, 'action' => 'exam_completed_fresh'];
+        }
+
+        $oldContent = $articleData['content'];
+
+        // Event 1: Answer Key (NOT a result — maintains EXAM_COMPLETED)
+        if ($event['type'] === TemporalFactService::EVENT_ANSWER_KEY) {
+            if (empty($facts['answer_key'])) {
+                TemporalFactService::recordFact($articleId, 'answer_key', $now->format('F d, Y'), $sourceUrl, [
+                    'source_type' => 'official',
+                    'confidence' => 'high',
+                    'status' => 'verified'
+                ]);
+
+                $keyBanner = "<div class='notice-box notice-info' style='background:#f0f9ff;border-left:4px solid #0284c7;padding:12px 16px;margin:16px 0;border-radius:4px;'><strong>Answer Key Released!</strong> — The official answer key / response sheet has been released. Candidates can download the key and submit objections via the official portal at <a href='{$sourceUrl}' target='_blank' rel='noopener noreferrer'>{$sourceUrl}</a>.</div>";
+                $newContent = preg_replace('/(<h2>.*?<\/h2>)/i', $keyBanner . '$1', $oldContent, 1);
+
+                Database::insert('article_updates', [
+                    'article_id' => $articleId,
+                    'old_content' => $oldContent,
+                    'new_content' => $newContent,
+                    'reason' => "Official Answer Key release verified on portal ({$sourceUrl}). Maintained EXAM_COMPLETED stage.",
+                    'source_url' => $sourceUrl,
+                    'created_at' => $now->format('Y-m-d H:i:s')
+                ]);
+
+                Database::update('articles', [
+                    'content' => Sanitizer::html($newContent),
+                    'updated_at' => $now->format('Y-m-d H:i:s')
+                ], 'id = :id', ['id' => $articleId]);
+
+                Logger::info("Article #{$articleId}: Answer Key verified. Maintained EXAM_COMPLETED.");
+                return ['success' => true, 'action' => 'answer_key_released'];
+            }
+            return ['success' => true, 'action' => 'answer_key_already_recorded'];
+        }
+
+        // Event 2: Provisional Merit List (Interim list — maintains EXAM_COMPLETED, NOT RESULT_RELEASED)
+        if ($event['type'] === TemporalFactService::EVENT_PROVISIONAL_MERIT) {
+            if (empty($facts['provisional_merit_list'])) {
+                TemporalFactService::recordFact($articleId, 'provisional_merit_list', $now->format('F d, Y'), $sourceUrl, [
+                    'source_type' => 'official',
+                    'confidence' => 'high',
+                    'status' => 'verified'
+                ]);
+
+                $provBanner = "<div class='notice-box notice-warning' style='background:#fefce8;border-left:4px solid #ca8a04;padding:12px 16px;margin:16px 0;border-radius:4px;'><strong>Provisional Merit List Released</strong> — The provisional selection list has been published. Please note this list is subject to document verification and final scrutiny. Check official portal at <a href='{$sourceUrl}' target='_blank' rel='noopener noreferrer'>{$sourceUrl}</a>.</div>";
+                $newContent = preg_replace('/(<h2>.*?<\/h2>)/i', $provBanner . '$1', $oldContent, 1);
+
+                Database::insert('article_updates', [
+                    'article_id' => $articleId,
+                    'old_content' => $oldContent,
+                    'new_content' => $newContent,
+                    'reason' => "Provisional Merit List verified on portal ({$sourceUrl}). Maintained EXAM_COMPLETED stage (pending final selection outcome).",
+                    'source_url' => $sourceUrl,
+                    'created_at' => $now->format('Y-m-d H:i:s')
+                ]);
+
+                Database::update('articles', [
+                    'content' => Sanitizer::html($newContent),
+                    'updated_at' => $now->format('Y-m-d H:i:s')
+                ], 'id = :id', ['id' => $articleId]);
+
+                Logger::info("Article #{$articleId}: Provisional Merit List verified. Maintained EXAM_COMPLETED.");
+                return ['success' => true, 'action' => 'provisional_merit_released'];
+            }
+            return ['success' => true, 'action' => 'provisional_merit_already_recorded'];
+        }
+
+        // Event 3: Standalone Scorecard / Marks Link (maintains EXAM_COMPLETED)
+        if ($event['type'] === TemporalFactService::EVENT_SCORECARD && !$event['is_final_outcome']) {
+            if (empty($facts['scorecard'])) {
+                TemporalFactService::recordFact($articleId, 'scorecard', $now->format('F d, Y'), $sourceUrl, [
+                    'source_type' => 'official',
+                    'confidence' => 'high',
+                    'status' => 'verified'
+                ]);
+
+                $scoreBanner = "<div class='notice-box notice-info' style='background:#f0fdf4;border-left:4px solid #16a34a;padding:12px 16px;margin:16px 0;border-radius:4px;'><strong>Candidate Scorecard Active</strong> — Individual scorecards and marks are now accessible on the official portal at <a href='{$sourceUrl}' target='_blank' rel='noopener noreferrer'>{$sourceUrl}</a>.</div>";
+                $newContent = preg_replace('/(<h2>.*?<\/h2>)/i', $scoreBanner . '$1', $oldContent, 1);
+
+                Database::insert('article_updates', [
+                    'article_id' => $articleId,
+                    'old_content' => $oldContent,
+                    'new_content' => $newContent,
+                    'reason' => "Scorecard portal link verified on ({$sourceUrl}). Maintained EXAM_COMPLETED stage.",
+                    'source_url' => $sourceUrl,
+                    'created_at' => $now->format('Y-m-d H:i:s')
+                ]);
+
+                Database::update('articles', [
+                    'content' => Sanitizer::html($newContent),
+                    'updated_at' => $now->format('Y-m-d H:i:s')
+                ], 'id = :id', ['id' => $articleId]);
+
+                Logger::info("Article #{$articleId}: Scorecard verified. Maintained EXAM_COMPLETED.");
+                return ['success' => true, 'action' => 'scorecard_released'];
+            }
+            return ['success' => true, 'action' => 'scorecard_already_recorded'];
+        }
+
+        // Event 4 & 5: Final Result / Final Merit List -> Transition to RESULT_RELEASED
+        if ($event['is_final_outcome'] === true) {
+            $factKey = ($event['type'] === TemporalFactService::EVENT_FINAL_MERIT_LIST) ? 'final_merit_list' : 'result_date';
+            TemporalFactService::recordFact($articleId, $factKey, $now->format('F d, Y'), $sourceUrl, [
                 'source_type' => 'official',
                 'confidence' => 'high',
                 'status' => 'verified'
             ]);
 
-            $oldContent = $articleData['content'];
             $oldTitle = $articleData['title'];
-
-            $newTitle = preg_replace('/(?::\s*Exam Concluded|\(Exam Concluded\)).*$/i', ': Result Declared, Scorecard Link & Merit List Out', $oldTitle);
+            $newTitle = preg_replace('/(?::\s*Exam Concluded|\(Exam Concluded\)).*$/i', ': Result Declared, Scorecard Link & Final Merit List Out', $oldTitle);
             if ($newTitle === $oldTitle) {
                 $newTitle .= ' — Result Declared';
             }
 
-            $resultBanner = "<div class='notice-box notice-success' style='background:#f0fdf4;border-left:4px solid #16a34a;padding:12px 16px;margin:16px 0;border-radius:4px;'><strong>Result Officially Declared!</strong> — The official examination result and scorecard link are now active. Candidates can verify their scorecards and category-wise cutoffs at <a href='{$sourceUrl}' target='_blank' rel='noopener noreferrer'>{$sourceUrl}</a>.</div>";
+            $resultBanner = "<div class='notice-box notice-success' style='background:#f0fdf4;border-left:4px solid #16a34a;padding:12px 16px;margin:16px 0;border-radius:4px;'><strong>Final Result Officially Declared!</strong> — The official examination result and final merit list have been declared. Candidates can verify selection outcomes, category-wise cutoffs, and scorecards at <a href='{$sourceUrl}' target='_blank' rel='noopener noreferrer'>{$sourceUrl}</a>.</div>";
             $newContent = preg_replace('/(<h2>.*?<\/h2>)/i', $resultBanner . '$1', $oldContent, 1);
 
             Database::insert('article_updates', [
                 'article_id' => $articleId,
                 'old_content' => $oldContent,
                 'new_content' => $newContent,
-                'reason' => "Autonomous lifecycle transition: Official Result declaration verified on portal ({$sourceUrl}). Transitioned to RESULT_RELEASED.",
+                'reason' => "Autonomous lifecycle transition: Official {$event['label']} verified on portal ({$sourceUrl}). Transitioned to RESULT_RELEASED.",
                 'source_url' => $sourceUrl,
                 'created_at' => $now->format('Y-m-d H:i:s')
             ]);
 
+            // RESULT_RELEASED is the permanent active lifecycle state (NEVER auto-archived)
             Database::update('articles', [
                 'title' => Sanitizer::string($newTitle),
                 'content' => Sanitizer::html($newContent),
@@ -464,8 +631,8 @@ class TemporalRevalidationService {
                 'updated_at' => $now->format('Y-m-d H:i:s')
             ], 'id = :id', ['id' => $articleId]);
 
-            Logger::info("Article #{$articleId} transitioned from EXAM_COMPLETED to RESULT_RELEASED.");
-            return ['success' => true, 'action' => 'result_released'];
+            Logger::info("Article #{$articleId} transitioned to RESULT_RELEASED ({$event['label']}). State remains RESULT_RELEASED (never auto-archived).");
+            return ['success' => true, 'action' => 'result_released', 'event' => $event['type']];
         }
 
         if (!empty($resFact['id'])) {
