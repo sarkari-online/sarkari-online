@@ -113,22 +113,25 @@ class TrendService {
     }
 
     /**
-     * Check if similar article already exists in published articles
+     * Find matching published article for a keyword if one exists
      */
-    public static function existsAsArticle(string $keyword): bool {
+    public static function findMatchingArticle(string $keyword): ?array {
         $clean = mb_strtolower(trim($keyword));
         $normalized = self::normalizeKeyword($keyword);
         $words = explode(' ', $normalized);
         $keyWords = array_values(array_filter($words, fn($w) => strlen($w) >= 3 && !in_array($w, ['the', 'and', 'for', 'with', 'from', 'update', 'latest', 'notification', '2026', '2027'], true)));
 
         if (empty($keyWords)) {
-            return false;
+            return null;
         }
 
         // 1. Direct Slug / Keyword match
         $slugGuess = Sanitizer::slug($keyword);
-        $existingBySlug = Database::fetchOne("SELECT id FROM articles WHERE slug LIKE :s LIMIT 1", ['s' => '%' . mb_substr($slugGuess, 0, 35) . '%']);
-        if ($existingBySlug) return true;
+        $existingBySlug = Database::fetchOne(
+            "SELECT id, title, slug, content, source_name, source_url, lifecycle_status, status FROM articles WHERE slug LIKE :s LIMIT 1",
+            ['s' => '%' . mb_substr($slugGuess, 0, 35) . '%']
+        );
+        if ($existingBySlug) return $existingBySlug;
 
         // 2. Specific key entity pairs check (e.g. 'nsp scholarship', 'upsc nda', 'ssc cgl', etc.)
         $entities = [
@@ -153,11 +156,14 @@ class TrendService {
             if (str_contains($clean, $pair[0]) && str_contains($clean, $pair[1])) {
                 $p1 = '%' . $pair[0] . '%';
                 $p2 = '%' . $pair[1] . '%';
-                $found = Database::fetchOne("SELECT id FROM articles WHERE (LOWER(title) LIKE :p1 AND LOWER(title) LIKE :p2) OR (LOWER(slug) LIKE :p1 AND LOWER(slug) LIKE :p2) LIMIT 1", [
-                    'p1' => $p1,
-                    'p2' => $p2
-                ]);
-                if ($found) return true;
+                $found = Database::fetchOne(
+                    "SELECT id, title, slug, content, source_name, source_url, lifecycle_status, status 
+                     FROM articles 
+                     WHERE (LOWER(title) LIKE :p1 AND LOWER(title) LIKE :p2) OR (LOWER(slug) LIKE :p1 AND LOWER(slug) LIKE :p2) 
+                     LIMIT 1",
+                    ['p1' => $p1, 'p2' => $p2]
+                );
+                if ($found) return $found;
             }
         }
 
@@ -165,13 +171,43 @@ class TrendService {
         if (count($keyWords) >= 2) {
             $w1 = '%' . $keyWords[0] . '%';
             $w2 = '%' . $keyWords[1] . '%';
-            $found = Database::fetchOne("SELECT id FROM articles WHERE (LOWER(title) LIKE :w1 AND LOWER(title) LIKE :w2) OR (LOWER(slug) LIKE :w1 AND LOWER(slug) LIKE :w2) LIMIT 1", [
-                'w1' => $w1,
-                'w2' => $w2
-            ]);
-            if ($found) return true;
+            $found = Database::fetchOne(
+                "SELECT id, title, slug, content, source_name, source_url, lifecycle_status, status 
+                 FROM articles 
+                 WHERE (LOWER(title) LIKE :w1 AND LOWER(title) LIKE :w2) OR (LOWER(slug) LIKE :w1 AND LOWER(slug) LIKE :w2) 
+                 LIMIT 1",
+                ['w1' => $w1, 'w2' => $w2]
+            );
+            if ($found) return $found;
         }
 
+        return null;
+    }
+
+    /**
+     * Check if similar article already exists in published articles
+     */
+    public static function existsAsArticle(string $keyword): bool {
+        return self::findMatchingArticle($keyword) !== null;
+    }
+
+    /**
+     * Check if keyword carries a date or lifecycle milestone update signal
+     */
+    public static function isDateOrMilestoneUpdateSignal(string $keyword): bool {
+        $lower = mb_strtolower($keyword);
+        $signals = [
+            'last date', 'extended', 'extension', 'deadline', 'closing date',
+            'admit card', 'hall ticket', 'call letter', 'exam date', 'cbt date',
+            'exam schedule', 'postponed', 'rescheduled', 'deferred',
+            'answer key', 'response sheet', 'result declared', 'result out',
+            'merit list', 'cut off', 'cutoff', 'scorecard', 'corrigendum', 'schedule announced'
+        ];
+        foreach ($signals as $s) {
+            if (str_contains($lower, $s)) {
+                return true;
+            }
+        }
         return false;
     }
 
@@ -401,7 +437,16 @@ class TrendService {
             return ['qualified' => false, 'reason' => 'Duplicate trend already recorded recently.'];
         }
 
-        if (self::existsAsArticle($keyword)) {
+        $matchingArticle = self::findMatchingArticle($keyword);
+        if ($matchingArticle !== null) {
+            if (self::isDateOrMilestoneUpdateSignal($keyword)) {
+                return [
+                    'qualified' => true,
+                    'reason' => "Date/milestone announcement for existing Article #{$matchingArticle['id']}.",
+                    'is_article_update' => true,
+                    'target_article_id' => (int)$matchingArticle['id']
+                ];
+            }
             return ['qualified' => false, 'reason' => 'Similar article already exists in publication library.'];
         }
 

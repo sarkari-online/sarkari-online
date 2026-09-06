@@ -74,7 +74,61 @@ class PipelineService {
         }
 
         // Prevent generating duplicate article if topic is already published (unless admin forces generation)
-        if (!$force && TrendService::existsAsArticle($trend['keyword'])) {
+        $matchingArticle = TrendService::findMatchingArticle($trend['keyword']);
+        if (!$force && $matchingArticle) {
+            // Check if this trend represents an official date/milestone update for the existing article!
+            $rawPayload = !empty($trend['raw_payload']) ? (is_array($trend['raw_payload']) ? $trend['raw_payload'] : (json_decode($trend['raw_payload'], true) ?: [])) : [];
+            $isUpdateSignal = TrendService::isDateOrMilestoneUpdateSignal($trend['keyword']) || !empty($rawPayload['is_article_update']);
+
+            if ($isUpdateSignal) {
+                Logger::info("Routing Trend #{$trendId} as in-place update for existing Article #{$matchingArticle['id']} ('{$matchingArticle['title']}').");
+
+                $autoCat = CategoryService::autoResolveCategory($trend['keyword'], '', $trend['category_hint'] ?? null);
+                $categorySlug = $autoCat['slug'] ?? 'entrance-exams';
+                $snippet = $rawPayload['snippet'] ?? ($trend['category_hint'] ?? '');
+
+                $factFetcher = new AuthorityFactFetcherService();
+                $verifiedFacts = $factFetcher->fetchFactsForTopic($trend['keyword'], $categorySlug, $trend['url'] ?? '', $snippet);
+                $resolvedAuth = AuthorityFactFetcherService::resolveAuthority($trend['keyword'], $trend['url'] ?? '');
+                $officialPortal = (!empty($verifiedFacts['official_portal']) && !str_contains($verifiedFacts['official_portal'], 'sarkari.online'))
+                    ? $verifiedFacts['official_portal']
+                    : $resolvedAuth['portal'];
+
+                $extractedFacts = self::extractTemporalFacts($verifiedFacts, $trend['keyword'], $officialPortal);
+                $sourceData = [
+                    'keyword' => $trend['keyword'],
+                    'source_name' => $resolvedAuth['name'],
+                    'source_url' => $officialPortal,
+                    'reference' => $verifiedFacts['official_notice_ref'] ?? '',
+                    'notes' => $rawPayload['reasoning'] ?? $trend['keyword'],
+                    'new_facts' => $snippet . ' ' . json_encode($verifiedFacts),
+                    'temporal_facts' => $extractedFacts,
+                    'verified_facts' => $verifiedFacts
+                ];
+
+                $updateService = new ArticleUpdateService();
+                $updateRes = $updateService->processArticleUpdate((int)$matchingArticle['id'], $sourceData);
+
+                if (!empty($updateRes['updated'])) {
+                    TrendService::markStatus($trendId, 'published', [
+                        'processed_at' => date('Y-m-d H:i:s'),
+                        'raw_payload' => array_merge($rawPayload, [
+                            'updated_existing_article_id' => $matchingArticle['id'],
+                            'change_summary' => $updateRes['change_summary'] ?? 'Updated with new official circular facts'
+                        ])
+                    ]);
+                    Logger::info("🚀 Article #{$matchingArticle['id']} successfully updated with new official circular facts from Trend #{$trendId} (Zero duplicate created)!");
+                    return [
+                        'success' => true,
+                        'article_id' => (int)$matchingArticle['id'],
+                        'trend_id' => $trendId,
+                        'title' => $matchingArticle['title'],
+                        'status' => 'published',
+                        'updated' => true
+                    ];
+                }
+            }
+
             TrendService::markStatus($trendId, 'rejected', ['raw_payload' => ['reason' => 'Similar article already published']]);
             Logger::info("Trend #{$trendId} skipped: similar article already exists in publication library.");
             return ['success' => false, 'trend_id' => $trendId, 'error' => 'Similar article already exists in publication library.'];
@@ -592,7 +646,7 @@ class PipelineService {
     /**
      * Extract structured temporal facts from verified authority bulletin and keyword context
      */
-    private function extractTemporalFacts(array $verifiedFacts, string $keyword, string $officialPortal): array {
+    public static function extractTemporalFacts(array $verifiedFacts, string $keyword, string $officialPortal): array {
         $facts = [];
 
         // Check dates_schedule from AuthorityFactFetcherService

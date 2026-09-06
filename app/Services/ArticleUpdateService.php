@@ -13,6 +13,8 @@ use App\AI\FactChecker;
 use App\Database\Database;
 use App\Helpers\Logger;
 use App\Helpers\Sanitizer;
+use App\Services\TemporalFactService;
+use App\Services\PipelineService;
 use Exception;
 use Throwable;
 
@@ -138,6 +140,34 @@ class ArticleUpdateService {
         }
 
         Database::update('articles', $updateFields, 'id = :id', ['id' => $articleId]);
+
+        // 5b. Temporal Ingestion & Lifecycle Recalculation for the updated article
+        try {
+            $extractedFacts = [];
+            if (!empty($newSourceData['temporal_facts']) && is_array($newSourceData['temporal_facts'])) {
+                $extractedFacts = $newSourceData['temporal_facts'];
+            } elseif (!empty($newSourceData['verified_facts']['dates_schedule'])) {
+                $extractedFacts = PipelineService::extractTemporalFacts($newSourceData['verified_facts'], $article['title'], $sourceUrl);
+            }
+
+            foreach ($extractedFacts as $factName => $factInfo) {
+                $val = is_array($factInfo) ? ($factInfo['value'] ?? ($factInfo['fact_value'] ?? null)) : $factInfo;
+                $src = is_array($factInfo) ? ($factInfo['source_url'] ?? $sourceUrl) : $sourceUrl;
+                if (!empty($val)) {
+                    TemporalFactService::recordFact($articleId, $factName, $val, $src);
+                }
+            }
+
+            // Recalculate deterministic lifecycle status strictly in Asia/Kolkata
+            $newLifecycle = TemporalFactService::resolveLifecycle($articleId, [], $article['category_slug'] ?? null, $article['title']);
+            Database::update('articles', [
+                'lifecycle_status' => $newLifecycle
+            ], 'id = :id', ['id' => $articleId]);
+
+            Logger::info("Article #{$articleId} temporal lifecycle updated to '{$newLifecycle}' post-update.");
+        } catch (Throwable $e) {
+            Logger::warning("ArticleUpdateService temporal update warning on Article #{$articleId}: " . $e->getMessage());
+        }
 
         Logger::info("Article #{$articleId} successfully updated with verified revision", [
             'reason' => $proposal['change_summary'],

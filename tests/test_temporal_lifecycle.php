@@ -28,8 +28,9 @@ require_once dirname(__DIR__) . '/config.php';
 use App\Services\TemporalFactService;
 use App\Services\TemporalContentValidator;
 use App\Services\AuthorityVerificationService;
+use App\Services\TemporalRevalidationService;
 
-$totalTests = 21;
+$totalTests = 23;
 $passedTests = 0;
 $failedTests = 0;
 $errors = [];
@@ -395,6 +396,128 @@ $state21 = TemporalFactService::resolveLifecycle(0, $facts21, null, null, $now21
 $test21Pass = ($state21 !== TemporalFactService::LIFECYCLE_EXAM_COMPLETED) && 
               ($state21 === TemporalFactService::LIFECYCLE_ADMIT_CARD_RELEASED || $state21 === TemporalFactService::LIFECYCLE_CLOSED);
 recordTestResult(21, "Exam date passed + zero postponement + NO evidence of conduct MUST NOT become EXAM_COMPLETED", $test21Pass, "Resolved: {$state21} (safest lifecycle preserved, completion uncertainty prevented)");
+
+// -------------------------------------------------------------------------
+// TEST 22: Initial publish with NULL date -> Autonomous official detection -> Same article enriched in-place
+// -------------------------------------------------------------------------
+// Step 1: Early publish with NULL deadline
+$now22_1 = new DateTimeImmutable('2026-09-01 10:00:00', $tz);
+$facts22_1 = [
+    'application_end' => [
+        'fact_name' => 'application_end',
+        'fact_value' => null,
+        'source_url' => 'https://ssc.gov.in',
+        'status' => 'pending'
+    ]
+];
+$state22_1 = TemporalFactService::resolveLifecycle(0, $facts22_1, 'government-jobs', 'SSC CGL 2026 Recruitment', $now22_1);
+$pass22_step1 = ($state22_1 === TemporalFactService::LIFECYCLE_ACTIVE) && ($facts22_1['application_end']['fact_value'] === null);
+
+// Step 2: 5 days later, official portal circular released
+$now22_2 = new DateTimeImmutable('2026-09-06 12:00:00', $tz);
+$portalNotice22 = "Staff Selection Commission: Notice No. 3/2/2026 - Online applications for Combined Graduate Level Examination 2026 close on September 30, 2026 at 23:00 Hrs.";
+$extractedDate22 = TemporalRevalidationService::extractDeadlineFromPortalText($portalNotice22, $now22_2);
+
+// Step 3: Same article in-place HTML enrichment
+$initialHtml22 = "<div class='notice-box'>Official recruitment notice.</div><p>Staff Selection Commission has announced CGL 2026.</p><table><tr><td>Application Last Date</td><td>To Be Announced</td></tr></table><p>Last Date: To Be Announced</p><a href='https://ssc.gov.in'>Apply Online</a>";
+$enrichedHtml22 = TemporalRevalidationService::updateKeyDateInContent($initialHtml22, 'application_end', $extractedDate22, false);
+
+// Step 4: Verified fact provenance and lifecycle recalculation
+$facts22_2 = [
+    'application_end' => [
+        'fact_name' => 'application_end',
+        'fact_value' => $extractedDate22,
+        'valid_until' => '2026-09-30 23:59:59',
+        'source_url' => 'https://ssc.gov.in',
+        'status' => 'verified'
+    ]
+];
+$state22_2 = TemporalFactService::resolveLifecycle(0, $facts22_2, 'government-jobs', 'SSC CGL 2026 Recruitment', $now22_2);
+$authCheck22 = AuthorityVerificationService::verify('https://ssc.gov.in');
+
+$hasTableUpdated22 = str_contains($enrichedHtml22, '<td>Application Last Date</td><td>September 30, 2026</td>');
+$hasProseUpdated22 = str_contains($enrichedHtml22, 'Last Date: September 30, 2026');
+$hasTbaGone22 = !str_contains($enrichedHtml22, 'To Be Announced');
+
+$test22Pass = $pass22_step1 &&
+              ($extractedDate22 === 'September 30, 2026') &&
+              ($state22_2 === TemporalFactService::LIFECYCLE_ACTIVE) &&
+              $hasTableUpdated22 &&
+              $hasProseUpdated22 &&
+              $hasTbaGone22 &&
+              ($authCheck22['is_valid'] === true);
+
+recordTestResult(22, "Early publish with NULL date -> official portal announcement detected -> same article enriched in-place", $test22Pass, "Initial: NULL/Active -> Portal Detected: {$extractedDate22} -> Enriched: Active (table & prose updated in-place)");
+
+// -------------------------------------------------------------------------
+// TEST 23: Official date revision / extension (Sept 30 -> Oct 10) with audit trail preserved
+// -------------------------------------------------------------------------
+// Step 1: Baseline active article with September 30 deadline
+$now23_1 = new DateTimeImmutable('2026-09-28 12:00:00', $tz);
+$baselineFacts23 = [
+    'application_end' => [
+        'id' => 101,
+        'fact_name' => 'application_end',
+        'fact_value' => 'September 30, 2026',
+        'valid_until' => '2026-09-30 23:59:59',
+        'source_url' => 'https://ssc.gov.in',
+        'status' => 'verified'
+    ]
+];
+
+// Step 2: SSC issues extension corrigendum: "Last date extended up to October 10, 2026"
+$now23_2 = new DateTimeImmutable('2026-09-29 15:00:00', $tz);
+$portalCorrigendum23 = "Corrigendum Notice: The last date for submission of online application is extended up to October 10, 2026.";
+$extractedExtensionDate23 = TemporalRevalidationService::extractDeadlineFromPortalText($portalCorrigendum23, $now23_2);
+
+// Step 3: In-place HTML content update with extension
+$extendedHtml23 = TemporalRevalidationService::updateKeyDateInContent($enrichedHtml22, 'application_extension', $extractedExtensionDate23, true);
+
+// Step 4: Audit trail & Superseding (Old fact preserved as superseded, new fact verified)
+$factsWithExtension23 = [
+    'application_end' => [
+        'id' => 101,
+        'fact_name' => 'application_end',
+        'fact_value' => 'September 30, 2026',
+        'valid_until' => '2026-09-30 23:59:59',
+        'source_url' => 'https://ssc.gov.in',
+        'status' => 'superseded'
+    ],
+    'application_extension' => [
+        'id' => 102,
+        'fact_name' => 'application_extension',
+        'fact_value' => $extractedExtensionDate23,
+        'valid_until' => '2026-10-10 23:59:59',
+        'source_url' => 'https://ssc.gov.in',
+        'status' => 'verified'
+    ]
+];
+
+// Step 5: Lifecycle recalculation at October 02 (would be CLOSED under old date, but ACTIVE under extension)
+$now23_3 = new DateTimeImmutable('2026-10-02 12:00:00', $tz);
+$state23_extended = TemporalFactService::resolveLifecycle(0, $factsWithExtension23, 'government-jobs', 'SSC CGL 2026', $now23_3);
+
+// Step 6: Lifecycle recalculation at October 11 (past extended deadline -> now CLOSED)
+$now23_4 = new DateTimeImmutable('2026-10-11 00:01:00', $tz);
+$state23_expired = TemporalFactService::resolveLifecycle(0, $factsWithExtension23, 'government-jobs', 'SSC CGL 2026', $now23_4);
+
+// Step 7: Idempotency verification - second pass produces ZERO unintended changes
+$secondPassHtml23 = TemporalRevalidationService::updateKeyDateInContent($extendedHtml23, 'application_extension', $extractedExtensionDate23, true);
+$isIdempotent23 = ($extendedHtml23 === $secondPassHtml23);
+
+$hasTableExtended23 = str_contains($extendedHtml23, '<td>Application Last Date</td><td>October 10, 2026 (Extended)</td>');
+$hasProseExtended23 = str_contains($extendedHtml23, 'Last Date: October 10, 2026 (Extended)');
+
+$test23Pass = ($extractedExtensionDate23 === 'October 10, 2026') &&
+              ($state23_extended === TemporalFactService::LIFECYCLE_ACTIVE) &&
+              ($state23_expired === TemporalFactService::LIFECYCLE_CLOSED) &&
+              ($factsWithExtension23['application_end']['status'] === 'superseded') &&
+              ($factsWithExtension23['application_extension']['status'] === 'verified') &&
+              $hasTableExtended23 &&
+              $hasProseExtended23 &&
+              $isIdempotent23;
+
+recordTestResult(23, "Official deadline extension (Sept 30 -> Oct 10) supersedes old fact, preserves audit trail, and maintains ACTIVE state", $test23Pass, "Oct 02: {$state23_extended} -> Oct 11: {$state23_expired}, Idempotent: " . ($isIdempotent23 ? 'true' : 'false') . ", Prior fact: superseded");
 
 echo "\n========================================================================\n";
 echo "   RESULTS: {$passedTests}/{$totalTests} PASSED, {$failedTests} FAILED\n";

@@ -55,12 +55,12 @@ class TemporalRevalidationService {
 
         try {
             // Monitor the COMPLETE lifecycle:
-            // UPCOMING -> ACTIVE -> CLOSED -> ADMIT_CARD_RELEASED -> EXAM_COMPLETED
+            // UPCOMING -> ACTIVE -> CLOSED -> ADMIT_CARD_RELEASED -> EXAM_COMPLETED -> DRAFT
             $sql = "SELECT a.id, a.title, a.slug, a.excerpt, a.content, a.source_name, a.source_url, 
                            a.meta_title, a.meta_description, a.lifecycle_status, a.published_at, a.updated_at
                     FROM articles a
                     WHERE a.status = 'published'
-                      AND a.lifecycle_status IN ('upcoming', 'active', 'closed', 'admit_card_released', 'exam_completed')
+                      AND a.lifecycle_status IN ('upcoming', 'active', 'closed', 'admit_card_released', 'exam_completed', 'draft')
                     ORDER BY a.updated_at ASC
                     LIMIT " . (int)$limit;
 
@@ -112,6 +112,9 @@ class TemporalRevalidationService {
         $lifecycle = $articleData['lifecycle_status'] ?? TemporalFactService::LIFECYCLE_ACTIVE;
 
         switch ($lifecycle) {
+            case TemporalFactService::LIFECYCLE_DRAFT:
+                return self::revalidateDraftStage($articleId, $articleData, $facts, $now);
+
             case TemporalFactService::LIFECYCLE_UPCOMING:
                 return self::revalidateUpcomingStage($articleId, $articleData, $facts, $now);
 
@@ -133,6 +136,55 @@ class TemporalRevalidationService {
     }
 
     /**
+     * Stage 0: Revalidate DRAFT / NEEDS_REVIEW articles that are published
+     * Re-checks authoritative portal to see if official application/exam timeline has been declared.
+     */
+    private static function revalidateDraftStage(int $articleId, array $articleData, array $facts, DateTimeImmutable $now): array {
+        $sourceUrl = $articleData['source_url'] ?? '';
+        if (empty($sourceUrl) || !filter_var($sourceUrl, FILTER_VALIDATE_URL)) {
+            return ['success' => true, 'action' => 'draft_no_source'];
+        }
+
+        // 6-hour rate limit guard
+        $lastVerified = 0;
+        foreach ($facts as $f) {
+            if (!empty($f['verified_at'])) {
+                $ts = strtotime($f['verified_at']);
+                if ($ts > $lastVerified) $lastVerified = $ts;
+            }
+        }
+        if (($now->getTimestamp() - $lastVerified) < self::SOURCE_FRESHNESS_INTERVAL) {
+            return ['success' => true, 'action' => 'draft_cached'];
+        }
+
+        $portalText = (new AuthorityFactFetcherService())->fetchPortalText($sourceUrl);
+        if (empty($portalText)) {
+            return ['success' => true, 'action' => 'draft_portal_empty'];
+        }
+
+        // Check for official deadline announcement
+        $announcedDeadline = self::extractDeadlineFromPortalText($portalText, $now);
+        if ($announcedDeadline !== null) {
+            return self::applyNewlyAnnouncedDeadline($articleId, $articleData, $announcedDeadline, $sourceUrl, $now);
+        }
+
+        // Check for official Admit Card or Exam announcement
+        if (preg_match('/(?:admit card|hall ticket|call letter)\s+(?:is\s+)?(?:released|out|available|download|live)/i', $portalText)) {
+            return self::revalidateClosedStage($articleId, $articleData, $facts, $now);
+        }
+
+        // Refresh verified_at cache
+        foreach ($facts as $f) {
+            if (!empty($f['id'])) {
+                Database::update('article_temporal_facts', ['verified_at' => $now->format('Y-m-d H:i:s')], 'id = :id', ['id' => $f['id']]);
+                break;
+            }
+        }
+
+        return ['success' => true, 'action' => 'draft_fresh'];
+    }
+
+    /**
      * Stage 1: Revalidate UPCOMING articles (Checks if application start date has arrived)
      */
     private static function revalidateUpcomingStage(int $articleId, array $articleData, array $facts, DateTimeImmutable $now): array {
@@ -140,6 +192,19 @@ class TemporalRevalidationService {
         $startVal = $startFact['fact_value'] ?? null;
 
         if (empty($startVal)) {
+            $sourceUrl = $articleData['source_url'] ?? '';
+            if (!empty($sourceUrl) && filter_var($sourceUrl, FILTER_VALIDATE_URL)) {
+                $lastVerified = !empty($startFact['verified_at']) ? strtotime($startFact['verified_at']) : 0;
+                if (($now->getTimestamp() - $lastVerified) >= self::SOURCE_FRESHNESS_INTERVAL) {
+                    $portalText = (new AuthorityFactFetcherService())->fetchPortalText($sourceUrl);
+                    if (!empty($portalText)) {
+                        $announcedDeadline = self::extractDeadlineFromPortalText($portalText, $now);
+                        if ($announcedDeadline !== null) {
+                            return self::applyNewlyAnnouncedDeadline($articleId, $articleData, $announcedDeadline, $sourceUrl, $now);
+                        }
+                    }
+                }
+            }
             return ['success' => true, 'action' => 'upcoming_no_start_date'];
         }
 
@@ -172,6 +237,7 @@ class TemporalRevalidationService {
      * Handles:
      * - Deadline expiry -> Transition to CLOSED
      * - Point 3: Pre-expiry source freshness checks to catch extensions announced before deadline
+     * - Gap 1: Detection of announced application deadline when previously NULL
      */
     private static function revalidateActiveStage(int $articleId, array $articleData, array $facts, DateTimeImmutable $now): array {
         $deadlineFact = $facts['application_extension'] ?? ($facts['application_end'] ?? null);
@@ -190,7 +256,35 @@ class TemporalRevalidationService {
         }
 
         if (empty($deadlineVal)) {
-            return ['success' => true, 'action' => 'no_deadline_to_evaluate'];
+            // Check if sourceUrl exists and can be polled
+            if (empty($sourceUrl) || !filter_var($sourceUrl, FILTER_VALIDATE_URL)) {
+                return ['success' => true, 'action' => 'no_deadline_to_evaluate'];
+            }
+
+            // 6-hour rate limit guard
+            $pendingFact = $facts['application_end'] ?? null;
+            $lastVerified = !empty($pendingFact['verified_at']) ? strtotime($pendingFact['verified_at']) : 0;
+            if (($now->getTimestamp() - $lastVerified) < self::SOURCE_FRESHNESS_INTERVAL) {
+                return ['success' => true, 'action' => 'deadline_unannounced_cached'];
+            }
+
+            // Fetch official portal text
+            $portalText = (new AuthorityFactFetcherService())->fetchPortalText($sourceUrl);
+            if (empty($portalText)) {
+                return ['success' => true, 'action' => 'portal_empty'];
+            }
+
+            $announcedDeadline = self::extractDeadlineFromPortalText($portalText, $now);
+            if ($announcedDeadline !== null) {
+                return self::applyNewlyAnnouncedDeadline($articleId, $articleData, $announcedDeadline, $sourceUrl, $now);
+            }
+
+            // Still unannounced: touch verified_at on pending fact to respect 6-hour cache
+            if (!empty($pendingFact['id'])) {
+                Database::update('article_temporal_facts', ['verified_at' => $now->format('Y-m-d H:i:s')], 'id = :id', ['id' => $pendingFact['id']]);
+            }
+
+            return ['success' => true, 'action' => 'deadline_still_unannounced'];
         }
 
         $deadlineTime = null;
@@ -688,6 +782,109 @@ class TemporalRevalidationService {
     }
 
     /**
+     * Helper: Extract application deadline date from official portal text
+     */
+    public static function extractDeadlineFromPortalText(string $portalText, DateTimeImmutable $now): ?string {
+        $patterns = [
+            '/(?:last date|closing date|deadline|apply online up to|registration end date|registration closes on|applications? (?:will\s+)?close on|online applications? closes? on|applications accepted till|apply till)\s*(?:is|on|:|till|up to)?\s*([A-Za-z]+\s+\d{1,2}(?:,\s*\d{4})?|\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/i',
+            '/(?:last date|application window|registration|submission of online application)\s*(?:for\s+[^.]+?)?\s*(?:is\s+)?extended\s+(?:up to|to|till)?\s*([A-Za-z]+\s+\d{1,2}(?:,\s*\d{4})?|\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/i',
+            '/(?:extended\s+(?:up to|to|till)?)\s*([A-Za-z]+\s+\d{1,2}(?:,\s*\d{4})?|\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/i',
+            '/(?:last date for submission of online application|closing date for online registration)\s*(?:is|on|:|till|up to)?\s*([A-Za-z]+\s+\d{1,2}(?:,\s*\d{4})?|\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/i',
+            '/(?:close|closes|conclude|concludes|ends)\s+(?:on|by)\s*([A-Za-z]+\s+\d{1,2}(?:,\s*\d{4})?|\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/i'
+        ];
+
+        foreach ($patterns as $p) {
+            if (preg_match($p, $portalText, $m)) {
+                $parsed = TemporalFactService::parseDateIST($m[1], '23:59:59');
+                if ($parsed !== null) {
+                    return $parsed->format('F d, Y');
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Helper: Safely update in-place Key Dates table cells and prose in article HTML
+     */
+    public static function updateKeyDateInContent(string $content, string $factName, ?string $newDateStr, bool $isExtension = false): string {
+        if (empty($newDateStr)) {
+            return $content;
+        }
+
+        $formattedReplacement = $newDateStr . ($isExtension ? ' (Extended)' : '');
+
+        if ($factName === 'application_end' || $factName === 'application_extension') {
+            // 1. HTML Table Cell Replacement:
+            // Matches: <td>Application Last Date</td><td>To Be Announced</td>
+            // Or: <td>Last Date</td><td>September 02, 2026</td>
+            // Or: <td>Last Date</td><td>October 10, 2026 (Extended)</td>
+            $patternTable = '/(<(?:td|th)[^>]*>(?:Application\s+(?:Last\s+Date|Deadline|Closing\s+Date)|Last\s+Date(?:\s+to\s+Apply)?|Closing\s+Date)<\/(?:td|th)>\s*<(?:td|th)[^>]*>)(?:To\s+Be\s+Announced|TBA|Awaiting[^<]*|(?:[A-Za-z]+\s+\d{1,2},?\s+\d{4}|\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})(?:\s*\(Extended\))?)(<\/(?:td|th)>)/i';
+            $content = preg_replace($patternTable, '$1' . $formattedReplacement . '$2', $content);
+
+            // 2. Prose Text Replacement:
+            // Matches: Last Date: To Be Announced  OR  Deadline: September 02, 2026 (Extended)
+            $patternProse = '/(\b(?:last date|deadline|closing date)\s*(?:is|on|:)\s*)(?:to be announced|tba|awaiting[^.,<\n]*|(?:[A-Za-z]+\s+\d{1,2},?\s+\d{4}|\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})(?:\s*\(Extended\))?)/i';
+            $content = preg_replace($patternProse, '$1' . $formattedReplacement, $content);
+        } elseif ($factName === 'exam_date') {
+            // Table cell for exam date
+            $patternTable = '/(<(?:td|th)[^>]*>(?:Exam\s+Date|CBT\s+Date|Examination\s+Date)<\/(?:td|th)>\s*<(?:td|th)[^>]*>)(?:To\s+Be\s+Announced|TBA|Awaiting[^<]*|(?:[A-Za-z]+\s+\d{1,2},?\s+\d{4}|\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4}))(<\/(?:td|th)>)/i';
+            $content = preg_replace($patternTable, '$1' . $formattedReplacement . '$2', $content);
+        }
+
+        return $content;
+    }
+
+    /**
+     * Helper: Apply newly announced application deadline
+     */
+    public static function applyNewlyAnnouncedDeadline(int $articleId, array $articleData, string $announcedDateStr, string $sourceUrl, DateTimeImmutable $now): array {
+        $parsedDate = TemporalFactService::parseDateIST($announcedDateStr, '23:59:59');
+        $validUntil = $parsedDate ? $parsedDate->format('Y-m-d H:i:s') : null;
+
+        // 1. Record verified fact in article_temporal_facts
+        TemporalFactService::recordFact($articleId, 'application_end', $announcedDateStr, $sourceUrl, [
+            'source_type' => 'official',
+            'confidence' => 'high',
+            'status' => 'verified',
+            'valid_until' => $validUntil
+        ]);
+
+        $oldContent = $articleData['content'];
+        $newContent = self::updateKeyDateInContent($oldContent, 'application_end', $announcedDateStr, false);
+
+        // 2. Insert snapshot into article_updates
+        Database::insert('article_updates', [
+            'article_id' => $articleId,
+            'old_content' => $oldContent,
+            'new_content' => $newContent,
+            'reason' => "Official application deadline announced on portal ({$sourceUrl}): {$announcedDateStr}. Updated temporal facts and in-place key dates.",
+            'source_url' => $sourceUrl,
+            'created_at' => $now->format('Y-m-d H:i:s')
+        ]);
+
+        // 3. Resolve lifecycle
+        $newLifecycle = TemporalFactService::resolveLifecycle($articleId, [], null, null, $now);
+
+        // 4. Update article record in database
+        Database::update('articles', [
+            'content' => Sanitizer::html($newContent),
+            'lifecycle_status' => $newLifecycle,
+            'updated_at' => $now->format('Y-m-d H:i:s')
+        ], 'id = :id', ['id' => $articleId]);
+
+        Logger::info("Article #{$articleId} successfully enriched: application deadline announced as {$announcedDateStr} (lifecycle: {$newLifecycle}).");
+
+        return [
+            'success' => true,
+            'action' => 'deadline_announced',
+            'deadline' => $announcedDateStr,
+            'lifecycle' => $newLifecycle
+        ];
+    }
+
+    /**
      * Helper: Apply deadline extension
      */
     private static function applyDeadlineExtension(int $articleId, array $articleData, string $extendedDateStr, string $sourceUrl, DateTimeImmutable $now): array {
@@ -698,11 +895,7 @@ class TemporalRevalidationService {
         ]);
 
         $oldContent = $articleData['content'];
-        $newContent = preg_replace(
-            '/(\b(?:last date|deadline)\s*(?:is|on|:)?\s*)([A-Za-z]+\s+\d{1,2},?\s+\d{4})/i',
-            '$1' . $extendedDateStr . ' (Extended)',
-            $oldContent
-        );
+        $newContent = self::updateKeyDateInContent($oldContent, 'application_extension', $extendedDateStr, true);
 
         Database::insert('article_updates', [
             'article_id' => $articleId,
