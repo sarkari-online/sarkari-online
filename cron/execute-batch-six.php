@@ -152,6 +152,12 @@ foreach ($targetSlugs as $slug) {
         $preconditionFailures[] = "Slug '{$slug}' status is '{$r['status']}', expected 'published'.";
     }
 
+    // Precondition check: advisory marker must not already be present
+    $marker = $bannerMarkers[$slug] ?? '';
+    if ($marker !== '' && str_contains($r['content'], $marker)) {
+        $preconditionFailures[] = "Slug '{$slug}' already contains temporal advisory marker '{$marker}'.";
+    }
+
     // Precondition check: lifecycle_status
     if ($slug === 'bpsc-tre-4-application-postponed-dates') {
         if (!in_array($r['lifecycle_status'], ['draft', 'evergreen', 'closed'], true)) {
