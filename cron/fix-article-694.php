@@ -256,6 +256,8 @@ $stmt = $db->prepare(
         title = :title,
         excerpt = :excerpt,
         content = :content,
+        meta_title = :meta_title,
+        meta_description = :meta_description,
         lifecycle_status = 'active',
         source_name = 'Bihar Public Service Commission (BPSC)',
         source_url = 'https://bpsc.bih.nic.in',
@@ -272,6 +274,8 @@ $stmt->execute([
     'title' => $newTitle,
     'excerpt' => $newExcerpt,
     'content' => $newContent,
+    'meta_title' => $newTitle,
+    'meta_description' => $newExcerpt,
     'id' => $articleId,
     'slug' => $slug
 ]);
