@@ -25,6 +25,8 @@ $article = $slug !== '' ? ArticleService::getBySlug($slug, $allowDraft) : null;
 if (!$article && $slug !== '') {
     $legacySlugRedirects = [
         'bpsc-combined-state-exam-2026-admit-card' => 'bpsc-72nd-cce-prelims-2026-admit-card',
+        'ibps-po-2026-prelims-admit-card-download-active' => 'ibps-po-2026-prelims-exam-concluded',
+        'punjab-pti-recruitment-2026-apply-now' => 'punjab-pti-recruitment-2026-cancelled-fee-refund',
     ];
     if (isset($legacySlugRedirects[$slug])) {
         header("Location: " . url('article/' . $legacySlugRedirects[$slug] . '/'), true, 301);
