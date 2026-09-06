@@ -25,6 +25,7 @@ use App\Database\Database;
 use App\Helpers\Env;
 use App\Services\FeaturedSnippetService;
 use App\Services\TemporalFactService;
+use App\Services\ThumbnailService;
 
 if (!$isCli && $adminKey !== Env::get('ADMIN_ACCESS_KEY', 'Ajay-bytecode-cyber-security')) {
     http_response_code(403);
@@ -294,6 +295,26 @@ if ($hasTemporalTable) {
     TemporalFactService::recordFact($articleId, 'exam_date', 'October 25, 2026', 'https://bpsc.bih.nic.in');
     TemporalFactService::recordFact($articleId, 'admit_card_date', null, 'https://bpsc.bih.nic.in');
     echo "✅ Article temporal facts updated (exam_date = October 25, 2026; admit_card_date = unannounced / NULL).\n\n";
+}
+
+// 4b. Regenerate Branded Thumbnail Image with New Canonical Title
+$thumbnailService = new ThumbnailService();
+$thumbResult = $thumbnailService->generateForArticle($articleId);
+if (!empty($thumbResult['success'])) {
+    echo "✅ Branded thumbnail successfully regenerated:\n";
+    echo "   - Path: {$thumbResult['relative_path']}\n";
+    echo "   - Alt : {$thumbResult['alt_text']}\n";
+
+    // Also overwrite legacy thumbnail file if it exists, so cached references also show new branding
+    $baseDir = dirname(__DIR__);
+    $legacyThumb = $baseDir . '/uploads/thumbnails/admit-cards/bpsc-combined-state-exam-2026-admit-card.webp';
+    $newThumb = $baseDir . '/' . $thumbResult['relative_path'];
+    if (file_exists($newThumb)) {
+        @copy($newThumb, $legacyThumb);
+        echo "   - Synced to legacy path: {$legacyThumb}\n\n";
+    }
+} else {
+    echo "⚠️ Warning: Thumbnail generation returned non-success.\n\n";
 }
 
 // 5. Post-Execution Invariant Verification
