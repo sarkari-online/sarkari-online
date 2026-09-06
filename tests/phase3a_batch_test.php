@@ -134,6 +134,31 @@ $unpublishedState[0]['status'] = 'draft';
 $failuresUnpub = evaluateBatchPreconditions($unpublishedState);
 assertBatchTest("Unpublished article status is rejected", count($failuresUnpub) === 1, "Failures: " . count($failuresUnpub));
 
+// TEST 6: Baseline Counts (75 published, 75 indexable) and legitimate 75th article
+echo "\n6. Testing 75-Article Baseline Invariants & Legitimate 75th Article...\n";
+function evaluateBaseline(int $pubCount, int $idxCount, ?array $nvsArticle): array {
+    $failures = [];
+    if ($pubCount !== 75) {
+        $failures[] = "Published count is {$pubCount}, expected exactly 75.";
+    }
+    if ($idxCount !== 75) {
+        $failures[] = "Unique indexable slug count is {$idxCount}, expected exactly 75.";
+    }
+    if (!$nvsArticle || ($nvsArticle['status'] ?? '') !== 'published') {
+        $failures[] = "75th article 'nvs-2026-exam-schedule-results' is missing or not published.";
+    }
+    return $failures;
+}
+
+$validBaseline = evaluateBaseline(75, 75, ['slug' => 'nvs-2026-exam-schedule-results', 'status' => 'published']);
+assertBatchTest("75-article baseline with legitimate NVS article passes", empty($validBaseline), empty($validBaseline) ? '0 failures' : implode('; ', $validBaseline));
+
+$invalidPubBaseline = evaluateBaseline(74, 74, ['slug' => 'nvs-2026-exam-schedule-results', 'status' => 'published']);
+assertBatchTest("Stale 74-article count is rejected", count($invalidPubBaseline) === 2, "Failures: " . count($invalidPubBaseline));
+
+$missingNvsBaseline = evaluateBaseline(75, 75, null);
+assertBatchTest("Missing 75th NVS article is rejected", count($missingNvsBaseline) === 1, "Failures: " . count($missingNvsBaseline));
+
 echo "\n========================================================================\n";
 echo "   RESULTS: {$passed}/" . ($passed + $failed) . " PASSED, {$failed} FAILED\n";
 echo "========================================================================\n";

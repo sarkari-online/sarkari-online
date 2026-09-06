@@ -133,6 +133,21 @@ printf("%-45s | %-10s | %-12s | %-16s | %-16s\n", "slug", "status", "lifecycle",
 echo str_repeat("-", 110) . "\n";
 
 $preconditionFailures = [];
+$initialIndexableCount = (int)$db->query("SELECT COUNT(DISTINCT slug) FROM articles WHERE status = 'published'")->fetchColumn();
+
+// Verify 75-article baseline
+if ($initialPublishedCount !== 75) {
+    $preconditionFailures[] = "Published count is {$initialPublishedCount}, expected exactly 75.";
+}
+if ($initialIndexableCount !== 75) {
+    $preconditionFailures[] = "Unique indexable slug count is {$initialIndexableCount}, expected exactly 75.";
+}
+
+// Explicitly verify the 75th article is the legitimate nvs-2026-exam-schedule-results
+$nvs75 = Database::fetchOne("SELECT id, slug, status FROM articles WHERE slug = 'nvs-2026-exam-schedule-results'");
+if (!$nvs75 || $nvs75['status'] !== 'published') {
+    $preconditionFailures[] = "75th article 'nvs-2026-exam-schedule-results' is missing or not published.";
+}
 
 foreach ($targetSlugs as $slug) {
     if (!isset($rowsBySlug[$slug])) {
