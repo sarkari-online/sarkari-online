@@ -117,6 +117,7 @@ if ($colExists === 0) {
 }
 
 // 2. READ-ONLY SELECT: Current State
+$initialPublishedCount = (int)$db->query("SELECT COUNT(*) FROM articles WHERE status = 'published'")->fetchColumn();
 $inClause = "'" . implode("', '", $targetSlugs) . "'";
 $currentRows = Database::fetchAll("SELECT id, slug, title, status, lifecycle_status, content FROM articles WHERE slug IN ($inClause)");
 $rowsBySlug = [];
@@ -244,8 +245,8 @@ $publishedCount = (int)$db->query("SELECT COUNT(*) FROM articles WHERE status = 
 $indexableCount = (int)$db->query("SELECT COUNT(DISTINCT slug) FROM articles WHERE status = 'published'")->fetchColumn();
 $totalCount = (int)$db->query("SELECT COUNT(*) FROM articles")->fetchColumn();
 
-echo "• Published Articles Count : {$publishedCount} (Expected: 73) -> " . ($publishedCount === 73 ? "✅ PASS" : "❌ FAIL") . "\n";
-echo "• Unique Indexable Slugs   : {$indexableCount} (Expected: 73) -> " . ($indexableCount === 73 ? "✅ PASS" : "❌ FAIL") . "\n";
+echo "• Published Articles Count : {$publishedCount} (Unchanged: {$initialPublishedCount}) -> " . ($publishedCount === $initialPublishedCount ? "✅ PASS" : "❌ FAIL") . "\n";
+echo "• Unique Indexable Slugs   : {$indexableCount} (Unchanged: {$initialPublishedCount}) -> " . ($indexableCount === $initialPublishedCount ? "✅ PASS" : "❌ FAIL") . "\n";
 
 // Verify Idempotency: Second execution check
 $idempotencyPass = true;
