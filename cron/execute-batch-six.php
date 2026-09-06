@@ -153,8 +153,12 @@ foreach ($targetSlugs as $slug) {
 
     // Precondition check: lifecycle_status
     if ($slug === 'bpsc-tre-4-application-postponed-dates') {
-        if (!in_array($r['lifecycle_status'], ['draft', 'closed'], true)) {
-            $preconditionFailures[] = "Slug '{$slug}' lifecycle is '{$r['lifecycle_status']}', expected 'draft'.";
+        if (!in_array($r['lifecycle_status'], ['draft', 'evergreen', 'closed'], true)) {
+            $preconditionFailures[] = "Slug '{$slug}' lifecycle is '{$r['lifecycle_status']}', expected 'draft', 'evergreen', or 'closed'.";
+        }
+    } elseif ($slug === 'maharashtra-3-year-llb-round-2-allotment-2026') {
+        if ($r['lifecycle_status'] !== 'evergreen') {
+            $preconditionFailures[] = "Slug '{$slug}' lifecycle is '{$r['lifecycle_status']}', expected 'evergreen'.";
         }
     } else {
         if ($r['lifecycle_status'] !== 'draft') {
@@ -169,12 +173,14 @@ echo "🎯 STEP 2: EXPECTED STATE & INTENDED OPERATIONS\n";
 echo "================================================================================\n";
 printf("%-45s | %-22s | %-30s\n", "slug", "lifecycle transition", "banner operation");
 echo str_repeat("-", 105) . "\n";
-printf("%-45s | %-22s | %-30s\n", 'bpsc-tre-4-application-postponed-dates', 'draft -> closed', 'Prepend Tier 1A Closure Banner');
+$bpscCurrentLifecycle = $rowsBySlug['bpsc-tre-4-application-postponed-dates']['lifecycle_status'] ?? 'draft';
+$bpscTransitionDesc = ($bpscCurrentLifecycle === 'closed') ? 'closed (Preserved)' : "{$bpscCurrentLifecycle} -> closed";
+printf("%-45s | %-22s | %-30s\n", 'bpsc-tre-4-application-postponed-dates', $bpscTransitionDesc, 'Prepend Tier 1A Closure Banner');
 printf("%-45s | %-22s | %-30s\n", 'rvunl-recruitment-2026-last-date', 'draft (Unchanged)', 'Prepend Tri-Partite Advisory Banner');
 printf("%-45s | %-22s | %-30s\n", 'punjab-pti-recruitment-2026-apply-now', 'draft (Unchanged)', 'Prepend Timeline Advisory Banner');
 printf("%-45s | %-22s | %-30s\n", 'coal-india-mt-answer-key-2026', 'draft (Unchanged)', 'Prepend Objection Advisory Banner');
 printf("%-45s | %-22s | %-30s\n", 'odisha-deled-result-2026-sams-ct', 'draft (Unchanged)', 'Prepend Minimal Status Banner');
-printf("%-45s | %-22s | %-30s\n", 'maharashtra-3-year-llb-round-2-allotment-2026', 'draft (Unchanged)', 'Prepend Minimal Status Banner');
+printf("%-45s | %-22s | %-30s\n", 'maharashtra-3-year-llb-round-2-allotment-2026', 'evergreen (Preserved)', 'Prepend Minimal Status Banner');
 echo "\n";
 
 // 3. Check Preconditions
@@ -192,17 +198,17 @@ echo "✅ All preconditions satisfied. Beginning Transactional Execution...\n\n"
 $db->beginTransaction();
 
 try {
-    // A. BPSC TRE 4.0: Promote to closed (guarded by lifecycle_status = 'draft')
+    // A. BPSC TRE 4.0: Promote to closed if draft or evergreen; preserve if already closed
     $bpscStmt = $db->prepare(
         "UPDATE articles 
          SET lifecycle_status = 'closed', updated_at = NOW() 
          WHERE slug = 'bpsc-tre-4-application-postponed-dates' 
            AND status = 'published' 
-           AND lifecycle_status = 'draft'"
+           AND lifecycle_status IN ('draft', 'evergreen')"
     );
     $bpscStmt->execute();
     $bpscUpdated = $bpscStmt->rowCount();
-    echo "• BPSC Lifecycle Transition (draft -> closed): {$bpscUpdated} row(s) updated.\n";
+    echo "• BPSC Lifecycle Transition ({$bpscCurrentLifecycle} -> closed): {$bpscUpdated} row(s) updated.\n";
 
     // B. Banner Injections (Idempotent: guarded by data-temporal-advisory)
     $bannerUpdates = 0;
