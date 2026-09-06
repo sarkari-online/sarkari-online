@@ -23,6 +23,8 @@ class FeaturedSnippetService {
         $excerpt = $article['excerpt'] ?? $article['meta_description'] ?? '';
         $category = $article['category_slug'] ?? $article['category_name'] ?? 'education';
 
+        $lifecycle = $article['lifecycle_status'] ?? 'active';
+
         // 1. Generate Crisp Direct Answer (35-45 words)
         $directAnswer = self::generateDirectAnswer($article, $title, $excerpt, $content, $category);
 
@@ -30,7 +32,7 @@ class FeaturedSnippetService {
         $facts = self::extractFactSheet($article);
 
         // 3. Status Badge
-        $statusInfo = self::determineStatusBadge($title, $content);
+        $statusInfo = self::determineStatusBadge($title, $content, $lifecycle);
 
         // Build Semantic HTML
         ob_start();
@@ -138,6 +140,7 @@ class FeaturedSnippetService {
     private static function extractFactSheet(array $article): array {
         $title = $article['title'] ?? '';
         $content = $article['content_html'] ?? $article['content'] ?? '';
+        $lifecycle = $article['lifecycle_status'] ?? 'active';
         
         // 1. Authority: Prioritize authoritative resolution over generic database fallback
         $authority = $article['source_name'] ?? '';
@@ -153,10 +156,10 @@ class FeaturedSnippetService {
         $examName = self::cleanExamName($title);
 
         // 3. Status
-        $status = self::detectStatusText($title, $content);
+        $status = self::detectStatusText($title, $content, $lifecycle);
 
         // 4. Milestone / Timeline
-        $timeline = self::extractKeyDate($title, $content, $article['published_at'] ?? '');
+        $timeline = self::extractKeyDate($title, $content, $article['published_at'] ?? '', $lifecycle);
 
         // 5. Official Portal: Strictly prevent self-referential sarkari.online link
         $portalUrl = $article['source_url'] ?? '';
@@ -176,7 +179,6 @@ class FeaturedSnippetService {
         }
 
         // 6. Action
-        $lifecycle = $article['lifecycle_status'] ?? 'active';
         $action = self::determineCandidateAction($title, $lifecycle);
 
         return [
@@ -253,14 +255,33 @@ class FeaturedSnippetService {
         return mb_strlen($clean) > 3 ? $clean : $title;
     }
 
-    private static function detectStatusText(string $title, string $content): string {
+    private static function detectStatusText(string $title, string $content, string $lifecycle = 'active'): string {
         $t = strtolower($title);
-        if (str_contains($t, 'result') && (str_contains($t, 'out') || str_contains($t, 'declared') || str_contains($t, 'released'))) {
-            return 'Scorecard & Merit List Declared';
-        }
+
+        // Admit Card: ONLY active if lifecycle is admit_card_released
         if (str_contains($t, 'admit card') || str_contains($t, 'hall ticket')) {
-            return 'Hall Ticket Download Active';
+            if ($lifecycle === 'admit_card_released') {
+                return 'Hall Ticket Download Active';
+            }
+            return 'Admit Card: Not Released';
         }
+
+        // Result: ONLY declared if lifecycle is result_released
+        if (str_contains($t, 'result')) {
+            if ($lifecycle === 'result_released') {
+                return 'Scorecard & Merit List Declared';
+            }
+            return 'Result: Under Evaluation / Awaited';
+        }
+
+        if ($lifecycle === 'closed') {
+            return 'Application Window Closed';
+        }
+
+        if ($lifecycle === 'exam_completed') {
+            return 'Examination Concluded';
+        }
+
         if (str_contains($t, 'answer key')) {
             return 'Provisional Key & Objection Live';
         }
@@ -276,18 +297,28 @@ class FeaturedSnippetService {
         return 'Official Gazetted Update Live';
     }
 
-    public static function determineStatusBadge(string $title, string $content): array {
-        $t = strtolower($title);
-        if (str_contains($t, 'out') || str_contains($t, 'declared') || str_contains($t, 'active') || str_contains($t, 'released')) {
+    public static function determineStatusBadge(string $title, string $content, string $lifecycle = 'active'): array {
+        if ($lifecycle === 'admit_card_released' || $lifecycle === 'result_released') {
             return ['label' => 'Live Update', 'class' => 'status-live'];
         }
+        if ($lifecycle === 'closed') {
+            return ['label' => 'Closed', 'class' => 'status-closed'];
+        }
+        if ($lifecycle === 'exam_completed') {
+            return ['label' => 'Exam Concluded', 'class' => 'status-exam-completed'];
+        }
+        if ($lifecycle === 'upcoming' || $lifecycle === 'draft') {
+            return ['label' => 'Status Advisory', 'class' => 'status-verified'];
+        }
+
+        $t = strtolower($title);
         if (str_contains($t, 'date') || str_contains($t, 'schedule') || str_contains($t, 'calendar')) {
-            return ['label' => 'Confirmed Schedule', 'class' => 'status-confirmed'];
+            return ['label' => 'Schedule Update', 'class' => 'status-confirmed'];
         }
         return ['label' => 'Verified Circular', 'class' => 'status-verified'];
     }
 
-    private static function extractKeyDate(string $title, string $content, string $pubDate): string {
+    private static function extractKeyDate(string $title, string $content, string $pubDate, string $lifecycle = 'active'): string {
         $plain = strip_tags($content);
 
         // Priority 1: Direct application deadline markers
@@ -314,16 +345,16 @@ class FeaturedSnippetService {
             }
         }
 
-        // Priority 5: Fallback based on content type - NEVER return publish date as the "Important Timeline"!
+        // Priority 5: Fallback based on content type & lifecycle - NEVER invent Live/Active when unannounced!
         $t = strtolower($title);
         if (str_contains($t, 'result')) {
-            return 'Scorecard Download Active';
+            return ($lifecycle === 'result_released') ? 'Scorecard Download Active' : 'Declaration Date: Not Announced';
         }
         if (str_contains($t, 'admit card') || str_contains($t, 'hall ticket')) {
-            return 'Hall Ticket Download Live';
+            return ($lifecycle === 'admit_card_released') ? 'Hall Ticket Download Active' : 'Release Date: Not Announced';
         }
         if (str_contains($t, 'apply') || str_contains($t, 'recruitment')) {
-            return 'Check Official Notification';
+            return ($lifecycle === 'closed') ? 'Application Concluded' : 'Check Official Notification';
         }
         if (str_contains($t, 'fellowship') || str_contains($t, 'scholarship')) {
             return 'Refer to Scheme Guidelines';
@@ -347,11 +378,12 @@ class FeaturedSnippetService {
         }
 
         $t = strtolower($title);
-        if (str_contains($t, 'result')) {
-            return 'Check Roll No. in Merit List';
-        }
+        // If admit card not yet released, prompt candidate to track official portal, NOT download!
         if (str_contains($t, 'admit card') || str_contains($t, 'hall ticket')) {
-            return 'Download & Print Admit Card';
+            return 'Check Official Portal for Latest Notice';
+        }
+        if (str_contains($t, 'result')) {
+            return 'Monitor Official Portal for Scorecard';
         }
         if (str_contains($t, 'answer key')) {
             return 'Download Key & Submit Objections';

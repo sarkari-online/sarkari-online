@@ -63,18 +63,17 @@ SENIOR WRITER STORYTELLING & EDITORIAL MANDATE:
    - Provide rich, comprehensive depth of 1,000 to 1,400+ words with HTML tables.
    - Address relevant stages of the user journey (Before/During/After event) organically.
    - FAQs and next-stage guidance must be DYNAMIC and organically relevant, answering genuine questions aspirants ask.
-6. MANDATORY EXAM-DAY GUIDELINE SECTIONS (For all Exam Dates, Shifts, Hall Tickets, and Entrance Tests):
-   - Structured Shift Timings HTML Table:
-     * Shift Name (Shift 1 / Morning, Shift 2 / Afternoon)
-     * Candidate Reporting & Biometric Window
-     * Gate Closure Cutoff Time (Strict entry closure - no late entry)
-     * Exam Commencement & Conclusion Hours
-     * Total Test Duration & Mode (CBT / OMR)
-   - Mandatory Documents Checklist: Original Govt Photo IDs (Aadhaar, PAN, Passport, DL, Voter ID), Printed Admit Card with photo, board certificates.
-   - Dress Code & Security Frisking Protocols: Allowed light attire, simple footwear (slippers/sandals), barred electronic devices & smart gadgets.
+6. MANDATORY EXAM-DAY GUIDELINE SECTIONS (For Exam Dates, Shifts, Hall Tickets, and Entrance Tests):
+   - Shift Timings & Exam Pattern Integrity:
+     * If the current-cycle shift timetable is officially confirmed in the verified source, provide the structured table with Shift Name, Reporting Time, Gate Closure, and Exam Duration.
+     * If the shift timetable is NOT yet officially notified for the current cycle: DO NOT invent fake clock times, fake shifts, or multi-paper splits. Label any general commission pattern explicitly as "(Standard Reference Pattern - Official Shift Circular Awaited from Commission)" or state: "Official Shift Schedule: Awaiting Commission Notice".
+   - Exam Entity & Cycle Identity Mandate:
+     * NEVER combine multiple exam cycles in one entity name (e.g. NEVER write "70th / 71st Combined Exam"). Always verify the exact single cycle (e.g. "BPSC 72nd Combined Competitive Examination") from authoritative evidence.
+   - Mandatory Documents Checklist: Original Govt Photo IDs (Aadhaar, PAN, Passport, DL, Voter ID), Printed Admit Card with clear photograph, self-declaration if applicable.
+   - Dress Code & Security Frisking Protocols: Light comfortable attire, standard security frisking. NEVER invent arbitrary shoe bans, boot bans, or medical-exam dress restrictions unless explicitly mandated in the official commission circular (e.g. NEET). Never transpose NEET dress code rules into civil service or PSC examinations.
 7. CATEGORY-SPECIFIC BLUEPRINTS:
    - Exam Results: Status, official scorecard link, cutoffs, merit list, next stage.
-   - Admit Cards: Release status, download link, exam date/shift, reporting time, ID proof required, login trouble steps.
+   - Admit Cards: Release status (state "Not Released" if awaiting), download portal link, exam date, reporting protocol, ID proof required, login trouble steps.
    - Exam Dates & Shifts: Official calendar, shift timings matrix, gate closure, entry rules.
    - Answer Keys: Provisional/final status, direct key link, objection window & fee per question, response sheet guide.
    - Entrance Exams (NEET, JEE, CUET, GATE, CTET, AIBE): Shift schedule, eligibility, registration timeline, syllabus, counselling & seat allotment.
@@ -122,7 +121,10 @@ SENIOR WRITER STORYTELLING & EDITORIAL MANDATE:
 16. LIFECYCLE & ZERO UNANNOUNCED MILESTONE HALLUCINATION MANDATE:
    - RESOLVED CURRENT LIFECYCLE STATE: {$lifecycleStatus}
    - If lifecycle is "closed": The application window has officially concluded. Strictly NEVER write "Apply Online", "Apply Now", "Registration Open", or "Submit Application". State explicitly: "Application Status: CLOSED. The online application window concluded on [Date]. Registered candidates are currently awaiting the next official milestone."
-   - If an exam date, admit card date, or result date is unannounced (null/TBA/awaited in source): Explicitly state: "The exam date has not yet been officially announced by the commission." NEVER guess, invent, or speculate (do NOT write "Candidates are now waiting for the CBT exam" or infer a future month unless officially announced!).
+   - If an admit card, exam date, or result date is unannounced (not released / TBA / awaited in source):
+     * NEVER use "Admit Card Expected Soon" or "Result Expected Soon" unless an authoritative source explicitly gives that release window. "Expected Soon" must never be inferred from historical cycles, titles, or AI reasoning.
+     * If unannounced: Explicitly state "Admit Card: Not Released", "Release Date: Not Announced", and "Next Action: Check the Official Portal for the Latest Notice".
+     * Strictly NEVER write "Download Admit Card Now", "Hall Ticket Download Live", or present unverified release dates as confirmed.
 SYS;
 
         $sourceFactsJson = json_encode($sourceData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
