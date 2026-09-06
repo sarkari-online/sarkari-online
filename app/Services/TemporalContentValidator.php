@@ -151,9 +151,8 @@ class TemporalContentValidator {
         }
 
         // =========================================================================
-        // CHECK C: Source Provenance
+        // CHECK C: Source Provenance (Enforce: Verified Critical Date Requires Authoritative URL)
         // =========================================================================
-        // Critical temporal claims must have source_url pointing to authoritative source
         foreach (['application_end', 'exam_date', 'result_date'] as $criticalFactName) {
             if (isset($factsMap[$criticalFactName])) {
                 $fact = $factsMap[$criticalFactName];
@@ -161,16 +160,23 @@ class TemporalContentValidator {
                 if (!empty($factVal) && !TemporalFactService::isUnannouncedValue($factVal)) {
                     $sourceUrl = $fact['source_url'] ?? ($articleData['source_url'] ?? '');
                     if (empty($sourceUrl)) {
-                        $warnings[] = [
-                            'check' => 'CHECK_C_SOURCE_PROVENANCE_MISSING',
-                            'message' => "Critical temporal fact '{$criticalFactName}' has value '{$factVal}' but missing authoritative source URL."
-                        ];
+                        if (($fact['status'] ?? '') === 'verified') {
+                            $violations[] = [
+                                'check' => 'CHECK_C_VERIFIED_MISSING_SOURCE_PROVENANCE',
+                                'message' => "Critical temporal fact '{$criticalFactName}' has verified date '{$factVal}' but missing source URL. A verified critical fact MUST have an authoritative source."
+                            ];
+                        } else {
+                            $warnings[] = [
+                                'check' => 'CHECK_C_SOURCE_PROVENANCE_MISSING',
+                                'message' => "Critical temporal fact '{$criticalFactName}' has value '{$factVal}' but missing authoritative source URL."
+                            ];
+                        }
                     } else {
                         $auth = AuthorityVerificationService::verify($sourceUrl);
-                        if (!$auth['is_valid'] && ($fact['source_type'] ?? '') === 'official') {
+                        if (!$auth['is_valid'] && ($fact['status'] ?? '') === 'verified') {
                             $violations[] = [
                                 'check' => 'CHECK_C_INVALID_AUTHORITY',
-                                'message' => "Critical temporal fact '{$criticalFactName}' claims official source but URL '{$sourceUrl}' is not a recognized authority."
+                                'message' => "Critical temporal fact '{$criticalFactName}' is marked verified but URL '{$sourceUrl}' is not a recognized statutory authority."
                             ];
                         }
                     }

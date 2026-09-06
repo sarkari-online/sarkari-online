@@ -1,10 +1,16 @@
 <?php
 /**
- * Sarkari.online - Autonomous Temporal Revalidation & Lifecycle Transition Service
+ * Sarkari.online - Complete Lifecycle Temporal Revalidation & Event Transition Service
  *
- * Scans active articles whose application or exam milestones have passed in Asia/Kolkata,
- * cross-checks official portals for extension circulars, transitions expired milestones to CLOSED,
- * strips active application CTAs, preserves historical facts, and logs immutable revisions.
+ * Autonomously monitors articles across their COMPLETE lifecycle:
+ * UPCOMING → ACTIVE → CLOSED → ADMIT_CARD_RELEASED → EXAM_COMPLETED → RESULT_RELEASED
+ *
+ * Implements:
+ * 1. Post-deadline transitions to CLOSED (with CTA stripping and historical preservation).
+ * 2. Pre-expiry source freshness checks to catch deadline extensions announced days prior.
+ * 3. Continuous monitoring of CLOSED articles for official Admit Card releases and Exam schedules.
+ * 4. Verified event-based transitions for Exam Completion and Result Releases (never future guessing).
+ * 5. 6-hour rate-limiting to protect official statutory portals from being hammered.
  */
 
 namespace App\Services;
@@ -20,35 +26,41 @@ use Throwable;
 
 class TemporalRevalidationService {
 
+    // Minimum interval before re-checking an official external portal (6 hours)
+    public const SOURCE_FRESHNESS_INTERVAL = 21600;
+
     /**
-     * Run full autonomous revalidation pass across published articles
+     * Run full autonomous revalidation pass across published articles covering the complete lifecycle
      *
      * @param int $limit Max articles to revalidate per pass
      * @param DateTimeImmutable|null $now Reference time in Asia/Kolkata
-     * @return array ['scanned' => int, 'extended' => int, 'closed' => int, 'updated' => int, 'errors' => array]
+     * @return array ['scanned' => int, 'extended' => int, 'closed' => int, 'admit_card_released' => int, 'exam_completed' => int, 'result_released' => int, 'updated' => int, 'errors' => array]
      */
     public static function revalidateAll(int $limit = 20, ?DateTimeImmutable $now = null): array {
         $now = $now ?: TemporalFactService::nowIST();
         $nowStr = $now->format('Y-m-d H:i:s');
 
-        Logger::info("TemporalRevalidationService: Starting revalidation run at {$nowStr} IST");
+        Logger::info("TemporalRevalidationService: Starting complete lifecycle revalidation at {$nowStr} IST");
 
         $stats = [
             'scanned' => 0,
             'extended' => 0,
             'closed' => 0,
+            'admit_card_released' => 0,
+            'exam_completed' => 0,
+            'result_released' => 0,
             'updated' => 0,
             'errors' => []
         ];
 
         try {
-            // Find published articles where lifecycle is ACTIVE or UPCOMING
-            // and an application_end or valid_until has passed or is today
+            // Monitor the COMPLETE lifecycle:
+            // UPCOMING -> ACTIVE -> CLOSED -> ADMIT_CARD_RELEASED -> EXAM_COMPLETED
             $sql = "SELECT a.id, a.title, a.slug, a.excerpt, a.content, a.source_name, a.source_url, 
-                           a.meta_title, a.meta_description, a.lifecycle_status, a.published_at
+                           a.meta_title, a.meta_description, a.lifecycle_status, a.published_at, a.updated_at
                     FROM articles a
                     WHERE a.status = 'published'
-                      AND a.lifecycle_status IN ('active', 'upcoming')
+                      AND a.lifecycle_status IN ('upcoming', 'active', 'closed', 'admit_card_released', 'exam_completed')
                     ORDER BY a.updated_at ASC
                     LIMIT " . (int)$limit;
 
@@ -58,14 +70,10 @@ class TemporalRevalidationService {
             foreach ($candidates as $article) {
                 try {
                     $res = self::revalidateArticle((int)$article['id'], $article, $now);
-                    if (!empty($res['action'])) {
-                        if ($res['action'] === 'extended') {
-                            $stats['extended']++;
-                            $stats['updated']++;
-                        } elseif ($res['action'] === 'closed') {
-                            $stats['closed']++;
-                            $stats['updated']++;
-                        }
+                    $act = $res['action'] ?? '';
+                    if (!empty($act) && isset($stats[$act])) {
+                        $stats[$act]++;
+                        $stats['updated']++;
                     }
                 } catch (Throwable $e) {
                     $stats['errors'][] = "Article #{$article['id']}: " . $e->getMessage();
@@ -77,13 +85,13 @@ class TemporalRevalidationService {
             Logger::error("TemporalRevalidationService query failed: " . $e->getMessage());
         }
 
-        Logger::info("TemporalRevalidationService completed: {$stats['scanned']} scanned, {$stats['closed']} closed, {$stats['extended']} extended, {$stats['updated']} updated.");
+        Logger::info("TemporalRevalidationService complete: {$stats['scanned']} scanned, {$stats['closed']} closed, {$stats['extended']} extended, {$stats['admit_card_released']} admits, {$stats['exam_completed']} exams, {$stats['result_released']} results.");
 
         return $stats;
     }
 
     /**
-     * Revalidate an individual article against its facts and official source
+     * Revalidate an individual article based on its current lifecycle stage and verified facts
      *
      * @param int $articleId
      * @param array|null $articleData
@@ -101,18 +109,81 @@ class TemporalRevalidationService {
         }
 
         $facts = TemporalFactService::getFactsMap($articleId);
+        $lifecycle = $articleData['lifecycle_status'] ?? TemporalFactService::LIFECYCLE_ACTIVE;
 
-        // Find application deadline fact
+        switch ($lifecycle) {
+            case TemporalFactService::LIFECYCLE_UPCOMING:
+                return self::revalidateUpcomingStage($articleId, $articleData, $facts, $now);
+
+            case TemporalFactService::LIFECYCLE_ACTIVE:
+                return self::revalidateActiveStage($articleId, $articleData, $facts, $now);
+
+            case TemporalFactService::LIFECYCLE_CLOSED:
+                return self::revalidateClosedStage($articleId, $articleData, $facts, $now);
+
+            case TemporalFactService::LIFECYCLE_ADMIT_CARD_RELEASED:
+                return self::revalidateAdmitCardStage($articleId, $articleData, $facts, $now);
+
+            case TemporalFactService::LIFECYCLE_EXAM_COMPLETED:
+                return self::revalidateExamCompletedStage($articleId, $articleData, $facts, $now);
+
+            default:
+                return ['success' => true, 'action' => 'no_action_needed'];
+        }
+    }
+
+    /**
+     * Stage 1: Revalidate UPCOMING articles (Checks if application start date has arrived)
+     */
+    private static function revalidateUpcomingStage(int $articleId, array $articleData, array $facts, DateTimeImmutable $now): array {
+        $startFact = $facts['application_start'] ?? null;
+        $startVal = $startFact['fact_value'] ?? null;
+
+        if (empty($startVal)) {
+            return ['success' => true, 'action' => 'upcoming_no_start_date'];
+        }
+
+        $startTime = TemporalFactService::parseDateIST($startVal, '00:00:00');
+        if ($startTime !== null && $now >= $startTime) {
+            // Application has officially commenced -> Transition to ACTIVE
+            Database::update('articles', [
+                'lifecycle_status' => TemporalFactService::LIFECYCLE_ACTIVE,
+                'updated_at' => $now->format('Y-m-d H:i:s')
+            ], 'id = :id', ['id' => $articleId]);
+
+            Database::insert('article_updates', [
+                'article_id' => $articleId,
+                'old_content' => $articleData['content'],
+                'new_content' => $articleData['content'],
+                'reason' => "Autonomous lifecycle transition: Application window opened on {$startTime->format('F d, Y')}. Transitioned to ACTIVE.",
+                'source_url' => $articleData['source_url'],
+                'created_at' => $now->format('Y-m-d H:i:s')
+            ]);
+
+            Logger::info("Article #{$articleId} transitioned from UPCOMING to ACTIVE (Application started).");
+            return ['success' => true, 'action' => 'active'];
+        }
+
+        return ['success' => true, 'action' => 'upcoming_pending'];
+    }
+
+    /**
+     * Stage 2: Revalidate ACTIVE articles
+     * Handles:
+     * - Deadline expiry -> Transition to CLOSED
+     * - Point 3: Pre-expiry source freshness checks to catch extensions announced before deadline
+     */
+    private static function revalidateActiveStage(int $articleId, array $articleData, array $facts, DateTimeImmutable $now): array {
         $deadlineFact = $facts['application_extension'] ?? ($facts['application_end'] ?? null);
         $deadlineVal = $deadlineFact['fact_value'] ?? null;
+        $sourceUrl = $articleData['source_url'] ?? '';
 
-        // If no structured fact exists in DB yet, try regex extraction from content or title
+        // If no structured fact in DB yet, extract from content
         if (empty($deadlineVal)) {
             $combined = $articleData['title'] . ' ' . strip_tags($articleData['content']);
             if (preg_match('/(?:last date|deadline|closing date)\s*(?:is|on|:)?\s*([A-Za-z]+\s+\d{1,2}(?:,\s*\d{4})?|\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/i', $combined, $m)) {
                 $deadlineVal = $m[1];
-                // Record fact into DB
-                TemporalFactService::recordFact($articleId, 'application_end', $deadlineVal, $articleData['source_url'] ?? null);
+                TemporalFactService::recordFact($articleId, 'application_end', $deadlineVal, $sourceUrl);
                 $facts = TemporalFactService::getFactsMap($articleId);
                 $deadlineFact = $facts['application_end'] ?? null;
             }
@@ -122,7 +193,6 @@ class TemporalRevalidationService {
             return ['success' => true, 'action' => 'no_deadline_to_evaluate'];
         }
 
-        // Parse deadline time in Asia/Kolkata
         $deadlineTime = null;
         if (!empty($deadlineFact['valid_until'])) {
             try {
@@ -137,84 +207,346 @@ class TemporalRevalidationService {
             return ['success' => true, 'action' => 'unparseable_deadline'];
         }
 
-        // If deadline is still in the future, check if currently ACTIVE
-        if ($now <= $deadlineTime) {
-            return ['success' => true, 'action' => 'active_unexpired'];
-        }
-
-        // =========================================================================
-        // DEADLINE HAS PASSED IN ASIA/KOLKATA
-        // 1. Check Official Portal for Extension / Reopening Notice
-        // =========================================================================
-        $sourceUrl = $articleData['source_url'] ?? '';
-        $isExtended = false;
-        $extendedDateStr = null;
-
-        if (!empty($sourceUrl) && filter_var($sourceUrl, FILTER_VALIDATE_URL)) {
-            try {
-                $fetcher = new AuthorityFactFetcherService();
-                $portalText = $fetcher->fetchPortalText($sourceUrl);
-
-                if (!empty($portalText)) {
-                    // Check for official extension notices
-                    if (preg_match('/(?:last date|application window|registration)\s+(?:is\s+)?extended\s+(?:up to|to|till)?\s*([A-Za-z]+\s+\d{1,2}(?:,\s*\d{4})?|\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/i', $portalText, $extMatch)) {
-                        $parsedExt = TemporalFactService::parseDateIST($extMatch[1], '23:59:59');
-                        if ($parsedExt !== null && $parsedExt > $now) {
-                            $isExtended = true;
-                            $extendedDateStr = $parsedExt->format('F d, Y');
-                        }
-                    }
-                }
-            } catch (Throwable $e) {
-                Logger::warning("Revalidation portal check failed for Article #{$articleId}: " . $e->getMessage());
+        // -------------------------------------------------------------------------
+        // CASE A: Deadline has passed in Asia/Kolkata -> Check Extension or CLOSE
+        // -------------------------------------------------------------------------
+        if ($now > $deadlineTime) {
+            $extension = self::checkOfficialExtension($sourceUrl, $now);
+            if ($extension !== null) {
+                // Official extension confirmed
+                return self::applyDeadlineExtension($articleId, $articleData, $extension, $sourceUrl, $now);
             }
+
+            // No extension found -> Transition to CLOSED
+            return self::applyClosedTransition($articleId, $articleData, $deadlineTime, $sourceUrl, $now);
         }
 
-        // =========================================================================
-        // 2. Official Extension Found -> Maintain ACTIVE with New Absolute Deadline
-        // =========================================================================
-        if ($isExtended && !empty($extendedDateStr)) {
-            TemporalFactService::recordFact($articleId, 'application_extension', $extendedDateStr, $sourceUrl, [
+        // -------------------------------------------------------------------------
+        // CASE B: Deadline is in future -> PRE-EXPIRY SOURCE FRESHNESS (Point 3)
+        // Checks portal if verified_at is older than 6 hours (does NOT hammer websites)
+        // -------------------------------------------------------------------------
+        $lastVerified = !empty($deadlineFact['verified_at']) ? strtotime($deadlineFact['verified_at']) : 0;
+        $isFreshnessDue = ($now->getTimestamp() - $lastVerified) >= self::SOURCE_FRESHNESS_INTERVAL;
+
+        if ($isFreshnessDue && !empty($sourceUrl) && filter_var($sourceUrl, FILTER_VALIDATE_URL)) {
+            $extension = self::checkOfficialExtension($sourceUrl, $now);
+            if ($extension !== null) {
+                $newDeadlineTime = TemporalFactService::parseDateIST($extension, '23:59:59');
+                if ($newDeadlineTime !== null && $newDeadlineTime > $deadlineTime) {
+                    Logger::info("Pre-expiry extension detected for Article #{$articleId}: extended from {$deadlineVal} to {$extension}");
+                    return self::applyDeadlineExtension($articleId, $articleData, $extension, $sourceUrl, $now);
+                }
+            }
+
+            // Touch verified_at on the existing fact to refresh cache window
+            if (!empty($deadlineFact['id'])) {
+                Database::update('article_temporal_facts', [
+                    'verified_at' => $now->format('Y-m-d H:i:s')
+                ], 'id = :id', ['id' => $deadlineFact['id']]);
+            }
+
+            return ['success' => true, 'action' => 'active_freshness_verified'];
+        }
+
+        return ['success' => true, 'action' => 'active_unexpired'];
+    }
+
+    /**
+     * Stage 3: Revalidate CLOSED articles (Point 2)
+     * Continuous monitoring of CLOSED articles for:
+     * - Official Admit Card Release
+     * - Official Exam Schedule Announcement (without guessing)
+     */
+    private static function revalidateClosedStage(int $articleId, array $articleData, array $facts, DateTimeImmutable $now): array {
+        $sourceUrl = $articleData['source_url'] ?? '';
+        if (empty($sourceUrl) || !filter_var($sourceUrl, FILTER_VALIDATE_URL)) {
+            return ['success' => true, 'action' => 'closed_no_source'];
+        }
+
+        // 6-hour rate-limit guard
+        $examFact = $facts['exam_date'] ?? null;
+        $lastVerified = !empty($examFact['verified_at']) ? strtotime($examFact['verified_at']) : 0;
+        if (($now->getTimestamp() - $lastVerified) < self::SOURCE_FRESHNESS_INTERVAL) {
+            return ['success' => true, 'action' => 'closed_cached'];
+        }
+
+        $portalText = (new AuthorityFactFetcherService())->fetchPortalText($sourceUrl);
+        if (empty($portalText)) {
+            return ['success' => true, 'action' => 'closed_portal_empty'];
+        }
+
+        // 1. Check for Official Admit Card Release
+        if (preg_match('/(?:admit card|hall ticket|call letter)\s+(?:is\s+)?(?:released|out|available|download|live)/i', $portalText, $admitMatch)) {
+            TemporalFactService::recordFact($articleId, 'admit_card_date', $now->format('F d, Y'), $sourceUrl, [
                 'source_type' => 'official',
                 'confidence' => 'high',
                 'status' => 'verified'
             ]);
 
-            // Deterministically patch content with new extension date
             $oldContent = $articleData['content'];
-            $newContent = preg_replace(
-                '/(\b(?:last date|deadline)\s*(?:is|on|:)?\s*)([A-Za-z]+\s+\d{1,2},?\s+\d{4})/i',
-                '$1' . $extendedDateStr . ' (Extended)',
-                $oldContent
-            );
+            $oldTitle = $articleData['title'];
+
+            $newTitle = preg_replace('/(?::\s*Application Closed|\(Application Closed\)).*$/i', ': Admit Card Released, Hall Ticket Link & Shift Timings', $oldTitle);
+            if ($newTitle === $oldTitle) {
+                $newTitle .= ' — Admit Card Released';
+            }
+
+            $admitBanner = "<div class='notice-box notice-success' style='background:#f0fdf4;border-left:4px solid #22c55e;padding:12px 16px;margin:16px 0;border-radius:4px;'><strong>Admit Card Released!</strong> — The official hall ticket / admit card has been officially released. Candidates can download their admit card via the official portal at <a href='{$sourceUrl}' target='_blank' rel='noopener noreferrer'>{$sourceUrl}</a>. Check reporting hours and mandatory exam guidelines below.</div>";
+            $newContent = preg_replace('/(<h2>.*?<\/h2>)/i', $admitBanner . '$1', $oldContent, 1);
 
             Database::insert('article_updates', [
                 'article_id' => $articleId,
                 'old_content' => $oldContent,
                 'new_content' => $newContent,
-                'reason' => "Official deadline extended to {$extendedDateStr}. Updated temporal facts and maintained ACTIVE state.",
+                'reason' => "Autonomous lifecycle transition: Official Admit Card release verified on portal ({$sourceUrl}). Transitioned to ADMIT_CARD_RELEASED.",
                 'source_url' => $sourceUrl,
                 'created_at' => $now->format('Y-m-d H:i:s')
             ]);
 
             Database::update('articles', [
-                'content' => $newContent,
-                'lifecycle_status' => TemporalFactService::LIFECYCLE_ACTIVE,
+                'title' => Sanitizer::string($newTitle),
+                'content' => Sanitizer::html($newContent),
+                'lifecycle_status' => TemporalFactService::LIFECYCLE_ADMIT_CARD_RELEASED,
                 'updated_at' => $now->format('Y-m-d H:i:s')
             ], 'id = :id', ['id' => $articleId]);
 
-            Logger::info("Article #{$articleId} extended to {$extendedDateStr}. Maintained ACTIVE.");
-
-            return [
-                'success' => true,
-                'action' => 'extended',
-                'new_deadline' => $extendedDateStr
-            ];
+            Logger::info("Article #{$articleId} transitioned from CLOSED to ADMIT_CARD_RELEASED.");
+            return ['success' => true, 'action' => 'admit_card_released'];
         }
 
-        // =========================================================================
-        // 3. No Extension Found -> Deterministically Transition to CLOSED
-        // =========================================================================
+        // 2. Check for Official Exam Date Announcement (Schedule announced, but future)
+        if (preg_match('/(?:exam date|cbt date|exam will be held on|examination scheduled for)\s*(?:is|on|:)?\s*([A-Za-z]+\s+\d{1,2}(?:,\s*\d{4})?|\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/i', $portalText, $examMatch)) {
+            $parsedExam = TemporalFactService::parseDateIST($examMatch[1], '23:59:59');
+            if ($parsedExam !== null && $parsedExam > $now) {
+                $examDateFormatted = $parsedExam->format('F d, Y');
+                TemporalFactService::recordFact($articleId, 'exam_date', $examDateFormatted, $sourceUrl, [
+                    'source_type' => 'official',
+                    'confidence' => 'high',
+                    'status' => 'verified',
+                    'valid_until' => $parsedExam->format('Y-m-d H:i:s')
+                ]);
+
+                // Update exam date in content table from TBA to exact date
+                $oldContent = $articleData['content'];
+                $newContent = preg_replace('/(Exam Date\s*<\/td>\s*<td[^>]*>).*?(<\/td>)/i', '$1' . $examDateFormatted . '$2', $oldContent);
+
+                if ($newContent !== $oldContent) {
+                    Database::insert('article_updates', [
+                        'article_id' => $articleId,
+                        'old_content' => $oldContent,
+                        'new_content' => $newContent,
+                        'reason' => "Official exam date announced on portal: {$examDateFormatted}. Updated exam milestone facts.",
+                        'source_url' => $sourceUrl,
+                        'created_at' => $now->format('Y-m-d H:i:s')
+                    ]);
+
+                    Database::update('articles', [
+                        'content' => Sanitizer::html($newContent),
+                        'updated_at' => $now->format('Y-m-d H:i:s')
+                    ], 'id = :id', ['id' => $articleId]);
+
+                    Logger::info("Article #{$articleId}: Official exam date verified as {$examDateFormatted}. Maintained CLOSED.");
+                    return ['success' => true, 'action' => 'exam_date_announced'];
+                }
+            }
+        }
+
+        // Refresh cache timestamp
+        if (!empty($examFact['id'])) {
+            Database::update('article_temporal_facts', ['verified_at' => $now->format('Y-m-d H:i:s')], 'id = :id', ['id' => $examFact['id']]);
+        }
+
+        return ['success' => true, 'action' => 'closed_fresh'];
+    }
+
+    /**
+     * Stage 4: Revalidate ADMIT_CARD_RELEASED articles (Checks if exam has actually completed)
+     */
+    private static function revalidateAdmitCardStage(int $articleId, array $articleData, array $facts, DateTimeImmutable $now): array {
+        $examFact = $facts['exam_date'] ?? null;
+        $examVal = $examFact['fact_value'] ?? null;
+
+        if (empty($examVal)) {
+            return ['success' => true, 'action' => 'admit_card_no_exam_date'];
+        }
+
+        $examTime = TemporalFactService::parseDateIST($examVal, '23:59:59');
+        if ($examTime !== null && $now > $examTime) {
+            // Exam has actually concluded in Asia/Kolkata -> Transition to EXAM_COMPLETED
+            $oldContent = $articleData['content'];
+            $oldTitle = $articleData['title'];
+            $examDateFormatted = $examTime->format('F d, Y');
+
+            $newTitle = preg_replace('/(?::\s*Admit Card Released|\(Admit Card Released\)).*$/i', ': Exam Concluded, Answer Key & Cutoff Updates', $oldTitle);
+            if ($newTitle === $oldTitle) {
+                $newTitle .= ' — Exam Concluded';
+            }
+
+            $examBanner = "<div class='notice-box notice-info' style='background:#f8fafc;border-left:4px solid #0284c7;padding:12px 16px;margin:16px 0;border-radius:4px;'><strong>Exam Concluded</strong> — The examination concluded on {$examDateFormatted}. Candidates are currently awaiting the official provisional answer key release and objection submission window.</div>";
+            $newContent = preg_replace('/(<h2>.*?<\/h2>)/i', $examBanner . '$1', $oldContent, 1);
+
+            Database::insert('article_updates', [
+                'article_id' => $articleId,
+                'old_content' => $oldContent,
+                'new_content' => $newContent,
+                'reason' => "Autonomous lifecycle transition: Exam date ({$examDateFormatted} IST) passed. Transitioned to EXAM_COMPLETED.",
+                'source_url' => $articleData['source_url'],
+                'created_at' => $now->format('Y-m-d H:i:s')
+            ]);
+
+            Database::update('articles', [
+                'title' => Sanitizer::string($newTitle),
+                'content' => Sanitizer::html($newContent),
+                'lifecycle_status' => TemporalFactService::LIFECYCLE_EXAM_COMPLETED,
+                'updated_at' => $now->format('Y-m-d H:i:s')
+            ], 'id = :id', ['id' => $articleId]);
+
+            Logger::info("Article #{$articleId} transitioned from ADMIT_CARD_RELEASED to EXAM_COMPLETED.");
+            return ['success' => true, 'action' => 'exam_completed'];
+        }
+
+        return ['success' => true, 'action' => 'admit_card_active'];
+    }
+
+    /**
+     * Stage 5: Revalidate EXAM_COMPLETED articles (Checks for official Result declaration)
+     */
+    private static function revalidateExamCompletedStage(int $articleId, array $articleData, array $facts, DateTimeImmutable $now): array {
+        $sourceUrl = $articleData['source_url'] ?? '';
+        if (empty($sourceUrl) || !filter_var($sourceUrl, FILTER_VALIDATE_URL)) {
+            return ['success' => true, 'action' => 'exam_completed_no_source'];
+        }
+
+        // 6-hour rate-limit guard
+        $resFact = $facts['result_date'] ?? null;
+        $lastVerified = !empty($resFact['verified_at']) ? strtotime($resFact['verified_at']) : 0;
+        if (($now->getTimestamp() - $lastVerified) < self::SOURCE_FRESHNESS_INTERVAL) {
+            return ['success' => true, 'action' => 'exam_completed_cached'];
+        }
+
+        $portalText = (new AuthorityFactFetcherService())->fetchPortalText($sourceUrl);
+        if (empty($portalText)) {
+            return ['success' => true, 'action' => 'exam_completed_portal_empty'];
+        }
+
+        // Check for official Result declaration
+        if (preg_match('/(?:result|scorecard|merit list)\s+(?:is\s+)?(?:declared|released|published|available|out)/i', $portalText, $resMatch)) {
+            TemporalFactService::recordFact($articleId, 'result_date', $now->format('F d, Y'), $sourceUrl, [
+                'source_type' => 'official',
+                'confidence' => 'high',
+                'status' => 'verified'
+            ]);
+
+            $oldContent = $articleData['content'];
+            $oldTitle = $articleData['title'];
+
+            $newTitle = preg_replace('/(?::\s*Exam Concluded|\(Exam Concluded\)).*$/i', ': Result Declared, Scorecard Link & Merit List Out', $oldTitle);
+            if ($newTitle === $oldTitle) {
+                $newTitle .= ' — Result Declared';
+            }
+
+            $resultBanner = "<div class='notice-box notice-success' style='background:#f0fdf4;border-left:4px solid #16a34a;padding:12px 16px;margin:16px 0;border-radius:4px;'><strong>Result Officially Declared!</strong> — The official examination result and scorecard link are now active. Candidates can verify their scorecards and category-wise cutoffs at <a href='{$sourceUrl}' target='_blank' rel='noopener noreferrer'>{$sourceUrl}</a>.</div>";
+            $newContent = preg_replace('/(<h2>.*?<\/h2>)/i', $resultBanner . '$1', $oldContent, 1);
+
+            Database::insert('article_updates', [
+                'article_id' => $articleId,
+                'old_content' => $oldContent,
+                'new_content' => $newContent,
+                'reason' => "Autonomous lifecycle transition: Official Result declaration verified on portal ({$sourceUrl}). Transitioned to RESULT_RELEASED.",
+                'source_url' => $sourceUrl,
+                'created_at' => $now->format('Y-m-d H:i:s')
+            ]);
+
+            Database::update('articles', [
+                'title' => Sanitizer::string($newTitle),
+                'content' => Sanitizer::html($newContent),
+                'lifecycle_status' => TemporalFactService::LIFECYCLE_RESULT_RELEASED,
+                'updated_at' => $now->format('Y-m-d H:i:s')
+            ], 'id = :id', ['id' => $articleId]);
+
+            Logger::info("Article #{$articleId} transitioned from EXAM_COMPLETED to RESULT_RELEASED.");
+            return ['success' => true, 'action' => 'result_released'];
+        }
+
+        if (!empty($resFact['id'])) {
+            Database::update('article_temporal_facts', ['verified_at' => $now->format('Y-m-d H:i:s')], 'id = :id', ['id' => $resFact['id']]);
+        }
+
+        return ['success' => true, 'action' => 'exam_completed_fresh'];
+    }
+
+    /**
+     * Helper: Check official portal for extension circulars
+     */
+    private static function checkOfficialExtension(string $sourceUrl, DateTimeImmutable $now): ?string {
+        if (empty($sourceUrl) || !filter_var($sourceUrl, FILTER_VALIDATE_URL)) {
+            return null;
+        }
+
+        try {
+            $portalText = (new AuthorityFactFetcherService())->fetchPortalText($sourceUrl);
+            if (empty($portalText)) {
+                return null;
+            }
+
+            if (preg_match('/(?:last date|application window|registration)\s+(?:is\s+)?extended\s+(?:up to|to|till)?\s*([A-Za-z]+\s+\d{1,2}(?:,\s*\d{4})?|\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/i', $portalText, $m)) {
+                $parsed = TemporalFactService::parseDateIST($m[1], '23:59:59');
+                if ($parsed !== null && $parsed > $now) {
+                    return $parsed->format('F d, Y');
+                }
+            }
+        } catch (Throwable $e) {
+            Logger::warning("checkOfficialExtension failed: " . $e->getMessage());
+        }
+
+        return null;
+    }
+
+    /**
+     * Helper: Apply deadline extension
+     */
+    private static function applyDeadlineExtension(int $articleId, array $articleData, string $extendedDateStr, string $sourceUrl, DateTimeImmutable $now): array {
+        TemporalFactService::recordFact($articleId, 'application_extension', $extendedDateStr, $sourceUrl, [
+            'source_type' => 'official',
+            'confidence' => 'high',
+            'status' => 'verified'
+        ]);
+
+        $oldContent = $articleData['content'];
+        $newContent = preg_replace(
+            '/(\b(?:last date|deadline)\s*(?:is|on|:)?\s*)([A-Za-z]+\s+\d{1,2},?\s+\d{4})/i',
+            '$1' . $extendedDateStr . ' (Extended)',
+            $oldContent
+        );
+
+        Database::insert('article_updates', [
+            'article_id' => $articleId,
+            'old_content' => $oldContent,
+            'new_content' => $newContent,
+            'reason' => "Official deadline extended to {$extendedDateStr}. Updated temporal facts and maintained ACTIVE state.",
+            'source_url' => $sourceUrl,
+            'created_at' => $now->format('Y-m-d H:i:s')
+        ]);
+
+        Database::update('articles', [
+            'content' => Sanitizer::html($newContent),
+            'lifecycle_status' => TemporalFactService::LIFECYCLE_ACTIVE,
+            'updated_at' => $now->format('Y-m-d H:i:s')
+        ], 'id = :id', ['id' => $articleId]);
+
+        Logger::info("Article #{$articleId} extended to {$extendedDateStr}. Maintained ACTIVE.");
+
+        return [
+            'success' => true,
+            'action' => 'extended',
+            'new_deadline' => $extendedDateStr
+        ];
+    }
+
+    /**
+     * Helper: Apply closed transition with CTA stripping and historical preservation
+     */
+    private static function applyClosedTransition(int $articleId, array $articleData, DateTimeImmutable $deadlineTime, string $sourceUrl, DateTimeImmutable $now): array {
         $oldContent = $articleData['content'];
         $oldTitle = $articleData['title'];
         $deadlineFormatted = $deadlineTime->format('F d, Y');
@@ -259,7 +591,7 @@ class TemporalRevalidationService {
             'excerpt' => $newExcerpt,
             'meta_title' => $newMetaTitle,
             'meta_description' => $articleData['meta_description']
-        ], $facts, TemporalFactService::LIFECYCLE_CLOSED, $now);
+        ], [], TemporalFactService::LIFECYCLE_CLOSED, $now);
 
         // Record Snapshot in article_updates Table
         Database::insert('article_updates', [

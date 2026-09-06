@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS `articles` (
     `category_id` INT UNSIGNED NOT NULL,
     `author_id` BIGINT UNSIGNED NULL,
     `status` ENUM('draft', 'review', 'published', 'rejected') NOT NULL DEFAULT 'draft',
-    `lifecycle_status` ENUM('draft', 'upcoming', 'active', 'closed', 'exam_completed', 'admit_card_released', 'result_released', 'historical', 'evergreen', 'archived') NOT NULL DEFAULT 'active',
+    `lifecycle_status` ENUM('draft', 'upcoming', 'active', 'closed', 'exam_completed', 'admit_card_released', 'result_released', 'historical', 'evergreen', 'archived') NOT NULL DEFAULT 'draft',
     `quality_score` TINYINT UNSIGNED NOT NULL DEFAULT 0,
     `ai_generated` TINYINT(1) NOT NULL DEFAULT 0,
     `source_verified` TINYINT(1) NOT NULL DEFAULT 0,

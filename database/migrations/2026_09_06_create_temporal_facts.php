@@ -30,7 +30,7 @@ try {
                      ADD COLUMN `lifecycle_status` ENUM(
                          'draft', 'upcoming', 'active', 'closed', 'exam_completed', 
                          'admit_card_released', 'result_released', 'historical', 'evergreen', 'archived'
-                     ) NOT NULL DEFAULT 'active' AFTER `status`,
+                     ) NOT NULL DEFAULT 'draft' AFTER `status`,
                      ADD INDEX `idx_articles_lifecycle` (`lifecycle_status`)";
         $db->exec($alterSql);
         echo "-> Successfully added 'lifecycle_status' column with index.\n";

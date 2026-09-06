@@ -156,33 +156,35 @@ class TemporalFactService {
         $now = self::nowIST();
         $verifiedAt = $options['verified_at'] ?? $now->format('Y-m-d H:i:s');
 
-        // Unknown / unannounced date rule: fact_value MUST be NULL
+        // Unknown / unannounced date rule: fact_value MUST be NULL and status CANNOT be verified
         if (self::isUnannouncedValue($factValue)) {
             $factValue = null;
+            $status = 'pending';
+            $confidence = 'unverified';
+            $sourceType = 'official';
         }
 
-        // Authoritative source verification
-        $sourceType = $options['source_type'] ?? 'official';
-        $confidence = $options['confidence'] ?? 'high';
-        $status = $options['status'] ?? 'verified';
-
-        if (!empty($sourceUrl)) {
-            $authCheck = AuthorityVerificationService::verify($sourceUrl);
-            if (!$authCheck['is_valid']) {
-                // Secondary wire or third-party portal
-                $sourceType = 'secondary_wire';
-                $confidence = 'medium';
-                // If it's a critical date from an unverified source without official authority, mark pending
-                if ($factValue !== null && in_array($factName, ['application_end', 'exam_date', 'result_date'], true)) {
-                    $status = 'unverified';
-                }
+        // Verified Fact Provenance Enforcement:
+        // A critical temporal fact can ONLY be status = 'verified' if source_url is present AND authoritative.
+        // Never allow verified critical date + NULL source_url!
+        if ($factValue !== null) {
+            if (empty($sourceUrl)) {
+                $status = 'unverified';
+                $confidence = 'low';
+                $sourceType = 'official';
             } else {
-                $sourceType = ($authCheck['tier'] === 'tier_1a_government') ? 'official' : 'statutory_board';
+                $authCheck = AuthorityVerificationService::verify($sourceUrl);
+                if (!$authCheck['is_valid']) {
+                    // Secondary wire or third-party portal cannot become authoritative for critical dates
+                    $sourceType = 'secondary_wire';
+                    $confidence = 'medium';
+                    $status = 'unverified';
+                } else {
+                    $sourceType = ($authCheck['tier'] === 'tier_1a_government') ? 'official' : 'statutory_board';
+                    $confidence = 'high';
+                    $status = 'verified';
+                }
             }
-        } elseif ($factValue !== null) {
-            // Critical date without source cannot be high confidence verified
-            $confidence = 'low';
-            $status = 'unverified';
         }
 
         // Calculate valid_until for deadline-based facts if not provided
