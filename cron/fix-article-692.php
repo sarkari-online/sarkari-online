@@ -103,7 +103,7 @@ $factsToRecord = [
         'fact_value' => 'June 19, 2026',
         'valid_until' => '2026-06-19 00:00:00',
         'source_url' => 'https://hssc.gov.in',
-        'confidence_score' => 1.0,
+        'confidence' => 'high',
         'status' => 'verified'
     ],
     [
@@ -112,7 +112,7 @@ $factsToRecord = [
         'fact_value' => 'July 03, 2026',
         'valid_until' => '2026-07-03 23:59:59',
         'source_url' => 'https://hssc.gov.in',
-        'confidence_score' => 1.0,
+        'confidence' => 'high',
         'status' => 'verified'
     ],
     [
@@ -121,7 +121,7 @@ $factsToRecord = [
         'fact_value' => 'To Be Announced',
         'valid_until' => null,
         'source_url' => 'https://hssc.gov.in',
-        'confidence_score' => 1.0,
+        'confidence' => 'high',
         'status' => 'unannounced'
     ]
 ];
@@ -134,6 +134,16 @@ try {
 } catch (\Throwable $e) {}
 
 if ($hasTable) {
+    // Defensive assertion before any write: verify payload contains 'confidence' and NOT 'confidence_score'
+    foreach ($factsToRecord as $idx => $factCheck) {
+        if (!array_key_exists('confidence', $factCheck)) {
+            die("❌ Defensive Assertion Failed: Fact at index {$idx} is missing required 'confidence' key.\n");
+        }
+        if (array_key_exists('confidence_score', $factCheck)) {
+            die("❌ Defensive Assertion Failed: Fact at index {$idx} contains obsolete/invalid 'confidence_score' key.\n");
+        }
+    }
+
     // Supersede any old facts
     Database::query(
         "UPDATE article_temporal_facts SET status = 'superseded' WHERE article_id = 692 AND status != 'superseded'"
@@ -141,9 +151,14 @@ if ($hasTable) {
 
     // Insert verified facts
     foreach ($factsToRecord as $f) {
+        // Double-check defensive assertion per record before query execution
+        if (!isset($f['confidence']) || isset($f['confidence_score'])) {
+            die("❌ Defensive Assertion Failed before INSERT: Invalid payload schema.\n");
+        }
+
         Database::query(
-            "INSERT INTO article_temporal_facts (article_id, fact_name, fact_value, valid_until, source_url, confidence_score, status, verified_at, created_at, updated_at)
-             VALUES (:article_id, :fact_name, :fact_value, :valid_until, :source_url, :confidence_score, :status, NOW(), NOW(), NOW())",
+            "INSERT INTO article_temporal_facts (article_id, fact_name, fact_value, valid_until, source_url, confidence, status, verified_at, created_at, updated_at)
+             VALUES (:article_id, :fact_name, :fact_value, :valid_until, :source_url, :confidence, :status, NOW(), NOW(), NOW())",
             $f
         );
     }
