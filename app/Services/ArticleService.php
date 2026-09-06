@@ -253,6 +253,7 @@ class ArticleService {
             'category_id' => (int)$data['category_id'],
             'author_id' => !empty($data['author_id']) ? (int)$data['author_id'] : null,
             'status' => $data['status'] ?? 'draft',
+            'lifecycle_status' => $data['lifecycle_status'] ?? 'active',
             'quality_score' => (int)($data['quality_score'] ?? 0),
             'ai_generated' => !empty($data['ai_generated']) ? 1 : 0,
             'source_verified' => !empty($data['source_verified']) ? 1 : 0,
@@ -319,6 +320,13 @@ class ArticleService {
                 }
             } elseif ($data['status'] !== 'published' && isset($data['unpublish']) && $data['unpublish']) {
                 $updateData['published_at'] = null;
+            }
+        }
+
+        if (isset($data['lifecycle_status'])) {
+            $validLifecycles = ['draft', 'upcoming', 'active', 'closed', 'exam_completed', 'admit_card_released', 'result_released', 'historical', 'evergreen', 'archived'];
+            if (in_array($data['lifecycle_status'], $validLifecycles, true)) {
+                $updateData['lifecycle_status'] = $data['lifecycle_status'];
             }
         }
 

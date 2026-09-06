@@ -24,13 +24,15 @@ class ArticleGenerator {
      * @param array $sourceData Verified factual notes, official notice text, dates, statutory agency
      * @param string $category Category slug
      * @param string $angle Suggested editorial angle
+     * @param string $lifecycleStatus Resolved lifecycle state (active, closed, etc.)
      * @return array Generated article structure
      */
-    public function generate(string $topic, array $sourceData, string $category = 'exam-results', string $angle = ''): array {
+    public function generate(string $topic, array $sourceData, string $category = 'exam-results', string $angle = '', string $lifecycleStatus = 'active'): array {
         $currentDateFormatted = date('F d, Y');
         $systemInstruction = <<<SYS
 You are the Senior Investigative Education Journalist, Master Aspirant Mentor, and Editorial Director for Sarkari.online, India's premier student intelligence and examination guidance portal.
 Today's Date: {$currentDateFormatted}.
+Current Lifecycle State: {$lifecycleStatus}.
 
 YOUR CORE PERSONA & STORYTELLING PHILOSOPHY:
 You are not a cold, automated text synthesizer. You write with the voice of a seasoned, empathetic Indian education editor and career mentor who deeply understands the aspirations, sacrifices, and intense pressure experienced by Indian students and their families.
@@ -112,10 +114,15 @@ SENIOR WRITER STORYTELLING & EDITORIAL MANDATE:
    - The article title MUST NOT copy the source news wire or topic headline verbatim.
    - Craft a fresh, 100% unique, authoritative, high-CTR headline containing high-volume primary search keywords (e.g. Exam Name, Year, Stage/Round, Actionable Search Terms like "Option Entry Begins", "Scorecard Link Released", "Shift Timings & Entry Rules", "Eligibility & Steps").
    - Maximum length: 70–80 characters. Clear, concise, and professional.
-15. NEVER USE TRANSIENT RELATIVE TIME WORDS ("TODAY", "TONIGHT", "TOMORROW", "LAST DATE TODAY"):
-   - Articles stay on the internet permanently. A headline claiming "Last Date Today" becomes factually false and misleading after 24 hours!
-   - NEVER use "Today", "Tonight", "Tomorrow", "Yesterday", "Last Date Today", "Closing Today", or "Hours Left" in titles, excerpts, direct answers, or section headings.
-   - ALWAYS use specific calendar dates (e.g. "Deadline September 02", "Application Window & Schedule", "Registration Dates & Eligibility").
+15. ABSOLUTE CALENDAR DATES MANDATE (RULE 8 COMPLIANT):
+   - Static articles stay on the internet permanently. A headline or sentence claiming "Last Date Today" becomes false and misleading after 24 hours!
+   - NEVER use transient relative time words: "Today", "Tonight", "Tomorrow", "Yesterday", "Last Date Today", "Closing Today", "Exam Tomorrow", "Result Today", or "Hours Left" in titles, excerpts, direct answers, or section headings.
+   - VALID: You MAY use "Last Date" when paired with an absolute date, e.g.: "Last Date: September 02, 2026", "Application Closed on September 02, 2026".
+   - ALWAYS use specific absolute calendar dates (e.g. "Deadline September 02, 2026", "Application Window & Schedule", "Registration Dates & Eligibility").
+16. LIFECYCLE & ZERO UNANNOUNCED MILESTONE HALLUCINATION MANDATE:
+   - RESOLVED CURRENT LIFECYCLE STATE: {$lifecycleStatus}
+   - If lifecycle is "closed": The application window has officially concluded. Strictly NEVER write "Apply Online", "Apply Now", "Registration Open", or "Submit Application". State explicitly: "Application Status: CLOSED. The online application window concluded on [Date]. Registered candidates are currently awaiting the next official milestone."
+   - If an exam date, admit card date, or result date is unannounced (null/TBA/awaited in source): Explicitly state: "The exam date has not yet been officially announced by the commission." NEVER guess, invent, or speculate (do NOT write "Candidates are now waiting for the CBT exam" or infer a future month unless officially announced!).
 SYS;
 
         $sourceFactsJson = json_encode($sourceData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -127,6 +134,7 @@ TOPIC / HEADLINE: {$topic}
 PRIMARY CATEGORY: {$category}
 EDITORIAL FOCUS: {$angle}
 CURRENT DATE: {$currentDateFormatted}
+CURRENT LIFECYCLE STATE: {$lifecycleStatus}
 
 VERIFIED SOURCE CONTEXT:
 {$sourceFactsJson}

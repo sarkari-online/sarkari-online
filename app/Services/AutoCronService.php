@@ -26,6 +26,7 @@ class AutoCronService {
     private const INTERVAL_GENERATE  = 1800;  // 30 mins (Slot guard controls actual publish time; no need to hammer every 2 mins)
     private const INTERVAL_PUBLISH   = 1800;  // 30 mins (Slot guard controls actual publish time; no need to hammer every 2 mins)
     private const INTERVAL_BACKLINKS = 14400; // 4 hours
+    private const INTERVAL_TEMPORAL_LIFECYCLE = 1800; // 30 mins (Temporal revalidation in Asia/Kolkata)
 
     /**
      * Fetch schedule state from database with file fallback
@@ -109,6 +110,9 @@ class AutoCronService {
             if (($now - ($state['backlinks'] ?? 0)) >= self::INTERVAL_BACKLINKS) {
                 $tasksDue[] = 'backlinks';
             }
+            if (($now - ($state['temporal_lifecycle'] ?? 0)) >= self::INTERVAL_TEMPORAL_LIFECYCLE) {
+                $tasksDue[] = 'temporal_lifecycle';
+            }
 
             if (empty($tasksDue)) {
                 return;
@@ -154,10 +158,22 @@ class AutoCronService {
                     case 'backlinks':
                         self::runBacklinks();
                         break;
+                    case 'temporal_lifecycle':
+                        self::runTemporalLifecycle();
+                        break;
                 }
             } catch (Throwable $e) {
                 Logger::error("AutoCron task '{$task}' failed: " . $e->getMessage());
             }
+        }
+    }
+
+    private static function runTemporalLifecycle(): void {
+        Logger::info('AutoCron: Starting Temporal Lifecycle Revalidation Engine');
+        try {
+            TemporalRevalidationService::revalidateAll(20);
+        } catch (Throwable $e) {
+            Logger::error('AutoCron Temporal Lifecycle error: ' . $e->getMessage());
         }
     }
 

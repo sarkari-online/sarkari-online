@@ -21,6 +21,8 @@ use App\Services\WebVitalsService;
 use App\Services\AuthorityFactFetcherService;
 use App\Services\SEOManagerService;
 use App\Services\ArticleUpdateService;
+use App\Services\TemporalFactService;
+use App\Services\TemporalContentValidator;
 use Exception;
 use Throwable;
 
@@ -148,9 +150,15 @@ class PipelineService {
             'verified_facts' => $verifiedFacts
         ];
 
+        // Temporal Grounding: Extract Structured Temporal Facts & Resolve Deterministic Lifecycle strictly in Asia/Kolkata
+        $extractedFacts = $this->extractTemporalFacts($verifiedFacts, $trend['keyword'], $officialPortal);
+        $resolvedLifecycle = TemporalFactService::resolveLifecycle(0, $extractedFacts, $categorySlug, $trend['keyword']);
+        $sourceData['resolved_lifecycle'] = $resolvedLifecycle;
+        $sourceData['temporal_facts'] = $extractedFacts;
+
         // 1. Generate Draft
         $angle = $rawPayload['suggested_original_angle'] ?? 'Comprehensive student instructions';
-        $genResult = $this->generator->generate($trend['keyword'], $sourceData, $categorySlug, $angle);
+        $genResult = $this->generator->generate($trend['keyword'], $sourceData, $categorySlug, $angle, $resolvedLifecycle);
         usleep(2500000); // 2.5s pause to respect Gemini Free Tier RPM limits
 
         // 2. Fact Check
@@ -161,7 +169,7 @@ class PipelineService {
         usleep(2500000);
 
         // 3. Editorial Polish & Format
-        $polished = $this->editor->polish($genResult['title'], $genResult['content'], $categorySlug);
+        $polished = $this->editor->polish($genResult['title'], $genResult['content'], $categorySlug, $resolvedLifecycle);
         usleep(2500000);
 
         // 4. Contextual Internal Linking
@@ -170,7 +178,7 @@ class PipelineService {
         usleep(2500000);
 
         // 5. Search Engine Optimization (SEO)
-        $seoData = $this->seoGen->generate($polished['edited_title'], $linking['linked_content'], $categorySlug);
+        $seoData = $this->seoGen->generate($polished['edited_title'], $linking['linked_content'], $categorySlug, $resolvedLifecycle);
 
         // 5b. Senior SEO Manager: Audit & Enhance Keyword Placement, Subheadings & Links
         try {
@@ -193,6 +201,30 @@ class PipelineService {
             Logger::warning("SEOManagerService content audit warning: " . $e->getMessage());
         }
 
+        // 5c. Mandatory Temporal Content Validator & Deterministic Auto-Repair (9-Point Audit)
+        $temporalAudit = TemporalContentValidator::validateAndRepair([
+            'title' => $polished['edited_title'],
+            'content' => $linking['linked_content'],
+            'excerpt' => $seoData['excerpt'],
+            'meta_title' => $seoData['seo_title'],
+            'meta_description' => $seoData['meta_description'],
+            'source_url' => $officialPortal
+        ], $extractedFacts, $resolvedLifecycle);
+
+        if (!$temporalAudit['pass']) {
+            Logger::warning("TemporalContentValidator flagged unresolved violations for Trend #{$trendId}: " . json_encode($temporalAudit['unresolved_violations']));
+        } else {
+            $repairedData = $temporalAudit['repaired_data'];
+            $polished['edited_title'] = $repairedData['title'];
+            $linking['linked_content'] = $repairedData['content'];
+            $seoData['excerpt'] = $repairedData['excerpt'];
+            $seoData['seo_title'] = $repairedData['meta_title'];
+            $seoData['meta_description'] = $repairedData['meta_description'];
+            if (!empty($temporalAudit['repairs_applied'])) {
+                Logger::info("TemporalContentValidator auto-repaired " . count($temporalAudit['repairs_applied']) . " items for Trend #{$trendId}: " . implode('; ', $temporalAudit['repairs_applied']));
+            }
+        }
+
         // 6. Calculate 8-Dimension Quality Score (Total 100 points)
         $quality = $this->calculateQualityScore([
             'fact_check' => $factAudit,
@@ -205,6 +237,10 @@ class PipelineService {
 
         // 7. Evaluate Safety Gates & Determine Target Status
         $safetyPass = $this->evaluateSafetyGates($factAudit, $rawPayload, $quality);
+        if (!$temporalAudit['pass']) {
+            $safetyPass['pass'] = false;
+            $safetyPass['reasons'][] = "Failed temporal integrity audit: " . ($temporalAudit['unresolved_violations'][0]['message'] ?? 'temporal violations');
+        }
         $finalScore = (int)$quality['total_score'];
 
         $hasCriticalIssue = false;
@@ -285,6 +321,7 @@ class PipelineService {
             'excerpt' => $seoData['excerpt'],
             'content' => $linking['linked_content'],
             'status' => $finalStatus,
+            'lifecycle_status' => $resolvedLifecycle,
             'quality_score' => $finalScore,
             'ai_generated' => 1,
             'source_verified' => !empty($sourceData['source_url']) ? 1 : 0,
@@ -299,6 +336,17 @@ class PipelineService {
             'published_at' => ($finalStatus === 'published') ? $now : null,
             'original_published_at' => ($finalStatus === 'published') ? $now : null
         ]);
+
+        // 8b. Persist Structured Temporal Facts into article_temporal_facts provenance store
+        foreach ($extractedFacts as $factName => $factInfo) {
+            $val = is_array($factInfo) ? ($factInfo['value'] ?? ($factInfo['fact_value'] ?? null)) : $factInfo;
+            $src = is_array($factInfo) ? ($factInfo['source_url'] ?? $officialPortal) : $officialPortal;
+            try {
+                TemporalFactService::recordFact($articleId, $factName, $val, $src);
+            } catch (Throwable $e) {
+                Logger::error("PipelineService: Failed to record temporal fact '{$factName}' for Article #{$articleId}: " . $e->getMessage());
+            }
+        }
 
         // 9. Record Detailed Quality Breakdown in article_checks table
         Database::insert('article_checks', [
@@ -539,5 +587,55 @@ class PipelineService {
         }
 
         return $results;
+    }
+
+    /**
+     * Extract structured temporal facts from verified authority bulletin and keyword context
+     */
+    private function extractTemporalFacts(array $verifiedFacts, string $keyword, string $officialPortal): array {
+        $facts = [];
+
+        // Check dates_schedule from AuthorityFactFetcherService
+        if (!empty($verifiedFacts['dates_schedule']) && is_array($verifiedFacts['dates_schedule'])) {
+            foreach ($verifiedFacts['dates_schedule'] as $item) {
+                $milestone = strtolower($item['milestone'] ?? '');
+                $date = $item['date'] ?? null;
+                if (TemporalFactService::isUnannouncedValue($date)) {
+                    $date = null;
+                }
+
+                if (str_contains($milestone, 'admit') || str_contains($milestone, 'hall ticket')) {
+                    $facts['admit_card_date'] = ['value' => $date, 'source_url' => $officialPortal];
+                } elseif (str_contains($milestone, 'exam') || str_contains($milestone, 'cbt') || str_contains($milestone, 'tier')) {
+                    $facts['exam_date'] = ['value' => $date, 'source_url' => $officialPortal];
+                } elseif (str_contains($milestone, 'result') || str_contains($milestone, 'merit') || str_contains($milestone, 'scorecard')) {
+                    $facts['result_date'] = ['value' => $date, 'source_url' => $officialPortal];
+                } elseif (str_contains($milestone, 'extend') || str_contains($milestone, 'extension')) {
+                    $facts['application_extension'] = ['value' => $date, 'source_url' => $officialPortal];
+                } elseif (str_contains($milestone, 'last date') || str_contains($milestone, 'end') || str_contains($milestone, 'deadline') || str_contains($milestone, 'close')) {
+                    $facts['application_end'] = ['value' => $date, 'source_url' => $officialPortal];
+                } elseif (str_contains($milestone, 'start') || str_contains($milestone, 'commence') || str_contains($milestone, 'begin') || str_contains($milestone, 'open')) {
+                    $facts['application_start'] = ['value' => $date, 'source_url' => $officialPortal];
+                } elseif (str_contains($milestone, 'answer key') || str_contains($milestone, 'objection')) {
+                    $facts['answer_key_date'] = ['value' => $date, 'source_url' => $officialPortal];
+                }
+            }
+        }
+
+        // If deadline not found in schedule, check if keyword mentions a specific deadline
+        if (empty($facts['application_end'])) {
+            if (preg_match('/(?:last date|deadline|closing date)\s*(?:is|on|:)?\s*([A-Za-z]+\s+\d{1,2}(?:,\s*\d{4})?|\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/i', $keyword, $m)) {
+                $facts['application_end'] = ['value' => $m[1], 'source_url' => $officialPortal];
+            }
+        }
+
+        // Zero Date Hallucination: missing critical milestones must be explicitly NULL
+        foreach (['exam_date', 'result_date', 'admit_card_date'] as $reqFact) {
+            if (!isset($facts[$reqFact])) {
+                $facts[$reqFact] = ['value' => null, 'source_url' => $officialPortal];
+            }
+        }
+
+        return $facts;
     }
 }

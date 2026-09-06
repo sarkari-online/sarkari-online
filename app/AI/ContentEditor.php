@@ -25,12 +25,14 @@ class ContentEditor {
      * @param string $title Article Title
      * @param string $content Article Body Content (HTML)
      * @param string $category Category Slug
+     * @param string $lifecycleStatus Resolved lifecycle status
      * @return array Polished content and editorial summary
      */
-    public function polish(string $title, string $content, string $category = 'exam-results'): array {
+    public function polish(string $title, string $content, string $category = 'exam-results', string $lifecycleStatus = 'active'): array {
         $systemInstruction = <<<PROMPT
 You are the Managing Editor for Sarkari.online, an independent Indian education and recruitment platform.
 Your job is to polish, format, and enhance draft article content for maximum student clarity, trust, and search intent.
+Current Lifecycle State: {$lifecycleStatus}.
 
 MASTER EDITORIAL EDITING RULES:
 1. PRESERVE EVERY FACT: Do not modify numbers, dates, percentile cutoffs, authority names, or reference codes.
@@ -55,8 +57,11 @@ MASTER EDITORIAL EDITING RULES:
    - NEVER copy the source news wire headline verbatim. Include the exact exam name, year (2026/2027), and primary actionable search terms (e.g. "Option Entry Begins", "Scorecard Link", "Shift Timings", "Eligibility & Steps").
 9. JSON COMPLIANCE:
    - In `edited_content`, use single quotes for HTML attributes (e.g. <a href='https://...'>) or ensure double quotes are properly escaped as \\" to guarantee strict JSON validity.
-10. STRIP TRANSIENT RELATIVE WORDS:
-   - Remove "today", "tonight", "tomorrow", "last date today", "closing today" from headlines, excerpts, and body text. Replace with the exact calendar date or current recruitment milestone status.
+10. STRIP TRANSIENT RELATIVE WORDS (PRESERVE ABSOLUTE DATES):
+   - Remove "today", "tonight", "tomorrow", "yesterday", "last date today", "closing today", "exam tomorrow" from headlines, excerpts, and body text. Replace with the exact calendar date or current recruitment milestone status. "Last Date: September 02, 2026" is 100% valid.
+11. LIFECYCLE & CTA POLISH:
+   - Current lifecycle state is '{$lifecycleStatus}'.
+   - If lifecycle is 'closed': Strip active application CTAs ("Apply Online", "Apply Now", "Registration Open") and replace with "Application Closed" or "Application Concluded on [Date]".
 PROMPT;
 
         $userPrompt = <<<USER_PROMPT
@@ -64,6 +69,7 @@ Please polish and editorially enhance this draft article:
 
 HEADLINE: {$title}
 CATEGORY: {$category}
+LIFECYCLE STATUS: {$lifecycleStatus}
 
 RAW CONTENT:
 {$content}

@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS `articles` (
     `category_id` INT UNSIGNED NOT NULL,
     `author_id` BIGINT UNSIGNED NULL,
     `status` ENUM('draft', 'review', 'published', 'rejected') NOT NULL DEFAULT 'draft',
+    `lifecycle_status` ENUM('draft', 'upcoming', 'active', 'closed', 'exam_completed', 'admit_card_released', 'result_released', 'historical', 'evergreen', 'archived') NOT NULL DEFAULT 'active',
     `quality_score` TINYINT UNSIGNED NOT NULL DEFAULT 0,
     `ai_generated` TINYINT(1) NOT NULL DEFAULT 0,
     `source_verified` TINYINT(1) NOT NULL DEFAULT 0,
@@ -70,6 +71,7 @@ CREATE TABLE IF NOT EXISTS `articles` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_articles_slug` (`slug`),
     INDEX `idx_articles_status_pub` (`status`, `published_at`),
+    INDEX `idx_articles_lifecycle` (`lifecycle_status`),
     INDEX `idx_articles_category` (`category_id`),
     INDEX `idx_articles_author` (`author_id`),
     INDEX `idx_articles_quality` (`quality_score`),
@@ -176,6 +178,30 @@ CREATE TABLE IF NOT EXISTS `article_updates` (
     PRIMARY KEY (`id`),
     KEY `idx_article_updates_article` (`article_id`),
     CONSTRAINT `fk_article_updates_article` FOREIGN KEY (`article_id`) REFERENCES `articles` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 10. Article Temporal Facts Table (Provenance, Milestones & Lifecycle State Machine)
+CREATE TABLE IF NOT EXISTS `article_temporal_facts` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `article_id` BIGINT UNSIGNED NOT NULL,
+    `fact_name` VARCHAR(64) NOT NULL,
+    `fact_value` VARCHAR(255) NULL,
+    `source_url` VARCHAR(500) NULL,
+    `source_type` ENUM('official', 'statutory_board', 'gazette', 'secondary_wire') NOT NULL DEFAULT 'official',
+    `verified_at` DATETIME NOT NULL,
+    `valid_from` DATETIME NULL,
+    `valid_until` DATETIME NULL,
+    `timezone` VARCHAR(32) NOT NULL DEFAULT 'Asia/Kolkata',
+    `confidence` ENUM('high', 'medium', 'low', 'unverified') NOT NULL DEFAULT 'high',
+    `status` ENUM('verified', 'unverified', 'pending', 'expired', 'superseded') NOT NULL DEFAULT 'verified',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    INDEX `idx_temp_facts_article` (`article_id`),
+    INDEX `idx_temp_facts_name` (`fact_name`),
+    INDEX `idx_temp_facts_valid_until` (`valid_until`),
+    INDEX `idx_temp_facts_art_name_stat` (`article_id`, `fact_name`, `status`),
+    CONSTRAINT `fk_temp_facts_article` FOREIGN KEY (`article_id`) REFERENCES `articles` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;
