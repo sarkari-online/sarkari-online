@@ -268,6 +268,13 @@ class ArticleService {
             'source_name' => Sanitizer::string($data['source_name'] ?? ''),
             'source_url' => filter_var($data['source_url'] ?? '', FILTER_VALIDATE_URL) ?: null,
             'source_ref' => Sanitizer::string($data['source_ref'] ?? ''),
+            'authority_url' => filter_var($data['authority_url'] ?? '', FILTER_VALIDATE_URL) ?: null,
+            'authority_name' => !empty($data['authority_name']) ? Sanitizer::string($data['authority_name']) : null,
+            'authority_tier' => in_array($data['authority_tier'] ?? '', ['tier_1a', 'tier_1b', 'none'], true) ? $data['authority_tier'] : 'none',
+            'source_role' => in_array($data['source_role'] ?? '', ['authority_primary', 'discovery', 'secondary', 'unverified'], true) ? $data['source_role'] : 'unverified',
+            'discovery_url' => filter_var($data['discovery_url'] ?? '', FILTER_VALIDATE_URL) ?: null,
+            'discovery_source' => !empty($data['discovery_source']) ? Sanitizer::string($data['discovery_source']) : null,
+            'claim_verified_at' => $data['claim_verified_at'] ?? null,
             'published_at' => $publishedAt,
             'original_published_at' => $publishedAt,
             'created_at' => date('Y-m-d H:i:s'),
@@ -343,10 +350,17 @@ class ArticleService {
         if (isset($data['og_description'])) $updateData['og_description'] = Sanitizer::string($data['og_description']);
         if (isset($data['og_image'])) $updateData['og_image'] = $data['og_image'];
 
-        // Source Fields
+        // Source & Provenance Fields
         if (isset($data['source_name'])) $updateData['source_name'] = Sanitizer::string($data['source_name']);
         if (isset($data['source_url'])) $updateData['source_url'] = filter_var($data['source_url'], FILTER_VALIDATE_URL) ?: null;
         if (isset($data['source_ref'])) $updateData['source_ref'] = Sanitizer::string($data['source_ref']);
+        if (isset($data['authority_url'])) $updateData['authority_url'] = filter_var($data['authority_url'], FILTER_VALIDATE_URL) ?: null;
+        if (isset($data['authority_name'])) $updateData['authority_name'] = Sanitizer::string($data['authority_name']);
+        if (isset($data['authority_tier']) && in_array($data['authority_tier'], ['tier_1a', 'tier_1b', 'none'], true)) $updateData['authority_tier'] = $data['authority_tier'];
+        if (isset($data['source_role']) && in_array($data['source_role'], ['authority_primary', 'discovery', 'secondary', 'unverified'], true)) $updateData['source_role'] = $data['source_role'];
+        if (isset($data['discovery_url'])) $updateData['discovery_url'] = filter_var($data['discovery_url'], FILTER_VALIDATE_URL) ?: null;
+        if (isset($data['discovery_source'])) $updateData['discovery_source'] = Sanitizer::string($data['discovery_source']);
+        if (array_key_exists('claim_verified_at', $data)) $updateData['claim_verified_at'] = $data['claim_verified_at'];
 
         $updateData['updated_at'] = date('Y-m-d H:i:s');
 
