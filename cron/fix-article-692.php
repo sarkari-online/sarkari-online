@@ -121,8 +121,8 @@ $factsToRecord = [
         'fact_value' => 'To Be Announced',
         'valid_until' => null,
         'source_url' => 'https://hssc.gov.in',
-        'confidence' => 'high',
-        'status' => 'unannounced'
+        'confidence' => 'unverified',
+        'status' => 'pending'
     ]
 ];
 
@@ -133,54 +133,74 @@ try {
     $hasTable = !empty($tblCheck);
 } catch (\Throwable $e) {}
 
-if ($hasTable) {
-    // Defensive assertion before any write: verify payload contains 'confidence' and NOT 'confidence_score'
-    foreach ($factsToRecord as $idx => $factCheck) {
-        if (!array_key_exists('confidence', $factCheck)) {
-            die("❌ Defensive Assertion Failed: Fact at index {$idx} is missing required 'confidence' key.\n");
-        }
-        if (array_key_exists('confidence_score', $factCheck)) {
-            die("❌ Defensive Assertion Failed: Fact at index {$idx} contains obsolete/invalid 'confidence_score' key.\n");
-        }
+// Defensive assertion before any write: verify payload schema and allowed ENUMs
+$allowedStatuses = ['verified', 'unverified', 'pending', 'expired', 'superseded'];
+$allowedConfidences = ['high', 'medium', 'low', 'unverified'];
+foreach ($factsToRecord as $idx => $factCheck) {
+    if (!array_key_exists('confidence', $factCheck)) {
+        die("❌ Defensive Assertion Failed: Fact at index {$idx} is missing required 'confidence' key.\n");
     }
-
-    // Supersede any old facts
-    Database::query(
-        "UPDATE article_temporal_facts SET status = 'superseded' WHERE article_id = 692 AND status != 'superseded'"
-    );
-
-    // Insert verified facts
-    foreach ($factsToRecord as $f) {
-        // Double-check defensive assertion per record before query execution
-        if (!isset($f['confidence']) || isset($f['confidence_score'])) {
-            die("❌ Defensive Assertion Failed before INSERT: Invalid payload schema.\n");
-        }
-
-        Database::query(
-            "INSERT INTO article_temporal_facts (article_id, fact_name, fact_value, valid_until, source_url, confidence, status, verified_at, created_at, updated_at)
-             VALUES (:article_id, :fact_name, :fact_value, :valid_until, :source_url, :confidence, :status, NOW(), NOW(), NOW())",
-            $f
-        );
+    if (array_key_exists('confidence_score', $factCheck)) {
+        die("❌ Defensive Assertion Failed: Fact at index {$idx} contains obsolete/invalid 'confidence_score' key.\n");
     }
-    echo "✅ Successfully recorded verified temporal facts in article_temporal_facts table.\n";
-} else {
-    echo "ℹ️ Note: article_temporal_facts table not yet migrated, skipping table insert.\n";
+    if (!in_array($factCheck['confidence'], $allowedConfidences, true)) {
+        die("❌ Defensive Assertion Failed: Fact at index {$idx} has invalid confidence '{$factCheck['confidence']}'.\n");
+    }
+    if (!in_array($factCheck['status'], $allowedStatuses, true)) {
+        die("❌ Defensive Assertion Failed: Fact at index {$idx} has invalid status '{$factCheck['status']}'.\n");
+    }
 }
 
-// 5. Update Articles Table Atomically
-Database::query(
-    "UPDATE articles 
-     SET title = :title, 
-         content = :content, 
-         lifecycle_status = 'closed',
-         updated_at = NOW()
-     WHERE id = 692",
-    [
-        'title' => $newTitle,
-        'content' => $content
-    ]
-);
-echo "✅ Successfully updated Article #692: lifecycle_status='closed', title='{$newTitle}'\n";
+// 5. Atomic Transaction: Fact Superseding, Fact Insertion, and Article Lifecycle Update
+$db = Database::getConnection();
+$db->beginTransaction();
+
+try {
+    if ($hasTable) {
+        // A. Safely supersede existing non-superseded facts for Article #692 (including prior partial runs)
+        Database::query(
+            "UPDATE article_temporal_facts 
+             SET status = 'superseded', updated_at = NOW() 
+             WHERE article_id = 692 AND status != 'superseded'"
+        );
+
+        // B. Insert all canonical replacement facts
+        foreach ($factsToRecord as $f) {
+            Database::query(
+                "INSERT INTO article_temporal_facts (article_id, fact_name, fact_value, valid_until, source_url, confidence, status, verified_at, created_at, updated_at)
+                 VALUES (:article_id, :fact_name, :fact_value, :valid_until, :source_url, :confidence, :status, NOW(), NOW(), NOW())",
+                $f
+            );
+        }
+        echo "✅ Successfully recorded verified temporal facts in article_temporal_facts table.\n";
+    } else {
+        echo "ℹ️ Note: article_temporal_facts table not yet migrated, skipping table insert.\n";
+    }
+
+    // C. Update Articles Table Atomically
+    Database::query(
+        "UPDATE articles 
+         SET title = :title, 
+             content = :content, 
+             lifecycle_status = 'closed',
+             updated_at = NOW()
+         WHERE id = 692",
+        [
+            'title' => $newTitle,
+            'content' => $content
+        ]
+    );
+    echo "✅ Successfully updated Article #692: lifecycle_status='closed', title='{$newTitle}'\n";
+
+    $db->commit();
+    echo "✅ Database transaction committed successfully!\n";
+} catch (\Throwable $e) {
+    if ($db->inTransaction()) {
+        $db->rollBack();
+        echo "❌ Database transaction rolled back due to error: " . $e->getMessage() . "\n";
+    }
+    throw $e;
+}
 
 // 6. Run Pre-Publish Validator to Guarantee 100% Compliance
 $audit = TemporalContentValidator::validate([
