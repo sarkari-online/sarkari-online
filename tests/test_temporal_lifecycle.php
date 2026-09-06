@@ -29,8 +29,9 @@ use App\Services\TemporalFactService;
 use App\Services\TemporalContentValidator;
 use App\Services\AuthorityVerificationService;
 use App\Services\TemporalRevalidationService;
+use App\Services\FeaturedSnippetService;
 
-$totalTests = 24;
+$totalTests = 25;
 $passedTests = 0;
 $failedTests = 0;
 $errors = [];
@@ -568,6 +569,87 @@ $test24Pass = ($isTbaArray === true) &&
               ($audit24['pass'] === true);
 
 recordTestResult(24, "Array-shaped temporal facts from PipelineService execute without TypeError across lifecycle & validation", $test24Pass, "TBA array=" . ($isTbaArray ? 'true' : 'false') . ", NULL array=" . ($isNullArray ? 'true' : 'false') . ", Announced array=" . ($isAnnouncedArray ? 'true' : 'false') . ", Lifecycle={$state24}, Validator pass=" . ($audit24['pass'] ? 'true' : 'false'));
+
+// -------------------------------------------------------------------------
+// TEST 25: Expired Deadline with Official Portal URL & Unverified Extension (Article #692 Regression)
+// -------------------------------------------------------------------------
+// Recreates the exact scenario of Article #692 (HSSC CET 2026):
+// 1. Application deadline expired on July 03, 2026 (Advt 05/2026) / June 30, 2026 (Advt 06/2026)
+// 2. Official statutory portal link exists (https://hssc.gov.in)
+// 3. An unverified secondary source claims extension to September 30, 2026
+// Invariants enforced:
+// - Portal link existence alone MUST NOT override expired deadline -> strictly CLOSED
+// - Unverified secondary extension MUST NOT keep article ACTIVE -> strictly CLOSED
+// - FeaturedSnippet candidate action MUST NOT suggest "Submit Online Application Form" -> "Check Official Portal for Next Stage Updates"
+// - TemporalContentValidator flags active claims & pills -> pass = false
+// - TemporalContentValidator::validateAndRepair replaces active claims & pills -> pass = true
+$now25 = new DateTimeImmutable('2026-09-06 14:17:00', $tz);
+$facts25 = [
+    'application_start' => [
+        'fact_name' => 'application_start',
+        'fact_value' => 'June 19, 2026',
+        'valid_until' => '2026-06-19 00:00:00',
+        'source_url' => 'https://hssc.gov.in',
+        'status' => 'verified'
+    ],
+    'application_end' => [
+        'fact_name' => 'application_end',
+        'fact_value' => 'July 03, 2026',
+        'valid_until' => '2026-07-03 23:59:59',
+        'source_url' => 'https://hssc.gov.in',
+        'status' => 'verified'
+    ],
+    'application_extension' => [
+        'fact_name' => 'application_extension',
+        'fact_value' => 'September 30, 2026',
+        'valid_until' => '2026-09-30 23:59:59',
+        'source_url' => 'https://unverified-aggregator.com/hssc-dates',
+        'status' => 'unverified'
+    ],
+    'exam_date' => [
+        'fact_name' => 'exam_date',
+        'fact_value' => 'To Be Announced',
+        'valid_until' => null,
+        'source_url' => 'https://hssc.gov.in',
+        'status' => 'unannounced'
+    ]
+];
+
+// 1. Verify resolveLifecycle resolves to CLOSED (portal URL & unverified extension do NOT override expired verified deadline)
+$state25 = TemporalFactService::resolveLifecycle(0, $facts25, 'government-jobs', 'HSSC Haryana CET 2026', $now25);
+$isStateClosed = ($state25 === TemporalFactService::LIFECYCLE_CLOSED);
+
+// 2. Verify FeaturedSnippetService determines safe non-active action
+$action25 = FeaturedSnippetService::determineCandidateAction('HSSC Haryana CET 2026: Apply Online', $state25);
+$isActionSafe = ($action25 === 'Check Official Portal for Next Stage Updates') && ($action25 !== 'Submit Online Application Form');
+
+// 3. Verify TemporalContentValidator rejects active claims & status pills
+$article25 = [
+    'title' => 'HSSC Haryana CET 2026: Apply Online & Eligibility',
+    'excerpt' => 'Haryana CET 2026 recruitment for Group C and D posts.',
+    'content' => '<p>The Haryana Staff Selection Commission has opened the recruitment cycle for CET 2026.</p>' .
+                 '<table><thead><tr><th>Milestone</th><th>Status</th><th>Official Timeline</th></tr></thead>' .
+                 '<tbody><tr><td>Application for CET Group D-05/2026</td><td><span class="status-pill status-pill-confirmed">Active</span></td><td>As of September 06, 2026</td></tr></tbody></table>' .
+                 '<p><strong>Q: Is the application window for Group D-05/2026 still open?</strong><br>A: Yes, as of September 06, 2026, the application process is active.</p>' .
+                 '<p>Submit Online Application Form at official portal.</p>' .
+                 '<a href="https://hssc.gov.in">Apply Online</a>',
+    'source_url' => 'https://hssc.gov.in'
+];
+
+$audit25 = TemporalContentValidator::validate($article25, $facts25, $state25, $now25);
+$hasViolations = ($audit25['pass'] === false) && (count($audit25['violations']) >= 2);
+
+// 4. Verify validateAndRepair successfully neutralizes all active claims, pills, and CTAs
+$repair25 = TemporalContentValidator::validateAndRepair($article25, $facts25, $state25, $now25);
+$isRepairPass = ($repair25['pass'] === true) &&
+                !str_contains($repair25['repaired_data']['content'], '>Active<') &&
+                !str_contains(strtolower($repair25['repaired_data']['content']), 'application process is active') &&
+                !str_contains($repair25['repaired_data']['content'], '>Apply Online<') &&
+                !str_contains(strtolower($repair25['repaired_data']['title']), 'apply online');
+
+$test25Pass = $isStateClosed && $isActionSafe && $hasViolations && $isRepairPass;
+
+recordTestResult(25, "Expired deadline with official portal URL + unverified extension strictly resolves to CLOSED, enforces safe CTAs, and repairs active copy", $test25Pass, "Lifecycle={$state25}, Action='{$action25}', Validator Rejected=" . ($hasViolations ? 'true' : 'false') . ", Auto-Repaired=" . ($isRepairPass ? 'true' : 'false'));
 
 echo "\n========================================================================\n";
 echo "   RESULTS: {$passedTests}/{$totalTests} PASSED, {$failedTests} FAILED\n";

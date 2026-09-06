@@ -517,23 +517,70 @@ class TemporalFactService {
             }
         }
 
-        // 5. Check Application Deadline (application_extension or application_end)
-        $deadlineVal = $factValues['application_extension'] ?? ($factValues['application_end'] ?? null);
-        $deadlineRow = $factRows['application_extension'] ?? ($factRows['application_end'] ?? null);
+        // 5. Check Application Deadline & Extension Provenance
+        // CRITICAL INVARIANT (Rule 7):
+        // 1) An expired application_end deadline MUST resolve to CLOSED unless an authoritative, verified future extension exists.
+        // 2) Portal link existence (e.g. an official portal URL having an "Apply" link) alone MUST NOT override an expired verified deadline!
+        // 3) An unverified secondary source extension (status !== 'verified') MUST NOT override an expired verified deadline.
+        $baseDeadlineVal = $factValues['application_end'] ?? null;
+        $baseDeadlineRow = $factRows['application_end'] ?? null;
+        $hasBaseDeadline = !empty($baseDeadlineVal) && !self::isUnannouncedValue($baseDeadlineVal);
+
+        $extVal = $factValues['application_extension'] ?? null;
+        $extRow = $factRows['application_extension'] ?? null;
+        $hasExtension = !empty($extVal) && !self::isUnannouncedValue($extVal);
+        // Extension is rejected if marked unverified or from secondary source
+        $isExtensionUnverified = ($extRow['status'] ?? '') === 'unverified' || ($extRow['status'] ?? '') === 'rejected';
+        $isExtensionValid = $hasExtension && !$isExtensionUnverified;
+
+        if ($hasBaseDeadline) {
+            $baseDeadlineTime = null;
+            if (!empty($baseDeadlineRow['valid_until'])) {
+                try {
+                    $baseDeadlineTime = new DateTimeImmutable($baseDeadlineRow['valid_until'], self::getTimeZone());
+                } catch (Throwable $e) {}
+            }
+            if ($baseDeadlineTime === null) {
+                $baseDeadlineTime = self::parseDateIST($baseDeadlineVal, '23:59:59');
+            }
+
+            if ($baseDeadlineTime !== null && $now > $baseDeadlineTime) {
+                // Base deadline has passed in Asia/Kolkata
+                if ($isExtensionValid) {
+                    $extTime = null;
+                    if (!empty($extRow['valid_until'])) {
+                        try {
+                            $extTime = new DateTimeImmutable($extRow['valid_until'], self::getTimeZone());
+                        } catch (Throwable $e) {}
+                    }
+                    if ($extTime === null) {
+                        $extTime = self::parseDateIST($extVal, '23:59:59');
+                    }
+                    if ($extTime !== null && $now <= $extTime) {
+                        // Official extension is active in the future
+                        return self::LIFECYCLE_ACTIVE;
+                    }
+                }
+
+                // Deadline has expired and no verified future extension exists -> strictly CLOSED
+                return self::LIFECYCLE_CLOSED;
+            }
+        }
+
+        // Active Future Deadline Check (Either base deadline or verified extension in future)
+        $deadlineVal = ($hasExtension && $isExtensionValid) ? $extVal : ($hasBaseDeadline ? $baseDeadlineVal : null);
+        $deadlineRow = ($hasExtension && $isExtensionValid) ? $extRow : ($hasBaseDeadline ? $baseDeadlineRow : null);
 
         if (!empty($deadlineVal) && !self::isUnannouncedValue($deadlineVal)) {
-            // Check valid_until from row or parse value
             $deadlineTime = null;
             if (!empty($deadlineRow['valid_until'])) {
                 try {
                     $deadlineTime = new DateTimeImmutable($deadlineRow['valid_until'], self::getTimeZone());
                 } catch (Throwable $e) {}
             }
-
             if ($deadlineTime === null) {
                 $deadlineTime = self::parseDateIST($deadlineVal, '23:59:59');
             }
-
             if ($deadlineTime !== null) {
                 if ($now > $deadlineTime) {
                     return self::LIFECYCLE_CLOSED;

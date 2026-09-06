@@ -54,6 +54,8 @@ class TemporalContentValidator {
         'registration open',
         'register now',
         'submit application',
+        'submit online application form',
+        'submit application form',
         'fill application form',
         'click here to apply',
         'online application link active',
@@ -224,8 +226,9 @@ class TemporalContentValidator {
                         ];
                     }
 
-                    // Content must not claim registration is currently open
-                    if (preg_match('/\b(registration is (?:now )?open|applications are being accepted|apply online now|window is live)\b/i', $combinedText, $m)) {
+                    // Content must not claim registration is currently open/active
+                    if (preg_match('/\b(registration is (?:now )?open|applications are being accepted|apply online now|window is live|application process is (?:still )?active|application window is (?:still )?active|applications are active|application is active)\b/i', $combinedText, $m) ||
+                        preg_match('/<span[^>]*class=["\'][^"\']*status-pill[^"\']*["\'][^>]*>\s*Active\s*<\/span>/i', $content, $m)) {
                         $violations[] = [
                             'check' => 'CHECK_E_DEADLINE_PASSED_ACTIVE_COPY',
                             'message' => "Application deadline has passed, but content contains active statement: '{$m[0]}'.",
@@ -256,6 +259,24 @@ class TemporalContentValidator {
                         'match' => $m[0]
                     ];
                 }
+            }
+
+            // Check for active status pills in closed articles
+            if (preg_match('/<span[^>]*class=["\'][^"\']*status-pill[^"\']*["\'][^>]*>\s*Active\s*<\/span>/i', $content, $m)) {
+                $violations[] = [
+                    'check' => 'CHECK_F_CLOSED_CONTENT_ACTIVE_PILL',
+                    'message' => "Article lifecycle is CLOSED but content body contains active status pill: '{$m[0]}'.",
+                    'match' => $m[0]
+                ];
+            }
+
+            // Check for active application claims in closed articles
+            if (preg_match('/\b(registration is (?:now )?open|applications are being accepted|apply online now|window is live|application process is (?:still )?active|application window is (?:still )?active|applications are active|application is active)\b/i', $combinedText, $m)) {
+                $violations[] = [
+                    'check' => 'CHECK_F_CLOSED_CONTENT_ACTIVE_CLAIM',
+                    'message' => "Article lifecycle is CLOSED but content claims application is active: '{$m[0]}'.",
+                    'match' => $m[0]
+                ];
             }
         }
 
@@ -396,9 +417,18 @@ class TemporalContentValidator {
             $content = $repaired['content'];
             $content = preg_replace('/>\s*(?:Apply Online|Apply Now|Click Here to Apply)\s*<\/a>/i', '>Application Closed (Portal Archive)</a>', $content);
             $content = preg_replace('/\b(?:Registration is open|Applications are being accepted)\b/i', "Application window closed on {$absoluteDeadline}", $content);
+            $content = preg_replace('/\b(?:Submit Online Application Form|Submit Application Form)\b/i', 'Check Official Portal for Next Stage Updates', $content);
+            $content = preg_replace('/<span([^>]*)class=(["\'][^"\']*status-pill[^"\']*["\'])([^>]*)>\s*Active\s*<\/span>/i', '<span$1class=$2 style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:4px;font-weight:600;"$3>Closed</span>', $content);
+            $content = preg_replace('/(Is the application window[^?]*\?[^<]*(?:<\/strong>)?\s*<br>\s*A:\s*)Yes, as of [^,]+, the application process is (?:still )?active\./i', '$1No, the application process for this recruitment has concluded.', $content);
+            $content = preg_replace('/(Is the application window[^?]*\?\s*<br>\s*A:\s*)Yes, as of [^,]+, the application process is (?:still )?active\./i', '$1No, the application process for this recruitment has concluded.', $content);
+            $content = preg_replace('/\b(?:Yes, )?as of [^,]+, the application process is (?:still )?active\.?/i', 'the application process has concluded.', $content);
+            $content = preg_replace('/\b(?:the )?application process is (?:still )?active\b/i', 'the application process has concluded', $content);
+            $content = preg_replace('/\bapplication window is (?:still )?active\b/i', 'application window has closed', $content);
+            $content = preg_replace('/\bapplications are active\b/i', 'applications are closed', $content);
+            $content = preg_replace('/\bapplication is active\b/i', 'application is closed', $content);
             if ($content !== $repaired['content']) {
                 $repaired['content'] = $content;
-                $repairs[] = "Repaired active CTA links and text in content to 'Application Closed'";
+                $repairs[] = "Repaired active CTA links, table pills, and FAQ in content to 'Application Closed'";
             }
 
             // Repair SEO Meta Title / Description

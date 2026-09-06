@@ -176,7 +176,8 @@ class FeaturedSnippetService {
         }
 
         // 6. Action
-        $action = self::determineCandidateAction($title);
+        $lifecycle = $article['lifecycle_status'] ?? 'active';
+        $action = self::determineCandidateAction($title, $lifecycle);
 
         return [
             ['label' => 'Conducting Body', 'value' => $authority, 'url' => null],
@@ -331,7 +332,20 @@ class FeaturedSnippetService {
         return 'As Per Official Schedule';
     }
 
-    private static function determineCandidateAction(string $title): string {
+    public static function determineCandidateAction(string $title, string $lifecycle = 'active'): string {
+        if ($lifecycle === 'closed') {
+            return 'Check Official Portal for Next Stage Updates';
+        }
+        if ($lifecycle === 'exam_completed') {
+            return 'Awaiting Answer Key & Result Announcement';
+        }
+        if ($lifecycle === 'result_released') {
+            return 'Check Roll No. in Merit List';
+        }
+        if ($lifecycle === 'admit_card_released') {
+            return 'Download & Print Admit Card';
+        }
+
         $t = strtolower($title);
         if (str_contains($t, 'result')) {
             return 'Check Roll No. in Merit List';
