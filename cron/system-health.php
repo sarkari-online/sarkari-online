@@ -207,6 +207,19 @@ echo "🔄 [4] AUTONOMOUS BACKGROUND REVALIDATION & RECENTLY UPDATED ARTICLES\n"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" . $reset . "\n";
 
 try {
+    // Auto-create article_updates table if not exists
+    $db->exec("CREATE TABLE IF NOT EXISTS `article_updates` (
+        `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        `article_id` BIGINT UNSIGNED NOT NULL,
+        `old_content` LONGTEXT NULL,
+        `new_content` LONGTEXT NULL,
+        `reason` TEXT NOT NULL,
+        `source_url` VARCHAR(500) NULL,
+        `created_at` DATETIME NOT NULL,
+        PRIMARY KEY (`id`),
+        KEY `idx_article_updates_article` (`article_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+
     // Check article_updates table
     $recentUpdates = Database::fetchAll(
         "SELECT u.id, u.article_id, a.title, a.slug, a.lifecycle_status, u.reason, u.created_at
@@ -291,7 +304,8 @@ $remediatedArticles = [
     ],
     [
         'id' => '12 Articles',
-        'slug' => 'Various (Azim Premji, Indian Army, AIBE, UPTET, MHT-CET, GATE, etc.)',
+        'slug' => null,
+        'scope' => 'Tier-1 Gov Portals (.gov.in, .nic.in, .edu.in)',
         'title' => '12 Published Articles with Google Trends Discovery URLs',
         'issue' => 'Discovery fallback link pointed to trends.google.com instead of official commission domains.',
         'fix' => 'Mapped all 12 articles directly to Tier-1 Government Authority Domains (.gov.in, .nic.in, .edu.in).',
@@ -299,7 +313,8 @@ $remediatedArticles = [
     ],
     [
         'id' => 'All 76',
-        'slug' => 'Site-Wide',
+        'slug' => null,
+        'scope' => 'Site-Wide Corpus (76 Articles)',
         'title' => 'Transient Urgency Phrases ("closes today", "apply today")',
         'issue' => 'Published articles had time-sensitive phrases that became stale the next day.',
         'fix' => 'Swept and sanitized all transient phrases with neutral permanent dates ("closing as scheduled").',
@@ -312,7 +327,11 @@ foreach ($remediatedArticles as $idx => $ra) {
     echo "  {$num}. [{$ra['id']}] {$bold}{$ra['title']}{$reset} [{$green}{$ra['status']}{$reset}]\n";
     echo "     • Previous Issue : {$red}{$ra['issue']}{$reset}\n";
     echo "     • Solution Applied: {$green}{$ra['fix']}{$reset}\n";
-    echo "     • Canonical URL  : https://sarkari.online/article/{$ra['slug']}/\n\n";
+    if (!empty($ra['slug'])) {
+        echo "     • Canonical URL  : https://sarkari.online/article/{$ra['slug']}/\n\n";
+    } else {
+        echo "     • Target Scope   : " . ($ra['scope'] ?? 'All Articles') . "\n\n";
+    }
 }
 
 // ==============================================================================
