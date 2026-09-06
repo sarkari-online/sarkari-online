@@ -122,9 +122,15 @@ class TemporalFactService {
     /**
      * Checks if a value signifies an unannounced, pending, or unknown milestone
      */
-    public static function isUnannouncedValue(?string $val): bool {
+    public static function isUnannouncedValue(mixed $val): bool {
+        if (is_array($val)) {
+            $val = $val['fact_value'] ?? ($val['value'] ?? ($val['date'] ?? null));
+        }
         if ($val === null) {
             return true;
+        }
+        if (!is_string($val)) {
+            return false;
         }
         $v = strtolower(trim($val));
         if ($v === '' || $v === 'null' || $v === 'nil' || $v === 'none') {
@@ -427,11 +433,13 @@ class TemporalFactService {
         $factValues = [];
         $factRows = [];
         foreach ($facts as $key => $val) {
-            if (is_array($val) && isset($val['fact_name'])) {
-                $factValues[$val['fact_name']] = $val['fact_value'] ?? null;
-                $factRows[$val['fact_name']] = $val;
+            if (is_array($val)) {
+                $fName = $val['fact_name'] ?? $key;
+                $fVal = $val['fact_value'] ?? ($val['value'] ?? ($val['date'] ?? null));
+                $factValues[$fName] = is_string($fVal) ? $fVal : null;
+                $factRows[$fName] = $val;
             } else {
-                $factValues[$key] = $val;
+                $factValues[$key] = is_string($val) ? $val : null;
             }
         }
 

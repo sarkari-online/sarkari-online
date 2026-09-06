@@ -103,10 +103,24 @@ class TemporalContentValidator {
         // Normalize facts into structured format
         $factsMap = [];
         foreach ($temporalFacts as $k => $v) {
-            if (is_array($v) && isset($v['fact_name'])) {
-                $factsMap[$v['fact_name']] = $v;
+            if (is_array($v)) {
+                $fName = $v['fact_name'] ?? $k;
+                $fVal = $v['fact_value'] ?? ($v['value'] ?? ($v['date'] ?? null));
+                $fSrc = $v['source_url'] ?? ($articleData['source_url'] ?? null);
+                $fUntil = $v['valid_until'] ?? null;
+                $factsMap[$fName] = [
+                    'fact_name' => $fName,
+                    'fact_value' => is_string($fVal) ? $fVal : null,
+                    'source_url' => $fSrc,
+                    'valid_until' => $fUntil,
+                    'status' => $v['status'] ?? null
+                ];
             } else {
-                $factsMap[$k] = ['fact_name' => $k, 'fact_value' => $v];
+                $factsMap[$k] = [
+                    'fact_name' => $k,
+                    'fact_value' => is_string($v) ? $v : null,
+                    'source_url' => $articleData['source_url'] ?? null
+                ];
             }
         }
 
