@@ -109,10 +109,12 @@ SENIOR WRITER STORYTELLING & EDITORIAL MANDATE:
 13. CURRENCY & NUMERIC INTEGRITY:
    - Always use strictly the Indian Rupee symbol "₹" for all Indian exam fees, scholarships, and family income limits. NEVER use "$" or "USD" in Indian context.
    - Never write conflicting figures for the same statutory threshold.
-14. ORIGINAL SEARCH-INTENT HEADLINE (ZERO VERBATIM COPYING):
-   - The article title MUST NOT copy the source news wire or topic headline verbatim.
-   - Craft a fresh, 100% unique, authoritative, high-CTR headline containing high-volume primary search keywords (e.g. Exam Name, Year, Stage/Round, Actionable Search Terms like "Option Entry Begins", "Scorecard Link Released", "Shift Timings & Entry Rules", "Eligibility & Steps").
-   - Maximum length: 70–80 characters. Clear, concise, and professional.
+14. HIGH-CTR SEARCH-INTENT HEADLINE (PRESERVE SEARCH INTENT & ACTION MILESTONES):
+   - The headline MUST capture the exact search intent of students and include primary high-volume search queries.
+   - PRESERVE OFFICIAL MILESTONES & ACTION VERBS: If the topic announces an active milestone (e.g., "Result Declared", "Result Out", "Admit Card Released", "Hall Ticket Out", "Answer Key Released", "Merit List PDF", "Cut Off Marks", "Direct Link", "Apply Online"), you MUST KEEP these exact high-CTR keywords!
+   - ABSOLUTE PROHIBITION: NEVER downgrade active announcements into passive words. Specifically, NEVER change "Result Declared" into "Result Status" or "Recruitment Status". NEVER change "Admit Card Released" into "Admit Card Status". When an exam result is declared, students search for "Result Declared" and "Direct Link".
+   - Clean up news wire noise: Remove agency clutter (e.g., "BREAKING:", "Check at domain.gov.in", "click here now"), but RETAIN the conducting authority (e.g. UPSC), exam name, year (2026/2027), key post names (e.g. Professor, Specialist, MO), and the core milestone action.
+   - Length: 70 to 88 characters. Format example: "[Entity/Exam] Result 2026 Declared for [Posts]: Direct Link to Check" or "[Entity/Exam] Admit Card 2026 Released: Direct Download Link".
 15. ABSOLUTE CALENDAR DATES MANDATE (RULE 8 COMPLIANT):
    - Static articles stay on the internet permanently. A headline or sentence claiming "Last Date Today" becomes false and misleading after 24 hours!
    - NEVER use transient relative time words: "Today", "Tonight", "Tomorrow", "Yesterday", "Last Date Today", "Closing Today", "Exam Tomorrow", "Result Today", or "Hours Left" in titles, excerpts, direct answers, or section headings.
@@ -153,7 +155,7 @@ DYNAMIC STRUCTURE GUIDELINES (Every <h2> heading MUST contain the specific Exami
 
 Return strictly as JSON with this exact schema:
 {
-  "title": "100% Unique search-intent headline under 80 chars (NEVER copied verbatim from source)",
+  "title": "High-CTR search-intent headline under 88 chars (retaining exact action milestones like 'Result 2026 Declared' or 'Admit Card Released')",
   "excerpt": "Direct 2-sentence summary outlining what happened and key action (under 160 characters)",
   "direct_answer": "Crisp 35-45 word direct factual answer answering the core student search query (who, what, when, immediate action) specifically crafted for Google Position 0 Featured Snippet",
   "content": "<h2>[Entity/Exam Name]: Latest Official Circular & Update</h2><p>...</p>...",

@@ -299,7 +299,7 @@ class SEOManagerService {
         if ($lastSpace !== false && $lastSpace > 30) {
             $short = mb_substr($short, 0, $lastSpace);
         }
-        return $short;
+        return rtrim($short, " ,-:;|");
     }
 
     /**

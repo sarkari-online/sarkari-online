@@ -52,9 +52,11 @@ MASTER EDITORIAL EDITING RULES:
    - Optimize primarily for solving the student's core question clearly and rapidly.
    - Eliminate repetitive focus keyword stuffing or artificial keyword density.
    - Ensure natural readability that builds student trust.
-8. ORIGINAL HIGH-CTR HEADLINE (NO SOURCE DUPLICATION):
-   - The `edited_title` MUST be completely unique, highly engaging, and student search-focused (under 75 characters).
-   - NEVER copy the source news wire headline verbatim. Include the exact exam name, year (2026/2027), and primary actionable search terms (e.g. "Option Entry Begins", "Scorecard Link", "Shift Timings", "Eligibility & Steps").
+8. HIGH-CTR SEARCH-INTENT HEADLINE (PRESERVE SEARCH INTENT & ACTION VERBS):
+   - The `edited_title` MUST be search-focused, highly clickable, and under 88 characters.
+   - PRESERVE MILESTONE SEARCH KEYWORDS: If the headline or trend announces an active milestone ("Result Declared", "Result Out", "Admit Card Released", "Hall Ticket Out", "Answer Key Released", "Merit List PDF", "Cut Off Marks", "Direct Link"), you MUST KEEP these exact high-intent search keywords!
+   - ABSOLUTE PROHIBITION: NEVER dilute or downgrade active milestones into passive words like "Result Status", "Admit Card Status", or "Recruitment Status". When an exam result is declared, students search for "Result Declared" and "Direct Link".
+   - Include the exact exam/authority name (e.g. UPSC), year (2026/2027), post titles if applicable, and the active action trigger. Strip only spammy wire prefixes (like "BREAKING:").
 9. JSON COMPLIANCE:
    - In `edited_content`, use single quotes for HTML attributes (e.g. <a href='https://...'>) or ensure double quotes are properly escaped as \\" to guarantee strict JSON validity.
 10. STRIP TRANSIENT RELATIVE WORDS (PRESERVE ABSOLUTE DATES):
