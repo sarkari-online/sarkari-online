@@ -285,36 +285,21 @@ class SEOManagerService {
     }
 
     /**
-     * Generate high-CTR Meta Title under 60 characters for Google SERP
-     * Preserves entity, milestone, and action hook without awkward word cuts
+     * Generate high-CTR Meta Title under 58 characters
      */
     public static function generateHighCtrTitle(string $title): string {
         $clean = trim($title);
-        if (mb_strlen($clean) <= 60) {
+        if (mb_strlen($clean) <= 58) {
             return $clean;
         }
 
-        // Strategy 1: If title has a high-CTR secondary clause (e.g. "Headline: Direct Link" or "— Merit List")
-        if (preg_match('/^(.*?)(?::\s*|\s*—\s*|\s*-\s*)(Direct Link.*|Download.*|Merit List.*|Apply Online.*)$/i', $clean, $m)) {
-            $prefix = trim($m[1]);
-            $hook = trim($m[2]);
-
-            // Strip verbose post lists like "for Professor, Specialist, MO & other posts" to make room for the hook
-            $concisePrefix = preg_replace('/for\s+[a-z0-9,\s&]+(?:posts|vacancies)?/i', '', $prefix);
-            $concisePrefix = preg_replace('/\s+/', ' ', trim($concisePrefix));
-            $candidate = $concisePrefix . ': ' . $hook;
-            if (mb_strlen($candidate) <= 60 && mb_strlen($candidate) >= 35) {
-                return $candidate;
-            }
-        }
-
-        // Strategy 2: Trim smartly to under 58 chars at last word boundary
-        $short = mb_substr($clean, 0, 58);
+        // Trim smartly to under 58 chars while preserving words
+        $short = mb_substr($clean, 0, 55);
         $lastSpace = mb_strrpos($short, ' ');
-        if ($lastSpace !== false && $lastSpace > 32) {
+        if ($lastSpace !== false && $lastSpace > 30) {
             $short = mb_substr($short, 0, $lastSpace);
         }
-        return rtrim($short, " ,-:;|");
+        return $short;
     }
 
     /**
