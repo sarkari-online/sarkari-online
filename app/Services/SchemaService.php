@@ -46,6 +46,7 @@ class SchemaService {
                 'name'     => $authorData['name'],
                 'jobTitle' => $authorData['title'],
                 'url'      => $authorUrl,
+                'image'    => !empty($authorData['avatar_img']) ? url($authorData['avatar_img']) : url('assets/favicon-192x192.png'),
                 'sameAs'   => !empty($authorData['linkedin']) ? $authorData['linkedin'] : $authorUrl,
                 'worksFor' => [
                     '@type' => 'NewsMediaOrganization',

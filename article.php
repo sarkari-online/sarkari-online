@@ -60,6 +60,7 @@ $authorSlug = $authorData['slug'];
 $authorUrl = url('author/' . $authorSlug . '/');
 $authorAvatar = $authorData['avatar_letter'];
 $authorBg = $authorData['avatar_bg'];
+$authorImg = !empty($authorData['avatar_img']) ? $authorData['avatar_img'] : null;
 
 // Normalize source format
 $sourceName = $article['source_name'] ?? (is_array($article['source'] ?? null) ? $article['source']['name'] : 'Official Statutory Authority');
@@ -175,8 +176,12 @@ include __DIR__ . '/components/header.php';
                     <!-- Author and Timestamp Byline -->
                     <div class="article-byline">
                         <div class="byline-author-info">
-                            <a href="<?= $authorUrl ?>" class="author-avatar" style="text-decoration: none; background: <?= $authorBg ?>; color: #fff;" aria-label="Author Profile: <?= e($authorName) ?>">
-                                <?= $authorAvatar ?>
+                            <a href="<?= $authorUrl ?>" class="author-avatar" style="text-decoration: none; background: <?= $authorBg ?>; color: #fff; overflow: hidden; display: flex; align-items: center; justify-content: center;" aria-label="Author Profile: <?= e($authorName) ?>">
+                                <?php if ($authorImg && file_exists(dirname(__DIR__) . '/' . $authorImg)): ?>
+                                    <img src="<?= asset($authorImg) ?>" alt="<?= e($authorName) ?>" width="34" height="34" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                                <?php else: ?>
+                                    <?= $authorAvatar ?>
+                                <?php endif; ?>
                             </a>
                             <div>
                                 <a href="<?= $authorUrl ?>" class="byline-author-name" style="text-decoration: none; color: inherit; display: inline-flex; align-items: center; gap: 4px;">
@@ -342,8 +347,12 @@ include __DIR__ . '/components/header.php';
 
                 <!-- Author Bio Card (E-E-A-T Verified Authority) -->
                 <div class="author-bio-card" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; display: flex; gap: 1.25rem; align-items: flex-start; margin-top: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-                    <a href="<?= $authorUrl ?>" class="author-bio-avatar" style="width: 58px; height: 58px; border-radius: 50%; background: <?= $authorBg ?>; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; flex-shrink: 0; text-decoration: none;" aria-label="Author profile for <?= e($authorName) ?>">
-                        <?= $authorAvatar ?>
+                    <a href="<?= $authorUrl ?>" class="author-bio-avatar" style="width: 60px; height: 60px; border-radius: 50%; background: <?= $authorBg ?>; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; flex-shrink: 0; text-decoration: none; overflow: hidden; border: 2px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.06);" aria-label="Author profile for <?= e($authorName) ?>">
+                        <?php if ($authorImg && file_exists(dirname(__DIR__) . '/' . $authorImg)): ?>
+                            <img src="<?= asset($authorImg) ?>" alt="<?= e($authorName) ?>" width="60" height="60" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                        <?php else: ?>
+                            <?= $authorAvatar ?>
+                        <?php endif; ?>
                     </a>
                     <div class="author-bio-details" style="flex: 1;">
                         <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.25rem;">
@@ -365,9 +374,17 @@ include __DIR__ . '/components/header.php';
                         </p>
                         <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #f1f5f9; padding-top: 0.65rem; font-size: 0.775rem; flex-wrap: wrap; gap: 0.5rem;">
                             <span style="color: #64748b;"><strong>Background:</strong> <?= e($authorData['education']) ?></span>
-                            <a href="<?= $authorUrl ?>" style="color: #1e3a8a; font-weight: 700; text-decoration: none;">
-                                View All Articles &rarr;
-                            </a>
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <?php if (!empty($authorData['linkedin'])): ?>
+                                    <a href="<?= e($authorData['linkedin']) ?>" target="_blank" rel="noopener noreferrer" style="color: #0a66c2; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.25V10.9H6.46M7.86 6.55a1.64 1.64 0 0 0-1.63 1.64c0 .9.73 1.63 1.63 1.63a1.64 1.64 0 0 0 1.64-1.63c0-.91-.74-1.64-1.64-1.64Z"/></svg>
+                                        LinkedIn
+                                    </a>
+                                <?php endif; ?>
+                                <a href="<?= $authorUrl ?>" style="color: #1e3a8a; font-weight: 700; text-decoration: none;">
+                                    View Articles &rarr;
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>

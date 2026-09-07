@@ -131,8 +131,6 @@ if (!$isAdminSession):
     <meta name="twitter:title" content="<?= e($ogTitleVal) ?>">
     <meta name="twitter:description" content="<?= e($ogDescVal) ?>">
     <meta name="twitter:image" content="<?= e($ogImageVal) ?>">
-    <meta name="twitter:site" content="@SarkariOnline">
-    <meta name="twitter:creator" content="@SarkariOnline">
 
     <!-- Multi-Device Favicons & PWA Icons (Google Search Standard 48px Multiple Compliant) -->
     <link rel="icon" type="image/png" sizes="48x48" href="<?= url('assets/favicon-48x48.png?v=2') ?>">

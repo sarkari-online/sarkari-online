@@ -35,14 +35,15 @@ class SEOHelper {
             'founder'       => [
                 '@type'    => 'Person',
                 'name'     => 'Ajay Mathur',
-                'jobTitle' => 'Founder & Managing Editor',
+                'jobTitle' => 'Founder & Lead Web Architect',
                 'url'      => url('author/ajay-mathur/'),
+                'image'    => url('assets/images/ajay-mathur.jpg'),
                 'sameAs'   => 'https://www.linkedin.com/in/ajay-mathur-03a626254/'
             ],
             'contactPoint'  => [
                 '@type'             => 'ContactPoint',
-                'contactType'       => 'Editorial & Fact-Checking Desk',
-                'email'             => 'desk@sarkari.online',
+                'contactType'       => 'Editorial & Verification Desk',
+                'email'             => 'official.sarkarionline@gmail.com',
                 'availableLanguage' => ['English', 'Hindi']
             ],
             'publishingPrinciples' => url('editorial-policy/'),
@@ -50,8 +51,7 @@ class SEOHelper {
             'diversityPolicy'      => url('about/'),
             'ethicsPolicy'         => url('ai-policy/'),
             'sameAs'        => [
-                'https://twitter.com/SarkariOnline',
-                'https://t.me/sarkarionline'
+                'https://www.linkedin.com/in/ajay-mathur-03a626254/'
             ]
         ];
 
