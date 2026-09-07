@@ -59,6 +59,20 @@ if (!empty($cleanPath) && $cleanPath !== 'index.php') {
         }
     }
 
+    // Dynamic Full Forms Directory Router: route /full-forms or /full-forms/{term}
+    if ($cleanPath === 'full-forms' || $cleanPath === 'full-forms/') {
+        require __DIR__ . '/full-forms.php';
+        exit;
+    }
+    if (str_starts_with($cleanPath, 'full-forms/')) {
+        $termSlug = trim(substr($cleanPath, 11), '/');
+        if (!empty($termSlug)) {
+            $_GET['term'] = $termSlug;
+        }
+        require __DIR__ . '/full-forms.php';
+        exit;
+    }
+
     require __DIR__ . '/404.php';
     exit;
 }
