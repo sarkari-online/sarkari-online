@@ -210,6 +210,9 @@ if (!$isAdminSession):
         <?= SEOHelper::homepageFaqSchema() ?>
         </script>
     <?php endif; ?>
+    <?php if (!empty($customHeadHtml)): ?>
+        <?= $customHeadHtml ?>
+    <?php endif; ?>
 </head>
 <body>
     <?php if (!$isAdminSession): ?>

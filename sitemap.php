@@ -45,6 +45,7 @@ $staticPages = [
     ['url' => 'tools/7th-pay-commission-salary-calculator/', 'file' => __DIR__ . '/tools/7th-pay-commission-salary-calculator.php'],
     ['url' => 'tools/cgpa-to-percentage-calculator/', 'file' => __DIR__ . '/tools/cgpa-to-percentage-calculator.php'],
     ['url' => 'tools/age-calculator/', 'file' => __DIR__ . '/tools/age-calculator.php'],
+    ['url' => 'full-forms/', 'file' => __DIR__ . '/full-forms.php'],
     ['url' => 'latest-jobs/', 'file' => __DIR__ . '/latest-jobs.php'],
     ['url' => 'state-jobs/', 'file' => __DIR__ . '/state-jobs.php'],
     ['url' => 'jobs/uttar-pradesh/', 'file' => __DIR__ . '/state-detail.php'],
@@ -151,6 +152,21 @@ echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
             <image:title><?= htmlspecialchars($art['title'], ENT_XML1, 'UTF-8') ?></image:title>
         </image:image>
         <?php endif; ?>
+    </url>
+    <?php endforeach; ?>
+
+    <!-- Individual A-to-Z Government Full Form URLs -->
+    <?php 
+    $glossaryTerms = \App\Services\GlossaryService::getAllForSitemap();
+    foreach ($glossaryTerms as $gTerm):
+        $gUrl = url('full-forms/' . $gTerm['slug'] . '/');
+        if (isset($seenUrls[$gUrl])) continue;
+        $seenUrls[$gUrl] = true;
+        $gLastmod = !empty($gTerm['updated_at']) ? date('Y-m-d', strtotime($gTerm['updated_at'])) : ($gTerm['last_reviewed_at'] ?? '2026-09-07');
+    ?>
+    <url>
+        <loc><?= htmlspecialchars($gUrl, ENT_XML1, 'UTF-8') ?></loc>
+        <lastmod><?= $gLastmod ?></lastmod>
     </url>
     <?php endforeach; ?>
 

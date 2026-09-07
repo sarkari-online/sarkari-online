@@ -204,4 +204,30 @@ CREATE TABLE IF NOT EXISTS `article_temporal_facts` (
     CONSTRAINT `fk_temp_facts_article` FOREIGN KEY (`article_id`) REFERENCES `articles` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 11. Glossary Terms Table (A-to-Z Government & Examination Full Forms Hub)
+CREATE TABLE IF NOT EXISTS `glossary_terms` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `acronym` VARCHAR(60) NOT NULL,
+    `slug` VARCHAR(100) NOT NULL,
+    `letter` CHAR(1) NOT NULL,
+    `full_form_en` VARCHAR(255) NOT NULL,
+    `full_form_hi` VARCHAR(255) NULL,
+    `category` VARCHAR(60) NOT NULL,
+    `conducting_body` VARCHAR(255) NULL,
+    `official_portal` VARCHAR(255) NULL,
+    `overview` TEXT NOT NULL,
+    `eligibility_criteria` TEXT NULL,
+    `selection_process` TEXT NULL,
+    `syllabus_snapshot` TEXT NULL,
+    `related_article_slug` VARCHAR(255) NULL,
+    `last_reviewed_at` DATE NOT NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_glossary_slug` (`slug`),
+    INDEX `idx_glossary_letter` (`letter`),
+    INDEX `idx_glossary_category` (`category`),
+    FULLTEXT KEY `idx_glossary_search` (`acronym`, `full_form_en`, `full_form_hi`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 SET FOREIGN_KEY_CHECKS = 1;

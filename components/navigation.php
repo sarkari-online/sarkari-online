@@ -34,6 +34,12 @@ $toolsLinks = [
         'desc'  => 'CBSE, AICTE, AKTU & 10-Point Scales'
     ],
     [
+        'label' => 'Full Forms (A-Z)',
+        'url'   => 'full-forms/',
+        'icon'  => 'book-open',
+        'desc'  => 'Indian Govt & Exam Acronym Directory'
+    ],
+    [
         'label' => 'Student Tools Hub',
         'url'   => 'tools/',
         'icon'  => 'layers',
