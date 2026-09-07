@@ -52,7 +52,7 @@ include __DIR__ . '/components/header.php';
                     <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
                         <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
                             <div style="width: 48px; height: 48px; border-radius: 50%; background: #1e3a8a; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.2rem; overflow: hidden; border: 2px solid #e2e8f0; flex-shrink: 0;">
-                                <img src="<?= asset('assets/images/ajay-mathur.jpg') ?>" alt="Ajay Mathur" width="48" height="48" style="width: 100%; height: 100%; object-fit: cover;">
+                                <img src="<?= asset('images/ajay-mathur.jpg') ?>" alt="Ajay Mathur" width="48" height="48" style="width: 100%; height: 100%; object-fit: cover;">
                             </div>
                             <div>
                                 <h3 style="font-size: 1.05rem; margin: 0; color: #0f172a;">

@@ -28,7 +28,7 @@ class AuthorService {
             'bio'            => 'Ajay Mathur is the Founder and Lead Web Architect of Sarkari.online. A Web Developer and Cloud Infrastructure Engineer with 4+ years of experience managing high-traffic digital platforms — including 3 years at Collegedunia (2022–2025) — Ajay built Sarkari.online to provide Indian aspirants with a fast, reliable, and authentic information hub for government recruitment notifications, admit cards, and examination results directly sourced from official gazettes and statutory portals.',
             'methodology'    => 'Strictly verifies every examination date, eligibility rule, vacancy figure, and official PDF notice against authenticated government domains (.gov.in, .nic.in) prior to clearance, backed by high-availability cloud engineering.',
             'avatar_letter'  => 'A',
-            'avatar_img'     => 'assets/images/ajay-mathur.jpg',
+            'avatar_img'     => 'images/ajay-mathur.jpg',
             'avatar_bg'      => '#1e3a8a',
             'email'          => 'official.sarkarionline@gmail.com',
             'linkedin'       => 'https://www.linkedin.com/in/ajay-mathur-03a626254/',

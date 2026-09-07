@@ -177,8 +177,9 @@ include __DIR__ . '/components/header.php';
                     <div class="article-byline">
                         <div class="byline-author-info">
                             <a href="<?= $authorUrl ?>" class="author-avatar" style="text-decoration: none; background: <?= $authorBg ?>; color: #fff; overflow: hidden; display: flex; align-items: center; justify-content: center;" aria-label="Author Profile: <?= e($authorName) ?>">
-                                <?php if ($authorImg && file_exists(dirname(__DIR__) . '/' . $authorImg)): ?>
-                                    <img src="<?= asset($authorImg) ?>" alt="<?= e($authorName) ?>" width="34" height="34" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                                <?php if (!empty($authorImg)): ?>
+                                    <img src="<?= asset($authorImg) ?>" alt="<?= e($authorName) ?>" width="34" height="34" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                                    <span style="display: none;"><?= $authorAvatar ?></span>
                                 <?php else: ?>
                                     <?= $authorAvatar ?>
                                 <?php endif; ?>
@@ -348,8 +349,9 @@ include __DIR__ . '/components/header.php';
                 <!-- Author Bio Card (E-E-A-T Verified Authority) -->
                 <div class="author-bio-card" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; display: flex; gap: 1.25rem; align-items: flex-start; margin-top: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
                     <a href="<?= $authorUrl ?>" class="author-bio-avatar" style="width: 60px; height: 60px; border-radius: 50%; background: <?= $authorBg ?>; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; flex-shrink: 0; text-decoration: none; overflow: hidden; border: 2px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.06);" aria-label="Author profile for <?= e($authorName) ?>">
-                        <?php if ($authorImg && file_exists(dirname(__DIR__) . '/' . $authorImg)): ?>
-                            <img src="<?= asset($authorImg) ?>" alt="<?= e($authorName) ?>" width="60" height="60" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                        <?php if (!empty($authorImg)): ?>
+                            <img src="<?= asset($authorImg) ?>" alt="<?= e($authorName) ?>" width="60" height="60" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                            <span style="display: none;"><?= $authorAvatar ?></span>
                         <?php else: ?>
                             <?= $authorAvatar ?>
                         <?php endif; ?>

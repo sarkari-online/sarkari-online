@@ -38,7 +38,7 @@ $mainEntity = [
     'jobTitle'    => $author['title'],
     'description' => $author['bio'],
     'url'         => $canonicalUrl,
-    'image'       => !empty($author['avatar_img']) ? url($author['avatar_img']) : url('assets/favicon-192x192.png'),
+    'image'       => !empty($author['avatar_img']) ? url('assets/' . ltrim($author['avatar_img'], '/')) : url('assets/favicon-192x192.png'),
     'worksFor'    => [
         '@type' => 'NewsMediaOrganization',
         'name'  => SITE_NAME,
@@ -83,8 +83,11 @@ include __DIR__ . '/components/header.php';
                 
                 <div style="display: flex; gap: 1.5rem; align-items: flex-start; flex-wrap: wrap;">
                     <!-- Avatar Photo / Badge -->
-                    <?php if (!empty($author['avatar_img']) && file_exists(dirname(__DIR__) . '/' . $author['avatar_img'])): ?>
-                        <img src="<?= asset($author['avatar_img']) ?>" alt="<?= e($author['name']) ?>" width="80" height="80" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 2px solid #e2e8f0; flex-shrink: 0;">
+                    <?php if (!empty($author['avatar_img'])): ?>
+                        <img src="<?= asset($author['avatar_img']) ?>" alt="<?= e($author['name']) ?>" width="80" height="80" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 2px solid #e2e8f0; flex-shrink: 0;" onerror="this.style.display='none'; document.getElementById('authorFallbackLetter').style.display='flex';">
+                        <div id="authorFallbackLetter" style="display: none; width: 80px; height: 80px; border-radius: 50%; background: <?= $author['avatar_bg'] ?>; color: #ffffff; align-items: center; justify-content: center; font-size: 2rem; font-weight: 800; flex-shrink: 0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                            <?= $author['avatar_letter'] ?>
+                        </div>
                     <?php else: ?>
                         <div style="width: 80px; height: 80px; border-radius: 50%; background: <?= $author['avatar_bg'] ?>; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 800; flex-shrink: 0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
                             <?= $author['avatar_letter'] ?>
