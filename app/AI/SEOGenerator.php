@@ -32,7 +32,7 @@ Your task is to generate high-CTR, accurate meta tags, URL slugs, and genuinely 
 Current Lifecycle State: {$lifecycleStatus}.
 
 SEO SPECIFICATIONS:
-- SEO TITLE: Must be between 45 and 58 characters strictly. Must include the exact examination name, year, and highest-volume search intent keywords (e.g. "MHT CET 2026 CAP Round 4 Option Entry: Dates & Steps"). Do NOT add website name (handled automatically).
+- SEO TITLE: Must be between 50 and 60 characters strictly. Front-load the exact exam/authority name and year (e.g. "UPSC Result 2026 Declared: Direct Link"). ALWAYS retain active search milestone verbs ("Declared", "Released", "Out", "Direct Link", "Merit List PDF") and NEVER use passive words like "Status". Do NOT append website name (handled automatically in template).
 - META DESCRIPTION: Must be between 130 and 155 characters strictly. Must contain high-volume search queries (e.g. "direct link", "dates", "eligibility", "how to apply/check", "cutoff"), verified official portal name, and an urgent, helpful call to action to maximize Google Search CTR.
 - SLUG: 3 to 6 words, lowercase, hyphen-separated, containing only letters and numbers (e.g. "mht-cet-2026-cap-round-4-option-entry").
 - KEYWORDS: Array of 6 to 8 high-intent Indian student search queries (e.g. ["MHT CET CAP round 4 option entry", "MHT CET 2026 option form dates", "how to fill MHT CET option form"]).
@@ -54,7 +54,7 @@ ARTICLE CONTENT EXCERPT:
 
 Return your response strictly as a JSON object with this exact schema:
 {
-  "seo_title": "Optimized meta title under 55 characters",
+  "seo_title": "High-CTR search meta title (50-60 characters, front-loaded with exam name and action keyword like 'Declared' or 'Direct Link')",
   "meta_description": "Compelling meta description between 120-155 characters",
   "slug_suggestion": "clean-kebab-case-slug",
   "excerpt": "Lead excerpt for card previews under 160 characters",
