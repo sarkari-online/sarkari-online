@@ -70,6 +70,15 @@ class Firewall {
         $ip = self::getClientIp();
         $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
 
+        // 0. Inspect Blacklisted / Blocked IPs
+        $blockedIpsFile = dirname(__DIR__, 2) . '/storage/logs/blocked_ips.txt';
+        if (file_exists($blockedIpsFile)) {
+            $blockedIps = file($blockedIpsFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            if (!empty($blockedIps) && in_array($ip, array_map('trim', $blockedIps), true)) {
+                self::block($ip, "Blacklisted IP Address (Firewall Guard)", $uri);
+            }
+        }
+
         // 1. Inspect Malicious User-Agents
         foreach (self::BLOCKED_USER_AGENTS as $bot) {
             if (stripos($userAgent, $bot) !== false) {
