@@ -108,6 +108,26 @@ class TemporalRevalidationService {
             }
         }
 
+        // Statutory Authority Grounding: Ensure article is mapped to an authoritative .gov.in / official portal
+        $currentSource = $articleData['source_url'] ?? '';
+        if (empty($currentSource) || str_contains($currentSource, 'sarkari.online') || str_contains($currentSource, 'trends.google.com') || !filter_var($currentSource, FILTER_VALIDATE_URL)) {
+            $resolved = AuthorityFactFetcherService::resolveAuthority($articleData['title'], $currentSource);
+            if (!empty($resolved['portal']) && filter_var($resolved['portal'], FILTER_VALIDATE_URL)) {
+                $articleData['source_url'] = $resolved['portal'];
+                $articleData['authority_url'] = $resolved['portal'];
+                $articleData['source_name'] = $resolved['name'];
+                $articleData['authority_name'] = $resolved['name'];
+                $articleData['authority_tier'] = 'tier_1a';
+                Database::update('articles', [
+                    'source_url' => $resolved['portal'],
+                    'authority_url' => $resolved['portal'],
+                    'source_name' => $resolved['name'],
+                    'authority_name' => $resolved['name'],
+                    'authority_tier' => 'tier_1a'
+                ], 'id = :id', ['id' => $articleId]);
+            }
+        }
+
         $facts = TemporalFactService::getFactsMap($articleId);
         $lifecycle = $articleData['lifecycle_status'] ?? TemporalFactService::LIFECYCLE_ACTIVE;
 
