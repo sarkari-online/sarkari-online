@@ -60,8 +60,8 @@ $staticPages = [
     ['url' => 'jobs/jharkhand/', 'file' => __DIR__ . '/state-detail.php'],
     ['url' => 'jobs/uttarakhand/', 'file' => __DIR__ . '/state-detail.php'],
     ['url' => 'jobs/chhattisgarh/', 'file' => __DIR__ . '/state-detail.php'],
-    ['url' => 'author/priyanshu-sharma/', 'file' => __DIR__ . '/author.php'],
-    ['url' => 'author/neha-verma/', 'file' => __DIR__ . '/author.php'],
+    ['url' => 'author/ajay-mathur/', 'file' => __DIR__ . '/author.php'],
+    ['url' => 'author/editorial-desk/', 'file' => __DIR__ . '/author.php'],
 ];
 
 $seenUrls = [];

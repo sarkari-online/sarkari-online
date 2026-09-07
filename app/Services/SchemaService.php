@@ -46,6 +46,7 @@ class SchemaService {
                 'name'     => $authorData['name'],
                 'jobTitle' => $authorData['title'],
                 'url'      => $authorUrl,
+                'sameAs'   => !empty($authorData['linkedin']) ? $authorData['linkedin'] : $authorUrl,
                 'worksFor' => [
                     '@type' => 'NewsMediaOrganization',
                     'name'  => SITE_NAME,

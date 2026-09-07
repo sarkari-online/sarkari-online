@@ -40,6 +40,13 @@ class SEOHelper {
                 'postalCode'      => '110001',
                 'addressCountry'  => 'IN'
             ],
+            'founder'       => [
+                '@type'    => 'Person',
+                'name'     => 'Ajay Mathur',
+                'jobTitle' => 'Founder & Managing Editor',
+                'url'      => url('author/ajay-mathur/'),
+                'sameAs'   => 'https://www.linkedin.com/in/ajay-mathur-03a626254/'
+            ],
             'contactPoint'  => [
                 '@type'             => 'ContactPoint',
                 'contactType'       => 'Editorial & Fact-Checking Desk',

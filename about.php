@@ -44,42 +44,49 @@ include __DIR__ . '/components/header.php';
                     <li><strong>Career Roadmaps &amp; Student Tools:</strong> Pragmatic roadmaps in emerging engineering, healthcare, commerce, and responsible calculators (Age, 7th Pay Salary, CGPA).</li>
                 </ul>
 
-                <h2>Editorial Leadership &amp; Research Bureau</h2>
-                <p>Our reporting and analyses are conducted by credentialed education researchers, policy analysts, and data journalists dedicated to factual precision and zero speculative reporting:</p>
+                <h2>Editorial Leadership &amp; Fact-Checking Bureau</h2>
+                <p>Our reporting, gazette analysis, and data verification are directed by verified editorial leadership dedicated to factual precision and zero speculative reporting:</p>
 
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin: 1.5rem 0;">
-                    <!-- Lead Analyst: Priyanshu Sharma -->
+                    <!-- Founder & Managing Editor: Ajay Mathur -->
                     <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
                         <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
                             <div style="width: 44px; height: 44px; border-radius: 50%; background: #1e3a8a; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.2rem;">
-                                P
+                                A
                             </div>
                             <div>
                                 <h3 style="font-size: 1.05rem; margin: 0; color: #0f172a;">
-                                    <a href="<?= url('author/priyanshu-sharma/') ?>" style="color: inherit; text-decoration: none;">Priyanshu Sharma</a>
+                                    <a href="<?= url('author/ajay-mathur/') ?>" style="color: inherit; text-decoration: none;">Ajay Mathur</a>
                                 </h3>
-                                <p style="font-size: 0.785rem; color: #1e3a8a; font-weight: 700; margin: 0;">Senior Examination &amp; Policy Analyst</p>
+                                <p style="font-size: 0.785rem; color: #1e3a8a; font-weight: 700; margin: 0;">Founder &amp; Managing Editor</p>
                             </div>
                         </div>
-                        <p style="font-size: 0.8125rem; color: #475569; line-height: 1.5; margin-bottom: 0.75rem;">8+ years evaluating UPSC, SSC, Defence, and State PSC notifications. M.A. in Public Administration, University of Delhi.</p>
-                        <a href="<?= url('author/priyanshu-sharma/') ?>" style="font-size: 0.785rem; font-weight: 700; color: #1e3a8a; text-decoration: none;">View Profile &amp; Articles &rarr;</a>
+                        <p style="font-size: 0.8125rem; color: #475569; line-height: 1.5; margin-bottom: 0.75rem;">Leads editorial strategy, fact-checking workflows, and statutory gazette verification across Indian examinations and government employment notifications.</p>
+                        <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                            <a href="<?= url('author/ajay-mathur/') ?>" style="font-size: 0.785rem; font-weight: 700; color: #1e3a8a; text-decoration: none;">View Profile &amp; Articles &rarr;</a>
+                            <span style="color: #cbd5e1;">&bull;</span>
+                            <a href="https://www.linkedin.com/in/ajay-mathur-03a626254/" target="_blank" rel="noopener noreferrer" style="font-size: 0.785rem; font-weight: 700; color: #0a66c2; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.25V10.9H6.46M7.86 6.55a1.64 1.64 0 0 0-1.63 1.64c0 .9.73 1.63 1.63 1.63a1.64 1.64 0 0 0 1.64-1.63c0-.91-.74-1.64-1.64-1.64Z"/></svg>
+                                Official LinkedIn
+                            </a>
+                        </div>
                     </div>
 
-                    <!-- Lead Analyst: Neha Verma -->
+                    <!-- Editorial Verification Desk -->
                     <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
                         <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
                             <div style="width: 44px; height: 44px; border-radius: 50%; background: #047857; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.2rem;">
-                                N
+                                S
                             </div>
                             <div>
                                 <h3 style="font-size: 1.05rem; margin: 0; color: #0f172a;">
-                                    <a href="<?= url('author/neha-verma/') ?>" style="color: inherit; text-decoration: none;">Neha Verma</a>
+                                    <a href="<?= url('author/editorial-desk/') ?>" style="color: inherit; text-decoration: none;">Editorial &amp; Verification Desk</a>
                                 </h3>
-                                <p style="font-size: 0.785rem; color: #047857; font-weight: 700; margin: 0;">Admissions &amp; Entrance Desk Lead</p>
+                                <p style="font-size: 0.785rem; color: #047857; font-weight: 700; margin: 0;">Statutory Compliance Unit</p>
                             </div>
                         </div>
-                        <p style="font-size: 0.8125rem; color: #475569; line-height: 1.5; margin-bottom: 0.75rem;">6+ years tracking NTA entrance examinations (NEET, JEE, CUET), JoSAA counselling, and scholarships. M.Sc. Jamia Millia Islamia.</p>
-                        <a href="<?= url('author/neha-verma/') ?>" style="font-size: 0.785rem; font-weight: 700; color: #047857; text-decoration: none;">View Profile &amp; Articles &rarr;</a>
+                        <p style="font-size: 0.8125rem; color: #475569; line-height: 1.5; margin-bottom: 0.75rem;">Collaborative research unit responsible for tracking real-time commission bulletins, answer key release windows, and official press releases.</p>
+                        <a href="<?= url('author/editorial-desk/') ?>" style="font-size: 0.785rem; font-weight: 700; color: #047857; text-decoration: none;">View Desk Coverage &rarr;</a>
                     </div>
                 </div>
 

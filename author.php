@@ -13,13 +13,13 @@ use App\Services\ArticleService;
 // Resolve author slug from query parameter
 $authorSlug = trim($_GET['slug'] ?? '');
 if (empty($authorSlug)) {
-    $authorSlug = 'priyanshu-sharma';
+    $authorSlug = 'ajay-mathur';
 }
 
 $author = AuthorService::getBySlug($authorSlug);
 if (!$author) {
-    // Check if user visited generic /author/ or invalid slug -> redirect to Priyanshu Sharma
-    redirect(url('author/priyanshu-sharma/'), 301);
+    // Check if user visited generic /author/ or invalid slug -> redirect to Ajay Mathur
+    redirect(url('author/ajay-mathur/'), 301);
     exit;
 }
 
@@ -28,30 +28,32 @@ $articles = AuthorService::getArticlesByAuthor($authorSlug, 24);
 
 // SEO Meta
 $pageTitle = $author['name'] . ' - ' . $author['title'] . ' | Sarkari.online';
-$metaDescription = $author['name'] . ' is a ' . $author['title'] . ' at Sarkari.online. Read verified examination analyses, statutory updates, and admission guides.';
+$metaDescription = $author['name'] . ' is the ' . $author['title'] . ' of Sarkari.online. Read verified examination analyses, statutory updates, and admission guides.';
 $canonicalUrl = url('author/' . $author['slug'] . '/');
 
 // Person & ProfilePage JSON-LD Schema
+$mainEntity = [
+    '@type'       => 'Person',
+    'name'        => $author['name'],
+    'jobTitle'    => $author['title'],
+    'description' => $author['bio'],
+    'url'         => $canonicalUrl,
+    'worksFor'    => [
+        '@type' => 'NewsMediaOrganization',
+        'name'  => SITE_NAME,
+        'url'   => SITE_URL
+    ],
+    'knowsAbout'  => $author['focus_areas']
+];
+
+if (!empty($author['linkedin'])) {
+    $mainEntity['sameAs'] = [$author['linkedin']];
+}
+
 $profileSchema = [
-    '@context' => 'https://schema.org',
-    '@type'    => 'ProfilePage',
-    'mainEntity' => [
-        '@type'       => 'Person',
-        'name'        => $author['name'],
-        'jobTitle'    => $author['title'],
-        'description' => $author['bio'],
-        'url'         => $canonicalUrl,
-        'alumniOf'    => [
-            '@type' => 'EducationalOrganization',
-            'name'  => $author['education']
-        ],
-        'worksFor'    => [
-            '@type' => 'NewsMediaOrganization',
-            'name'  => SITE_NAME,
-            'url'   => SITE_URL
-        ],
-        'knowsAbout'  => $author['focus_areas']
-    ]
+    '@context'   => 'https://schema.org',
+    '@type'      => 'ProfilePage',
+    'mainEntity' => $mainEntity
 ];
 
 $extraHead = '<script type="application/ld+json">' . json_encode($profileSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>';
@@ -95,9 +97,17 @@ include __DIR__ . '/components/header.php';
                         <div style="font-size: 0.95rem; font-weight: 700; color: #1e3a8a; margin-bottom: 0.25rem;">
                             <?= e($author['title']) ?>
                         </div>
-                        <div style="font-size: 0.8125rem; color: #64748b; margin-bottom: 0.75rem;">
+                        <div style="font-size: 0.8125rem; color: #64748b; margin-bottom: 0.5rem;">
                             <?= e($author['role']) ?> &bull; <strong><?= e($author['experience']) ?></strong>
                         </div>
+                        <?php if (!empty($author['linkedin'])): ?>
+                            <div>
+                                <a href="<?= e($author['linkedin']) ?>" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.8125rem; font-weight: 700; color: #0a66c2; background: #e8f3fc; border: 1px solid #cbe4f9; padding: 4px 12px; border-radius: 6px; text-decoration: none;">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.25V10.9H6.46M7.86 6.55a1.64 1.64 0 0 0-1.63 1.64c0 .9.73 1.63 1.63 1.63a1.64 1.64 0 0 0 1.64-1.63c0-.91-.74-1.64-1.64-1.64Z"/></svg>
+                                    Connect on LinkedIn &rarr;
+                                </a>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
 
