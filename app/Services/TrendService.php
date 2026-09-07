@@ -147,9 +147,14 @@ class TrendService {
             ['rrb', 'ntpc'],
             ['rrb', 'recruitment'],
             ['bpsc', 'tre'],
+            ['bpsc', 'cce'],
             ['sbi', 'po'],
             ['ibps', 'rrb'],
-            ['cbse', 'board']
+            ['cbse', 'board'],
+            ['nsp', 'otr'],
+            ['nsp', 'registration'],
+            ['nsp', 'scholarship'],
+            ['upsssc', 'pet']
         ];
 
         foreach ($entities as $pair) {
@@ -241,7 +246,7 @@ class TrendService {
      */
     public static function isAuthorityCoveredRecently(string $keyword, int $hours = 12): bool {
         $kwLower = mb_strtolower($keyword);
-        $entities = ['upsc', 'nda', 'cds', 'ssc', 'nta', 'cbse', 'rrb', 'ibps', 'ugc', 'neet', 'jee', 'ctet', 'gate', 'cat', 'clat', 'aibe'];
+        $entities = ['upsc', 'nda', 'cds', 'ssc', 'nta', 'cbse', 'rrb', 'ibps', 'ugc', 'neet', 'jee', 'ctet', 'gate', 'cat', 'clat', 'aibe', 'nsp', 'otr', 'bpsc', 'uppsc', 'upsssc', 'mpsc', 'rpsc', 'hssc', 'jssc', 'wbpsc', 'ukpsc'];
 
         $detectedEntity = null;
         foreach ($entities as $ent) {
@@ -258,6 +263,9 @@ class TrendService {
             elseif (str_contains($kwLower, 'national testing agency')) $detectedEntity = 'nta';
             elseif (str_contains($kwLower, 'central board of secondary education')) $detectedEntity = 'cbse';
             elseif (str_contains($kwLower, 'railway recruitment board')) $detectedEntity = 'rrb';
+            elseif (str_contains($kwLower, 'national scholarship portal') || str_contains($kwLower, 'one time registration')) $detectedEntity = 'nsp';
+            elseif (str_contains($kwLower, 'uttar pradesh subordinate') || str_contains($kwLower, 'upsssc')) $detectedEntity = 'upsssc';
+            elseif (str_contains($kwLower, 'bihar public service commission') || str_contains($kwLower, 'bpsc')) $detectedEntity = 'bpsc';
         }
 
         if (!$detectedEntity) {
