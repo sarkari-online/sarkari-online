@@ -105,14 +105,14 @@ foreach (array_merge($toolsLinks, $portalLinks) as $ml) {
             <span class="nav-dropdown-chevron-icon"><?= icon('chevron-right', 'icon-xs') ?></span>
         </button>
         
-        <div class="nav-dropdown-menu nav-mega-menu">
+        <div class="nav-dropdown-menu nav-mega-menu" style="width: 670px; max-width: calc(100vw - 2rem);">
             <div class="mega-menu-grid">
                 
                 <!-- Column 1: Examination & Student Tools -->
                 <div class="mega-menu-col">
-                    <div class="mega-menu-col-header">
+                    <div class="mega-menu-col-header" style="gap: 8px;">
                         <span class="mega-col-title">Examination Tools</span>
-                        <span class="mega-col-badge">Interactive</span>
+                        <span class="mega-col-badge" style="white-space: nowrap; flex-shrink: 0;">Interactive</span>
                     </div>
                     <div class="mega-menu-items">
                         <?php foreach ($toolsLinks as $tl): 
@@ -133,9 +133,9 @@ foreach (array_merge($toolsLinks, $portalLinks) as $ml) {
 
                 <!-- Column 2: Academic & Career Portals -->
                 <div class="mega-menu-col">
-                    <div class="mega-menu-col-header">
+                    <div class="mega-menu-col-header" style="gap: 8px;">
                         <span class="mega-col-title">Academic &amp; Career Portals</span>
-                        <span class="mega-col-badge">Live Updates</span>
+                        <span class="mega-col-badge" style="white-space: nowrap; flex-shrink: 0;">Live Updates</span>
                     </div>
                     <div class="mega-menu-items">
                         <?php foreach ($portalLinks as $pl): 
