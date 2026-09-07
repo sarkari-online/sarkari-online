@@ -196,6 +196,9 @@ RULES:
 - ONLY modify sections affected by verified new facts (e.g. date change, result declared, link active, corrigendum).
 - PRESERVE the existing structure, clarity, and tone.
 - If there are NO meaningful changes or new information is already covered, set has_meaningful_update to false.
+- STRICTLY FORBIDDEN: NEVER fabricate, invent, or estimate exam shift timings, gate closure hours, reporting times, dress codes, or shoe/footwear bans.
+- STRICTLY FORBIDDEN: NEVER claim results or cut-off marks are declared unless the new information contains an official declaration circular.
+- STRICTLY FORBIDDEN: NEVER mix historical exam years or multi-cycle notifications (e.g. Tier 1 & Tier 2 for exams not yet conducted).
 
 EXISTING ARTICLE:
 Title: {$article['title']}
