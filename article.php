@@ -24,6 +24,7 @@ $article = $slug !== '' ? ArticleService::getBySlug($slug, $allowDraft) : null;
 // 301 SEO Fallback: If old or renamed slug requested, auto-redirect permanently
 if (!$article && $slug !== '') {
     $legacySlugRedirects = [
+        'upssc-junior-assistant-lekhpal-2026-admit-card' => 'upsssc-junior-assistant-lekhpal-2026-admit-card',
         'bpsc-combined-state-exam-2026-admit-card' => 'bpsc-72nd-cce-prelims-2026-admit-card',
         'ibps-po-2026-prelims-admit-card-download-active' => 'ibps-po-2026-prelims-exam-concluded',
         'punjab-pti-recruitment-2026-apply-now' => 'punjab-pti-recruitment-2026-cancelled-fee-refund',
