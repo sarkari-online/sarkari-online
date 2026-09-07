@@ -24,8 +24,22 @@ if (!empty($termSlug)) {
         exit;
     }
 
-    $pageTitle = "Full Form of {$term['acronym']} — {$term['full_form_en']} ({$term['full_form_hi']}) | " . SITE_NAME;
-    $pageDesc = "What is the official full form of {$term['acronym']}? Complete full form is {$term['full_form_en']} ({$term['full_form_hi']}). Official overview, eligibility criteria, selection process, and authority portal.";
+    // Optimal SERP Title: 45-60 characters (strictly <= 60 chars for search engines)
+    $candidateTitle = "{$term['acronym']} Full Form: {$term['full_form_en']}";
+    if (mb_strlen($candidateTitle) <= 42) {
+        $pageTitle = $candidateTitle . ' | ' . SITE_NAME;
+    } elseif (mb_strlen($candidateTitle) <= 60) {
+        $pageTitle = $candidateTitle;
+    } else {
+        $pageTitle = "{$term['acronym']} Full Form & Meaning | " . SITE_NAME;
+    }
+
+    // Concise Meta Description: 140-155 characters (ideal SERP snippet without truncation)
+    $pageDesc = "What is the full form of {$term['acronym']}? Official full form is {$term['full_form_en']}. Check eligibility criteria, selection process and official updates.";
+    if (mb_strlen($pageDesc) > 155) {
+        $pageDesc = "Full form of {$term['acronym']} is {$term['full_form_en']}. Check official overview, eligibility criteria, selection stages and updates on Sarkari.online.";
+    }
+
     $canonicalUrl = url("full-forms/{$term['slug']}/");
     $ogType = 'article';
 
@@ -68,7 +82,7 @@ if (!empty($termSlug)) {
     ?>
 
     <main class="site-main" style="padding: 2rem 0 5rem 0; background: #f8fafc;">
-        <div class="container" style="max-width: 960px;">
+        <div class="container">
             
             <!-- Breadcrumbs -->
             <nav class="breadcrumb-nav" aria-label="Breadcrumb" style="margin-bottom: 1.5rem;">
@@ -97,10 +111,10 @@ if (!empty($termSlug)) {
                     Full Form of <?= e($term['acronym']) ?>
                 </h1>
 
-                <!-- Direct Answer Official Definition Box (High Authority Snippet) -->
-                <div style="background: #f8fafc; border-left: 4px solid #1e3a8a; border-top: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; border-radius: 8px; padding: 1.5rem; margin: 1.5rem 0 2rem 0;">
-                    <div style="font-size: 0.75rem; font-weight: 800; color: #1e3a8a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.45rem; display: flex; align-items: center; gap: 6px;">
-                        <span>🏛️ OFFICIAL DIRECT DEFINITION</span>
+                <!-- Direct Answer Official Definition Box (Simple clean card, no left border) -->
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.5rem; margin: 1.5rem 0 2rem 0;">
+                    <div style="font-size: 0.75rem; font-weight: 700; color: #1e3a8a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.45rem;">
+                        Official Full Form &amp; Meaning
                     </div>
                     <div style="font-size: 1.45rem; font-weight: 800; color: #0f172a; line-height: 1.3; margin-bottom: 0.35rem;">
                         <?= e($term['full_form_en']) ?>
@@ -131,7 +145,7 @@ if (!empty($termSlug)) {
                 <!-- Structured Factual Sections -->
                 <div style="font-size: 0.95rem; color: #334155; line-height: 1.7;">
                     
-                    <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 1.75rem 0 0.5rem 0; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.4rem;">
+                    <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 2rem 0 0.5rem 0;">
                         1. Official Mandate, Scope &amp; Background
                     </h2>
                     <p style="margin: 0 0 1.25rem 0;">
@@ -139,7 +153,7 @@ if (!empty($termSlug)) {
                     </p>
 
                     <?php if (!empty($term['eligibility_criteria'])): ?>
-                        <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 1.75rem 0 0.5rem 0; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.4rem;">
+                        <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 2rem 0 0.5rem 0;">
                             2. Eligibility Criteria, Qualifications &amp; Age Limits
                         </h2>
                         <p style="margin: 0 0 1.25rem 0;">
@@ -148,7 +162,7 @@ if (!empty($termSlug)) {
                     <?php endif; ?>
 
                     <?php if (!empty($term['selection_process'])): ?>
-                        <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 1.75rem 0 0.5rem 0; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.4rem;">
+                        <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 2rem 0 0.5rem 0;">
                             3. Examination Scheme &amp; Selection Procedure
                         </h2>
                         <p style="margin: 0 0 1.25rem 0;">
@@ -157,7 +171,7 @@ if (!empty($termSlug)) {
                     <?php endif; ?>
 
                     <?php if (!empty($term['syllabus_snapshot'])): ?>
-                        <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 1.75rem 0 0.5rem 0; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.4rem;">
+                        <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 2rem 0 0.5rem 0;">
                             4. Core Syllabus &amp; Key Subjects
                         </h2>
                         <p style="margin: 0 0 1.25rem 0;">
@@ -228,8 +242,8 @@ $alphabetCounts = GlossaryService::getAlphabetCounts();
 $categoryCounts = GlossaryService::getCategoryCounts();
 $totalCount = GlossaryService::getTotalCount();
 
-$pageTitle = "A-to-Z Government & Examination Full Forms Directory | " . SITE_NAME;
-$pageDesc = "Complete A-to-Z directory of Indian government exams, defence forces, banking bodies, civil services, and technical degrees in English & Hindi with official eligibility criteria.";
+$pageTitle = "A to Z Govt & Exam Full Forms Directory | " . SITE_NAME;
+$pageDesc = "Complete A-to-Z directory of Indian government exams, defence, banking, civil services, and technical full forms with eligibility on Sarkari.online.";
 $canonicalUrl = url('full-forms/');
 $ogType = 'website';
 
@@ -273,7 +287,7 @@ include __DIR__ . '/components/header.php';
         <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 2.25rem; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);">
             <div style="max-width: 860px;">
                 <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 0.75rem; background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; margin-bottom: 0.85rem;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                     <span>Official Statutory &amp; Academic Lexicon &middot; <?= $totalCount ?> Terms Indexed (A-Z)</span>
                 </div>
                 <h1 style="font-size: 1.85rem; font-weight: 800; line-height: 1.25; margin: 0 0 0.6rem 0; color: #0f172a; letter-spacing: -0.02em;">
