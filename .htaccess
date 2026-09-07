@@ -51,6 +51,7 @@
     RewriteRule ^jobs/([a-zA-Z0-9_-]+)/?$ state-detail.php?state=$1 [L,QSA]
     RewriteRule ^full-forms/?$ full-forms.php [L,QSA]
     RewriteRule ^full-forms/([a-zA-Z0-9_-]+)/?$ full-forms.php?term=$1 [L,QSA]
+    RewriteRule ^author/([a-zA-Z0-9_-]+)/?$ author.php?slug=$1 [L,QSA]
 
     # Serve existing files and directories directly
     RewriteCond %{REQUEST_FILENAME} -f [OR]

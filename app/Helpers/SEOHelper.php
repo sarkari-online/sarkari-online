@@ -12,23 +12,47 @@ class SEOHelper {
     /**
      * Generate Organization JSON-LD with verified branding & Knowledge Graph identifiers
      */
+    /**
+     * Generate NewsMediaOrganization JSON-LD with verified branding, Barakhamba Road address & Knowledge Graph identifiers
+     */
     public static function organizationSchema(): string {
         $siteUrl = rtrim(SITE_URL, '/') . '/';
         $schema = [
-            '@context' => 'https://schema.org',
-            '@type' => 'EducationalOrganization',
-            'name' => SITE_NAME,
+            '@context'      => 'https://schema.org',
+            '@type'         => 'NewsMediaOrganization',
+            '@id'           => $siteUrl . '#organization',
+            'name'          => SITE_NAME,
             'alternateName' => ['Sarkari Online', 'sarkari.online', 'SarkariOnline', 'Sarkari Result'],
-            'url' => $siteUrl,
-            'description' => SITE_DESCRIPTION,
-            'logo' => [
-                '@type' => 'ImageObject',
-                'url' => url('assets/favicon-192x192.png'),
-                'width' => 192,
-                'height' => 192
+            'url'           => $siteUrl,
+            'description'   => SITE_DESCRIPTION,
+            'logo'          => [
+                '@type'   => 'ImageObject',
+                'url'     => url('assets/sarkari-logo-transparent.png'),
+                'width'   => 200,
+                'height'  => 60,
+                'caption' => SITE_NAME . ' Official Logo'
             ],
-            'sameAs' => [
-                'https://twitter.com/SarkariOnline'
+            'address'       => [
+                '@type'           => 'PostalAddress',
+                'streetAddress'   => '14, Barakhamba Road, Connaught Place',
+                'addressLocality' => 'New Delhi',
+                'addressRegion'   => 'Delhi',
+                'postalCode'      => '110001',
+                'addressCountry'  => 'IN'
+            ],
+            'contactPoint'  => [
+                '@type'             => 'ContactPoint',
+                'contactType'       => 'Editorial & Fact-Checking Desk',
+                'email'             => 'desk@sarkari.online',
+                'availableLanguage' => ['English', 'Hindi']
+            ],
+            'publishingPrinciples' => url('editorial-policy/'),
+            'correctionsPolicy'    => url('editorial-policy/'),
+            'diversityPolicy'      => url('about/'),
+            'ethicsPolicy'         => url('ai-policy/'),
+            'sameAs'        => [
+                'https://twitter.com/SarkariOnline',
+                'https://t.me/sarkarionline'
             ]
         ];
 

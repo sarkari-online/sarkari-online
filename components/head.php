@@ -213,6 +213,9 @@ if (!$isAdminSession):
     <?php if (!empty($customHeadHtml)): ?>
         <?= $customHeadHtml ?>
     <?php endif; ?>
+    <?php if (!empty($extraHead)): ?>
+        <?= $extraHead ?>
+    <?php endif; ?>
 </head>
 <body>
     <?php if (!$isAdminSession): ?>

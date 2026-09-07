@@ -23,6 +23,9 @@ class SchemaService {
         $image   = !empty($article['featured_image']) ? url($article['featured_image']) : url('assets/images/default-share.jpg');
         $desc    = strip_tags($article['excerpt'] ?? $article['meta_description'] ?? '');
 
+        $authorData = \App\Services\AuthorService::getAuthorForArticle($article);
+        $authorUrl  = SITE_URL . '/author/' . $authorData['slug'] . '/';
+
         // 1. Primary Article / NewsArticle Schema (100% supported by Google Search)
         $primarySchema = [
             '@context'         => 'https://schema.org',
@@ -39,9 +42,15 @@ class SchemaService {
                 'height' => 675
             ],
             'author'           => [
-                '@type' => 'Organization',
-                'name'  => SITE_NAME,
-                'url'   => SITE_URL
+                '@type'    => 'Person',
+                'name'     => $authorData['name'],
+                'jobTitle' => $authorData['title'],
+                'url'      => $authorUrl,
+                'worksFor' => [
+                    '@type' => 'NewsMediaOrganization',
+                    'name'  => SITE_NAME,
+                    'url'   => SITE_URL
+                ]
             ],
             'publisher'        => [
                 '@type' => 'Organization',

@@ -73,6 +73,20 @@ if (!empty($cleanPath) && $cleanPath !== 'index.php') {
         exit;
     }
 
+    // Dynamic Author Profile Router: route /author or /author/{slug}
+    if ($cleanPath === 'author' || $cleanPath === 'author/') {
+        require __DIR__ . '/author.php';
+        exit;
+    }
+    if (str_starts_with($cleanPath, 'author/')) {
+        $authorSlug = trim(substr($cleanPath, 7), '/');
+        if (!empty($authorSlug)) {
+            $_GET['slug'] = $authorSlug;
+        }
+        require __DIR__ . '/author.php';
+        exit;
+    }
+
     require __DIR__ . '/404.php';
     exit;
 }

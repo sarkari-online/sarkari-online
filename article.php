@@ -6,6 +6,7 @@
 require_once __DIR__ . '/config.php';
 
 use App\Services\ArticleService;
+use App\Services\AuthorService;
 use App\Services\SchemaService;
 use App\Services\FeaturedSnippetService;
 use App\Helpers\Auth;
@@ -50,18 +51,15 @@ if (!$article) {
     exit;
 }
 
-// Normalize author format
-$authorName = 'Sarkari.online Editorial Desk';
-$authorTitle = 'Education & Career Analyst';
-$authorBio = 'Providing verified updates and guides on Indian examinations, admissions, and recruitment notifications.';
-
-if (!empty($article['author_username']) && strtolower($article['author_username']) !== 'admin') {
-    $authorName = $article['author_username'];
-} elseif (!empty($article['author']) && is_array($article['author'])) {
-    $authorName = ($article['author']['name'] ?? '') !== 'admin' ? ($article['author']['name'] ?? $authorName) : $authorName;
-    $authorTitle = $article['author']['title'] ?? $authorTitle;
-    $authorBio = $article['author']['bio'] ?? $authorBio;
-}
+// Normalize author format via verified AuthorService
+$authorData = AuthorService::getAuthorForArticle($article);
+$authorName = $authorData['name'];
+$authorTitle = $authorData['title'];
+$authorBio = $authorData['bio'];
+$authorSlug = $authorData['slug'];
+$authorUrl = url('author/' . $authorSlug . '/');
+$authorAvatar = $authorData['avatar_letter'];
+$authorBg = $authorData['avatar_bg'];
 
 // Normalize source format
 $sourceName = $article['source_name'] ?? (is_array($article['source'] ?? null) ? $article['source']['name'] : 'Official Statutory Authority');
@@ -177,11 +175,14 @@ include __DIR__ . '/components/header.php';
                     <!-- Author and Timestamp Byline -->
                     <div class="article-byline">
                         <div class="byline-author-info">
-                            <div class="author-avatar">
-                                <?= mb_substr($authorName, 0, 1) ?>
-                            </div>
+                            <a href="<?= $authorUrl ?>" class="author-avatar" style="text-decoration: none; background: <?= $authorBg ?>; color: #fff;" aria-label="Author Profile: <?= e($authorName) ?>">
+                                <?= $authorAvatar ?>
+                            </a>
                             <div>
-                                <div class="byline-author-name"><?= e($authorName) ?></div>
+                                <a href="<?= $authorUrl ?>" class="byline-author-name" style="text-decoration: none; color: inherit; display: inline-flex; align-items: center; gap: 4px;">
+                                    <?= e($authorName) ?>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#047857" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" title="Verified Analyst"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                </a>
                                 <div style="font-size: 0.75rem; color: var(--text-muted);"><?= e($authorTitle) ?></div>
                             </div>
                         </div>
@@ -339,15 +340,35 @@ include __DIR__ . '/components/header.php';
                     </button>
                 </div>
 
-                <!-- Author Bio Card -->
-                <div class="author-bio-card">
-                    <div class="author-bio-avatar">
-                        <?= mb_substr($authorName, 0, 1) ?>
-                    </div>
-                    <div class="author-bio-details">
-                        <h4><?= e($authorName) ?></h4>
-                        <div class="author-bio-role"><?= e($authorTitle) ?></div>
-                        <p class="author-bio-desc"><?= e($authorBio) ?></p>
+                <!-- Author Bio Card (E-E-A-T Verified Authority) -->
+                <div class="author-bio-card" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; display: flex; gap: 1.25rem; align-items: flex-start; margin-top: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                    <a href="<?= $authorUrl ?>" class="author-bio-avatar" style="width: 58px; height: 58px; border-radius: 50%; background: <?= $authorBg ?>; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; flex-shrink: 0; text-decoration: none;" aria-label="Author profile for <?= e($authorName) ?>">
+                        <?= $authorAvatar ?>
+                    </a>
+                    <div class="author-bio-details" style="flex: 1;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.25rem;">
+                            <h4 style="margin: 0; font-size: 1.05rem; font-weight: 800; color: #0f172a;">
+                                <a href="<?= $authorUrl ?>" style="color: inherit; text-decoration: none;">
+                                    <?= e($authorName) ?>
+                                </a>
+                            </h4>
+                            <span style="font-size: 0.7rem; font-weight: 700; color: #047857; background: #ecfdf5; border: 1px solid #a7f3d0; padding: 2px 8px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px;">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                Verified Education Analyst
+                            </span>
+                        </div>
+                        <div class="author-bio-role" style="font-size: 0.8125rem; font-weight: 700; color: #1e3a8a; margin-bottom: 0.5rem;">
+                            <?= e($authorTitle) ?> &bull; <?= e($authorData['experience']) ?>
+                        </div>
+                        <p class="author-bio-desc" style="font-size: 0.8125rem; color: #475569; line-height: 1.5; margin: 0 0 0.75rem 0;">
+                            <?= e($authorBio) ?>
+                        </p>
+                        <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #f1f5f9; padding-top: 0.65rem; font-size: 0.775rem; flex-wrap: wrap; gap: 0.5rem;">
+                            <span style="color: #64748b;"><strong>Background:</strong> <?= e($authorData['education']) ?></span>
+                            <a href="<?= $authorUrl ?>" style="color: #1e3a8a; font-weight: 700; text-decoration: none;">
+                                View All Articles &rarr;
+                            </a>
+                        </div>
                     </div>
                 </div>
 

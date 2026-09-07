@@ -45,19 +45,41 @@ include __DIR__ . '/components/header.php';
                 </ul>
 
                 <h2>Editorial Leadership &amp; Research Bureau</h2>
-                <p>Our reporting is driven by experienced education analysts and data journalists dedicated to factual precision:</p>
+                <p>Our reporting and analyses are conducted by credentialed education researchers, policy analysts, and data journalists dedicated to factual precision and zero speculative reporting:</p>
 
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin: 1.5rem 0;">
-                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.25rem;">
-                        <h3 style="font-size: 1.05rem; margin-bottom: 0.25rem; color: #0f172a;">Editorial Directorate</h3>
-                        <p style="font-size: 0.85rem; color: #2563eb; font-weight: 700; margin-bottom: 0.5rem;">Sarkari.online Central Newsroom</p>
-                        <p style="font-size: 0.85rem; color: #475569; line-height: 1.5;">Supervises statutory gazette verification, entrance exam updates, and direct coordination with statutory board bulletins across India.</p>
+                    <!-- Lead Analyst: Priyanshu Sharma -->
+                    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+                            <div style="width: 44px; height: 44px; border-radius: 50%; background: #1e3a8a; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.2rem;">
+                                P
+                            </div>
+                            <div>
+                                <h3 style="font-size: 1.05rem; margin: 0; color: #0f172a;">
+                                    <a href="<?= url('author/priyanshu-sharma/') ?>" style="color: inherit; text-decoration: none;">Priyanshu Sharma</a>
+                                </h3>
+                                <p style="font-size: 0.785rem; color: #1e3a8a; font-weight: 700; margin: 0;">Senior Examination &amp; Policy Analyst</p>
+                            </div>
+                        </div>
+                        <p style="font-size: 0.8125rem; color: #475569; line-height: 1.5; margin-bottom: 0.75rem;">8+ years evaluating UPSC, SSC, Defence, and State PSC notifications. M.A. in Public Administration, University of Delhi.</p>
+                        <a href="<?= url('author/priyanshu-sharma/') ?>" style="font-size: 0.785rem; font-weight: 700; color: #1e3a8a; text-decoration: none;">View Profile &amp; Articles &rarr;</a>
                     </div>
 
-                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.25rem;">
-                        <h3 style="font-size: 1.05rem; margin-bottom: 0.25rem; color: #0f172a;">Fact-Checking &amp; Data Verification Desk</h3>
-                        <p style="font-size: 0.85rem; color: #2563eb; font-weight: 700; margin-bottom: 0.5rem;">Statutory Compliance Unit</p>
-                        <p style="font-size: 0.85rem; color: #475569; line-height: 1.5;">Cross-references all cut-off marks, question paper keys, and application links against official statutory (.gov.in / .nic.in) portals before clearing for publication.</p>
+                    <!-- Lead Analyst: Neha Verma -->
+                    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+                            <div style="width: 44px; height: 44px; border-radius: 50%; background: #047857; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.2rem;">
+                                N
+                            </div>
+                            <div>
+                                <h3 style="font-size: 1.05rem; margin: 0; color: #0f172a;">
+                                    <a href="<?= url('author/neha-verma/') ?>" style="color: inherit; text-decoration: none;">Neha Verma</a>
+                                </h3>
+                                <p style="font-size: 0.785rem; color: #047857; font-weight: 700; margin: 0;">Admissions &amp; Entrance Desk Lead</p>
+                            </div>
+                        </div>
+                        <p style="font-size: 0.8125rem; color: #475569; line-height: 1.5; margin-bottom: 0.75rem;">6+ years tracking NTA entrance examinations (NEET, JEE, CUET), JoSAA counselling, and scholarships. M.Sc. Jamia Millia Islamia.</p>
+                        <a href="<?= url('author/neha-verma/') ?>" style="font-size: 0.785rem; font-weight: 700; color: #047857; text-decoration: none;">View Profile &amp; Articles &rarr;</a>
                     </div>
                 </div>
 
