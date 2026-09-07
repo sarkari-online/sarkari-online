@@ -187,8 +187,8 @@ class PipelineService {
         usleep(2500000);
 
         // 3b. Milestone & Search Intent Keyword Preservation Guard
-        // Guarantees breaking news keywords (Result Declared, Admit Card Released, Direct Link) are never downgraded to passive "Status"
-        $polished['edited_title'] = self::preserveMilestoneKeywords($polished['edited_title'], $trend['keyword']);
+        // Retains active milestone keywords (Result Declared, Admit Card Released) ONLY when verified by official facts (never if awaited)
+        $polished['edited_title'] = self::preserveMilestoneKeywords($polished['edited_title'], $trend['keyword'], $polished['edited_content']);
 
         // 4. Contextual Internal Linking
         $availableArticles = ArticleService::getLatestPublished(20);
@@ -659,13 +659,18 @@ class PipelineService {
 
     /**
      * Preserve high-CTR search milestones and action keywords (Result Declared, Admit Card Released, Direct Link, etc.)
-     * Prevents LLMs from diluting or downgrading active announcements to passive phrases like "Result Status".
+     * ONLY when the official content confirms the milestone is live (NEVER overrides if milestone is awaited or unannounced).
      */
-    public static function preserveMilestoneKeywords(string $title, string $sourceKeyword): string {
+    public static function preserveMilestoneKeywords(string $title, string $sourceKeyword, string $content = ''): string {
         $t = trim($title);
 
-        // 1. Result Declared / Out preservation
-        if (preg_match('/\b(result.*(?:declared|announced|out)|(?:declared|out).*result)\b/i', $sourceKeyword)) {
+        // Truth & Accuracy Guard: If the content explicitly states that the milestone is awaited/unannounced,
+        // do NOT override to "Declared" or "Released" (prevents misleading clickbait / content mismatch)
+        $isResultAwaited = preg_match('/(?:result[^.\n<]{0,40}(?:awaited|not\s+announced|to\s+be\s+announced|expected|under\s+evaluation))/i', $content);
+        $isAdmitAwaited  = preg_match('/(?:admit\s+card|hall\s+ticket)[^.\n<]{0,40}(?:awaited|not\s+announced|to\s+be\s+announced|expected)/i', $content);
+
+        // 1. Result Declared / Out preservation (ONLY if result is actually confirmed/declared in content, not awaited)
+        if (!$isResultAwaited && preg_match('/\b(result.*(?:declared|announced|out)|(?:declared|out).*result)\b/i', $sourceKeyword)) {
             if (preg_match('/\b(result\s+status|recruitment\s+status)\b/i', $t)) {
                 $t = preg_replace('/\b(result\s+status|recruitment\s+status)\b/i', 'Result Declared: Direct Link', $t);
             } elseif (!preg_match('/\b(declared|out|merit\s+list)\b/i', $t) && preg_match('/\bresult\b/i', $t)) {
@@ -673,8 +678,8 @@ class PipelineService {
             }
         }
 
-        // 2. Admit Card / Hall Ticket Out preservation
-        if (preg_match('/\b(admit\s+card|hall\s+ticket).*(?:released|out|available|download)\b/i', $sourceKeyword)) {
+        // 2. Admit Card / Hall Ticket Out preservation (ONLY if not awaited)
+        if (!$isAdmitAwaited && preg_match('/\b(admit\s+card|hall\s+ticket).*(?:released|out|available|download)\b/i', $sourceKeyword)) {
             if (preg_match('/\b(admit\s+card\s+status|hall\s+ticket\s+status)\b/i', $t)) {
                 $t = preg_replace('/\b(admit\s+card\s+status|hall\s+ticket\s+status)\b/i', 'Admit Card Released: Direct Link', $t);
             } elseif (!preg_match('/\b(released|out|download)\b/i', $t) && preg_match('/\b(admit\s+card|hall\s+ticket)\b/i', $t)) {
