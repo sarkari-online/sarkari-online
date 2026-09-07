@@ -32,14 +32,6 @@ class SEOHelper {
                 'height'  => 60,
                 'caption' => SITE_NAME . ' Official Logo'
             ],
-            'address'       => [
-                '@type'           => 'PostalAddress',
-                'streetAddress'   => '14, Barakhamba Road, Connaught Place',
-                'addressLocality' => 'New Delhi',
-                'addressRegion'   => 'Delhi',
-                'postalCode'      => '110001',
-                'addressCountry'  => 'IN'
-            ],
             'founder'       => [
                 '@type'    => 'Person',
                 'name'     => 'Ajay Mathur',

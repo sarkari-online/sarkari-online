@@ -99,11 +99,11 @@ include __DIR__ . '/components/header.php';
                     </div>
                 </div>
 
-                <h2>Physical Bureau &amp; Operations Office</h2>
+                <h2>Editorial &amp; Operations Desk</h2>
                 <div class="info-callout" style="background-color: #f8fafc; border-left-color: #1e3a8a; color: #0f172a;">
-                    <p><strong>Registered Bureau:</strong> Sarkari.online Media &amp; Educational Research Bureau</p>
-                    <p><strong>Registered Address:</strong> Barakhamba Road, Connaught Place, New Delhi, Delhi 110001, India</p>
-                    <p><strong>Editorial Email:</strong> <!--email_off--><a href="mailto:official.sarkarionline@gmail.com"><code>official.sarkarionline@gmail.com</code></a><!--/email_off--></p>
+                    <p><strong>Editorial Bureau:</strong> Sarkari.online Independent Educational News Network</p>
+                    <p><strong>Location &amp; Jurisdiction:</strong> New Delhi, India</p>
+                    <p><strong>Editorial Inquiries:</strong> <!--email_off--><a href="mailto:official.sarkarionline@gmail.com"><code>official.sarkarionline@gmail.com</code></a><!--/email_off--></p>
                     <p><strong>Operating Hours:</strong> Monday &ndash; Friday, 9:30 AM &ndash; 6:30 PM IST</p>
                 </div>
 
