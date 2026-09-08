@@ -282,11 +282,11 @@ function resolve_board_profile(array $article): array {
 // Helper: Detect candidate milestone action
 function resolve_article_milestone(string $title): array {
     $t = strtolower($title);
-    if (strpos($t, 'admit card') !== false || strpos($t, 'hall ticket') !== false || strpos($t, 'city intimation') !== false) {
+    if (strpos($t, 'admit card') !== false || strpos($t, 'hall ticket') !== false) {
         return [
             'status_text' => 'Admit Card Live',
             'status_icon' => 'file-text',
-            'btn1_text'   => 'Download Slip',
+            'btn1_text'   => 'Get Admit Card',
             'btn1_icon'   => 'download',
             'badge'       => '★ Live',
             'status_bg'   => '#DCFCE7',
@@ -294,6 +294,22 @@ function resolve_article_milestone(string $title): array {
             'badge_bg'    => '#DC2626',
             'date1_label' => 'Exam Date',
             'date1_val'   => 'Sep 2026',
+            'date2_label' => 'Download',
+            'date2_val'   => 'Active'
+        ];
+    }
+    if (strpos($t, 'city intimation') !== false || strpos($t, 'city slip') !== false || strpos($t, 'exam city') !== false) {
+        return [
+            'status_text' => 'City Slip Live',
+            'status_icon' => 'map-pin',
+            'btn1_text'   => 'Download Slip',
+            'btn1_icon'   => 'download',
+            'badge'       => '★ Live',
+            'status_bg'   => '#FEF3C7',
+            'status_color'=> '#92400E',
+            'badge_bg'    => '#D97706',
+            'date1_label' => 'Exam City',
+            'date1_val'   => 'Slip Active',
             'date2_label' => 'Download',
             'date2_val'   => 'Active'
         ];
