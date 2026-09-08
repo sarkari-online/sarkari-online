@@ -628,9 +628,10 @@ class PipelineService {
      */
     public function processApprovedTrends(int $targetPublished = 1): array {
         // Prioritize newest trends (id DESC) with highest scores, strictly excluding trends flagged for human review or generic placeholders
+        // Uses JSON_EXTRACT to check boolean value rather than substring presence (handles null, false, and absent keys correctly)
         $sql = "SELECT id, keyword, raw_payload FROM trends 
                 WHERE status = 'approved' 
-                  AND (raw_payload IS NULL OR raw_payload NOT LIKE '%needs_human_review%')
+                  AND (raw_payload IS NULL OR JSON_EXTRACT(raw_payload, '$.needs_human_review') IS NOT TRUE)
                 ORDER BY trend_score DESC, id DESC LIMIT 25";
         $approved = Database::fetchAll($sql);
 
