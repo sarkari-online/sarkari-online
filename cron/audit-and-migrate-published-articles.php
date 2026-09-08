@@ -770,16 +770,16 @@ $writer = new ArticleMigrationWriter($pdo, $runId);
 function fetchBatch(PDO $pdo, int $lastId, int $limit, ?array $explicitIds, bool $force): array {
     if (!empty($explicitIds)) {
         $in = implode(',', array_map('intval', $explicitIds));
-        $stmt = $pdo->query("SELECT * FROM `articles` WHERE `id` IN ({$in}) ORDER BY `id` ASC");
+        $stmt = $pdo->query("SELECT a.*, t.raw_payload FROM `articles` a LEFT JOIN `trends` t ON a.trend_id = t.id WHERE a.`id` IN ({$in}) ORDER BY a.`id` ASC");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    $where = "WHERE `id` > :lastId AND `status` = 'published'";
+    $where = "WHERE a.`id` > :lastId AND a.`status` = 'published'";
     if (!$force) {
-        $where .= " AND (`architecture_audit_version` IS NULL OR `architecture_audit_version` < :ver)";
+        $where .= " AND (a.`architecture_audit_version` IS NULL OR a.`architecture_audit_version` < :ver)";
     }
 
-    $sql = "SELECT * FROM `articles` {$where} ORDER BY `id` ASC LIMIT :limit";
+    $sql = "SELECT a.*, t.raw_payload FROM `articles` a LEFT JOIN `trends` t ON a.trend_id = t.id {$where} ORDER BY a.`id` ASC LIMIT :limit";
     $stmt = $pdo->prepare($sql);
     $stmt->bindValue(':lastId', $lastId, PDO::PARAM_INT);
     $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);

@@ -26,10 +26,11 @@ echo "==========================================================================
 $pdo = Database::getConnection();
 
 $stmt = $pdo->query("
-    SELECT id, title, slug, excerpt, content, raw_payload, architecture_audit_status
-    FROM articles
-    WHERE status = 'published'
-    ORDER BY id ASC
+    SELECT a.id, a.title, a.slug, a.excerpt, a.content, a.architecture_audit_status, t.raw_payload
+    FROM articles a
+    LEFT JOIN trends t ON a.trend_id = t.id
+    WHERE a.status = 'published'
+    ORDER BY a.id ASC
 ");
 
 $articles = $stmt->fetchAll(PDO::FETCH_ASSOC);
