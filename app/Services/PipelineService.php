@@ -487,20 +487,7 @@ class PipelineService {
         Logger::info("🚀 Article #{$articleId} successfully GENERATED and PUBLISHED LIVE on Sarkari.online! (Score: {$finalScore})");
 
         return [
-            'success' => true,
-            'article_id' => $articleId,
-            'trend_id' => $trendId,
-            'title' => $polished['edited_title'],
-            'status' => $finalStatus,
-            'quality_score' => $finalScore,
-            'safety_pass' => $safetyPass['pass'],
-            'thumbnail' => $thumbResult['relative_path'] ?? null
-        ];
-
-        Logger::info("Pipeline successfully completed Article #{$articleId} (Final Status: {$finalStatus}, Quality Score: {$finalScore}) for Trend #{$trendId}");
-
-        return [
-            'success' => true,
+            'success' => ($finalStatus === 'published'),
             'article_id' => $articleId,
             'trend_id' => $trendId,
             'title' => $polished['edited_title'],

@@ -533,12 +533,17 @@ class AutoCronService {
 
         if (!empty($results)) {
             foreach ($results as $res) {
-                if (!empty($res['success']) && !empty($res['article_id'])) {
+                if (!empty($res['success']) && !empty($res['article_id']) && ($res['status'] ?? '') === 'published') {
                     self::recordSlotCompleted($pendingSlot, (int)$res['article_id']);
                     $compMsg = "AutoCron: Scheduled {$slotLabel} successfully COMPLETED with Article #{$res['article_id']}";
                     Logger::info($compMsg);
                     if (php_sapi_name() === 'cli') echo "[" . date('Y-m-d H:i:s') . "] ✅ {$compMsg}\n";
                     break;
+                } else {
+                    $artId = $res['article_id'] ?? 'unknown';
+                    $status = $res['status'] ?? 'rejected';
+                    Logger::warning("AutoCron: Article #{$artId} was not published (Status: {$status}). Slot {$pendingSlot} remains open for next approved trend.");
+                    if (php_sapi_name() === 'cli') echo "[" . date('Y-m-d H:i:s') . "] ⚠️ Article #{$artId} was {$status}. Slot {$pendingSlot} remains open.\n";
                 }
             }
         }
