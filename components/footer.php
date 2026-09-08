@@ -61,7 +61,9 @@
                     <h3 class="footer-heading">Editorial &amp; Legal</h3>
                     <ul class="footer-links-list">
                         <li><a href="<?= url('about/') ?>" class="footer-link">About Editorial Desk</a></li>
-                        <li><a href="<?= url('editorial-policy/') ?>" class="footer-link">Fact-Checking Charter</a></li>
+                        <li><a href="<?= url('editorial-policy/') ?>" class="footer-link">Editorial Policy</a></li>
+                        <li><a href="<?= url('fact-checking-policy/') ?>" class="footer-link">Fact-Checking Methodology</a></li>
+                        <li><a href="<?= url('fact-checking-policy/#corrections') ?>" class="footer-link">Corrections Policy</a></li>
                         <li><a href="<?= url('ai-policy/') ?>" class="footer-link">AI Transparency Code</a></li>
                         <li><a href="<?= url('why-choose-us/') ?>" class="footer-link">Why Choose Us</a></li>
                         <li><a href="<?= url('contact/') ?>" class="footer-link">Grievance Redressal</a></li>

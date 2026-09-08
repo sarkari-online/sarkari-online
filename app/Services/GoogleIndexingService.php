@@ -207,10 +207,18 @@ class GoogleIndexingService {
     }
 
     /**
-     * Submit an Article by ID
+     * Submit an Article by ID (Strictly gated to verified JobPosting articles per Google ToS)
      */
     public static function pingArticle(int $articleId): array {
-        $article = Database::fetchOne("SELECT id, slug, status FROM articles WHERE id = :id LIMIT 1", ['id' => $articleId]);
+        $article = Database::fetchOne(
+            "SELECT a.*, c.slug AS category_slug, t.raw_payload 
+             FROM articles a 
+             JOIN categories c ON a.category_id = c.id 
+             LEFT JOIN trends t ON a.trend_id = t.id 
+             WHERE a.id = :id LIMIT 1", 
+            ['id' => $articleId]
+        );
+
         if (!$article || $article['status'] !== 'published') {
             return [
                 'success' => false,
@@ -219,7 +227,21 @@ class GoogleIndexingService {
             ];
         }
 
-        $canonical = url('article/' . $article['slug'] . '/');
+        // Strict Google Indexing API ToS Gate:
+        // Google explicitly forbids pinging non-JobPosting/BroadcastEvent pages.
+        // Doing so risks service account suspension and domain penalty.
+        $rawPayload = !empty($article['raw_payload']) ? (is_array($article['raw_payload']) ? $article['raw_payload'] : (json_decode($article['raw_payload'], true) ?: [])) : [];
+        $jobSchema = SchemaService::generateJobPosting($article, $rawPayload);
+        if (!$jobSchema) {
+            Logger::info("GoogleIndexingService: Article #{$articleId} skipped — only active JobPosting schema permitted by Google ToS.");
+            return [
+                'success' => false,
+                'message' => "Skipped: Article #{$articleId} is not an active JobPosting listing.",
+                'status_code' => 200
+            ];
+        }
+
+        $canonical = !empty($article['canonical_url']) ? $article['canonical_url'] : url('article/' . $article['slug'] . '/');
         return self::pingUrl($canonical, 'URL_UPDATED');
     }
 }
