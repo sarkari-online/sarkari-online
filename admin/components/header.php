@@ -203,6 +203,20 @@ $adminPageTitle = $adminPageTitle ?? 'Admin Dashboard';
                     <span class="badge" style="background: #f97316; color: #fff; margin-left: auto; font-size: 0.685rem; padding: 0.15rem 0.45rem; border-radius: 9999px; font-weight: 700;"><?= $unreadLeadCount ?></span>
                 <?php endif; ?>
             </a>
+            <a href="<?= url('admin/signals/') ?>" class="admin-nav-item <?= ($adminPageKey ?? '') === 'signals' ? 'active' : '' ?>">
+                <?= icon('shield-check') ?> Candidate Reports
+                <?php 
+                $pendingSignalCount = 0;
+                try {
+                    $pendingSignalCount = (int)\App\Database\Database::fetchColumn("SELECT count(*) FROM reader_signals WHERE status = 'pending_review'");
+                } catch (\Throwable $e) {
+                    $pendingSignalCount = 0;
+                }
+                if ($pendingSignalCount > 0): 
+                ?>
+                    <span class="badge" style="background: #2563eb; color: #fff; margin-left: auto; font-size: 0.685rem; padding: 0.15rem 0.45rem; border-radius: 9999px; font-weight: 700;"><?= $pendingSignalCount ?></span>
+                <?php endif; ?>
+            </a>
             <a href="<?= url('admin/sources/') ?>" class="admin-nav-item <?= ($adminPageKey ?? '') === 'sources' ? 'active' : '' ?>">
                 <?= icon('book-open') ?> Authority Sources
             </a>
