@@ -78,6 +78,16 @@ if (!empty($cleanPath) && $cleanPath !== 'index.php') {
         require __DIR__ . '/author.php';
         exit;
     }
+    // Editorial & Fact-Checking Policy Routers
+    if ($cleanPath === 'fact-checking-policy' || $cleanPath === 'fact-checking-policy/') {
+        require __DIR__ . '/fact-checking-policy.php';
+        exit;
+    }
+    if ($cleanPath === 'editorial-policy' || $cleanPath === 'editorial-policy/') {
+        require __DIR__ . '/editorial-policy.php';
+        exit;
+    }
+
     if (str_starts_with($cleanPath, 'author/')) {
         $authorSlug = trim(substr($cleanPath, 7), '/');
         if (!empty($authorSlug)) {
