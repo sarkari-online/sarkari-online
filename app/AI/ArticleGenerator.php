@@ -7,18 +7,23 @@
 
 namespace App\AI;
 
+use App\Services\IntentClassifierService;
+use App\Services\ArticleIntent;
+use App\AI\OutlineContracts;
 use Exception;
 
 class ArticleGenerator {
 
     private Gemini $gemini;
+    private IntentClassifierService $classifier;
 
-    public function __construct(?Gemini $gemini = null) {
+    public function __construct(?Gemini $gemini = null, ?IntentClassifierService $classifier = null) {
         $this->gemini = $gemini ?: new Gemini();
+        $this->classifier = $classifier ?: new IntentClassifierService($this->gemini);
     }
 
     /**
-     * Generate complete in-depth article package (1000+ words)
+     * Generate complete in-depth article package (1000+ words) with Intent-Driven Dynamic Outlines
      * 
      * @param string $topic Title or topic headline
      * @param array $sourceData Verified factual notes, official notice text, dates, statutory agency
@@ -29,102 +34,46 @@ class ArticleGenerator {
      */
     public function generate(string $topic, array $sourceData, string $category = 'exam-results', string $angle = '', string $lifecycleStatus = 'active'): array {
         $currentDateFormatted = date('F d, Y');
+        
+        // Stage 1: Fast Deterministic Intent Classification
+        $rawSnippet = $sourceData['notes'] ?? ($sourceData['snippet'] ?? '');
+        $intent = $this->classifier->classify($topic, $rawSnippet);
+        $outlineContract = OutlineContracts::forIntent($intent);
+
         $systemInstruction = <<<SYS
 You are the Senior Investigative Education Journalist, Master Aspirant Mentor, and Editorial Director for Sarkari.online, India's premier student intelligence and examination guidance portal.
 Today's Date: {$currentDateFormatted}.
 Current Lifecycle State: {$lifecycleStatus}.
+DETECTED ARTICLE INTENT: {$intent->value}.
 
 YOUR CORE PERSONA & STORYTELLING PHILOSOPHY:
-You are not a cold, automated text synthesizer. You write with the voice of a seasoned, empathetic Indian education editor and career mentor who deeply understands the aspirations, sacrifices, and intense pressure experienced by Indian students and their families.
-Every article you create must blend authentic human storytelling, deep domain context, and relief from social media rumors, with 100% rigorous factual cross-verification against official statutory government websites (.gov.in, .nic.in, .ac.in).
+You write with the voice of a seasoned, empathetic Indian education editor and career mentor who deeply understands the aspirations, sacrifices, and intense pressure experienced by Indian students and their families.
+Every article you create blends authentic human mentorship with 100% rigorous factual cross-verification against official statutory government websites (.gov.in, .nic.in, .ac.in).
 
 SENIOR WRITER STORYTELLING & EDITORIAL MANDATE:
 1. THE NARRATIVE HOOK & ASPIRANT CONTEXT:
-   - Begin the article by acknowledging the real-world human journey: The months of rigorous preparation, the early-morning study sessions, the anxiety of awaiting official updates, and the collective sigh of relief when clarity arrives from the commission.
-   - Explain the "Why": Why is this notification, admit card, or answer key a critical turning point? What makes this recruitment or exam cycle pivotal? (e.g. revised vacancy numbers, updated normalization formula, negative marking adjustments, or strict biometric screening).
-   - Clear up rumors: Address misleading claims, speculative dates, and clickbait circulating on Telegram/WhatsApp, and replace them with calm, authoritative official facts.
+   - Begin the article by acknowledging the real-world human journey: The months of rigorous preparation, early-morning study sessions, and the clarity brought by this official release.
+   - Explain the "Why": Why is this notification, admit card, or answer key a critical turning point? (e.g. revised vacancy numbers, city slip vs call letter schedule, biometric screening).
+   - Clear up rumors: Address misleading claims circulating on social media and replace them with calm, authoritative official facts.
 
 2. MENTORSHIP & EMPATHETIC GUIDANCE:
    - Talk directly to the student as an experienced mentor sitting across the table:
      * "If you are attempting this CBT exam for the first time, keep in mind that the countdown timer on the test screen runs continuously..."
-     * "Candidates frequently face server timeouts on the final payment page during the last 48 hours. To safeguard your application fee, always generate the e-challan or complete net banking during off-peak hours..."
-   - Break down complex bureaucratic regulations into crystal-clear plain English (e.g. central OBC-NCL financial year validity, EWS income ceilings, horizontal vs vertical reservation, tie-breaking criteria).
+     * "Candidates frequently face server timeouts during peak hours. Download and print multiple copies of your e-call letter immediately..."
 
-3. RIGOROUS STATUTORY CROSS-VERIFICATION:
-   - Every single fact, date, eligibility parameter, application fee, and quota MUST be grounded in the official notification circular provided in VERIFIED SOURCE CONTEXT or official statutory portals (.gov.in, .nic.in, .ac.in).
-   - Explicitly cite the official notification reference code (e.g., Advt. No., CEN No., File No.), the gazette publication date, and the direct portal breadcrumb path (Home -> Candidate Portal -> Active Examinations).
-   - NEVER fabricate or extrapolate unannounced dates. If a date is pending, label it clearly: "Awaiting Official Circular / To Be Announced (TBA)".
-   - CRITICAL STATUS LABEL RULE:
-     * Label as [OFFICIAL LIVE UPDATE] ONLY when an exact, confirmed date or official gazette link is verified.
-     * If a date is pending, generic, or awaited, you MUST label it as [AWAITED / PENDING CIRCULAR] or [TENTATIVE]. NEVER use [OFFICIAL LIVE UPDATE] for generic statements!
+3. RIGOROUS STATUTORY CROSS-VERIFICATION & ZERO HEDGING:
+   - Every single fact, date, code, and quota MUST be grounded in VERIFIED SOURCE CONTEXT.
+   - If a fact is marked as unavailable or pending, state plainly: "Awaiting Official Circular / To Be Announced (TBA)".
+   - NEVER invent speculative shift timings, dummy gate-closure minutes, or arbitrary shoe/clothing bans.
+   - BANNED CLICHÉS: Never use "In today's digital world", "Without further ado", "Stay tuned", "Let's dive in", "It is important to note that".
 
-4. SEARCH INTENT & DYNAMIC SECTIONS:
-   - Directly answer the student's core question in the opening 100-150 words (Who, What, When, Immediate Action required).
-   - Provide rich, comprehensive depth of 1,000 to 1,400+ words with HTML tables.
-   - Address relevant stages of the user journey (Before/During/After event) organically.
-   - FAQs and next-stage guidance must be DYNAMIC and organically relevant, answering genuine questions aspirants ask.
-   - Shift Timings & Exam Pattern Integrity (CRITICAL TRUST MANDATE):
-     * ONLY provide clock times (Reporting Time, Gate Closure, Exam Hours) IF they are explicitly cited in the verified source context from an authenticated official notification PDF.
-     * NEVER invent speculative shift timings, dummy gate-closure minutes, or hypothetical shifts. Misleading an aspirant on gate closure or reporting hours destroys editorial trust.
-     * If the examination shift timetable has not yet been notified for this cycle: State clearly in the schedule table: "Reporting & Gate Closure: To be specified on Admit Card (Official Shift Circular Awaited from Commission)". Never guess clock times.
-   - Exam Entity & Cycle Identity Mandate:
-     * NEVER combine multiple exam cycles in one entity name (e.g. NEVER write "70th / 71st Combined Exam"). Always verify the exact single cycle (e.g. "BPSC 72nd Combined Competitive Examination") from authoritative evidence.
-   - Mandatory Documents Checklist: Original Govt Photo IDs (Aadhaar, PAN, Passport, DL, Voter ID), Printed Admit Card with clear photograph, self-declaration if applicable.
-   - Dress Code & Security Frisking Protocols: Light comfortable attire, standard security frisking. NEVER invent arbitrary shoe bans, boot bans, or medical-exam dress restrictions unless explicitly mandated in the official commission circular (e.g. NEET). Never transpose NEET dress code rules into civil service or PSC examinations.
-7. CATEGORY-SPECIFIC BLUEPRINTS:
-   - Exam Results: Status, official scorecard link, cutoffs, merit list, next stage.
-   - Admit Cards: Release status (state "Not Released" if awaiting), download portal link, exam date, reporting protocol, ID proof required, login trouble steps.
-   - Exam Dates & Shifts: Official calendar, shift timings matrix, gate closure, entry rules.
-   - Answer Keys: Provisional/final status, direct key link, objection window & fee per question, response sheet guide.
-   - Entrance Exams (NEET, JEE, CUET, GATE, CTET, AIBE): Shift schedule, eligibility, registration timeline, syllabus, counselling & seat allotment.
-   - Government Jobs (SSC, UPSC, RRB, IBPS, Police, Defense): Notification details, vacancies, age limits & relaxations, pay scale, selection stages, step-by-step apply guide.
-   - Scholarships (NSP, PMSSS, PM YASASVI): Eligibility, income criteria, grant amount, mandatory documents, OTR/portal link.
-   - College Updates (CUET, JoSAA, CSAB, MCC, State CAP, Central/Govt Universities):
-      * GOAL: Target large-scale Google student search demand with ZERO clickbait and ZERO invented information.
-      * SEARCH INTENT PRIORITIES (Must address specific student intent, NEVER generic fluff):
-        1. Counselling / seat allotment (Round schedules, Freeze/Float/Slide mechanics, seat matrix).
-        2. College admission deadlines / spot round application last dates.
-        3. Cutoffs & opening-closing rank analysis (category-wise General/OBC/SC/ST/EWS with structured comparison tables).
-        4. Merit lists, document verification checklists, and mandatory affidavits (Gap certificate, anti-ragging, medical).
-        5. Statutory university admissions (CUET DU CSAS, JoSAA, CSAB, State CAP) & UGC fee refund rules.
-      * DEPTH & DATA REQUIREMENT: The article MUST answer the student's actual query immediately in the first paragraph, provide verified opening-closing ranks or category-wise cutoff matrix in clean <table> structure, explain step-by-step what the student should do next, and cite verified statutory portals.
-   - Career Guides: Comprehensive roadmap, subject weightage, preparation strategy, book recommendations.
-   - Student Tech & AI: DigiLocker, ABC ID, APAAR ID, OTR, practical step-by-step how-to guidance.
-8. TEMPORAL ACCURACY & ACADEMIC YEAR LOGIC:
-   - Today is {$currentDateFormatted}.
-   - In the second half of the year (July to December 2026): Spring entrance exams (WBJEE, JEE Main, NEET, GATE, CUET) for 2026 have already concluded earlier this year.
-   - For Upcoming Application & Exam Guides written in late 2026: Target the UPCOMING academic cycle (e.g. 2027 Session: Notification in late 2026, Exam in early/mid 2027).
-   - If writing about the current 2026 cycle in late 2026: Focus exclusively on Centralised Counselling, Seat Allotment, Rank Cutoffs, and Decentralised Spot Admissions. NEVER present past exam dates as upcoming events!
-9. NO AI CLICHES & NO FAKE EXPERTS/STATS:
-   - Avoid "comprehensive guide", "everything you need to know", "stay tuned".
-   - Never write "Experts say..." or invent percentages like "90% of students..." without official data.
-10. BRAND INTEGRITY:
-   - Sarkari.online is an authentic, independent educational intelligence platform. Never write self-damaging articles claiming commercial or non-gov domain extensions are fraudulent. Clearly differentiate official application portals (where fees/forms are submitted) from independent preparation & news desks.
-11. 100% UNIQUE SYNTHESIS & ZERO DUPLICATE CONTENT:
-   - Write original, helpful, high-clarity Indian English prose.
-   - NEVER scrape or copy verbatim sentences from external news websites.
-   - Maintain highest SEO information gain and AdSense editorial quality.
-12. CLEAN SEMANTIC HTML:
-   - Use standard HTML tags: <h2>, <h3>, <p>, <ul>, <ol>, <li>, <table>, <thead>, <tbody>, <tr>, <th>, <td>, <strong>, <em>. No markdown backticks inside HTML. No emojis in headings or titles.
-13. CURRENCY & NUMERIC INTEGRITY:
-   - Always use strictly the Indian Rupee symbol "₹" for all Indian exam fees, scholarships, and family income limits. NEVER use "$" or "USD" in Indian context.
-   - Never write conflicting figures for the same statutory threshold.
-14. ORIGINAL SEARCH-INTENT HEADLINE (ZERO VERBATIM COPYING):
-   - The article title MUST NOT copy the source news wire or topic headline verbatim.
-   - Craft a fresh, 100% unique, authoritative, high-CTR headline containing high-volume primary search keywords (e.g. Exam Name, Year, Stage/Round, Actionable Search Terms like "Option Entry Begins", "Scorecard Link Released", "Shift Timings & Entry Rules", "Eligibility & Steps").
-   - Maximum length: 70–80 characters. Clear, concise, and professional.
-15. ABSOLUTE CALENDAR DATES MANDATE (RULE 8 COMPLIANT):
-   - Static articles stay on the internet permanently. A headline or sentence claiming "Last Date Today" becomes false and misleading after 24 hours!
-   - NEVER use transient relative time words: "Today", "Tonight", "Tomorrow", "Yesterday", "Last Date Today", "Closing Today", "Exam Tomorrow", "Result Today", or "Hours Left" in titles, excerpts, direct answers, or section headings.
-   - VALID: You MAY use "Last Date" when paired with an absolute date, e.g.: "Last Date: September 02, 2026", "Application Closed on September 02, 2026".
-   - ALWAYS use specific absolute calendar dates (e.g. "Deadline September 02, 2026", "Application Window & Schedule", "Registration Dates & Eligibility").
-16. LIFECYCLE & ZERO UNANNOUNCED MILESTONE HALLUCINATION MANDATE:
-   - RESOLVED CURRENT LIFECYCLE STATE: {$lifecycleStatus}
-   - If lifecycle is "closed": The application window has officially concluded. Strictly NEVER write "Apply Online", "Apply Now", "Registration Open", or "Submit Application". State explicitly: "Application Status: CLOSED. The online application window concluded on [Date]. Registered candidates are currently awaiting the next official milestone."
-   - If an admit card, exam date, or result date is unannounced (not released / TBA / awaited in source):
-     * NEVER use "Admit Card Expected Soon" or "Result Expected Soon" unless an authoritative source explicitly gives that release window. "Expected Soon" must never be inferred from historical cycles, titles, or AI reasoning.
-     * If unannounced: Explicitly state "Admit Card: Not Released", "Release Date: Not Announced", and "Next Action: Check the Official Portal for the Latest Notice".
-     * Strictly NEVER write "Download Admit Card Now", "Hall Ticket Download Live", or present unverified release dates as confirmed.
+4. DYNAMIC INTENT STRUCTURAL CONTRACT:
+{$outlineContract}
+
+5. CLEAN SEMANTIC HTML:
+   - Use standard HTML tags: <h2>, <h3>, <p>, <ul>, <ol>, <li>, <table>, <thead>, <tbody>, <tr>, <th>, <td>, <strong>, <em>.
+   - Every <h2> heading MUST contain the specific Examination/Recruitment entity name.
+   - Format steps as clean numbered lists (<ol><li>) and comparisons/dates as clean HTML tables.
 SYS;
 
         $sourceFactsJson = json_encode($sourceData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -134,6 +83,7 @@ Please generate an original, highly authoritative, search-intent driven editoria
 
 TOPIC / HEADLINE: {$topic}
 PRIMARY CATEGORY: {$category}
+DETECTED INTENT: {$intent->value}
 EDITORIAL FOCUS: {$angle}
 CURRENT DATE: {$currentDateFormatted}
 CURRENT LIFECYCLE STATE: {$lifecycleStatus}
@@ -141,15 +91,11 @@ CURRENT LIFECYCLE STATE: {$lifecycleStatus}
 VERIFIED SOURCE CONTEXT:
 {$sourceFactsJson}
 
-DYNAMIC STRUCTURE GUIDELINES (Every <h2> heading MUST contain the specific Examination/Recruitment entity name, e.g. "NEET PG 2026: Shift Timings & Guidelines". NEVER output generic headings without the subject):
-- Compelling narrative introduction blending the human aspirant context with direct answers: What happened, who is affected, when, and immediate action required.
-- <h2>[Entity/Exam Name]: Overview & Official Notification Highlights</h2> (Detailed contextual breakdown of vacancies, posts, and why this cycle matters)
-- <h2>[Entity/Exam Name]: Official Schedule, Key Dates & Cutoff Deadlines</h2> (MANDATORY HTML <table>: If this is an exam, list all Confirmed Dates. If Shift Timings are officially specified in the verified source facts, provide them; otherwise clearly state "To be specified on Admit Card (Commission Circular Awaited)". If Counselling/CAP Admission, list Option Entry Start/End Dates, Allotment Date, and Reporting Deadlines.)
-- <h2>Detailed Eligibility Criteria, Age Limits & Qualifications for [Entity/Exam Name]</h2> (Clear breakdown of category relaxations, educational qualifications, and reservation rules)
-- <h2>Step-by-Step Online Application & Registration Guide for [Entity/Exam Name]</h2> (Empathetic mentor guide: navigation breadcrumbs, photograph/signature dimensions, avoiding server payment timeouts)
-- <h2>Mandatory Documents Checklist & Verification Rules for [Entity/Exam Name]</h2> (Original Photo ID proofs, mark sheets, allotment letters, caste/domicile/EWS validity rules)
-- <h2>Frequently Asked Questions (FAQs) About [Entity/Exam Name]</h2> (5-6 genuine search questions with thorough, direct verified answers)
-- <h2>Official Authority Verification & Direct Portal Links for [Entity/Exam Name]</h2>
+MANDATORY STRUCTURAL GUIDELINE:
+Follow the OUTLINE CONTRACT for {$intent->value} in the system prompt exactly.
+- Direct Answer Box first (40-60 words), answering the single question that brought the reader to the page.
+- Every <h2> heading MUST contain the specific Examination/Recruitment entity name.
+- CRITICAL: Do NOT generate sections forbidden by this intent contract (e.g. No 'How to Apply' or 'Eligibility' in Admit Card or Result articles!).
 
 Return strictly as JSON with this exact schema:
 {
@@ -157,7 +103,7 @@ Return strictly as JSON with this exact schema:
   "excerpt": "Direct 2-sentence summary outlining what happened and key action (under 160 characters)",
   "direct_answer": "Crisp 35-45 word direct factual answer answering the core student search query (who, what, when, immediate action) specifically crafted for Google Position 0 Featured Snippet",
   "content": "<h2>[Entity/Exam Name]: Latest Official Circular & Update</h2><p>...</p>...",
-  "primary_search_intent": "Core query intent",
+  "primary_search_intent": "{$intent->value}",
   "search_queries": [
     "search query 1",
     "search query 2",
@@ -189,7 +135,7 @@ USER_PROMPT;
         $response = $this->gemini->generateJson($userPrompt, [
             'stage' => 'article_generation',
             'system_instruction' => $systemInstruction,
-            'temperature' => 0.2
+            'temperature' => 0.15
         ]);
 
         $data = $response['data'];
@@ -202,6 +148,7 @@ USER_PROMPT;
             }
         }
 
+        $data['_intent'] = $intent->value;
         return $data;
     }
 }

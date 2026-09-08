@@ -263,69 +263,75 @@ class AuthorityFactFetcherService {
     /**
      * Synthesize and extract structured statutory facts for any topic
      *
-     * @param string $topic Title or keyword (e.g. "SSC CGL 2026 Tier 1 Exam Date & Shift Timings")
+     * @param string $topic Title or keyword (e.g. "RRB NTPC 2026 CBT 2 Exam Schedule & City Slip")
      * @param string $category Category slug
      * @param string $sourceUrl Source or portal URL if available
+     * @param string $snippet Raw dispatch or news wire excerpt
      * @return array Verified factual package ready for ArticleGenerator
      */
     public function fetchFactsForTopic(string $topic, string $category = 'entrance-exams', string $sourceUrl = '', string $snippet = ''): array {
         $authority = self::resolveAuthority($topic, $sourceUrl);
-        $portalText = $this->fetchPortalText($authority['portal']);
         $currentDate = date('F d, Y');
         $currentYear = (int)date('Y');
+
+        // Circular-first, notice board and regional sub-portal crawl
+        $crawler = new CircularCrawlerService();
+        $crawlData = $crawler->gather($authority['portal'], $topic, true);
+        
+        $combinedText = '';
+        foreach ($crawlData['documents'] as $doc) {
+            $combinedText .= "[PORTAL: {$doc['url']} ({$doc['type']})]\n" . $doc['text'] . "\n\n";
+        }
+        $combinedText = mb_substr(trim($combinedText), 0, 4500);
+
+        $regionalListStr = '';
+        if (!empty($crawlData['regional_portals'])) {
+            foreach ($crawlData['regional_portals'] as $name => $url) {
+                $regionalListStr .= "- {$name}: {$url}\n";
+            }
+        }
 
         $contextPrompt = "STATUTORY AUTHORITY: " . $authority['name'] . " (" . $authority['portal'] . ")\n";
         if (!empty($snippet)) {
             $contextPrompt .= "NEWS WIRE & DISPATCH DETAILS:\n" . mb_substr($snippet, 0, 1500) . "\n";
         }
-        if (!empty($portalText)) {
-            $contextPrompt .= "REAL-TIME PORTAL CONTENT:\n" . mb_substr($portalText, 0, 2500) . "\n";
+        if (!empty($combinedText)) {
+            $contextPrompt .= "CRAWLED OFFICIAL CIRCULARS & NOTICE BOARDS:\n" . $combinedText . "\n";
+        }
+        if (!empty($regionalListStr)) {
+            $contextPrompt .= "VERIFIED REGIONAL EXAMINATION PORTALS DIRECTORY:\n" . $regionalListStr . "\n";
         }
 
         $prompt = <<<PROMPT
-You are the Chief Fact Verification Officer for Sarkari.online.
+You are the Forensic Fact-Extraction and Chief Verification Officer for Sarkari.online.
 Today's Date: {$currentDate}.
 Operating Year: {$currentYear}.
 
-TOPIC: {$topic}
+TOPIC / HEADLINE: {$topic}
 CATEGORY: {$category}
 {$contextPrompt}
 
-CRITICAL RULES:
-0. AUTHORITY PURITY:
-   - You MUST attribute facts STRICTLY and ONLY to {$authority['name']} ({$authority['portal']}).
-   - NEVER confuse or attribute state boards, armed forces, banking, or schools to UPSC or any other unrelated agency!
-1. CONFIRMED EVENT DATES & TIMETABLE (ZERO OMISSION):
-   - You MUST extract and specify all EXACT event dates mentioned in the topic, news wire, or official portal.
-   - For Counselling / CAP Rounds / Seat Allotments (e.g. MHT CET CAP Round 4, NEET UG Counselling):
-     You MUST state the exact dates for:
-     * Option Entry / Preference Filling Window (e.g. August 30 to September 1, 2026, 11:59 PM).
-     * Provisional Seat Allotment Result Date (e.g. September 3, 2026).
-     * Seat Acceptance & Self-Verification Window (e.g. September 4 to 7, 2026).
-     * Physical Reporting & Document Submission Deadline at Allotted Colleges (e.g. September 7, 2026, by 5:00 PM).
-   - For Examinations: State Shift Name, Reporting Window, Gate Closure Cutoff, Exam Hours.
-   - For Recruitment: State Application start, last date, fee cutoff.
-   - NEVER leave dates as vague or generic when specific dates are present in the news/authority cycle!
-2. SHIFT TIMINGS & EVENT MATRIX:
-   - Provide structured event schedule: Stage Name, Start Date, End Date, Strict Cutoff Time, and Action Required.
-   - Gate Closure Cutoff Time: Detail strict zero-tolerance entry closure (e.g. 30 to 45 mins prior to exam or exact time).
-   - Total Duration (e.g. 210 Minutes) & Question Count / Negative Marking scheme.
-3. MANDATORY DOCUMENTS CHECKLIST:
-   - Acceptable Original Govt Photo IDs (Aadhaar, PAN, Passport, DL, Voter ID - original only).
-   - Printed Admit Card rules (Passport-size photo specification).
-   - Relevant registration certificates or caste/category certificates if applicable.
-4. DRESS CODE & BARRED ITEMS PROTOCOLS:
-   - Permitted clothing (Light, half-sleeved garments without big buttons/metallic items).
-   - Permitted footwear (Simple slippers/sandals only; closed shoes/boots prohibited or subject to frisking).
-   - Barred electronic items (Mobile phones, Bluetooth earphones, smartwatches, digital bands, calculators, metallic jewelry).
-5. OFFICIAL PORTAL VERIFICATION:
-   - Direct official verification link ({$authority['portal']}).
+CRITICAL ANTI-HEDGING & FACT GROUNDING DIRECTIVES:
+1. SPECIFIC NOTIFICATION CODE & STAGE (ZERO OMISSION):
+   - You MUST extract the specific notification code (e.g. CEN 07/2025, Advt No., File No.) and exact exam stage (e.g. CBT-2 for Undergraduate Posts, Tier-1, PET/PST) if present in the topic or source context.
+2. DISTINCTION RECOGNITION (e.g. City Intimation Slip vs e-Call Letter):
+   - If the event is an exam or admit card: Detail whether the Exam City Slip is out (e.g. September 7, 2026) vs when the final e-Call Letter / Admit Card releases (e.g. September 13, 2026, 4 days prior to exam).
+   - Never confuse the City Slip with the actual Hall Ticket.
+3. ANTI-HEDGING RULE:
+   - If a specific date, code, or vacancy number exists anywhere in the source material — including dispatch snippets or notice boards — you MUST extract it verbatim into the "date" or "value" field.
+   - Only set status to "Awaited / Tentative" if the fact genuinely does not yet exist.
+   - NEVER substitute a specific fact with vague placeholders like "expected soon", "dates awaited", or "check official portal".
+4. REGIONAL PORTALS MATRIX:
+   - For RRB and SSC, map and include the exact regional board names and portal URLs from the verified directory.
 
-Return strictly as JSON with this schema (DO NOT invent fake times; extract ONLY real official timings from the statutory authority bulletin or standard exam pattern):
+Return strictly as JSON matching this schema:
 {
   "authority_name": "{$authority['name']}",
   "official_portal": "{$authority['portal']}",
-  "exam_status": "Confirmed | Awaiting Official Notification | Active Registration | Upcoming Cycle",
+  "notification_code": "Official CEN / Advt / Notification Reference Number or null",
+  "exam_phase": "Specific stage (e.g. Undergraduate CBT-2, Tier-1, Prelims, CAP Round 3)",
+  "exam_status": "Confirmed | Active Registration | Exam City Slip Active | Upcoming",
+  "distinction_notes": "Explicit distinction (e.g. City Intimation Slip released on Sep 7; Hall Ticket downloads live 4 days prior on Sep 13)",
   "shift_timings": [
     {
       "shift": "Official Paper / Shift Name",
@@ -333,38 +339,53 @@ Return strictly as JSON with this schema (DO NOT invent fake times; extract ONLY
       "gate_closure": "Official gate closure cutoff time",
       "exam_timing": "Official exam hours (e.g. 10:00 AM – 12:30 PM)",
       "duration": "Official test duration (e.g. 150 Minutes)",
-      "mode": "OMR-Based Test / Computer Based Test (CBT)"
+      "mode": "Computer Based Test (CBT) / OMR"
     }
   ],
   "dates_schedule": [
     {
-      "milestone": "Admit Card Release",
-      "date": "Exact Date OR Expected 3-5 Days Prior (TBA)",
+      "milestone": "Exam City Intimation Slip / Admit Card / Exam Date",
+      "date": "Exact Calendar Date (e.g. September 07, 2026)",
       "status": "Confirmed | Awaited / Tentative"
     }
   ],
-  "mandatory_documents": [
-    "Printed Admit Card with passport size photo pasted",
-    "Original Valid Govt Photo ID (Aadhaar / PAN / Voter ID / Passport / Driving License)",
-    "Required board / council registration certificate"
+  "regional_portals": [
+    {
+      "region_name": "RRB Bhopal",
+      "url": "https://www.rrbbpl.nic.in"
+    }
   ],
-  "dress_code_rules": {
-    "clothing": "Light half-sleeved clothes without large buttons or excessive pockets",
-    "footwear": "Slippers or open-toe sandals; closed shoes/boots strictly prohibited",
-    "barred_items": "Mobile phones, smartwatches, Bluetooth devices, calculators, wallets, metallic ornaments"
+  "vacancy_breakdown": {
+    "total_vacancies": "Total post count if mentioned (e.g. 3058 Posts)",
+    "candidate_count": "Total candidates appearing if mentioned (e.g. 45,900+ candidates)"
   },
-  "official_notice_ref": "Official Notification Circular at {$authority['portal']}"
+  "mandatory_documents": [
+    "Printed Official Admit Card with recent colour photograph",
+    "Original Valid Government Photo ID (Aadhaar / PAN / Voter ID / Passport / Driving License)"
+  ],
+  "official_notice_ref": "Official Notification Circular at {$authority['portal']}",
+  "extraction_confidence": "high | medium | low"
 }
 PROMPT;
 
         try {
             $response = $this->gemini->generateJson($prompt, [
                 'stage' => 'authority_fact_fetching',
-                'temperature' => 0.1
+                'temperature' => 0.05
             ]);
 
             $data = $response['data'];
-            Logger::info("AuthorityFactFetcherService: Facts extracted successfully for '{$topic}' via {$authority['name']}");
+            
+            // Enrich with static regional portals if AI left it empty but authority is RRB/SSC
+            if (empty($data['regional_portals']) && !empty($crawlData['regional_portals'])) {
+                $regList = [];
+                foreach ($crawlData['regional_portals'] as $name => $u) {
+                    $regList[] = ['region_name' => $name, 'url' => $u];
+                }
+                $data['regional_portals'] = array_slice($regList, 0, 10);
+            }
+
+            Logger::info("AuthorityFactFetcherService: Grounded facts extracted successfully for '{$topic}' (Confidence: " . ($data['extraction_confidence'] ?? 'medium') . ")");
             return $data;
         } catch (Throwable $e) {
             Logger::error("AuthorityFactFetcherService failed for '{$topic}': " . $e->getMessage());
@@ -373,10 +394,13 @@ PROMPT;
             return [
                 'authority_name' => $authority['name'],
                 'official_portal' => $authority['portal'],
+                'notification_code' => null,
+                'exam_phase' => 'Scheduled Phase',
                 'exam_status' => 'Refer to Official Portal',
+                'distinction_notes' => null,
                 'shift_timings' => [
                     [
-                        'shift' => 'Shift 1 / Scheduled Shift',
+                        'shift' => 'Scheduled Shift',
                         'reporting_time' => 'As specified on Admit Card',
                         'gate_closure' => '30–45 Mins Prior to Exam (Strict Cutoff)',
                         'exam_timing' => 'As printed on Official Hall Ticket',
@@ -386,21 +410,18 @@ PROMPT;
                 ],
                 'dates_schedule' => [
                     [
-                        'milestone' => 'Exam Date & Schedule',
+                        'milestone' => 'Exam Schedule',
                         'date' => 'To Be Announced (TBA) by Statutory Authority',
                         'status' => 'Awaiting Official Circular'
                     ]
                 ],
+                'regional_portals' => [],
                 'mandatory_documents' => [
                     'Printed Official Admit Card with recent photo',
                     'Original Government Photo ID (Aadhaar, PAN, Voter ID, Passport, DL)'
                 ],
-                'dress_code_rules' => [
-                    'clothing' => 'Light, comfortable clothing without large metallic buttons or accessories',
-                    'footwear' => 'Simple slippers or sandals',
-                    'barred_items' => 'Electronic devices, smartwatches, mobile phones, calculators'
-                ],
-                'official_notice_ref' => "Official notice at {$authority['portal']}"
+                'official_notice_ref' => "Official notice at {$authority['portal']}",
+                'extraction_confidence' => 'medium'
             ];
         }
     }

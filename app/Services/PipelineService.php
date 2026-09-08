@@ -239,6 +239,15 @@ class PipelineService {
             }
         }
 
+        // 5d. Mechanical Intent & Anti-Boilerplate Lint Safety Gate (Section 5)
+        $detectedIntent = $genResult['_intent'] ?? '';
+        $lintViolations = self::lintContentIntegrity($linking['linked_content'], $detectedIntent);
+        if (!empty($lintViolations)) {
+            Logger::warning("PipelineService: Mechanical Lint Gate caught violations for Trend #{$trendId}: " . implode('; ', $lintViolations));
+            // Auto-clean forbidden section headings or banned clichés
+            $linking['linked_content'] = self::autoCleanLintIssues($linking['linked_content'], $detectedIntent);
+        }
+
         // 6. Calculate 8-Dimension Quality Score (Total 100 points)
         $quality = $this->calculateQualityScore([
             'fact_check' => $factAudit,
@@ -254,6 +263,10 @@ class PipelineService {
         if (!$temporalAudit['pass']) {
             $safetyPass['pass'] = false;
             $safetyPass['reasons'][] = "Failed temporal integrity audit: " . ($temporalAudit['unresolved_violations'][0]['message'] ?? 'temporal violations');
+        }
+        if (($sourceData['verified_facts']['extraction_confidence'] ?? '') === 'low') {
+            $safetyPass['pass'] = false;
+            $safetyPass['reasons'][] = "Authority fact extraction confidence was low — requires human editorial review";
         }
         $finalScore = (int)$quality['total_score'];
 
@@ -658,4 +671,64 @@ class PipelineService {
 
         return $facts;
     }
+
+    /**
+     * Mechanical Intent & Anti-Boilerplate Lint Safety Gate
+     * Catches forbidden sections and banned AI clichés mechanically
+     */
+    public static function lintContentIntegrity(string $html, string $intent): array {
+        $violations = [];
+        $lower = strtolower($html);
+
+        // 1. Forbidden sections per intent
+        if ($intent === 'admit_card' || $intent === 'result_cutoff') {
+            if (preg_match('/<h2[^>]*>.*?(how to apply|step-by-step online application|detailed eligibility criteria|age limits & qualifications).*?<\/h2>/i', $html, $m)) {
+                $violations[] = "Forbidden section for intent '{$intent}': " . strip_tags($m[0]);
+            }
+        }
+
+        // 2. Banned generic clichés
+        $bannedPhrases = [
+            "in today's digital world",
+            "in this article, we will discuss",
+            "without further ado",
+            "stay tuned",
+            "it is important to note that",
+            "as we all know",
+            "comprehensive guide"
+        ];
+        foreach ($bannedPhrases as $bp) {
+            if (str_contains($lower, $bp)) {
+                $violations[] = "Banned cliché found: '{$bp}'";
+            }
+        }
+
+        return $violations;
+    }
+
+    /**
+     * Mechanical cleaner for forbidden sections and clichés
+     */
+    public static function autoCleanLintIssues(string $html, string $intent): string {
+        // Strip forbidden sections for admit card / results
+        if ($intent === 'admit_card' || $intent === 'result_cutoff') {
+            $html = preg_replace('/<h2[^>]*>.*?(how to apply|step-by-step online application|detailed eligibility criteria|age limits & qualifications).*?<\/h2>[\s\S]*?(?=<h2|$)/i', '', $html);
+        }
+
+        // Strip banned clichés
+        $bannedMap = [
+            '/in today\'s digital world,?\s*/i' => '',
+            '/without further ado,?\s*/i' => '',
+            '/stay tuned for further updates\.?\s*/i' => 'Refer to the official portal for subsequent updates.',
+            '/it is important to note that\s*/i' => 'Note that ',
+            '/as we all know,?\s*/i' => '',
+            '/in this comprehensive guide,?\s*/i' => 'In this official briefing, '
+        ];
+        foreach ($bannedMap as $pat => $rep) {
+            $html = preg_replace($pat, $rep, $html);
+        }
+
+        return trim($html);
+    }
 }
+
