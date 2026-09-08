@@ -23,6 +23,7 @@ use App\Services\SEOManagerService;
 use App\Services\ArticleUpdateService;
 use App\Services\TemporalFactService;
 use App\Services\TemporalContentValidator;
+use App\Services\TitleBodyConfidenceDetector;
 use Exception;
 use Throwable;
 
@@ -286,6 +287,19 @@ class PipelineService {
                 // Minor cliché cleanup
                 $linking['linked_content'] = self::autoCleanLintIssues($linking['linked_content'], $detectedIntent);
             }
+        }
+
+        // 5e. Title-Body Confidence Conflation Safety Gate
+        $confidenceViolations = TitleBodyConfidenceDetector::check($polished['edited_title'], $linking['linked_content'], $extractedFacts);
+        if (!empty($confidenceViolations)) {
+            Logger::warning("PipelineService: Title-Body Confidence Conflation detected for Trend #{$trendId}: " . implode('; ', $confidenceViolations));
+            // Neutralize title to truthful milestone status
+            $repairedTitle = preg_replace('/\b(exam date(s)?\s+confirmed|dates confirmed|exam date confirmed)\b/i', 'Exam Status & Schedule Timeline', $polished['edited_title']);
+            $repairedTitle = preg_replace('/\b(result(s)?\s+declared|result out)\b/i', 'Result Status & Scorecard Updates', $repairedTitle);
+            $repairedTitle = preg_replace('/\b(admit card\s+out|admit card released)\b/i', 'Admit Card Status & Guidelines', $repairedTitle);
+            $polished['edited_title'] = trim($repairedTitle);
+            $seoData['seo_title'] = $polished['edited_title'];
+            Logger::info("PipelineService: Neutralized over-confident title to: '{$polished['edited_title']}'");
         }
 
         // 6. Calculate 8-Dimension Quality Score (Total 100 points)

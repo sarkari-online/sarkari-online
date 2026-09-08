@@ -27,12 +27,14 @@ if (php_sapi_name() !== 'cli') {
 }
 
 require_once dirname(__DIR__) . '/config.php';
+require_once dirname(__DIR__) . '/app/Services/TitleBodyConfidenceDetector.php';
 
 use App\Database\Database;
 use App\Helpers\Logger;
 use App\Services\ArticleIntent;
 use App\Services\IntentClassifierService;
 use App\Services\FeaturedSnippetService;
+use App\Services\TitleBodyConfidenceDetector;
 use App\Services\PipelineService;
 use App\AI\ArticleGenerator;
 use App\AI\Gemini;
@@ -464,6 +466,12 @@ class ArticleAuditor {
         $bodyStaleness = BodyStalenessDetector::check($content, $title, $detectedIntent);
         foreach ($bodyStaleness as $staleIssue) {
             $tier2Violations[] = "[Body Staleness] " . $staleIssue;
+        }
+
+        // 3b. Title-Body Confidence Conflation check (Tier 2: Entity-scoped factual alignment)
+        $confidenceIssues = TitleBodyConfidenceDetector::check($title, $content, $rawPayload);
+        foreach ($confidenceIssues as $cIssue) {
+            $tier2Violations[] = $cIssue;
         }
 
         // 4. Field-level mechanical checks (Tier 1: Safe field fixes only)
