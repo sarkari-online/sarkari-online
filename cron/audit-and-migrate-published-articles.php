@@ -301,8 +301,8 @@ class BodyStalenessDetector {
     private const HISTORICAL_COMPARATIVE_PATTERNS = [
         '/\b(unlike|as opposed to|compared with|compared to|difference between|whereas|in contrast to)\b/i',
         '/\b(concluded|completed|cleared|qualified|appeared in|conducted on|held on|earlier|previous stage|prior stage)\b/i',
-        '/\b(who passed|who cleared|who qualified|shortlisted based on|candidates of cbt[ -]?1)\b/i',
-        '/\b(cbt[ -]?1 was|tier[ -]?1 was|prelims was|preliminary was)\b/i'
+        '/\b(who passed|who cleared|who qualified|shortlisted based on|candidates of cbt[ -]?[12]|candidates of tier[ -]?[12])\b/i',
+        '/\b(cbt[ -]?[12] was|tier[ -]?[12] was|prelims was|preliminary was|mains was)\b/i'
     ];
 
     private const ACTIVE_DIRECTIVE_PATTERNS = [
@@ -316,18 +316,46 @@ class BodyStalenessDetector {
         $issues = [];
         $tLower = strtolower($title);
 
-        $isCbt2 = (bool)preg_match('/\b(cbt[ -]?2|tier[ -]?2|phase[ -]?ii|stage[ -]?2)\b/i', $tLower);
-        $isMains = (bool)preg_match('/\b(mains?|main exam)\b/i', $tLower);
+        $stageRank = 0;
+        $priorPatterns = [];
+        $currentStageLabel = '';
 
-        if (!$isCbt2 && !$isMains) {
+        // Generalized Multi-Stage Lifecycle Gate:
+        // Rank 4: Interview / Personality Test / DV / PET / PST / Skill Test
+        if (preg_match('/\b(interview|personality\s*test|document\s*verification|\bdv\b|pet\b|pst\b|physical\s*(?:endurance|efficiency|standard)\s*test|medical\s*exam|skill\s*test|typing\s*test)\b/i', $tLower, $m)) {
+            $stageRank = 4;
+            $currentStageLabel = strtoupper($m[0]);
+            $priorPatterns = [
+                '/\b(cbt[ -]?[12]|tier[ -]?[12]|prelims?|preliminary|mains?|phase[ -]?[i]{1,2})\b/i'
+            ];
+        }
+        // Rank 3: Tier 3 / Stage 3 / CBT 3 / Phase III / Descriptive
+        elseif (preg_match('/\b(tier[ -]?3|stage[ -]?3|cbt[ -]?3|phase[ -]?iii|descriptive\s*(?:paper|exam))\b/i', $tLower, $m)) {
+            $stageRank = 3;
+            $currentStageLabel = strtoupper($m[0]);
+            $priorPatterns = [
+                '/\b(cbt[ -]?[12]|tier[ -]?[12]|prelims?|preliminary|phase[ -]?[i]{1,2})\b/i'
+            ];
+        }
+        // Rank 2: Tier 2 / Stage 2 / CBT 2 / Phase II / Mains
+        elseif (preg_match('/\b(cbt[ -]?2|tier[ -]?2|phase[ -]?ii|stage[ -]?2|mains?|main exam)\b/i', $tLower, $m)) {
+            $stageRank = 2;
+            $currentStageLabel = strtoupper($m[0]);
+            $priorPatterns = [
+                '/\b(cbt[ -]?1|tier[ -]?1|phase[ -]?i|stage[ -]?1|prelims?|preliminary)\b/i'
+            ];
+        }
+
+        // Rank 0 or 1: Initial stage or un-staged exam -> skip phase mismatch
+        if ($stageRank < 2) {
             return [];
         }
 
-        // 1. Strip out non-body prose (related links, also read callouts, sidebars, tickers)
+        // 1. Strip out non-body prose (related links, also read callouts, tickers, sidebars)
         $cleanHtml = preg_replace('/<div[^>]*class=[\'"][^\'"]*(also-read|related-articles|sidebar|ticker)[^\'"]*[\'"][^>]*>.*?<\/div>/is', '', $html);
         $plainText = strip_tags($cleanHtml);
 
-        // 2. Break into individual sentences
+        // 2. Tokenize into individual sentences
         $sentences = preg_split('/(?<=[.?!])\s+/u', $plainText);
 
         foreach ($sentences as $sentence) {
@@ -337,12 +365,12 @@ class BodyStalenessDetector {
             $mentionsPriorPhase = false;
             $priorPhaseName = '';
 
-            if ($isCbt2 && preg_match('/\b(cbt[ -]?1|tier[ -]?1)\b/i', $s, $m)) {
-                $mentionsPriorPhase = true;
-                $priorPhaseName = $m[0];
-            } elseif ($isMains && preg_match('/\b(prelims?|preliminary|tier[ -]?1)\b/i', $s, $m)) {
-                $mentionsPriorPhase = true;
-                $priorPhaseName = $m[0];
+            foreach ($priorPatterns as $pattern) {
+                if (preg_match($pattern, $s, $m)) {
+                    $mentionsPriorPhase = true;
+                    $priorPhaseName = strtoupper($m[0]);
+                    break;
+                }
             }
 
             if (!$mentionsPriorPhase) {
@@ -372,7 +400,7 @@ class BodyStalenessDetector {
             }
 
             if ($isActiveDirective) {
-                $issues[] = "Active {$priorPhaseName} assertion found in " . ($isCbt2 ? "CBT-2" : "Mains") . " article: \"" . mb_substr($s, 0, 90) . "...\"";
+                $issues[] = "Active {$priorPhaseName} assertion found in {$currentStageLabel} article: \"" . mb_substr($s, 0, 90) . "...\"";
             }
         }
 
