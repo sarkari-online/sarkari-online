@@ -54,7 +54,10 @@ $slotSchedule = AutoCronService::getISTSlotSchedule();
 $completedSlotsToday = AutoCronService::getCompletedSlotsTodayCount();
 
 $todayPipelineArticles = Database::fetchAll(
-    "SELECT a.*, c.name AS category_name, c.color AS category_color,
+    "SELECT a.id, a.title, a.slug, a.status, a.lifecycle_status, a.quality_score,
+            a.source_name, a.published_at, a.updated_at,
+            c.name AS category_name, c.color AS category_color,
+            0 AS is_trend,
             CASE 
                 WHEN DATE(a.published_at) = CURRENT_DATE AND a.status = 'published' THEN 1
                 WHEN a.status = 'review' THEN 2
@@ -69,6 +72,26 @@ $todayPipelineArticles = Database::fetchAll(
      ORDER BY pipeline_priority ASC, a.quality_score DESC, a.id DESC
      LIMIT 5"
 );
+
+// If fewer than 5 articles, fill remaining slots from top approved/detected trends of today
+if (count($todayPipelineArticles) < 5) {
+    $needed = 5 - count($todayPipelineArticles);
+    $topTrends = Database::fetchAll(
+        "SELECT t.id, t.keyword AS title, '' AS slug, t.status, 'upcoming' AS lifecycle_status, 
+                t.trend_score AS quality_score, t.source AS source_name, NULL AS published_at, t.detected_at AS updated_at,
+                COALESCE(c.name, 'Government Jobs') AS category_name,
+                COALESCE(c.color, '#2563eb') AS category_color,
+                1 AS is_trend
+         FROM trends t
+         LEFT JOIN categories c ON t.category_id = c.id
+         WHERE t.status IN ('approved', 'detected')
+         ORDER BY (t.status = 'approved') DESC, t.trend_score DESC, t.id DESC
+         LIMIT " . (int)$needed
+    );
+    foreach ($topTrends as $tr) {
+        $todayPipelineArticles[] = $tr;
+    }
+}
 
 include __DIR__ . '/components/header.php';
 ?>
@@ -160,25 +183,47 @@ include __DIR__ . '/components/header.php';
                             <span style="font-size: 0.85rem;">Autonomous worker will ingest trends and queue articles for today's slots.</span>
                         </td>
                     </tr>
-                <?php else: ?>
-                    <?php foreach ($todayPipelineArticles as $idx => $art): 
+                    <?php 
+                    $slotLabels = [
+                        0 => 'Slot 1 (10:00 AM IST)',
+                        1 => 'Slot 2 (02:00 PM IST)',
+                        2 => 'Slot 3 (06:00 PM IST)',
+                        3 => 'Tomorrow Slot 1 (10:00 AM)',
+                        4 => 'Tomorrow Slot 2 (02:00 PM)'
+                    ];
+                    foreach ($todayPipelineArticles as $idx => $art): 
                         $isPublishedToday = (date('Y-m-d', strtotime($art['published_at'] ?? '')) === date('Y-m-d') && $art['status'] === 'published');
+                        $isTrend = !empty($art['is_trend']);
+                        $targetSlot = $slotLabels[$idx] ?? "Slot " . ($idx + 1);
                     ?>
                         <tr style="<?= $isPublishedToday ? 'background: #f0fdf4;' : '' ?>">
                             <td style="text-align: center; font-weight: 800; color: #64748b;">
                                 #<?= $idx + 1 ?>
                             </td>
                             <td>
-                                <a href="<?= url('admin/articles/edit.php?id=' . $art['id']) ?>" style="font-weight: 700; color: var(--text-main); text-decoration: none; font-size: 0.95rem; display: block; line-height: 1.4;">
-                                    <?= e($art['title']) ?>
-                                </a>
-                                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem; display: flex; align-items: center; gap: 0.6rem;">
-                                    <span>ID: #<?= $art['id'] ?></span>
-                                    <?php if (!empty($art['source_name'])): ?>
-                                        <span>• Source: <?= e($art['source_name']) ?></span>
-                                    <?php endif; ?>
-                                    <span>• <?= date('h:i A', strtotime($art['updated_at'])) ?></span>
-                                </div>
+                                <?php if ($isTrend): ?>
+                                    <a href="<?= url('admin/trends/') ?>" style="font-weight: 700; color: #1e293b; text-decoration: none; font-size: 0.95rem; display: block; line-height: 1.4;">
+                                        <?= e($art['title']) ?>
+                                    </a>
+                                    <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem; display: flex; align-items: center; gap: 0.6rem;">
+                                        <span style="background: #e0f2fe; color: #0369a1; padding: 1px 6px; border-radius: 3px; font-weight: 600;">Autonomous Pipeline Topic</span>
+                                        <?php if (!empty($art['source_name'])): ?>
+                                            <span>• Source: <?= e($art['source_name']) ?></span>
+                                        <?php endif; ?>
+                                        <span>• Trend #<?= $art['id'] ?></span>
+                                    </div>
+                                <?php else: ?>
+                                    <a href="<?= url('admin/articles/edit.php?id=' . $art['id']) ?>" style="font-weight: 700; color: var(--text-main); text-decoration: none; font-size: 0.95rem; display: block; line-height: 1.4;">
+                                        <?= e($art['title']) ?>
+                                    </a>
+                                    <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem; display: flex; align-items: center; gap: 0.6rem;">
+                                        <span>ID: #<?= $art['id'] ?></span>
+                                        <?php if (!empty($art['source_name'])): ?>
+                                            <span>• Source: <?= e($art['source_name']) ?></span>
+                                        <?php endif; ?>
+                                        <span>• <?= date('h:i A', strtotime($art['updated_at'])) ?></span>
+                                    </div>
+                                <?php endif; ?>
                             </td>
                             <td>
                                 <span class="badge" style="background: <?= e($art['category_color'] ?? '#2563eb') ?>15; color: <?= e($art['category_color'] ?? '#2563eb') ?>; font-weight: 600;">
@@ -209,11 +254,15 @@ include __DIR__ . '/components/header.php';
                                     </span>
                                 <?php elseif ($art['status'] === 'review'): ?>
                                     <span class="badge" style="background: #f59e0b; color: #ffffff; font-weight: 700; display: inline-flex; align-items: center; gap: 0.3rem;">
-                                        ⚡ Ready in Queue (Slot <?= $completedSlotsToday + 1 ?>)
+                                        ⚡ Ready in Queue (<?= $targetSlot ?>)
                                     </span>
                                 <?php elseif ($art['status'] === 'draft'): ?>
                                     <span class="badge" style="background: #64748b; color: #ffffff; font-weight: 600;">
                                         Draft (Polished)
+                                    </span>
+                                <?php elseif ($isTrend): ?>
+                                    <span class="badge" style="background: #e0e7ff; color: #3730a3; font-weight: 700; display: inline-flex; align-items: center; gap: 0.3rem;">
+                                        ⚡ Target: <?= $targetSlot ?>
                                     </span>
                                 <?php else: ?>
                                     <span class="badge badge-secondary"><?= ucfirst($art['status']) ?></span>
@@ -229,7 +278,11 @@ include __DIR__ . '/components/header.php';
                             </td>
                             <td style="text-align: right; white-space: nowrap;">
                                 <div style="display: inline-flex; gap: 0.4rem; justify-content: flex-end;">
-                                    <?php if ($art['status'] === 'published'): ?>
+                                    <?php if ($isTrend): ?>
+                                        <a href="<?= url('admin/trends/') ?>" class="btn btn-xs btn-primary">
+                                            Process ⚡
+                                        </a>
+                                    <?php elseif ($art['status'] === 'published'): ?>
                                         <a href="<?= url('article/' . $art['slug'] . '/') ?>" target="_blank" class="btn btn-xs btn-outline" style="color: #16a34a; border-color: #86efac;">
                                             View Live ↗
                                         </a>
