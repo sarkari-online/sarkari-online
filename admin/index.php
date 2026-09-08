@@ -10,6 +10,7 @@ use App\Helpers\CSRF;
 use App\Helpers\Sanitizer;
 use App\Services\ArticleService;
 use App\Services\TrendService;
+use App\Services\AutoCronService;
 
 Auth::requireAuth();
 
@@ -46,6 +47,27 @@ $recentArticles = Database::fetchAll(
      FROM articles a 
      JOIN categories c ON a.category_id = c.id 
      ORDER BY a.id DESC LIMIT 6"
+);
+
+// 5. Fetch Today's Publishing Slot Status & Top 5 Priority Articles
+$slotSchedule = AutoCronService::getISTSlotSchedule();
+$completedSlotsToday = AutoCronService::getCompletedSlotsTodayCount();
+
+$todayPipelineArticles = Database::fetchAll(
+    "SELECT a.*, c.name AS category_name, c.color AS category_color,
+            CASE 
+                WHEN DATE(a.published_at) = CURRENT_DATE AND a.status = 'published' THEN 1
+                WHEN a.status = 'review' THEN 2
+                WHEN a.status = 'draft' AND a.quality_score >= 70 THEN 3
+                ELSE 4
+            END AS pipeline_priority
+     FROM articles a 
+     JOIN categories c ON a.category_id = c.id 
+     WHERE (DATE(a.published_at) = CURRENT_DATE AND a.status = 'published')
+        OR (a.status = 'review')
+        OR (a.status = 'draft' AND a.quality_score >= 70)
+     ORDER BY pipeline_priority ASC, a.quality_score DESC, a.id DESC
+     LIMIT 5"
 );
 
 include __DIR__ . '/components/header.php';
@@ -88,6 +110,144 @@ include __DIR__ . '/components/header.php';
     <div class="stat-card" style="border-left: 4px solid <?= $geminiFailures > 0 ? '#ef4444' : '#22c55e' ?>;">
         <span class="stat-card-label" style="color: <?= $geminiFailures > 0 ? '#dc2626' : '#16a34a' ?>;">AI Failures</span>
         <span class="stat-card-num" style="color: <?= $geminiFailures > 0 ? '#dc2626' : '#16a34a' ?>;"><?= number_format($geminiFailures) ?></span>
+    </div>
+</div>
+
+<!-- Today's Publishing Pipeline & Top 5 Articles Widget -->
+<div class="admin-table-box" style="margin-bottom: 2rem; border-top: 4px solid #3b82f6; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+    <div class="admin-table-header" style="flex-wrap: wrap; gap: 1rem; padding: 1.25rem 1.5rem; background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+        <div>
+            <h3 style="font-size: 1.15rem; font-weight: 800; margin: 0 0 0.35rem 0; display: flex; align-items: center; gap: 0.6rem; color: #0f172a;">
+                <?= icon('calendar', 'icon-md') ?> Today's Publishing Pipeline & Top 5 Priority Articles
+            </h3>
+            <p style="margin: 0; font-size: 0.85rem; color: #64748b;">
+                Autonomous IST Publishing Slots (10:00 AM, 02:00 PM, 06:00 PM) & Active Queue
+            </p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.4rem 0.8rem; font-size: 0.82rem; display: flex; align-items: center; gap: 0.5rem;">
+                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: <?= $slotSchedule['wait_minutes'] <= 60 ? '#f59e0b' : '#3b82f6' ?>;"></span>
+                <span><strong>Next Slot:</strong> <?= e($slotSchedule['next_slot_name']) ?></span>
+                <span style="color: #64748b;">(in ~<?= $slotSchedule['wait_minutes'] ?>m)</span>
+            </div>
+            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.4rem 0.8rem; font-size: 0.82rem;">
+                <strong>Slots Completed:</strong> <span style="color: #16a34a; font-weight: 700;"><?= $completedSlotsToday ?></span> / 3
+            </div>
+            <a href="<?= url('admin/review/') ?>" class="btn btn-sm btn-primary" style="display: flex; align-items: center; gap: 0.4rem;">
+                <?= icon('check-circle', 'icon-xs') ?> Review Queue (<?= $reviewArticles ?>)
+            </a>
+        </div>
+    </div>
+    <div style="overflow-x: auto;">
+        <table class="table" style="margin: 0;">
+            <thead>
+                <tr style="background: #f1f5f9; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                    <th style="width: 50px; text-align: center;">Rank</th>
+                    <th>Article Details</th>
+                    <th>Category</th>
+                    <th>Lifecycle Stage</th>
+                    <th>Pipeline Status</th>
+                    <th style="text-align: center;">Quality Score</th>
+                    <th style="text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (empty($todayPipelineArticles)): ?>
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2.5rem 1rem;">
+                            <?= icon('file-text', 'icon-lg') ?><br>
+                            <p style="margin: 0.5rem 0 0 0; font-weight: 600;">No articles in today's pipeline yet.</p>
+                            <span style="font-size: 0.85rem;">Autonomous worker will ingest trends and queue articles for today's slots.</span>
+                        </td>
+                    </tr>
+                <?php else: ?>
+                    <?php foreach ($todayPipelineArticles as $idx => $art): 
+                        $isPublishedToday = (date('Y-m-d', strtotime($art['published_at'] ?? '')) === date('Y-m-d') && $art['status'] === 'published');
+                    ?>
+                        <tr style="<?= $isPublishedToday ? 'background: #f0fdf4;' : '' ?>">
+                            <td style="text-align: center; font-weight: 800; color: #64748b;">
+                                #<?= $idx + 1 ?>
+                            </td>
+                            <td>
+                                <a href="<?= url('admin/articles/edit.php?id=' . $art['id']) ?>" style="font-weight: 700; color: var(--text-main); text-decoration: none; font-size: 0.95rem; display: block; line-height: 1.4;">
+                                    <?= e($art['title']) ?>
+                                </a>
+                                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem; display: flex; align-items: center; gap: 0.6rem;">
+                                    <span>ID: #<?= $art['id'] ?></span>
+                                    <?php if (!empty($art['source_name'])): ?>
+                                        <span>• Source: <?= e($art['source_name']) ?></span>
+                                    <?php endif; ?>
+                                    <span>• <?= date('h:i A', strtotime($art['updated_at'])) ?></span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge" style="background: <?= e($art['category_color'] ?? '#2563eb') ?>15; color: <?= e($art['category_color'] ?? '#2563eb') ?>; font-weight: 600;">
+                                    <?= e($art['category_name']) ?>
+                                </span>
+                            </td>
+                            <td>
+                                <?php
+                                $lc = strtolower($art['lifecycle_status'] ?? 'active');
+                                $lcBadges = [
+                                    'active' => ['bg' => '#dcfce7', 'color' => '#166534', 'label' => 'ACTIVE (APPLY)'],
+                                    'upcoming' => ['bg' => '#e0f2fe', 'color' => '#0369a1', 'label' => 'UPCOMING'],
+                                    'closed' => ['bg' => '#f1f5f9', 'color' => '#475569', 'label' => 'CLOSED'],
+                                    'admit_card_released' => ['bg' => '#fef3c7', 'color' => '#92400e', 'label' => 'ADMIT CARD OUT'],
+                                    'exam_completed' => ['bg' => '#f3e8ff', 'color' => '#6b21a8', 'label' => 'EXAM DONE'],
+                                    'result_released' => ['bg' => '#ffedd5', 'color' => '#c2410c', 'label' => 'RESULT OUT']
+                                ];
+                                $lcInfo = $lcBadges[$lc] ?? ['bg' => '#f1f5f9', 'color' => '#475569', 'label' => strtoupper($lc)];
+                                ?>
+                                <span class="badge" style="background: <?= $lcInfo['bg'] ?>; color: <?= $lcInfo['color'] ?>; font-size: 0.72rem; font-weight: 700;">
+                                    <?= $lcInfo['label'] ?>
+                                </span>
+                            </td>
+                            <td>
+                                <?php if ($isPublishedToday): ?>
+                                    <span class="badge" style="background: #22c55e; color: #ffffff; font-weight: 700; display: inline-flex; align-items: center; gap: 0.3rem;">
+                                        ● Published Live Today
+                                    </span>
+                                <?php elseif ($art['status'] === 'review'): ?>
+                                    <span class="badge" style="background: #f59e0b; color: #ffffff; font-weight: 700; display: inline-flex; align-items: center; gap: 0.3rem;">
+                                        ⚡ Ready in Queue (Slot <?= $completedSlotsToday + 1 ?>)
+                                    </span>
+                                <?php elseif ($art['status'] === 'draft'): ?>
+                                    <span class="badge" style="background: #64748b; color: #ffffff; font-weight: 600;">
+                                        Draft (Polished)
+                                    </span>
+                                <?php else: ?>
+                                    <span class="badge badge-secondary"><?= ucfirst($art['status']) ?></span>
+                                <?php endif; ?>
+                            </td>
+                            <td style="text-align: center;">
+                                <div style="display: inline-flex; flex-direction: column; align-items: center;">
+                                    <span style="font-size: 1rem; font-weight: 800; color: <?= $art['quality_score'] >= 85 ? '#16a34a' : ($art['quality_score'] >= 75 ? '#2563eb' : '#d97706') ?>;">
+                                        <?= $art['quality_score'] ?>
+                                    </span>
+                                    <span style="font-size: 0.7rem; color: #94a3b8;">/ 100</span>
+                                </div>
+                            </td>
+                            <td style="text-align: right; white-space: nowrap;">
+                                <div style="display: inline-flex; gap: 0.4rem; justify-content: flex-end;">
+                                    <?php if ($art['status'] === 'published'): ?>
+                                        <a href="<?= url('article/' . $art['slug'] . '/') ?>" target="_blank" class="btn btn-xs btn-outline" style="color: #16a34a; border-color: #86efac;">
+                                            View Live ↗
+                                        </a>
+                                    <?php else: ?>
+                                        <a href="<?= url('admin/articles/edit.php?id=' . $art['id']) ?>" class="btn btn-xs btn-outline">
+                                            Edit
+                                        </a>
+                                        <a href="<?= url('article/' . $art['slug'] . '/?preview=1') ?>" target="_blank" class="btn btn-xs btn-secondary">
+                                            Preview
+                                        </a>
+                                    <?php endif; ?>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
     </div>
 </div>
 
