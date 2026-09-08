@@ -93,14 +93,14 @@ foreach (array_merge($toolsLinks, $portalLinks) as $ml) {
         $isActive = ($link['url'] === '' && ($currentUrl === '/' || $currentUrl === BASE_PATH || $currentUrl === BASE_PATH . '/'))
                     || ($link['url'] !== '' && str_contains($currentUrl, trim($link['url'], '/')));
     ?>
-        <a href="<?= url($link['url']) ?>" class="nav-link <?= $isActive ? 'active' : '' ?>">
+        <a href="<?= url($link['url']) ?>" class="nav-link <?= $isActive ? 'active' : '' ?>" title="<?= e($link['label']) ?> — Sarkari.online">
             <?= e($link['label']) ?>
         </a>
     <?php endforeach; ?>
 
     <!-- Professional 2-Column Mega Menu -->
     <div class="nav-dropdown-wrapper">
-        <button type="button" class="nav-link nav-dropdown-btn <?= $isMoreActive ? 'active' : '' ?>" aria-expanded="false" aria-haspopup="true">
+        <button type="button" class="nav-link nav-dropdown-btn <?= $isMoreActive ? 'active' : '' ?>" aria-expanded="false" aria-haspopup="true" title="More Tools &amp; Portals">
             <span>More</span>
             <span class="nav-dropdown-chevron-icon"><?= icon('chevron-right', 'icon-xs') ?></span>
         </button>
@@ -118,7 +118,7 @@ foreach (array_merge($toolsLinks, $portalLinks) as $ml) {
                         <?php foreach ($toolsLinks as $tl): 
                             $isItemActive = str_contains($currentUrl, trim($tl['url'], '/'));
                         ?>
-                            <a href="<?= url($tl['url']) ?>" class="nav-dropdown-item <?= $isItemActive ? 'active' : '' ?>">
+                            <a href="<?= url($tl['url']) ?>" class="nav-dropdown-item <?= $isItemActive ? 'active' : '' ?>" title="<?= e($tl['label']) ?>: <?= e($tl['desc']) ?>">
                                 <div class="nav-dropdown-item-icon">
                                     <?= icon($tl['icon'], 'icon-sm') ?>
                                 </div>
@@ -141,7 +141,7 @@ foreach (array_merge($toolsLinks, $portalLinks) as $ml) {
                         <?php foreach ($portalLinks as $pl): 
                             $isItemActive = str_contains($currentUrl, trim($pl['url'], '/'));
                         ?>
-                            <a href="<?= url($pl['url']) ?>" class="nav-dropdown-item <?= $isItemActive ? 'active' : '' ?>">
+                            <a href="<?= url($pl['url']) ?>" class="nav-dropdown-item <?= $isItemActive ? 'active' : '' ?>" title="<?= e($pl['label']) ?>: <?= e($pl['desc']) ?>">
                                 <div class="nav-dropdown-item-icon">
                                     <?= icon($pl['icon'], 'icon-sm') ?>
                                 </div>
@@ -159,7 +159,7 @@ foreach (array_merge($toolsLinks, $portalLinks) as $ml) {
             <!-- Mega Menu Bottom Verification Strip -->
             <div class="mega-menu-footer">
                 <span class="mega-footer-note">Statutory Data &middot; Mapped to DoPT &amp; University Rules</span>
-                <a href="<?= url('tools/') ?>" class="mega-footer-link">View All Tools &rarr;</a>
+                <a href="<?= url('tools/') ?>" class="mega-footer-link" title="View All Examination &amp; Student Tools">View All Tools &rarr;</a>
             </div>
         </div>
     </div>

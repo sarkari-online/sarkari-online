@@ -114,7 +114,7 @@ function get_feed_badge(array $item): string {
             <ul class="fast-feed-list">
                 <?php foreach ($resultsFeed as $item): ?>
                     <li class="fast-feed-item">
-                        <a href="<?= url('article/' . $item['slug'] . '/') ?>" class="fast-feed-item-link">
+                        <a href="<?= url('article/' . $item['slug'] . '/') ?>" class="fast-feed-item-link" title="<?= e($item['title']) ?>">
                             <div class="item-headline-row">
                                 <span class="item-agency-tag tag-results"><?= e(get_feed_badge($item)) ?></span>
                                 <span class="item-title"><?= e($item['title']) ?></span>
@@ -132,7 +132,7 @@ function get_feed_badge(array $item): string {
             </ul>
 
             <div class="fast-feed-col-footer">
-                <a href="<?= url('category/exam-results/') ?>" class="col-footer-link">
+                <a href="<?= url('category/exam-results/') ?>" class="col-footer-link" title="View All Examination Results &amp; Scorecards">
                     <span>View All Results</span>
                     <?= icon('arrow-right', 'footer-arrow-icon') ?>
                 </a>
@@ -160,7 +160,7 @@ function get_feed_badge(array $item): string {
             <ul class="fast-feed-list">
                 <?php foreach ($admitFeed as $item): ?>
                     <li class="fast-feed-item">
-                        <a href="<?= url('article/' . $item['slug'] . '/') ?>" class="fast-feed-item-link">
+                        <a href="<?= url('article/' . $item['slug'] . '/') ?>" class="fast-feed-item-link" title="<?= e($item['title']) ?>">
                             <div class="item-headline-row">
                                 <span class="item-agency-tag tag-admit"><?= e(get_feed_badge($item)) ?></span>
                                 <span class="item-title"><?= e($item['title']) ?></span>
@@ -178,7 +178,7 @@ function get_feed_badge(array $item): string {
             </ul>
 
             <div class="fast-feed-col-footer">
-                <a href="<?= url('category/admit-cards/') ?>" class="col-footer-link">
+                <a href="<?= url('category/admit-cards/') ?>" class="col-footer-link" title="View All Admit Cards &amp; Hall Tickets">
                     <span>View All Admit Cards</span>
                     <?= icon('arrow-right', 'footer-arrow-icon') ?>
                 </a>
@@ -224,7 +224,7 @@ function get_feed_badge(array $item): string {
                     }
                 ?>
                     <li class="fast-feed-item">
-                        <a href="<?= $itemUrl ?>" class="fast-feed-item-link">
+                        <a href="<?= $itemUrl ?>" class="fast-feed-item-link" title="<?= e($item['title']) ?>">
                             <div class="item-headline-row">
                                 <span class="item-agency-tag tag-jobs"><?= e(get_feed_badge($item)) ?></span>
                                 <span class="item-title"><?= e($item['title']) ?></span>
@@ -245,7 +245,7 @@ function get_feed_badge(array $item): string {
             </ul>
 
             <div class="fast-feed-col-footer">
-                <a href="<?= url('latest-jobs/') ?>" class="col-footer-link">
+                <a href="<?= url('latest-jobs/') ?>" class="col-footer-link" title="View All Latest Government Jobs Directory">
                     <span>View All Latest Jobs Directory</span>
                     <?= icon('arrow-right', 'footer-arrow-icon') ?>
                 </a>

@@ -24,7 +24,7 @@ if (empty($trendingItems)) {
                     <span><?= format_date($item['published_at'] ?? 'now') ?></span>
                 </div>
                 <h3 class="trending-item-title">
-                    <a href="<?= url('article/' . $item['slug'] . '/') ?>">
+                    <a href="<?= url('article/' . $item['slug'] . '/') ?>" title="<?= e($item['title']) ?>">
                         <?= e($item['title']) ?>
                     </a>
                 </h3>

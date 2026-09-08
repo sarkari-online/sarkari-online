@@ -154,7 +154,7 @@ include __DIR__ . '/components/header.php';
                 <!-- Article Header -->
                 <header class="article-header">
                     <div class="card-meta">
-                        <a href="<?= url('category/' . ($article['category_slug'] ?? 'exam-results') . '/') ?>" class="badge" style="background-color: <?= e($article['category_color'] ?? '#1e3a8a') ?>15; color: <?= e($article['category_color'] ?? '#1e3a8a') ?>; font-size: 0.75rem;">
+                        <a href="<?= url('category/' . ($article['category_slug'] ?? 'exam-results') . '/') ?>" class="badge" style="background-color: <?= e($article['category_color'] ?? '#1e3a8a') ?>15; color: <?= e($article['category_color'] ?? '#1e3a8a') ?>; font-size: 0.75rem;" title="<?= e($article['category_name'] ?? 'Education') ?> Category Archives">
                             <?= e($article['category_name'] ?? 'Education') ?>
                         </a>
                         <span class="meta-dot"></span>
@@ -176,7 +176,7 @@ include __DIR__ . '/components/header.php';
                     <!-- Author and Timestamp Byline -->
                     <div class="article-byline">
                         <div class="byline-author-info">
-                            <a href="<?= $authorUrl ?>" class="author-avatar" style="text-decoration: none; background: <?= $authorBg ?>; color: #fff; overflow: hidden; display: flex; align-items: center; justify-content: center;" aria-label="Author Profile: <?= e($authorName) ?>">
+                            <a href="<?= $authorUrl ?>" class="author-avatar" style="text-decoration: none; background: <?= $authorBg ?>; color: #fff; overflow: hidden; display: flex; align-items: center; justify-content: center;" aria-label="Author Profile: <?= e($authorName) ?>" title="Author Profile: <?= e($authorName) ?>">
                                 <?php if (!empty($authorImg)): ?>
                                     <img src="<?= asset($authorImg) ?>" alt="<?= e($authorName) ?>" width="34" height="34" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
                                     <span style="display: none;"><?= $authorAvatar ?></span>
@@ -185,7 +185,7 @@ include __DIR__ . '/components/header.php';
                                 <?php endif; ?>
                             </a>
                             <div>
-                                <a href="<?= $authorUrl ?>" class="byline-author-name" style="text-decoration: none; color: inherit; display: inline-flex; align-items: center; gap: 4px;">
+                                <a href="<?= $authorUrl ?>" class="byline-author-name" style="text-decoration: none; color: inherit; display: inline-flex; align-items: center; gap: 4px;" title="Author Profile: <?= e($authorName) ?>">
                                     <?= e($authorName) ?>
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#047857" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" title="Verified Analyst"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                 </a>
@@ -263,7 +263,7 @@ include __DIR__ . '/components/header.php';
                         $firstRel = $relatedArticles[0];
                         $alsoReadCallout = '<div class="also-read-callout" style="margin: 1.5rem 0; padding: 1rem 1.25rem; background: #f8fafc; border-left: 4px solid var(--color-primary, #1e3a8a); border-radius: 0 8px 8px 0; font-size: 0.95rem;">'
                             . '<span style="font-weight: 800; color: var(--color-primary, #1e3a8a); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">📌 ALSO READ:</span>'
-                            . '<a href="' . e(url('article/' . $firstRel['slug'] . '/')) . '" style="color: #1e293b; font-weight: 700; text-decoration: underline; text-underline-offset: 3px;">' . e($firstRel['title']) . '</a>'
+                            . '<a href="' . e(url('article/' . $firstRel['slug'] . '/')) . '" title="' . e($firstRel['title']) . '" style="color: #1e293b; font-weight: 700; text-decoration: underline; text-underline-offset: 3px;">' . e($firstRel['title']) . '</a>'
                             . '</div>';
 
                         $pIndex = 0;
@@ -296,7 +296,7 @@ include __DIR__ . '/components/header.php';
                         </h3>
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
                             <?php foreach ($relatedArticles as $rel): ?>
-                                <a href="<?= e(url('article/' . $rel['slug'] . '/')) ?>" style="display: block; padding: 1rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; box-shadow: 0 1px 3px rgba(0,0,0,0.05);" class="related-article-card">
+                                <a href="<?= e(url('article/' . $rel['slug'] . '/')) ?>" title="<?= e($rel['title']) ?>" style="display: block; padding: 1rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; box-shadow: 0 1px 3px rgba(0,0,0,0.05);" class="related-article-card">
                                     <span style="font-size: 0.7rem; font-weight: 700; color: <?= e($rel['category_color'] ?? '#1e3a8a') ?>; text-transform: uppercase; display: block; margin-bottom: 0.35rem;">
                                         <?= e($rel['category_name'] ?? 'Education') ?>
                                     </span>
@@ -324,7 +324,7 @@ include __DIR__ . '/components/header.php';
                                 Information in this report has been fact-checked against official releases from <strong><?= e($sourceName) ?></strong><?= !empty($sourceRef) ? ' (Reference: ' . e($sourceRef) . ')' : '' ?>.
                             </p>
                             <?php if (!empty($sourceUrl)): ?>
-                                <a href="<?= e($sourceUrl) ?>" target="_blank" rel="noopener noreferrer" class="source-ver-link">
+                                <a href="<?= e($sourceUrl) ?>" target="_blank" rel="noopener noreferrer" class="source-ver-link" title="Visit Official Authority Portal: <?= e($sourceName) ?>">
                                     Visit Official Authority Portal (<?= e($sourceName) ?>) <?= icon('external-link', 'icon-sm') ?>
                                 </a>
                             <?php endif; ?>
@@ -335,10 +335,10 @@ include __DIR__ . '/components/header.php';
                 <!-- Share Buttons Strip -->
                 <div class="article-share-strip">
                     <span class="share-label"><?= icon('share', 'icon-sm') ?> Share this alert:</span>
-                    <a href="https://api.whatsapp.com/send?text=<?= urlencode($article['title'] . ' ' . $canonicalUrl) ?>" target="_blank" rel="noopener noreferrer" class="share-btn-pill" style="color: #047857;">
+                    <a href="https://api.whatsapp.com/send?text=<?= urlencode($article['title'] . ' ' . $canonicalUrl) ?>" target="_blank" rel="noopener noreferrer" class="share-btn-pill" style="color: #047857;" title="Share this alert on WhatsApp">
                         WhatsApp
                     </a>
-                    <a href="https://telegram.me/share/url?url=<?= urlencode($canonicalUrl) ?>&text=<?= urlencode($article['title']) ?>" target="_blank" rel="noopener noreferrer" class="share-btn-pill" style="color: #0284c7;">
+                    <a href="https://telegram.me/share/url?url=<?= urlencode($canonicalUrl) ?>&text=<?= urlencode($article['title']) ?>" target="_blank" rel="noopener noreferrer" class="share-btn-pill" style="color: #0284c7;" title="Share this alert on Telegram">
                         Telegram
                     </a>
                     <button type="button" class="share-btn-pill js-share-btn" data-url="<?= e($canonicalUrl) ?>" data-title="<?= e($article['title']) ?>">
@@ -351,7 +351,7 @@ include __DIR__ . '/components/header.php';
 
                 <!-- Author Bio Card (E-E-A-T Verified Authority) -->
                 <div class="author-bio-card" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; display: flex; gap: 1.25rem; align-items: flex-start; margin-top: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-                    <a href="<?= $authorUrl ?>" class="author-bio-avatar" style="width: 60px; height: 60px; border-radius: 50%; background: <?= $authorBg ?>; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; flex-shrink: 0; text-decoration: none; overflow: hidden; border: 2px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.06);" aria-label="Author profile for <?= e($authorName) ?>">
+                    <a href="<?= $authorUrl ?>" class="author-bio-avatar" style="width: 60px; height: 60px; border-radius: 50%; background: <?= $authorBg ?>; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; flex-shrink: 0; text-decoration: none; overflow: hidden; border: 2px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.06);" aria-label="Author profile for <?= e($authorName) ?>" title="View author profile for <?= e($authorName) ?>">
                         <?php if (!empty($authorImg)): ?>
                             <img src="<?= asset($authorImg) ?>" alt="<?= e($authorName) ?>" width="60" height="60" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
                             <span style="display: none;"><?= $authorAvatar ?></span>
@@ -362,7 +362,7 @@ include __DIR__ . '/components/header.php';
                     <div class="author-bio-details" style="flex: 1;">
                         <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.25rem;">
                             <h4 style="margin: 0; font-size: 1.05rem; font-weight: 800; color: #0f172a;">
-                                <a href="<?= $authorUrl ?>" style="color: inherit; text-decoration: none;">
+                                <a href="<?= $authorUrl ?>" style="color: inherit; text-decoration: none;" title="View author profile for <?= e($authorName) ?>">
                                     <?= e($authorName) ?>
                                 </a>
                             </h4>
@@ -381,12 +381,12 @@ include __DIR__ . '/components/header.php';
                             <span style="color: #64748b;"><strong>Background:</strong> <?= e($authorData['education']) ?></span>
                             <div style="display: flex; align-items: center; gap: 0.75rem;">
                                 <?php if (!empty($authorData['linkedin'])): ?>
-                                    <a href="<?= e($authorData['linkedin']) ?>" target="_blank" rel="noopener noreferrer" style="color: #0a66c2; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                    <a href="<?= e($authorData['linkedin']) ?>" target="_blank" rel="noopener noreferrer" style="color: #0a66c2; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Connect with <?= e($authorName) ?> on LinkedIn">
                                         <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.25V10.9H6.46M7.86 6.55a1.64 1.64 0 0 0-1.63 1.64c0 .9.73 1.63 1.63 1.63a1.64 1.64 0 0 0 1.64-1.63c0-.91-.74-1.64-1.64-1.64Z"/></svg>
                                         LinkedIn
                                     </a>
                                 <?php endif; ?>
-                                <a href="<?= $authorUrl ?>" style="color: #1e3a8a; font-weight: 700; text-decoration: none;">
+                                <a href="<?= $authorUrl ?>" style="color: #1e3a8a; font-weight: 700; text-decoration: none;" title="View all articles written by <?= e($authorName) ?>">
                                     View Articles &rarr;
                                 </a>
                             </div>

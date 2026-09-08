@@ -14,7 +14,7 @@
                 
                 <!-- Column 1: Brand & Purpose -->
                 <div class="footer-col footer-col-brand">
-                    <a href="<?= url() ?>" class="footer-brand-logo" aria-label="<?= e(SITE_NAME) ?>">
+                    <a href="<?= url() ?>" class="footer-brand-logo" aria-label="<?= e(SITE_NAME) ?>" title="<?= e(SITE_NAME) ?> — Sarkari Result &amp; Latest Govt Jobs 2026">
                         <img src="<?= asset('sarkari-logo-white.png') ?>" alt="<?= e(SITE_NAME) ?> - Sarkari Result &amp; Latest Govt Jobs" title="<?= e(SITE_NAME) ?> - Official Public Employment &amp; Examination Portal" style="height: 38px; width: auto; max-width: 175px; object-fit: contain; display: block;">
                     </a>
                     <p class="footer-brand-desc">
@@ -30,12 +30,12 @@
                 <div class="footer-col">
                     <h3 class="footer-heading">National Exams</h3>
                     <ul class="footer-links-list">
-                        <li><a href="<?= url('category/career-guides/') ?>" class="footer-link">NTA Entrance Tests</a></li>
-                        <li><a href="<?= url('category/entrance-exams/') ?>" class="footer-link">UPSC Civil Services</a></li>
-                        <li><a href="<?= url('category/school-boards/') ?>" class="footer-link">CBSE &amp; State Boards</a></li>
-                        <li><a href="<?= url('category/exam-results/') ?>" class="footer-link">Teacher Eligibility (CTET)</a></li>
-                        <li><a href="<?= url('category/entrance-exams/') ?>" class="footer-link">Central University Admissions</a></li>
-                        <li><a href="<?= url('category/answer-keys/') ?>" class="footer-link">Official Answer Keys</a></li>
+                        <li><a href="<?= url('category/career-guides/') ?>" class="footer-link" title="NTA Entrance Tests &amp; Career Guides">NTA Entrance Tests</a></li>
+                        <li><a href="<?= url('category/entrance-exams/') ?>" class="footer-link" title="UPSC Civil Services Examination Updates">UPSC Civil Services</a></li>
+                        <li><a href="<?= url('category/school-boards/') ?>" class="footer-link" title="CBSE &amp; State School Boards Updates">CBSE &amp; State Boards</a></li>
+                        <li><a href="<?= url('category/exam-results/') ?>" class="footer-link" title="Teacher Eligibility Test (CTET) Results">Teacher Eligibility (CTET)</a></li>
+                        <li><a href="<?= url('category/entrance-exams/') ?>" class="footer-link" title="Central University Admissions &amp; CUET">Central University Admissions</a></li>
+                        <li><a href="<?= url('category/answer-keys/') ?>" class="footer-link" title="Official Answer Keys &amp; OMR Sheets">Official Answer Keys</a></li>
                     </ul>
                 </div>
 
@@ -43,16 +43,16 @@
                 <div class="footer-col">
                     <h3 class="footer-heading">Recruitment &amp; Aid</h3>
                     <ul class="footer-links-list">
-                        <li><a href="<?= url('state-jobs/') ?>" class="footer-link">State Govt Jobs 2026</a></li>
-                        <li><a href="<?= url('category/government-jobs/') ?>" class="footer-link">Staff Selection (SSC)</a></li>
-                        <li><a href="<?= url('category/government-jobs/') ?>" class="footer-link">Railway Recruitment (RRB)</a></li>
-                        <li><a href="<?= url('tools/age-calculator/') ?>" class="footer-link">Govt Job Age Calculator</a></li>
-                        <li><a href="<?= url('tools/7th-pay-commission-salary-calculator/') ?>" class="footer-link">7th Pay Salary Calculator</a></li>
-                        <li><a href="<?= url('tools/cgpa-to-percentage-calculator/') ?>" class="footer-link">CGPA to % Converter</a></li>
-                        <li><a href="<?= url('full-forms/') ?>" class="footer-link">Govt Full Forms (A-Z)</a></li>
-                        <li><a href="<?= url('category/scholarships/') ?>" class="footer-link">National Scholarships (NSP)</a></li>
-                        <li><a href="<?= url('category/admit-cards/') ?>" class="footer-link">Admit Cards &amp; Hall Tickets</a></li>
-                        <li><a href="<?= url('category/exam-dates/') ?>" class="footer-link">Exam Calendars 2026–27</a></li>
+                        <li><a href="<?= url('state-jobs/') ?>" class="footer-link" title="State Government Jobs 2026 — 28 States &amp; UTs">State Govt Jobs 2026</a></li>
+                        <li><a href="<?= url('category/government-jobs/') ?>" class="footer-link" title="Staff Selection Commission (SSC) Recruitment">Staff Selection (SSC)</a></li>
+                        <li><a href="<?= url('category/government-jobs/') ?>" class="footer-link" title="Railway Recruitment Board (RRB) Jobs">Railway Recruitment (RRB)</a></li>
+                        <li><a href="<?= url('tools/age-calculator/') ?>" class="footer-link" title="Govt Job Age Calculator &amp; Eligibility Tool">Govt Job Age Calculator</a></li>
+                        <li><a href="<?= url('tools/7th-pay-commission-salary-calculator/') ?>" class="footer-link" title="7th Pay Commission Salary &amp; In-Hand Calculator">7th Pay Salary Calculator</a></li>
+                        <li><a href="<?= url('tools/cgpa-to-percentage-calculator/') ?>" class="footer-link" title="CGPA to Percentage &amp; Marks Converter">CGPA to % Converter</a></li>
+                        <li><a href="<?= url('full-forms/') ?>" class="footer-link" title="Government Full Forms Directory (A-Z)">Govt Full Forms (A-Z)</a></li>
+                        <li><a href="<?= url('category/scholarships/') ?>" class="footer-link" title="National Scholarship Portal (NSP) Schemes">National Scholarships (NSP)</a></li>
+                        <li><a href="<?= url('category/admit-cards/') ?>" class="footer-link" title="Admit Cards &amp; Hall Tickets">Admit Cards &amp; Hall Tickets</a></li>
+                        <li><a href="<?= url('category/exam-dates/') ?>" class="footer-link" title="Exam Calendars 2026–27 Schedules">Exam Calendars 2026–27</a></li>
                     </ul>
                 </div>
 
@@ -60,14 +60,14 @@
                 <div class="footer-col">
                     <h3 class="footer-heading">Editorial &amp; Legal</h3>
                     <ul class="footer-links-list">
-                        <li><a href="<?= url('about/') ?>" class="footer-link">About Editorial Desk</a></li>
-                        <li><a href="<?= url('editorial-policy/') ?>" class="footer-link">Editorial Policy</a></li>
-                        <li><a href="<?= url('fact-checking-policy/') ?>" class="footer-link">Fact-Checking Methodology</a></li>
-                        <li><a href="<?= url('fact-checking-policy/#corrections') ?>" class="footer-link">Corrections Policy</a></li>
-                        <li><a href="<?= url('ai-policy/') ?>" class="footer-link">AI Transparency Code</a></li>
-                        <li><a href="<?= url('why-choose-us/') ?>" class="footer-link">Why Choose Us</a></li>
-                        <li><a href="<?= url('contact/') ?>" class="footer-link">Grievance Redressal</a></li>
-                        <li><a href="<?= url('disclaimer/') ?>" class="footer-link">Statutory Disclaimer</a></li>
+                        <li><a href="<?= url('about/') ?>" class="footer-link" title="About Sarkari.online Editorial Desk">About Editorial Desk</a></li>
+                        <li><a href="<?= url('editorial-policy/') ?>" class="footer-link" title="Editorial Policy &amp; Standards">Editorial Policy</a></li>
+                        <li><a href="<?= url('fact-checking-policy/') ?>" class="footer-link" title="Fact-Checking Methodology &amp; Guidelines">Fact-Checking Methodology</a></li>
+                        <li><a href="<?= url('fact-checking-policy/#corrections') ?>" class="footer-link" title="Corrections Policy &amp; Accountability">Corrections Policy</a></li>
+                        <li><a href="<?= url('ai-policy/') ?>" class="footer-link" title="AI Transparency Code &amp; Principles">AI Transparency Code</a></li>
+                        <li><a href="<?= url('why-choose-us/') ?>" class="footer-link" title="Why Choose Sarkari.online">Why Choose Us</a></li>
+                        <li><a href="<?= url('contact/') ?>" class="footer-link" title="Grievance Redressal &amp; Contact Us">Grievance Redressal</a></li>
+                        <li><a href="<?= url('disclaimer/') ?>" class="footer-link" title="Statutory Non-Affiliation Disclaimer">Statutory Disclaimer</a></li>
                     </ul>
                 </div>
 
@@ -98,13 +98,13 @@
                     </div>
                 </div>
                 <div class="footer-legal-inline-links">
-                    <a href="<?= url('privacy-policy/') ?>">Privacy Policy</a>
+                    <a href="<?= url('privacy-policy/') ?>" title="Privacy Policy">Privacy Policy</a>
                     <span class="footer-sep">&middot;</span>
-                    <a href="<?= url('terms/') ?>">Terms of Service</a>
+                    <a href="<?= url('terms/') ?>" title="Terms of Service">Terms of Service</a>
                     <span class="footer-sep">&middot;</span>
-                    <a href="<?= url('disclaimer/') ?>">Disclaimer</a>
+                    <a href="<?= url('disclaimer/') ?>" title="Statutory Disclaimer">Disclaimer</a>
                     <span class="footer-sep">&middot;</span>
-                    <a href="<?= url('sitemap.xml') ?>" target="_blank">Sitemap</a>
+                    <a href="<?= url('sitemap.xml') ?>" target="_blank" title="XML Sitemap">Sitemap</a>
                 </div>
             </div>
         </div>
@@ -322,7 +322,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="cookie-text-wrap">
                 <div class="cookie-title">Cookie &amp; Advertising Preferences</div>
                 <p class="cookie-desc">
-                    <?= e(SITE_NAME) ?> and authorized advertising partners (including <strong>Google AdSense</strong>) use cookies to personalize content, deliver relevant advertisements, and analyze website traffic. By clicking <strong>"Accept All"</strong>, you consent to our use of cookies in accordance with our <a href="<?= url('privacy-policy/') ?>" target="_blank" rel="noopener">Privacy Policy</a>.
+                    <?= e(SITE_NAME) ?> and authorized advertising partners (including <strong>Google AdSense</strong>) use cookies to personalize content, deliver relevant advertisements, and analyze website traffic. By clicking <strong>"Accept All"</strong>, you consent to our use of cookies in accordance with our <a href="<?= url('privacy-policy/') ?>" target="_blank" rel="noopener" title="Read our Privacy Policy">Privacy Policy</a>.
                 </p>
             </div>
         </div>

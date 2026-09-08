@@ -13,7 +13,7 @@
         <div class="header-inner">
             
             <!-- Brand / Logo -->
-            <a href="<?= url() ?>" class="site-brand" aria-label="<?= e(SITE_NAME) ?> - Back to homepage">
+            <a href="<?= url() ?>" class="site-brand" aria-label="<?= e(SITE_NAME) ?> - Back to homepage" title="<?= e(SITE_NAME) ?> — Sarkari Result, Latest Govt Jobs 2026">
                 <picture>
                     <source srcset="<?= asset('sarkari-logo-transparent.webp') ?>" type="image/webp">
                     <img src="<?= asset('sarkari-logo-transparent.png') ?>" alt="<?= e(SITE_NAME) ?> - Sarkari Result &amp; Latest Govt Jobs 2026" title="<?= e(SITE_NAME) ?> - Official Education &amp; Recruitment Portal" class="site-logo-img" width="185" height="48" fetchpriority="high" decoding="async">
@@ -142,7 +142,7 @@
                 $isActive = ($link['url'] === '' && ($currentUrl === '/' || $currentUrl === BASE_PATH || $currentUrl === BASE_PATH . '/'))
                             || ($link['url'] !== '' && str_contains($currentUrl, trim($link['url'], '/')));
             ?>
-                <a href="<?= url($link['url']) ?>" class="mobile-nav-link <?= $isActive ? 'active' : '' ?>">
+                <a href="<?= url($link['url']) ?>" class="mobile-nav-link <?= $isActive ? 'active' : '' ?>" title="<?= e($link['label']) ?>">
                     <span><?= e($link['label']) ?></span>
                     <?= icon('chevron-right', 'icon-sm') ?>
                 </a>
@@ -152,7 +152,7 @@
             <div class="mobile-nav-featured-section">
                 
                 <!-- State Govt Jobs Card -->
-                <a href="<?= url('state-jobs/') ?>" class="mobile-feature-card <?= str_contains($currentUrl, 'state-jobs') ? 'active' : '' ?>">
+                <a href="<?= url('state-jobs/') ?>" class="mobile-feature-card <?= str_contains($currentUrl, 'state-jobs') ? 'active' : '' ?>" title="State Government Jobs 2026 — 28 States &amp; UTs Employment Hub">
                     <div class="mobile-feature-icon state-icon">
                         <?= icon('award', 'icon-sm') ?>
                     </div>
@@ -194,7 +194,7 @@
                                 <?php foreach ($toolsLinks as $tl): 
                                     $isTlActive = str_contains($currentUrl, trim($tl['url'], '/'));
                                 ?>
-                                    <a href="<?= url($tl['url']) ?>" class="mobile-sub-item <?= $isTlActive ? 'active' : '' ?>">
+                                    <a href="<?= url($tl['url']) ?>" class="mobile-sub-item <?= $isTlActive ? 'active' : '' ?>" title="<?= e($tl['label']) ?> — <?= e($tl['desc']) ?>">
                                         <span class="mobile-sub-icon"><?= icon($tl['icon'], 'icon-xs') ?></span>
                                         <div class="mobile-sub-text">
                                             <span class="mobile-sub-title"><?= e($tl['label']) ?></span>
@@ -215,7 +215,7 @@
                                 <?php foreach ($portalLinks as $pl): 
                                     $isPlActive = str_contains($currentUrl, trim($pl['url'], '/'));
                                 ?>
-                                    <a href="<?= url($pl['url']) ?>" class="mobile-sub-item <?= $isPlActive ? 'active' : '' ?>">
+                                    <a href="<?= url($pl['url']) ?>" class="mobile-sub-item <?= $isPlActive ? 'active' : '' ?>" title="<?= e($pl['label']) ?> — <?= e($pl['desc']) ?>">
                                         <span class="mobile-sub-icon"><?= icon($pl['icon'], 'icon-xs') ?></span>
                                         <div class="mobile-sub-text">
                                             <span class="mobile-sub-title"><?= e($pl['label']) ?></span>
@@ -252,12 +252,12 @@
         <div class="search-quick-tags">
             <div class="search-tags-title">Popular Searches</div>
             <div class="search-tag-list">
-                <a href="<?= url('category/entrance-exams/') ?>" class="search-tag-chip">NEET UG 2026</a>
-                <a href="<?= url('category/exam-results/') ?>" class="search-tag-chip">JEE Advanced Cutoff</a>
-                <a href="<?= url('category/government-jobs/') ?>" class="search-tag-chip">SSC CGL 2026</a>
-                <a href="<?= url('category/admit-cards/') ?>" class="search-tag-chip">CUET Admit Card</a>
-                <a href="<?= url('category/exam-dates/') ?>" class="search-tag-chip">UPSC Exam Dates</a>
-                <a href="<?= url('category/scholarships/') ?>" class="search-tag-chip">NSP Scholarship</a>
+                <a href="<?= url('category/entrance-exams/') ?>" class="search-tag-chip" title="Search NEET UG 2026 Updates">NEET UG 2026</a>
+                <a href="<?= url('category/exam-results/') ?>" class="search-tag-chip" title="Search JEE Advanced Cutoff">JEE Advanced Cutoff</a>
+                <a href="<?= url('category/government-jobs/') ?>" class="search-tag-chip" title="Search SSC CGL 2026 Recruitment">SSC CGL 2026</a>
+                <a href="<?= url('category/admit-cards/') ?>" class="search-tag-chip" title="Search CUET Admit Card &amp; City Slip">CUET Admit Card</a>
+                <a href="<?= url('category/exam-dates/') ?>" class="search-tag-chip" title="Search UPSC Exam Dates &amp; Calendar">UPSC Exam Dates</a>
+                <a href="<?= url('category/scholarships/') ?>" class="search-tag-chip" title="Search NSP National Scholarship Portal">NSP Scholarship</a>
             </div>
         </div>
     </div>

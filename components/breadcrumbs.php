@@ -17,7 +17,7 @@ if (!isset($crumbs) || empty($crumbs)) {
 
         <?php if (!empty($crumb['url'])): ?>
             <span class="breadcrumb-item">
-                <a href="<?= url($crumb['url']) ?>"><?= e($crumb['label']) ?></a>
+                <a href="<?= url($crumb['url']) ?>" title="<?= e($crumb['label']) ?>"><?= e($crumb['label']) ?></a>
             </span>
         <?php else: ?>
             <span class="breadcrumb-item active" aria-current="page"><?= e($crumb['label']) ?></span>

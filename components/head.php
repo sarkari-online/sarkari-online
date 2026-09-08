@@ -83,8 +83,13 @@ if (!$isAdminSession):
     <link rel="canonical" href="<?= e($metaCanonical) ?>">
 
     <!-- Crawling & Indexation Directives -->
-    <meta name="robots" content="<?= e($metaRobots ?? 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1') ?>">
+    <meta name="robots" content="<?= e($metaRobots ?? 'index, follow') ?>">
     <meta name="googlebot" content="<?= e($metaRobots ?? 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1') ?>">
+
+    <!-- Multi-Language & Regional Alternate Directives (Hreflang) -->
+    <link rel="alternate" hreflang="en-IN" href="<?= e($metaCanonical) ?>">
+    <link rel="alternate" hreflang="hi-IN" href="<?= e($metaCanonical) ?>">
+    <link rel="alternate" hreflang="x-default" href="<?= e($metaCanonical) ?>">
     <!-- Google Search Console Ownership Verification -->
     <meta name="google-site-verification" content="tbEauc4I8_zvPJ8zJOf_YA3-40UtKAZNRxgo881ZLiY">
 

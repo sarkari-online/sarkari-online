@@ -28,7 +28,7 @@ if (!empty($dbLatest)) {
             <span><strong>Statutory Advisory:</strong> <?= e(SITE_NAME) ?> is an independent educational news observatory and is not affiliated with the Government of India or any examination board.</span>
         </div>
         <div>
-            <a href="<?= url('disclaimer/') ?>" style="color: #2563eb; font-weight: 600; text-decoration: none; white-space: nowrap;">Disclaimer &rarr;</a>
+            <a href="<?= url('disclaimer/') ?>" style="color: #2563eb; font-weight: 600; text-decoration: none; white-space: nowrap;" title="Statutory Non-Affiliation Disclaimer">Disclaimer &rarr;</a>
         </div>
     </div>
 </div>
@@ -43,7 +43,7 @@ if (!empty($dbLatest)) {
             <div class="update-ticker" aria-live="polite">
                 <div class="update-ticker-track">
                     <?php foreach ($breakingUpdates as $update): ?>
-                        <a href="<?= url($update['url']) ?>" class="ticker-item">
+                        <a href="<?= url($update['url']) ?>" class="ticker-item" title="<?= e($update['title']) ?>">
                             <span class="badge badge-pill" style="font-size: 0.65rem; background: rgba(255,255,255,0.15); color: #fff;"><?= e($update['tag']) ?></span>
                             <span><?= e($update['title']) ?></span>
                             <span class="ticker-time">(<?= e($update['time']) ?>)</span>
@@ -51,7 +51,7 @@ if (!empty($dbLatest)) {
                     <?php endforeach; ?>
                     <!-- Duplicate for infinite seamless scroll -->
                     <?php foreach ($breakingUpdates as $update): ?>
-                        <a href="<?= url($update['url']) ?>" class="ticker-item" aria-hidden="true" tabindex="-1">
+                        <a href="<?= url($update['url']) ?>" class="ticker-item" aria-hidden="true" tabindex="-1" title="<?= e($update['title']) ?>">
                             <span class="badge badge-pill" style="font-size: 0.65rem; background: rgba(255,255,255,0.15); color: #fff;"><?= e($update['tag']) ?></span>
                             <span><?= e($update['title']) ?></span>
                             <span class="ticker-time">(<?= e($update['time']) ?>)</span>

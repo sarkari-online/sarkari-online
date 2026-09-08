@@ -12,7 +12,7 @@ $cardCatColor = $article['category_color'] ?? '#1e3a8a';
 ?>
 <article class="article-card">
     <div class="article-card-thumb">
-        <a href="<?= url('article/' . $article['slug'] . '/') ?>" aria-label="<?= e($article['title']) ?>">
+        <a href="<?= url('article/' . $article['slug'] . '/') ?>" aria-label="<?= e($article['title']) ?>" title="<?= e($article['title']) ?>">
             <?php if (!empty($article['featured_image'])): 
                 $cardImgAlt = !empty($article['featured_image_alt']) ? $article['featured_image_alt'] : ($article['title'] ?? 'Sarkari Job Notification');
                 $cardImgTitle = $article['title'] ?? $cardImgAlt;
@@ -25,7 +25,7 @@ $cardCatColor = $article['category_color'] ?? '#1e3a8a';
     </div>
     <div class="article-card-body">
         <div class="card-meta">
-            <a href="<?= url('category/' . $cardCatSlug . '/') ?>" class="badge" style="background-color: <?= e($cardCatColor) ?>15; color: <?= e($cardCatColor) ?>;">
+            <a href="<?= url('category/' . $cardCatSlug . '/') ?>" class="badge" style="background-color: <?= e($cardCatColor) ?>15; color: <?= e($cardCatColor) ?>;" title="<?= e($cardCatName) ?> Category Archives">
                 <?= e($cardCatName) ?>
             </a>
             <span class="meta-dot"></span>
@@ -33,7 +33,7 @@ $cardCatColor = $article['category_color'] ?? '#1e3a8a';
         </div>
 
         <h3 class="article-card-title">
-            <a href="<?= url('article/' . $article['slug'] . '/') ?>">
+            <a href="<?= url('article/' . $article['slug'] . '/') ?>" title="<?= e($article['title']) ?>">
                 <?= e($article['title']) ?>
             </a>
         </h3>
@@ -46,7 +46,7 @@ $cardCatColor = $article['category_color'] ?? '#1e3a8a';
 
         <div class="card-footer-meta">
             <span class="notranslate"><?= icon('clock', 'icon-sm') ?> <?= e($article['read_time'] ?? '3 min read') ?></span>
-            <a href="<?= url('article/' . $article['slug'] . '/') ?>" class="btn btn-sm btn-outline">
+            <a href="<?= url('article/' . $article['slug'] . '/') ?>" class="btn btn-sm btn-outline" title="<?= e($article['title']) ?> — Read Full Article">
                 Read Update <?= icon('chevron-right', 'icon-sm') ?>
             </a>
         </div>

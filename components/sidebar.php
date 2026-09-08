@@ -25,7 +25,7 @@ $sidebarLatest = ArticleService::getLatestPublished(4);
                     <div class="trending-rank-num" style="font-size: 1.25rem; min-width: 22px;"><?= $rank++ ?></div>
                     <div class="trending-item-content">
                         <h3 class="trending-item-title" style="font-size: 0.875rem;">
-                            <a href="<?= url('article/' . $item['slug'] . '/') ?>">
+                            <a href="<?= url('article/' . $item['slug'] . '/') ?>" title="<?= e($item['title']) ?>">
                                 <?= e($item['title']) ?>
                             </a>
                         </h3>
@@ -51,7 +51,7 @@ $sidebarLatest = ArticleService::getLatestPublished(4);
                         <?= e($item['category_name']) ?>
                     </span>
                     <h4 class="sidebar-article-title">
-                        <a href="<?= url('article/' . $item['slug'] . '/') ?>">
+                        <a href="<?= url('article/' . $item['slug'] . '/') ?>" title="<?= e($item['title']) ?>">
                             <?= e($item['title']) ?>
                         </a>
                     </h4>
@@ -70,7 +70,7 @@ $sidebarLatest = ArticleService::getLatestPublished(4);
         <ul style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.875rem;">
             <?php foreach (array_slice(CATEGORIES, 0, 6) as $cat): ?>
                 <li>
-                    <a href="<?= url('category/' . $cat['slug'] . '/') ?>" style="display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0.5rem; border-radius: var(--radius-xs); color: var(--text-main); font-weight: 600;">
+                    <a href="<?= url('category/' . $cat['slug'] . '/') ?>" title="<?= e($cat['name']) ?> Portal" style="display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0.5rem; border-radius: var(--radius-xs); color: var(--text-main); font-weight: 600;">
                         <span><?= e($cat['name']) ?></span>
                         <?= icon('chevron-right', 'icon-sm', ['style' => 'color: var(--text-muted);']) ?>
                     </a>

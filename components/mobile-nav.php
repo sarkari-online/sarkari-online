@@ -43,7 +43,7 @@ $mobileNavItems = [
 <nav class="mobile-bottom-nav" aria-label="Mobile Quick Navigation">
     <div class="mobile-bottom-nav-inner">
         <?php foreach ($mobileNavItems as $item): ?>
-            <a href="<?= url($item['url']) ?>" class="mobile-nav-item <?= $item['is_active'] ? 'active' : '' ?>" aria-label="<?= e($item['label']) ?>">
+            <a href="<?= url($item['url']) ?>" class="mobile-nav-item <?= $item['is_active'] ? 'active' : '' ?>" aria-label="<?= e($item['label']) ?>" title="<?= e($item['label']) ?>">
                 <div class="mobile-nav-icon">
                     <?= icon($item['icon'], 'icon-sm') ?>
                 </div>

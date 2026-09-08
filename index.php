@@ -201,7 +201,7 @@ include __DIR__ . '/components/header.php';
                             <?= icon('calendar') ?>
                             <span>Exam Updates &amp; Schedules</span>
                         </h2>
-                        <a href="<?= url('category/exam-dates/') ?>" class="section-link-more">
+                        <a href="<?= url('category/exam-dates/') ?>" class="section-link-more" title="View Full Exam Calendar &amp; Schedules 2026">
                             Calendar <?= icon('chevron-right', 'icon-sm') ?>
                         </a>
                     </div>
@@ -217,14 +217,14 @@ include __DIR__ . '/components/header.php';
                                         <span><?= format_date($exam['published_at'] ?? 'now') ?></span>
                                     </div>
                                     <h3 class="exam-update-title">
-                                        <a href="<?= url('article/' . $exam['slug'] . '/') ?>"><?= e($exam['title']) ?></a>
+                                        <a href="<?= url('article/' . $exam['slug'] . '/') ?>" title="<?= e($exam['title']) ?>"><?= e($exam['title']) ?></a>
                                     </h3>
                                     <div class="exam-update-meta">
                                         <span><strong>Source:</strong> <?= e($exam['source_name'] ?? 'Official Authority') ?></span>
                                     </div>
                                 </div>
                                 <div>
-                                    <a href="<?= url('article/' . $exam['slug'] . '/') ?>" class="btn btn-sm btn-outline">
+                                    <a href="<?= url('article/' . $exam['slug'] . '/') ?>" class="btn btn-sm btn-outline" title="<?= e($exam['title']) ?> — Read Notice Details">
                                         Details
                                     </a>
                                 </div>
@@ -255,7 +255,7 @@ include __DIR__ . '/components/header.php';
                     <?= icon('briefcase') ?>
                     <span>Latest Government Jobs</span>
                 </h2>
-                <a href="<?= url('latest-jobs/') ?>" class="section-link-more">
+                <a href="<?= url('latest-jobs/') ?>" class="section-link-more" title="View Complete Latest Government Jobs Directory">
                     Jobs Directory <?= icon('chevron-right', 'icon-sm') ?>
                 </a>
             </div>
@@ -274,7 +274,7 @@ include __DIR__ . '/components/header.php';
                     <?= icon('graduation-cap') ?>
                     <span>Scholarships &amp; Student Opportunities</span>
                 </h2>
-                <a href="<?= url('category/scholarships/') ?>" class="section-link-more">
+                <a href="<?= url('category/scholarships/') ?>" class="section-link-more" title="View All National &amp; State Scholarship Schemes">
                     All Scholarships <?= icon('chevron-right', 'icon-sm') ?>
                 </a>
             </div>
@@ -293,7 +293,7 @@ include __DIR__ . '/components/header.php';
                     <?= icon('compass') ?>
                     <span>Career Guides &amp; Roadmaps</span>
                 </h2>
-                <a href="<?= url('category/career-guides/') ?>" class="section-link-more">
+                <a href="<?= url('category/career-guides/') ?>" class="section-link-more" title="View All Career Guides &amp; Examination Roadmaps">
                     All Guides <?= icon('chevron-right', 'icon-sm') ?>
                 </a>
             </div>
@@ -316,7 +316,7 @@ include __DIR__ . '/components/header.php';
                             <?= icon('layers') ?>
                             <span>Student Utilities &amp; Exam Tools</span>
                         </h2>
-                        <a href="<?= url('tools/') ?>" class="section-link-more">
+                        <a href="<?= url('tools/') ?>" class="section-link-more" title="View All Interactive Examination &amp; Student Tools">
                             All Tools <?= icon('chevron-right', 'icon-sm') ?>
                         </a>
                     </div>
@@ -334,10 +334,10 @@ include __DIR__ . '/components/header.php';
                                     <span style="font-size: 0.7rem; color: #64748b;">2026 Cutoff</span>
                                 </div>
                                 <h3 style="font-size: 0.95rem; font-weight: 700; line-height: 1.35; margin: 0 0 0.25rem 0;">
-                                    <a href="<?= url('tools/age-calculator/') ?>" style="color: var(--text-main); text-decoration: none;">Govt Job Age Calculator &amp; Eligibility Checker</a>
+                                    <a href="<?= url('tools/age-calculator/') ?>" style="color: var(--text-main); text-decoration: none;" title="Govt Job Age Calculator &amp; Eligibility Checker">Govt Job Age Calculator &amp; Eligibility Checker</a>
                                 </h3>
                                 <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0 0 0.35rem 0; line-height: 1.4;">Calculate exact age &amp; category relaxation (UR, OBC, SC, ST) for UPSC &amp; SSC.</p>
-                                <a href="<?= url('tools/age-calculator/') ?>" style="font-size: 0.775rem; font-weight: 700; color: var(--color-primary); display: inline-flex; align-items: center; gap: 4px; text-decoration: none;">
+                                <a href="<?= url('tools/age-calculator/') ?>" style="font-size: 0.775rem; font-weight: 700; color: var(--color-primary); display: inline-flex; align-items: center; gap: 4px; text-decoration: none;" title="Open Govt Job Age Calculator">
                                     <span>Open Age Calculator</span>
                                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                                 </a>
@@ -355,10 +355,10 @@ include __DIR__ . '/components/header.php';
                                     <span style="font-size: 0.7rem; color: #64748b;">50% DA Updated</span>
                                 </div>
                                 <h3 style="font-size: 0.95rem; font-weight: 700; line-height: 1.35; margin: 0 0 0.25rem 0;">
-                                    <a href="<?= url('tools/7th-pay-commission-salary-calculator/') ?>" style="color: var(--text-main); text-decoration: none;">7th Pay Commission Salary &amp; In-Hand Calculator</a>
+                                    <a href="<?= url('tools/7th-pay-commission-salary-calculator/') ?>" style="color: var(--text-main); text-decoration: none;" title="7th Pay Commission Salary &amp; In-Hand Calculator">7th Pay Commission Salary &amp; In-Hand Calculator</a>
                                 </h3>
                                 <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0 0 0.35rem 0; line-height: 1.4;">Calculate post-wise monthly in-hand net salary, HRA &amp; mandatory NPS deductions.</p>
-                                <a href="<?= url('tools/7th-pay-commission-salary-calculator/') ?>" style="font-size: 0.775rem; font-weight: 700; color: var(--color-primary); display: inline-flex; align-items: center; gap: 4px; text-decoration: none;">
+                                <a href="<?= url('tools/7th-pay-commission-salary-calculator/') ?>" style="font-size: 0.775rem; font-weight: 700; color: var(--color-primary); display: inline-flex; align-items: center; gap: 4px; text-decoration: none;" title="Open 7th Pay Salary Calculator">
                                     <span>Open Salary Calculator</span>
                                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                                 </a>
@@ -376,10 +376,10 @@ include __DIR__ . '/components/header.php';
                                     <span style="font-size: 0.7rem; color: #64748b;">10-Point Scale</span>
                                 </div>
                                 <h3 style="font-size: 0.95rem; font-weight: 700; line-height: 1.35; margin: 0 0 0.25rem 0;">
-                                    <a href="<?= url('tools/cgpa-to-percentage-calculator/') ?>" style="color: var(--text-main); text-decoration: none;">CGPA to Percentage &amp; Marks Converter</a>
+                                    <a href="<?= url('tools/cgpa-to-percentage-calculator/') ?>" style="color: var(--text-main); text-decoration: none;" title="CGPA to Percentage &amp; Marks Converter">CGPA to Percentage &amp; Marks Converter</a>
                                 </h3>
                                 <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0 0 0.35rem 0; line-height: 1.4;">Convert CGPA to exact marks &amp; percentages for CBSE, B.Tech, and State Universities.</p>
-                                <a href="<?= url('tools/cgpa-to-percentage-calculator/') ?>" style="font-size: 0.775rem; font-weight: 700; color: var(--color-primary); display: inline-flex; align-items: center; gap: 4px; text-decoration: none;">
+                                <a href="<?= url('tools/cgpa-to-percentage-calculator/') ?>" style="font-size: 0.775rem; font-weight: 700; color: var(--color-primary); display: inline-flex; align-items: center; gap: 4px; text-decoration: none;" title="Open CGPA to Percentage Converter">
                                     <span>Open CGPA Converter</span>
                                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                                 </a>
@@ -407,7 +407,7 @@ include __DIR__ . '/components/header.php';
                                 <div>
                                     <span class="badge" style="font-size: 0.7rem; font-weight: 700; background: #e0e7ff; color: #1e1b4b; margin-bottom: 0.25rem;"><?= e($pop['category_name'] ?? 'Guide') ?></span>
                                     <h3 style="font-size: 0.9375rem; font-weight: 700; line-height: 1.35; margin-bottom: 0.25rem;">
-                                        <a href="<?= url('article/' . $pop['slug'] . '/') ?>"><?= e($pop['title']) ?></a>
+                                        <a href="<?= url('article/' . $pop['slug'] . '/') ?>" title="<?= e($pop['title']) ?>"><?= e($pop['title']) ?></a>
                                     </h3>
                                     <span style="font-size: 0.75rem; color: var(--text-muted);"><?= format_date($pop['published_at'] ?? 'now') ?></span>
                                 </div>
@@ -436,7 +436,7 @@ include __DIR__ . '/components/header.php';
             <!-- Sleek Pill Capsule Matrix -->
             <div class="topic-pills-matrix">
                 <?php foreach (CATEGORIES as $cat): ?>
-                    <a href="<?= url('category/' . $cat['slug'] . '/') ?>" class="topic-pill-item" style="--pill-color: <?= e($cat['color']) ?>; --pill-bg: <?= e($cat['bg_light']) ?>;">
+                    <a href="<?= url('category/' . $cat['slug'] . '/') ?>" class="topic-pill-item" style="--pill-color: <?= e($cat['color']) ?>; --pill-bg: <?= e($cat['bg_light']) ?>;" title="<?= e($cat['name']) ?> Portal &amp; Archives">
                         <span class="topic-pill-icon">
                             <?= icon($cat['icon'], 'icon-xs') ?>
                         </span>
@@ -453,13 +453,13 @@ include __DIR__ . '/components/header.php';
             <div class="topic-boards-strip">
                 <span class="topic-boards-label">Key Statutory Portals:</span>
                 <div class="topic-boards-chips">
-                    <a href="<?= url('category/entrance-exams/') ?>" class="topic-board-chip">NTA (NEET / JEE / CUET)</a>
-                    <a href="<?= url('category/government-jobs/') ?>" class="topic-board-chip">UPSC Civil Services</a>
-                    <a href="<?= url('latest-jobs/') ?>" class="topic-board-chip">SSC (CGL / CHSL / GD)</a>
-                    <a href="<?= url('category/exam-dates/') ?>" class="topic-board-chip">CBSE Board</a>
-                    <a href="<?= url('latest-jobs/') ?>" class="topic-board-chip">IBPS &amp; Banking</a>
-                    <a href="<?= url('category/scholarships/') ?>" class="topic-board-chip">National Scholarship Portal</a>
-                    <a href="<?= url('category/college-updates/') ?>" class="topic-board-chip">JoSAA / MCC Counselling</a>
+                    <a href="<?= url('category/entrance-exams/') ?>" class="topic-board-chip" title="NTA NEET, JEE &amp; CUET Entrance Exams">NTA (NEET / JEE / CUET)</a>
+                    <a href="<?= url('category/government-jobs/') ?>" class="topic-board-chip" title="UPSC Civil Services IAS &amp; NDA Recruitment">UPSC Civil Services</a>
+                    <a href="<?= url('latest-jobs/') ?>" class="topic-board-chip" title="SSC CGL, CHSL, GD &amp; CPO Recruitment">SSC (CGL / CHSL / GD)</a>
+                    <a href="<?= url('category/exam-dates/') ?>" class="topic-board-chip" title="CBSE Board Class 10 &amp; 12 Date Sheet 2026">CBSE Board</a>
+                    <a href="<?= url('latest-jobs/') ?>" class="topic-board-chip" title="IBPS PO, Clerk &amp; Bank Recruitment">IBPS &amp; Banking</a>
+                    <a href="<?= url('category/scholarships/') ?>" class="topic-board-chip" title="National Scholarship Portal (NSP) Schemes">National Scholarship Portal</a>
+                    <a href="<?= url('category/college-updates/') ?>" class="topic-board-chip" title="JoSAA &amp; MCC Counselling Updates">JoSAA / MCC Counselling</a>
                 </div>
             </div>
         </section>
@@ -493,7 +493,7 @@ include __DIR__ . '/components/header.php';
                         How can candidates find Latest Government Jobs 2026 on Sarkari.online?
                     </h3>
                     <p style="font-size: 0.875rem; color: var(--text-body); line-height: 1.6; margin: 0;">
-                        Candidates can visit the Sarkari.online Latest Jobs directory (<a href="<?= url('latest-jobs/') ?>" style="color: var(--color-primary); text-decoration: underline; font-weight: 600;">sarkari.online/latest-jobs/</a>) to filter active recruitments by Central and State categories, check total vacancies, application start and last dates, and access direct official application links.
+                        Candidates can visit the Sarkari.online Latest Jobs directory (<a href="<?= url('latest-jobs/') ?>" style="color: var(--color-primary); text-decoration: underline; font-weight: 600;" title="Latest Government Jobs Directory">sarkari.online/latest-jobs/</a>) to filter active recruitments by Central and State categories, check total vacancies, application start and last dates, and access direct official application links.
                     </p>
                 </div>
 
@@ -503,7 +503,7 @@ include __DIR__ . '/components/header.php';
                         How to download Admit Cards and check Sarkari Exam Results?
                     </h3>
                     <p style="font-size: 0.875rem; color: var(--text-body); line-height: 1.6; margin: 0;">
-                        Navigate to the dedicated <a href="<?= url('category/admit-cards/') ?>" style="color: var(--color-primary); text-decoration: underline; font-weight: 600;">Admit Cards</a> or <a href="<?= url('category/exam-results/') ?>" style="color: var(--color-primary); text-decoration: underline; font-weight: 600;">Exam Results</a> sections on Sarkari.online, select your examination board (SSC, RRB, UPSC, Banking, or State PSCs), and access verified direct links with step-by-step guidance to download hall tickets or check merit lists.
+                        Navigate to the dedicated <a href="<?= url('category/admit-cards/') ?>" style="color: var(--color-primary); text-decoration: underline; font-weight: 600;" title="Browse Admit Cards &amp; Hall Tickets">Admit Cards</a> or <a href="<?= url('category/exam-results/') ?>" style="color: var(--color-primary); text-decoration: underline; font-weight: 600;" title="Browse Exam Results &amp; Scorecards">Exam Results</a> sections on Sarkari.online, select your examination board (SSC, RRB, UPSC, Banking, or State PSCs), and access verified direct links with step-by-step guidance to download hall tickets or check merit lists.
                     </p>
                 </div>
 
@@ -523,7 +523,7 @@ include __DIR__ . '/components/header.php';
                         Does Sarkari.online cover State Government Jobs for all 28 states?
                     </h3>
                     <p style="font-size: 0.875rem; color: var(--text-body); line-height: 1.6; margin: 0;">
-                        Yes, Sarkari.online provides dedicated state-level recruitment hubs (<a href="<?= url('state-jobs/') ?>" style="color: var(--color-primary); text-decoration: underline; font-weight: 600;">sarkari.online/state-jobs/</a>) covering all 28 Indian States and Union Territories, including UP, Bihar, Rajasthan, MP, Haryana, Delhi, and other state subordinate selection boards.
+                        Yes, Sarkari.online provides dedicated state-level recruitment hubs (<a href="<?= url('state-jobs/') ?>" style="color: var(--color-primary); text-decoration: underline; font-weight: 600;" title="Explore State Government Jobs for All 28 States">sarkari.online/state-jobs/</a>) covering all 28 Indian States and Union Territories, including UP, Bihar, Rajasthan, MP, Haryana, Delhi, and other state subordinate selection boards.
                     </p>
                 </div>
             </div>
