@@ -54,40 +54,39 @@ try {
 
         <?php if (!empty($verifiedNotes)): ?>
             <!-- Verified Community Notes Feed -->
-            <div style="margin-bottom: 1.25rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem;">
-                <div style="font-size: 0.8125rem; color: #0f172a; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.65rem; display: flex; align-items: center; gap: 6px;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <div style="margin-bottom: 1.25rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.85rem 1rem;">
+                <div style="font-size: 0.75rem; color: #166534; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.65rem; display: flex; align-items: center; gap: 5px;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                     Verified Candidate Notes
                 </div>
-                <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                     <?php foreach ($verifiedNotes as $note): 
-                        $cleanBio  = html_entity_decode($note['biometric_status'] ?? '', ENT_QUOTES, 'UTF-8');
-                        $cleanGate = html_entity_decode($note['reporting_time_observed'] ?? '', ENT_QUOTES, 'UTF-8');
-                        $cleanMsg  = html_entity_decode($note['message'] ?? '', ENT_QUOTES, 'UTF-8');
-                        $cleanName = html_entity_decode($note['candidate_name'] ?: 'Verified Candidate', ENT_QUOTES, 'UTF-8');
-                        $cleanCity = html_entity_decode($note['exam_center_city'] ?? '', ENT_QUOTES, 'UTF-8');
+                        $cleanBio  = trim(html_entity_decode($note['biometric_status'] ?? '', ENT_QUOTES, 'UTF-8'));
+                        $cleanGate = trim(html_entity_decode($note['reporting_time_observed'] ?? '', ENT_QUOTES, 'UTF-8'));
+                        $cleanMsg  = trim(html_entity_decode($note['message'] ?? '', ENT_QUOTES, 'UTF-8'));
+                        $cleanName = trim(html_entity_decode($note['candidate_name'] ?: 'Aspirant', ENT_QUOTES, 'UTF-8'));
+                        $cleanCity = trim(html_entity_decode($note['exam_center_city'] ?? '', ENT_QUOTES, 'UTF-8'));
+
+                        // Combine observation details into a natural readable comment sentence
+                        $obs = [];
+                        if (!empty($cleanGate)) {
+                            $obs[] = "Gate closed: " . $cleanGate;
+                        }
+                        if (!empty($cleanBio) && $cleanBio !== 'Other') {
+                            $obs[] = "Status: " . $cleanBio;
+                        }
+                        $obsStr = !empty($obs) ? " (" . implode(' · ', $obs) . ")" : "";
                     ?>
-                        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.75rem 0.95rem;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem; font-size: 0.8125rem;">
-                                <span style="font-weight: 700; color: #0f172a;">
-                                    <?= e($cleanName) ?>
-                                    <?php if (!empty($cleanCity)): ?>
-                                        <span style="font-weight: 500; color: #64748b;">(<?= e($cleanCity) ?>)</span>
-                                    <?php endif; ?>
-                                </span>
-                                <span style="font-size: 0.725rem; color: #94a3b8;"><?= date('d M Y', strtotime($note['created_at'])) ?></span>
-                            </div>
-                            <p style="margin: 0; font-size: 0.85rem; color: #334155; line-height: 1.5;"><?= nl2br(e($cleanMsg)) ?></p>
-                            <?php if (!empty($cleanBio) || !empty($cleanGate)): ?>
-                                <div style="margin-top: 0.45rem; display: flex; flex-wrap: wrap; gap: 6px; font-size: 0.725rem;">
-                                    <?php if (!empty($cleanGate)): ?>
-                                        <span style="background: #f1f5f9; color: #475569; padding: 2px 7px; border-radius: 4px; font-weight: 600;">Gate: <?= e($cleanGate) ?></span>
-                                    <?php endif; ?>
-                                    <?php if (!empty($cleanBio)): ?>
-                                        <span style="background: #eff6ff; color: #1e40af; padding: 2px 7px; border-radius: 4px; font-weight: 600;"><?= e($cleanBio) ?></span>
-                                    <?php endif; ?>
+                        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.7rem 0.9rem; font-size: 0.85rem; line-height: 1.5;">
+                            <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; margin-bottom: 0.25rem;">
+                                <div style="color: #0f172a; font-weight: 700;">
+                                    <?= e($cleanName) ?><?php if (!empty($cleanCity)): ?><span style="font-weight: 500; color: #64748b;"> (<?= e($cleanCity) ?>)</span><?php endif; ?>:
                                 </div>
-                            <?php endif; ?>
+                                <span style="font-size: 0.725rem; color: #94a3b8; flex-shrink: 0;"><?= date('d M Y', strtotime($note['created_at'])) ?></span>
+                            </div>
+                            <div style="color: #334155;">
+                                <?= nl2br(e($cleanMsg)) ?><?php if (!empty($obsStr)): ?><span style="color: #64748b; font-weight: 500;"><?= e($obsStr) ?></span><?php endif; ?>
+                            </div>
                         </div>
                     <?php endforeach; ?>
                 </div>
