@@ -295,27 +295,84 @@ class OutlineViolationDetector {
 }
 
 // -----------------------------------------------------------------------------
-// Body-Level Staleness Detector (Prose & Milestone scan)
+// Body-Level Staleness Detector (Sentence-level prose scanner with context gates)
 // -----------------------------------------------------------------------------
 class BodyStalenessDetector {
+    private const HISTORICAL_COMPARATIVE_PATTERNS = [
+        '/\b(unlike|as opposed to|compared with|compared to|difference between|whereas|in contrast to)\b/i',
+        '/\b(concluded|completed|cleared|qualified|appeared in|conducted on|held on|earlier|previous stage|prior stage)\b/i',
+        '/\b(who passed|who cleared|who qualified|shortlisted based on|candidates of cbt[ -]?1)\b/i',
+        '/\b(cbt[ -]?1 was|tier[ -]?1 was|prelims was|preliminary was)\b/i'
+    ];
+
+    private const ACTIVE_DIRECTIVE_PATTERNS = [
+        '/\b(get the latest|check here|download your|direct link to download|steps to download)\b/i',
+        '/\b(admit card download link|city intimation slip link|hall ticket release date|active download link)\b/i',
+        '/\b(exam schedule|exam date|shift timings?)\b.*?\b(announced|released|out now|published|activated|scheduled on)\b/i',
+        '/\b(announced|released|out now|published|activated|scheduled on)\b.*?\b(exam schedule|exam date|shift timings?)\b/i'
+    ];
+
     public static function check(string $html, string $title, ArticleIntent $intent): array {
         $issues = [];
         $tLower = strtolower($title);
-        $plain = strip_tags($html);
 
-        $isCbt2 = str_contains($tLower, 'cbt 2') || str_contains($tLower, 'cbt-2') || str_contains($tLower, 'stage 2') || str_contains($tLower, 'tier 2') || str_contains($tLower, 'tier-2');
-        $isMains = str_contains($tLower, 'mains') || str_contains($tLower, 'main exam');
+        $isCbt2 = (bool)preg_match('/\b(cbt[ -]?2|tier[ -]?2|phase[ -]?ii|stage[ -]?2)\b/i', $tLower);
+        $isMains = (bool)preg_match('/\b(mains?|main exam)\b/i', $tLower);
 
-        if ($isCbt2) {
-            // Match active schedule/admit card references to CBT 1 in body prose
-            if (preg_match_all('/\b(?:cbt\s*1|cbt-1|tier\s*1|tier-1)\s+(?:exam\s+schedule|admit\s+card|hall\s+ticket|exam\s+date|city\s+slip|exam\s+city)\b/i', $plain, $m)) {
-                $issues[] = "Body prose active CBT-1 marker found in CBT-2 article: '" . trim($m[0][0]) . "'";
-            }
+        if (!$isCbt2 && !$isMains) {
+            return [];
         }
 
-        if ($isMains) {
-            if (preg_match_all('/\b(?:prelims|preliminary|tier\s*1)\s+(?:exam\s+schedule|admit\s+card|hall\s+ticket|exam\s+date|city\s+slip)\b/i', $plain, $m)) {
-                $issues[] = "Body prose active Prelims marker found in Mains article: '" . trim($m[0][0]) . "'";
+        // 1. Strip out non-body prose (related links, also read callouts, sidebars, tickers)
+        $cleanHtml = preg_replace('/<div[^>]*class=[\'"][^\'"]*(also-read|related-articles|sidebar|ticker)[^\'"]*[\'"][^>]*>.*?<\/div>/is', '', $html);
+        $plainText = strip_tags($cleanHtml);
+
+        // 2. Break into individual sentences
+        $sentences = preg_split('/(?<=[.?!])\s+/u', $plainText);
+
+        foreach ($sentences as $sentence) {
+            $s = trim($sentence);
+            if (mb_strlen($s) < 20) continue;
+
+            $mentionsPriorPhase = false;
+            $priorPhaseName = '';
+
+            if ($isCbt2 && preg_match('/\b(cbt[ -]?1|tier[ -]?1)\b/i', $s, $m)) {
+                $mentionsPriorPhase = true;
+                $priorPhaseName = $m[0];
+            } elseif ($isMains && preg_match('/\b(prelims?|preliminary|tier[ -]?1)\b/i', $s, $m)) {
+                $mentionsPriorPhase = true;
+                $priorPhaseName = $m[0];
+            }
+
+            if (!$mentionsPriorPhase) {
+                continue;
+            }
+
+            // Check if sentence has comparative or historical markers (e.g. "unlike CBT-1", "qualified CBT-1")
+            $isHistoricalOrComparative = false;
+            foreach (self::HISTORICAL_COMPARATIVE_PATTERNS as $pattern) {
+                if (preg_match($pattern, $s)) {
+                    $isHistoricalOrComparative = true;
+                    break;
+                }
+            }
+
+            if ($isHistoricalOrComparative) {
+                continue; // Legitimate historical or comparative reference!
+            }
+
+            // Check if sentence makes active directive assertions about the prior phase
+            $isActiveDirective = false;
+            foreach (self::ACTIVE_DIRECTIVE_PATTERNS as $pattern) {
+                if (preg_match($pattern, $s)) {
+                    $isActiveDirective = true;
+                    break;
+                }
+            }
+
+            if ($isActiveDirective) {
+                $issues[] = "Active {$priorPhaseName} assertion found in " . ($isCbt2 ? "CBT-2" : "Mains") . " article: \"" . mb_substr($s, 0, 90) . "...\"";
             }
         }
 
@@ -720,8 +777,14 @@ do {
                         $writer->flagForReview($artId, $result);
                     }
                 } else {
-                    // Transition to compliant (including recovering previously flagged articles now clean)
-                    $writer->markCompliant($artId);
+                    // Guard: A flagged article can NEVER be silently unflagged by a routine run!
+                    // Only an explicit --force re-audit or --resolve-ids can transition flagged -> compliant.
+                    $wasFlagged = ($article['architecture_audit_status'] ?? '') === 'flagged';
+                    if ($wasFlagged && !$forceReaudit) {
+                        echo "   🔒 Status: Article #{$artId} remains FLAGGED (requires --force or --resolve-ids to unflag)\n";
+                    } else {
+                        $writer->markCompliant($artId);
+                    }
                 }
             } else {
                 if (!empty($result->tier1Fixes)) $tier1FixedCount++;
