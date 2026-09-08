@@ -42,8 +42,15 @@ class TemporalRevalidationService {
 
         Logger::info("TemporalRevalidationService: Starting complete lifecycle revalidation at {$nowStr} IST");
 
+        // 0. Autonomous Sentinel Self-Healing Sweep: Detect & auto-repair any corpus anomalies immediately
+        $selfHealing = TemporalSentinelService::autoRepairCorpus();
+        if (!empty($selfHealing['repaired_count'])) {
+            Logger::warning("Sentinel Self-Healing: Automatically repaired {$selfHealing['repaired_count']} anomalous articles!");
+        }
+
         $stats = [
             'scanned' => 0,
+            'self_healed' => $selfHealing['repaired_count'] ?? 0,
             'extended' => 0,
             'closed' => 0,
             'admit_card_released' => 0,
@@ -423,8 +430,14 @@ class TemporalRevalidationService {
         // Require exam acronym/name in strict proximity (<= 120 chars) to the admit card phrase
         $admitPattern = '/(?:' . $tokenRegex . '.{0,120}?(?:admit card|hall ticket|call letter)\s+(?:is\s+)?(?:released|out|available|download|live)|(?:admit card|hall ticket|call letter)\s+(?:is\s+)?(?:released|out|available|download|live).{0,120}?' . $tokenRegex . ')/is';
 
-        // 2. Check for Official Admit Card Release with Strict Exam Proximity
+        // 2. Check for Official Admit Card Release with Strict Exam Proximity & Sentinel Validation
         if (preg_match($admitPattern, $portalText, $admitMatch)) {
+            $sentinel = TemporalSentinelService::validateTransition($articleData, TemporalFactService::LIFECYCLE_ADMIT_CARD_RELEASED, ['portal_text' => $portalText]);
+            if (!$sentinel['allowed']) {
+                Logger::warning("Sentinel Guard Blocked: Article #{$articleId} - {$sentinel['reason']}");
+                return ['success' => true, 'action' => 'sentinel_blocked', 'reason' => $sentinel['reason']];
+            }
+
             TemporalFactService::recordFact($articleId, 'admit_card_date', $now->format('F d, Y'), $sourceUrl, [
                 'source_type' => 'official',
                 'confidence' => 'high',

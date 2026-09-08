@@ -31,6 +31,9 @@ try {
     $stats = TemporalRevalidationService::revalidateAll($limit, $nowIST);
 
     echo "[" . date('Y-m-d H:i:s') . "] Revalidation complete:\n";
+    if (!empty($stats['self_healed'])) {
+        echo "  - 🛡️ Sentinel Self-Healed Anomalies: {$stats['self_healed']}\n";
+    }
     echo "  - Articles Scanned: {$stats['scanned']}\n";
     echo "  - Transitioned to CLOSED: {$stats['closed']}\n";
     echo "  - Officially Extended: {$stats['extended']}\n";
