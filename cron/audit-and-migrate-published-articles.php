@@ -53,11 +53,13 @@ $longopts = [
     'force',
     'rollback:',
     'force-rollback',
+    'verbose',
     'run-id::',
     'help'
 ];
 
 $options = getopt('', $longopts);
+$isVerbose = isset($options['verbose']);
 
 if (isset($options['help'])) {
     echo <<<HELP
@@ -455,37 +457,39 @@ class ArticleAuditor {
         $tLower = strtolower($title);
         $eLower = strtolower($excerpt);
 
-        // A. Phase-mismatch detection (e.g. CBT 2 in title, but CBT 1 in excerpt)
+        // A. Phase-mismatch detection in excerpt (e.g. CBT 2 in title, but CBT 1 in excerpt)
         $isCbt2Title = str_contains($tLower, 'cbt 2') || str_contains($tLower, 'cbt-2') || str_contains($tLower, 'stage 2') || str_contains($tLower, 'tier 2') || str_contains($tLower, 'tier-2');
         $isCbt1Excerpt = str_contains($eLower, 'cbt 1') || str_contains($eLower, 'cbt-1') || str_contains($eLower, 'tier 1') || str_contains($eLower, 'tier-1') || str_contains($eLower, 'prelims');
 
-        // Check if raw_payload direct_answer has phase mismatch
-        $rawDirectAnswer = $rawPayload['direct_answer'] ?? '';
-        $rawDaLower = strtolower($rawDirectAnswer);
-        $isRawDaMismatched = $isCbt2Title && (str_contains($rawDaLower, 'cbt 1') || str_contains($rawDaLower, 'cbt-1'));
-
-        if (($isCbt2Title && $isCbt1Excerpt) || $isRawDaMismatched || mb_strlen($excerpt) < 30) {
+        // Only repair excerpt if excerpt itself is mismatched or missing/stub
+        if (($isCbt2Title && $isCbt1Excerpt) || mb_strlen($excerpt) < 30) {
             $freshLead = $this->extractVettedLead($content, $title);
-            if (!empty($freshLead) && $freshLead !== $excerpt) {
+            if (!empty($freshLead) && trim($freshLead) !== trim($excerpt)) {
                 $tier1Fixes['excerpt'] = ['old' => $excerpt, 'new' => $freshLead];
                 $tier1Fixes['meta_description'] = ['old' => $article['meta_description'] ?? '', 'new' => mb_substr($freshLead, 0, 250)];
                 $tier1Fixes['og_description'] = ['old' => $article['og_description'] ?? '', 'new' => mb_substr($freshLead, 0, 250)];
             }
         }
 
-        // B. Status text staleness
+        // B. Status text staleness (materializing into articles.status_text column)
         $currentStatus = $article['status_text'] ?? '';
         $expectedStatus = $this->deriveStatusText($title, $content, $article['lifecycle_status'] ?? 'active');
         if (!empty($expectedStatus) && $expectedStatus !== $currentStatus) {
             $tier1Fixes['status_text'] = ['old' => $currentStatus, 'new' => $expectedStatus];
         }
 
-        // C. Clean raw_payload direct_answer if it was mismatched
+        // C. Check raw_payload direct_answer specifically
+        $rawDirectAnswer = $rawPayload['direct_answer'] ?? '';
+        $rawDaLower = strtolower($rawDirectAnswer);
+        $isRawDaMismatched = $isCbt2Title && (str_contains($rawDaLower, 'cbt 1') || str_contains($rawDaLower, 'cbt-1'));
+
         if ($isRawDaMismatched) {
-            $freshDirect = $tier1Fixes['excerpt']['new'] ?? $this->extractVettedLead($content, $title);
-            $newPayload = $rawPayload;
-            $newPayload['direct_answer'] = $freshDirect;
-            $tier1Fixes['raw_payload'] = ['old' => '(mismatched raw direct_answer)', 'new' => '(aligned with vetted lead)'];
+            // Align raw_payload direct_answer with the clean excerpt
+            $vettedAnswer = !empty($tier1Fixes['excerpt']['new']) ? $tier1Fixes['excerpt']['new'] : $excerpt;
+            $tier1Fixes['raw_payload.direct_answer'] = [
+                'old' => $rawDirectAnswer,
+                'new' => $vettedAnswer
+            ];
         }
 
         // D. Outdated future dates (strictly scoped to excerpt forward-looking milestones)
@@ -687,20 +691,20 @@ class ArticleMigrationWriter {
 // Output Reporter
 // -----------------------------------------------------------------------------
 class AuditReporter {
-    public static function printArticleSummary(ArticleAuditResult $result, array $article, bool $isDryRun): void {
+    public static function printArticleSummary(ArticleAuditResult $result, array $article, bool $isDryRun, bool $isVerbose = false): void {
         echo "── Article #{$result->articleId}: {$article['title']}\n";
         echo "   Intent: detected={$result->detectedIntent->value} (stored: " . ($result->storedIntent ?? 'none') . ")\n";
 
         foreach ($result->tier1Fixes as $field => $fix) {
             echo "   [TIER 1] {$field}:\n";
-            echo "     - OLD: " . self::truncate($fix['old']) . "\n";
-            echo "     + NEW: " . self::truncate($fix['new']) . "\n";
+            echo "     - OLD (" . mb_strlen($fix['old']) . " chars): " . self::truncate($fix['old'], $isVerbose ? 10000 : 95) . "\n";
+            echo "     + NEW (" . mb_strlen($fix['new']) . " chars): " . self::truncate($fix['new'], $isVerbose ? 10000 : 95) . "\n";
         }
 
         if (!empty($result->tier2Violations)) {
             echo "   [TIER 2] ⚠️ Violations found:\n";
             foreach ($result->tier2Violations as $viol) {
-                echo "     • " . self::truncate($viol) . "\n";
+                echo "     • " . self::truncate($viol, $isVerbose ? 10000 : 95) . "\n";
             }
             echo "     → FLAGGED for review" . ($isDryRun ? " (use --live to commit, --regenerate to auto-fix)" : "") . "\n";
         }
@@ -786,7 +790,7 @@ do {
 
         try {
             $result = $auditor->audit($article);
-            AuditReporter::printArticleSummary($result, $article, $isDryRun);
+            AuditReporter::printArticleSummary($result, $article, $isDryRun, $isVerbose);
 
             if (!$isDryRun) {
                 // Tier 1 field fixes
