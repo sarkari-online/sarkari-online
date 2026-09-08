@@ -326,6 +326,12 @@ class PipelineService {
         $authorId = $author ? (int)$author['id'] : null;
         $now = date('Y-m-d H:i:s');
 
+        // Re-resolve category taxonomy based on final polished title & content
+        $finalAutoCat = CategoryService::autoResolveCategory($polished['edited_title'], $linking['linked_content'], $categorySlug);
+        if ($finalAutoCat) {
+            $categoryId = (int)$finalAutoCat['id'];
+        }
+
         $articleId = ArticleService::create([
             'trend_id' => $trendId,
             'title' => mb_substr($polished['edited_title'], 0, 250),
