@@ -6,7 +6,9 @@
  * Enforces Intent-Driven Architecture, OutlineContracts, and FeaturedSnippet alignment.
  *
  * Tier 1 (Mechanical Safe Fixes): Field-level repairs (Direct Answer, Excerpt, Status, Phase-mismatch).
- * Tier 2 (Structural Violations): Forbidden headings detected; flagged for review by default.
+ *                               Never touches content body HTML.
+ * Tier 2 (Structural Violations): Forbidden headings & body-level staleness detected;
+ *                               Flagged for review by default.
  *                               Regeneration requires explicit --regenerate flag.
  *
  * Usage:
@@ -14,6 +16,7 @@
  *   php cron/audit-and-migrate-published-articles.php --article-ids=703  # Test on specific article
  *   php cron/audit-and-migrate-published-articles.php --live --limit=20 # Commit Tier-1 fixes & flag Tier-2
  *   php cron/audit-and-migrate-published-articles.php --live --regenerate --limit=10 # Opt-in to regenerate Tier-2
+ *   php cron/audit-and-migrate-published-articles.php --resolve-ids=703,704 # Manually mark resolved articles as compliant
  *   php cron/audit-and-migrate-published-articles.php --rollback=RUN_ID # Revert a specific batch run
  */
 
@@ -45,9 +48,11 @@ $longopts = [
     'limit:',
     'offset-id:',
     'article-ids:',
+    'resolve-ids:',
     'regenerate',
     'force',
     'rollback:',
+    'force-rollback',
     'run-id::',
     'help'
 ];
@@ -64,9 +69,11 @@ OPTIONS:
   --limit=N              Process N articles per batch (Default: 20)
   --offset-id=N          Keyset cursor start ID (Default: 0)
   --article-ids=X,Y,Z    Process specific comma-separated article IDs
-  --regenerate           Opt-in to auto-regenerate articles with Tier 2 forbidden sections
+  --resolve-ids=X,Y,Z    Manually transition flagged articles to compliant status
+  --regenerate           Opt-in to auto-regenerate articles with Tier 2 structural violations
   --force                Re-audit articles even if already compliant at CURRENT_AUDIT_VERSION
   --rollback=RUN_ID      Rollback all changes made by a specific audit_run_id
+  --force-rollback       Force rollback even if article was manually edited after snapshot
   --help                 Show this help screen
 
 HELP;
@@ -78,7 +85,9 @@ $limit = (int)($options['limit'] ?? 20);
 $startId = (int)($options['offset-id'] ?? 0);
 $allowRegenerate = isset($options['regenerate']);
 $forceReaudit = isset($options['force']);
+$forceRollback = isset($options['force-rollback']);
 $rollbackRunId = isset($options['rollback']) ? trim((string)$options['rollback']) : null;
+$resolveIds = isset($options['resolve-ids']) ? array_filter(array_map('intval', explode(',', (string)$options['resolve-ids']))) : null;
 $explicitIds = isset($options['article-ids']) ? array_filter(array_map('intval', explode(',', (string)$options['article-ids']))) : null;
 $runId = $options['run-id'] ?? bin2hex(random_bytes(16));
 
@@ -114,11 +123,18 @@ function ensureSchemaExists(PDO $pdo): void {
                 `snapshot_json` LONGTEXT NOT NULL,
                 `audit_run_id` CHAR(36) NOT NULL,
                 `action_taken` ENUM('tier1_autofix','tier2_regenerated','flagged_only') NOT NULL,
+                `original_updated_at` DATETIME NULL,
                 `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 INDEX `idx_article` (`article_id`),
                 INDEX `idx_run` (`audit_run_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
         ");
+        
+        // Add original_updated_at column if not exists
+        $colCheck = $pdo->query("SHOW COLUMNS FROM `article_migration_snapshots` LIKE 'original_updated_at'");
+        if (!$colCheck->fetch()) {
+            $pdo->exec("ALTER TABLE `article_migration_snapshots` ADD COLUMN `original_updated_at` DATETIME NULL AFTER `action_taken`");
+        }
     } catch (Throwable $e) {
         echo "⚠️ Note on snapshot table: " . $e->getMessage() . "\n";
     }
@@ -127,7 +143,30 @@ function ensureSchemaExists(PDO $pdo): void {
 ensureSchemaExists($pdo);
 
 // -----------------------------------------------------------------------------
-// Rollback Handler
+// Manual Resolution Handler (--resolve-ids=X,Y,Z)
+// -----------------------------------------------------------------------------
+if (!empty($resolveIds)) {
+    echo "================================================================================\n";
+    echo "✅ MANUAL RESOLUTION: TRANSITIONING FLAGGED ARTICLES TO COMPLIANT\n";
+    echo "================================================================================\n\n";
+
+    $in = implode(',', $resolveIds);
+    $stmt = $pdo->prepare("
+        UPDATE `articles` SET
+            `architecture_audit_status` = 'compliant',
+            `architecture_audit_version` = :ver,
+            `architecture_audited_at` = NOW()
+        WHERE `id` IN ({$in})
+    ");
+    $stmt->execute([':ver' => CURRENT_AUDIT_VERSION]);
+    $affected = $stmt->rowCount();
+
+    echo "Successfully marked {$affected} articles as compliant (Version " . CURRENT_AUDIT_VERSION . ").\n";
+    exit(0);
+}
+
+// -----------------------------------------------------------------------------
+// Rollback Handler (with Manual Edit Race Guard)
 // -----------------------------------------------------------------------------
 if (!empty($rollbackRunId)) {
     echo "================================================================================\n";
@@ -142,8 +181,9 @@ if (!empty($rollbackRunId)) {
         die("❌ No snapshots found for audit_run_id: {$rollbackRunId}\n");
     }
 
-    echo "Found " . count($snapshots) . " snapshot records to restore.\n";
+    echo "Found " . count($snapshots) . " snapshot records to inspect.\n";
     $restoredCount = 0;
+    $skippedCount = 0;
 
     foreach ($snapshots as $snap) {
         $orig = json_decode($snap['snapshot_json'], true);
@@ -152,6 +192,20 @@ if (!empty($rollbackRunId)) {
         }
 
         $artId = (int)$orig['id'];
+
+        // Guard: Check if article was manually edited after snapshot
+        $current = Database::fetchOne("SELECT updated_at FROM articles WHERE id = :id", ['id' => $artId]);
+        if ($current && !empty($snap['original_updated_at'])) {
+            $snapTime = strtotime($snap['original_updated_at']);
+            $currTime = strtotime($current['updated_at']);
+            // If current updated_at is more than 5 seconds newer than snapshot time
+            if ($currTime > ($snapTime + 5) && !$forceRollback) {
+                echo "  ⚠️ SKIPPED Article #{$artId}: Manually edited at {$current['updated_at']} after snapshot ({$snap['original_updated_at']}). Use --force-rollback to overwrite.\n";
+                $skippedCount++;
+                continue;
+            }
+        }
+
         $updStmt = $pdo->prepare("
             UPDATE `articles` SET
                 `title` = :title,
@@ -184,7 +238,7 @@ if (!empty($rollbackRunId)) {
         echo "  ↺ Restored Article #{$artId}: " . mb_substr($orig['title'] ?? '', 0, 50) . "...\n";
     }
 
-    echo "\n✅ Successfully restored {$restoredCount} articles from run {$rollbackRunId}.\n";
+    echo "\n✅ Rollback Result: {$restoredCount} restored, {$skippedCount} skipped.\n";
     exit(0);
 }
 
@@ -241,36 +295,31 @@ class OutlineViolationDetector {
 }
 
 // -----------------------------------------------------------------------------
-// Rate-Limited Gemini Client Wrapper
+// Body-Level Staleness Detector (Prose & Milestone scan)
 // -----------------------------------------------------------------------------
-class RateLimitedGemini {
-    private Gemini $inner;
-    private float $lastCallAt = 0.0;
-    private int $minIntervalMs;
+class BodyStalenessDetector {
+    public static function check(string $html, string $title, ArticleIntent $intent): array {
+        $issues = [];
+        $tLower = strtolower($title);
+        $plain = strip_tags($html);
 
-    public function __construct(?Gemini $gemini = null, int $requestsPerSecond = 4) {
-        $this->inner = $gemini ?: new Gemini();
-        $this->minIntervalMs = (int)(1000 / $requestsPerSecond);
-    }
+        $isCbt2 = str_contains($tLower, 'cbt 2') || str_contains($tLower, 'cbt-2') || str_contains($tLower, 'stage 2') || str_contains($tLower, 'tier 2') || str_contains($tLower, 'tier-2');
+        $isMains = str_contains($tLower, 'mains') || str_contains($tLower, 'main exam');
 
-    public function generateJson(string $prompt, array $meta = []): array {
-        $elapsed = (microtime(true) - $this->lastCallAt) * 1000;
-        if ($elapsed < $this->minIntervalMs) {
-            usleep((int)(($this->minIntervalMs - $elapsed) * 1000));
-        }
-
-        $attempt = 0;
-        while (true) {
-            try {
-                $this->lastCallAt = microtime(true);
-                return $this->inner->generateJson($prompt, $meta);
-            } catch (Throwable $e) {
-                if (++$attempt > 3) {
-                    throw $e;
-                }
-                usleep((int)(min(30, 2 ** $attempt) * 1_000_000));
+        if ($isCbt2) {
+            // Match active schedule/admit card references to CBT 1 in body prose
+            if (preg_match_all('/\b(?:cbt\s*1|cbt-1|tier\s*1|tier-1)\s+(?:exam\s+schedule|admit\s+card|hall\s+ticket|exam\s+date|city\s+slip|exam\s+city)\b/i', $plain, $m)) {
+                $issues[] = "Body prose active CBT-1 marker found in CBT-2 article: '" . trim($m[0][0]) . "'";
             }
         }
+
+        if ($isMains) {
+            if (preg_match_all('/\b(?:prelims|preliminary|tier\s*1)\s+(?:exam\s+schedule|admit\s+card|hall\s+ticket|exam\s+date|city\s+slip)\b/i', $plain, $m)) {
+                $issues[] = "Body prose active Prelims marker found in Mains article: '" . trim($m[0][0]) . "'";
+            }
+        }
+
+        return $issues;
     }
 }
 
@@ -283,7 +332,7 @@ class ArticleAuditResult {
         public readonly ArticleIntent $detectedIntent,
         public readonly ?string $storedIntent,
         public readonly array $tier1Fixes,      // field => ['old' => ..., 'new' => ...]
-        public readonly array $tier2Violations, // forbidden heading titles
+        public readonly array $tier2Violations, // forbidden headings & body staleness
         public readonly bool $needsRegeneration
     ) {}
 }
@@ -307,10 +356,16 @@ class ArticleAuditor {
         $detectedIntent = $this->classifier->classify($title, mb_substr(strip_tags($content), 0, 400));
         $storedIntent = $rawPayload['_intent'] ?? ($article['category_slug'] ?? null);
 
-        // 2. Structural violation check (Tier 2)
+        // 2. Structural violation check (Tier 2: Heading scans)
         $tier2Violations = OutlineViolationDetector::findViolations($content, $detectedIntent);
 
-        // 3. Field-level mechanical checks (Tier 1)
+        // 3. Body-level staleness check (Tier 2: Read-only detection)
+        $bodyStaleness = BodyStalenessDetector::check($content, $title, $detectedIntent);
+        foreach ($bodyStaleness as $staleIssue) {
+            $tier2Violations[] = "[Body Staleness] " . $staleIssue;
+        }
+
+        // 4. Field-level mechanical checks (Tier 1: Safe field fixes only)
         $tier1Fixes = [];
         $tLower = strtolower($title);
         $eLower = strtolower($excerpt);
@@ -325,7 +380,6 @@ class ArticleAuditor {
         $isRawDaMismatched = $isCbt2Title && (str_contains($rawDaLower, 'cbt 1') || str_contains($rawDaLower, 'cbt-1'));
 
         if (($isCbt2Title && $isCbt1Excerpt) || $isRawDaMismatched || mb_strlen($excerpt) < 30) {
-            // Re-derive crisp excerpt from content lead
             $freshLead = $this->extractVettedLead($content, $title);
             if (!empty($freshLead) && $freshLead !== $excerpt) {
                 $tier1Fixes['excerpt'] = ['old' => $excerpt, 'new' => $freshLead];
@@ -349,7 +403,7 @@ class ArticleAuditor {
             $tier1Fixes['raw_payload'] = ['old' => '(mismatched raw direct_answer)', 'new' => '(aligned with vetted lead)'];
         }
 
-        // D. Outdated future dates (e.g. 2024/2025 in upcoming context)
+        // D. Outdated future dates (strictly scoped to excerpt forward-looking milestones)
         if (preg_match('/\b(202[345])\b(?=.*?(exam|admit card|hall ticket|city slip|result|schedule))/i', $excerpt, $ym)) {
             $fixedExcerpt = preg_replace('/\b(202[345])\b(?=.*?(exam|admit card|hall ticket|city slip|result|schedule))/i', '2026', $excerpt);
             if ($fixedExcerpt !== $excerpt && !isset($tier1Fixes['excerpt'])) {
@@ -424,14 +478,15 @@ class ArticleMigrationWriter {
     public function saveSnapshot(array $article, string $actionTaken): void {
         $stmt = $this->db->prepare("
             INSERT INTO `article_migration_snapshots`
-            (`article_id`, `snapshot_json`, `audit_run_id`, `action_taken`, `created_at`)
-            VALUES (:aid, :snap, :run_id, :action, NOW())
+            (`article_id`, `snapshot_json`, `audit_run_id`, `action_taken`, `original_updated_at`, `created_at`)
+            VALUES (:aid, :snap, :run_id, :action, :up_at, NOW())
         ");
         $stmt->execute([
             ':aid' => (int)$article['id'],
             ':snap' => json_encode($article, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
             ':run_id' => $this->runId,
-            ':action' => $actionTaken
+            ':action' => $actionTaken,
+            ':up_at' => $article['updated_at'] ?? null
         ]);
     }
 
@@ -510,7 +565,6 @@ class ArticleMigrationWriter {
     public function regenerate(array $article, ArticleAuditResult $result): void {
         $this->saveSnapshot($article, 'tier2_regenerated');
 
-        // Use ArticleGenerator to regenerate adhering to OutlineContracts
         $generator = new ArticleGenerator();
         $sourceInfo = [
             'source_name' => $article['source_name'] ?? 'Statutory Authority',
@@ -559,7 +613,10 @@ class AuditReporter {
         }
 
         if (!empty($result->tier2Violations)) {
-            echo "   [TIER 2] ⚠️ Forbidden sections found: " . implode(', ', $result->tier2Violations) . "\n";
+            echo "   [TIER 2] ⚠️ Violations found:\n";
+            foreach ($result->tier2Violations as $viol) {
+                echo "     • " . self::truncate($viol) . "\n";
+            }
             echo "     → FLAGGED for review" . ($isDryRun ? " (use --live to commit, --regenerate to auto-fix)" : "") . "\n";
         }
 
@@ -584,7 +641,7 @@ echo "📅 Timestamp: " . date('Y-m-d H:i:s T') . "\n";
 echo "🔧 Mode     : " . ($isDryRun ? "READ-ONLY PREFLIGHT (DRY-RUN)" : "LIVE EXECUTION (COMMITTING CHANGES)") . "\n";
 echo "🆔 Run ID   : {$runId}\n";
 if ($allowRegenerate) {
-    echo "⚡ Warning  : --regenerate is ACTIVE. Tier 2 forbidden section articles will be rebuilt.\n";
+    echo "⚡ Warning  : --regenerate is ACTIVE. Tier 2 structural violation articles will be rebuilt.\n";
 }
 echo "================================================================================\n\n";
 
@@ -635,8 +692,8 @@ do {
     foreach ($batch as $article) {
         $artId = (int)$article['id'];
 
-        // Advisory concurrency lock
-        $lockStmt = $pdo->query("SELECT GET_LOCK('article_audit_{$artId}', 0)");
+        // Shared advisory lock: standard across audit and pipeline writes
+        $lockStmt = $pdo->query("SELECT GET_LOCK('sarkari_article_write_{$artId}', 0)");
         if (!$lockStmt->fetchColumn()) {
             echo "  ⤷ Skipping #{$artId} — locked by another process\n";
             continue;
@@ -663,6 +720,7 @@ do {
                         $writer->flagForReview($artId, $result);
                     }
                 } else {
+                    // Transition to compliant (including recovering previously flagged articles now clean)
                     $writer->markCompliant($artId);
                 }
             } else {
@@ -675,7 +733,7 @@ do {
             echo "❌ Error auditing article #{$artId}: " . $e->getMessage() . "\n";
             Logger::error("Audit failed for article #{$artId}: " . $e->getMessage());
         } finally {
-            $pdo->exec("SELECT RELEASE_LOCK('article_audit_{$artId}')");
+            $pdo->exec("SELECT RELEASE_LOCK('sarkari_article_write_{$artId}')");
         }
 
         $lastId = $artId;
