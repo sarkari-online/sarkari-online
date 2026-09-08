@@ -627,8 +627,11 @@ class PipelineService {
      * Run batch article generation on approved trends
      */
     public function processApprovedTrends(int $targetPublished = 1): array {
-        // Prioritize newest trends (id DESC) with highest scores, strictly rejecting generic placeholders
-        $sql = "SELECT id, keyword FROM trends WHERE status = 'approved' ORDER BY trend_score DESC, id DESC LIMIT 25";
+        // Prioritize newest trends (id DESC) with highest scores, strictly excluding trends flagged for human review or generic placeholders
+        $sql = "SELECT id, keyword, raw_payload FROM trends 
+                WHERE status = 'approved' 
+                  AND (raw_payload IS NULL OR raw_payload NOT LIKE '%needs_human_review%')
+                ORDER BY trend_score DESC, id DESC LIMIT 25";
         $approved = Database::fetchAll($sql);
 
         $results = [];
