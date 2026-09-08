@@ -628,10 +628,12 @@ class PipelineService {
      */
     public function processApprovedTrends(int $targetPublished = 1): array {
         // Prioritize newest trends (id DESC) with highest scores, strictly excluding trends flagged for human review or generic placeholders
-        // Uses JSON_EXTRACT to check boolean value rather than substring presence (handles null, false, and absent keys correctly)
+        // Uses portable JSON_UNQUOTE comparison to guarantee 100% identical evaluation on both MySQL and MariaDB
         $sql = "SELECT id, keyword, raw_payload FROM trends 
                 WHERE status = 'approved' 
-                  AND (raw_payload IS NULL OR JSON_EXTRACT(raw_payload, '$.needs_human_review') IS NOT TRUE)
+                  AND (raw_payload IS NULL 
+                       OR JSON_EXTRACT(raw_payload, '$.needs_human_review') IS NULL 
+                       OR JSON_UNQUOTE(JSON_EXTRACT(raw_payload, '$.needs_human_review')) != 'true')
                 ORDER BY trend_score DESC, id DESC LIMIT 25";
         $approved = Database::fetchAll($sql);
 
