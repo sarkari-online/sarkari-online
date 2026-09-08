@@ -171,7 +171,7 @@ class AutoCronService {
     private static function runTemporalLifecycle(): void {
         Logger::info('AutoCron: Starting Temporal Lifecycle Revalidation Engine');
         try {
-            TemporalRevalidationService::revalidateAll(20);
+            TemporalRevalidationService::revalidateAll(150);
         } catch (Throwable $e) {
             Logger::error('AutoCron Temporal Lifecycle error: ' . $e->getMessage());
         }

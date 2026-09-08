@@ -36,7 +36,7 @@ class TemporalRevalidationService {
      * @param DateTimeImmutable|null $now Reference time in Asia/Kolkata
      * @return array ['scanned' => int, 'extended' => int, 'closed' => int, 'admit_card_released' => int, 'exam_completed' => int, 'result_released' => int, 'updated' => int, 'errors' => array]
      */
-    public static function revalidateAll(int $limit = 20, ?DateTimeImmutable $now = null): array {
+    public static function revalidateAll(int $limit = 150, ?DateTimeImmutable $now = null): array {
         $now = $now ?: TemporalFactService::nowIST();
         $nowStr = $now->format('Y-m-d H:i:s');
 

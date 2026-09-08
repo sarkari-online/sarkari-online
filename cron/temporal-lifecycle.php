@@ -17,7 +17,7 @@ use App\Services\TemporalRevalidationService;
 use App\Services\TemporalFactService;
 use App\Helpers\Logger;
 
-$limit = 20;
+$limit = 150;
 foreach ($argv as $arg) {
     if (str_starts_with($arg, '--limit=')) {
         $limit = (int)substr($arg, 8);
