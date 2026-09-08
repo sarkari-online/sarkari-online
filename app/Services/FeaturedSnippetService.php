@@ -105,7 +105,15 @@ class FeaturedSnippetService {
         if (!empty($article['raw_payload'])) {
             $raw = is_array($article['raw_payload']) ? $article['raw_payload'] : json_decode($article['raw_payload'], true);
             if (!empty($raw['direct_answer']) && mb_strlen($raw['direct_answer']) > 30) {
-                return trim($raw['direct_answer']);
+                $rawAns = trim($raw['direct_answer']);
+                $tLower = strtolower($title);
+                $ansLower = strtolower($rawAns);
+                // Defense-in-depth: Reject if direct answer contradicts title exam phase
+                $phaseMismatch = ((str_contains($tLower, 'cbt 2') || str_contains($tLower, 'cbt-2')) && (str_contains($ansLower, 'cbt 1') || str_contains($ansLower, 'cbt-1')))
+                    || ((str_contains($tLower, 'mains') || str_contains($tLower, 'tier 2') || str_contains($tLower, 'tier-2')) && (str_contains($ansLower, 'prelims') || str_contains($ansLower, 'tier 1') || str_contains($ansLower, 'tier-1')));
+                if (!$phaseMismatch) {
+                    return $rawAns;
+                }
             }
         }
 
