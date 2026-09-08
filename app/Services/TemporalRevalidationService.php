@@ -377,6 +377,20 @@ class TemporalRevalidationService {
             return ['success' => true, 'action' => 'closed_no_source'];
         }
 
+        // 1. Guard: Non-exam articles (Counselling, Seat Allotment, Admission, Guides, Syllabus) NEVER have Admit Cards
+        $titleLower = mb_strtolower($articleData['title'] . ' ' . ($articleData['slug'] ?? ''));
+        $ineligibleKeywords = [
+            'counselling', 'counseling', 'seat allotment', 'allotment', 'admission',
+            'scholarship', 'guide', 'preparation', 'syllabus', 'eligibility',
+            'otr', 'one time registration', 'how to', 'correction', 'selection process',
+            'full form', 'calculator', 'salary', 'age limit', 'merit list', 'scorecard'
+        ];
+        foreach ($ineligibleKeywords as $kw) {
+            if (str_contains($titleLower, $kw)) {
+                return ['success' => true, 'action' => 'closed_ineligible_for_admit_card'];
+            }
+        }
+
         // 6-hour rate-limit guard
         $examFact = $facts['exam_date'] ?? null;
         $lastVerified = !empty($examFact['verified_at']) ? strtotime($examFact['verified_at']) : 0;
@@ -389,8 +403,28 @@ class TemporalRevalidationService {
             return ['success' => true, 'action' => 'closed_portal_empty'];
         }
 
-        // 1. Check for Official Admit Card Release
-        if (preg_match('/(?:admit card|hall ticket|call letter)\s+(?:is\s+)?(?:released|out|available|download|live)/i', $portalText, $admitMatch)) {
+        // Extract specific exam identifier tokens from title (e.g. NDA, CDS, PET, JEE, NEET, CTET, CGL, NTPC)
+        $examTokens = [];
+        if (preg_match_all('/\b([A-Za-z0-9]{2,12})\b/i', $articleData['title'], $mTokens)) {
+            $stopWords = ['2026', '2025', '2024', 'exam', 'cbt', 'recruitment', 'post', 'posts', 'date', 'dates', 'online', 'apply', 'form', 'link', 'hall', 'card', 'pass', 'admit', 'the', 'and', 'for', 'all', 'out', 'new', 'update', 'updates', 'notice', 'official', 'status', 'portal', 'schedule', 'tier', 'session', 'round'];
+            foreach ($mTokens[1] as $token) {
+                $tLower = strtolower($token);
+                if (!in_array($tLower, $stopWords, true) && strlen($token) >= 3) {
+                    $examTokens[] = preg_quote($token, '/');
+                }
+            }
+        }
+
+        if (empty($examTokens)) {
+            return ['success' => true, 'action' => 'closed_no_exam_token'];
+        }
+
+        $tokenRegex = '(?:' . implode('|', $examTokens) . ')';
+        // Require exam acronym/name in strict proximity (<= 120 chars) to the admit card phrase
+        $admitPattern = '/(?:' . $tokenRegex . '.{0,120}?(?:admit card|hall ticket|call letter)\s+(?:is\s+)?(?:released|out|available|download|live)|(?:admit card|hall ticket|call letter)\s+(?:is\s+)?(?:released|out|available|download|live).{0,120}?' . $tokenRegex . ')/is';
+
+        // 2. Check for Official Admit Card Release with Strict Exam Proximity
+        if (preg_match($admitPattern, $portalText, $admitMatch)) {
             TemporalFactService::recordFact($articleId, 'admit_card_date', $now->format('F d, Y'), $sourceUrl, [
                 'source_type' => 'official',
                 'confidence' => 'high',
