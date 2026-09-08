@@ -492,9 +492,11 @@ class ArticleAuditor {
             ];
         }
 
-        // D. Outdated future dates (strictly scoped to excerpt forward-looking milestones)
-        if (preg_match('/\b(202[345])\b(?=.*?(exam|admit card|hall ticket|city slip|result|schedule))/i', $excerpt, $ym)) {
-            $fixedExcerpt = preg_replace('/\b(202[345])\b(?=.*?(exam|admit card|hall ticket|city slip|result|schedule))/i', '2026', $excerpt);
+        // D. Outdated future dates (strictly scoped to month-preceded dates e.g. "September 2025" -> "September 2026")
+        // Strictly avoids corrupting circular/notification codes (e.g. CEN 07/2025, Advt 01/2024) and historical comparisons.
+        $monthPattern = '/\b((?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+)(202[345])\b/i';
+        if (preg_match($monthPattern, $excerpt)) {
+            $fixedExcerpt = preg_replace($monthPattern, '${1}2026', $excerpt);
             if ($fixedExcerpt !== $excerpt && !isset($tier1Fixes['excerpt'])) {
                 $tier1Fixes['excerpt'] = ['old' => $excerpt, 'new' => $fixedExcerpt];
             }
