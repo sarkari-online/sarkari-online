@@ -97,6 +97,9 @@ $runId = $options['run-id'] ?? bin2hex(random_bytes(16));
 // Database Initialization & Idempotency Safeguards
 // -----------------------------------------------------------------------------
 $pdo = Database::getConnection();
+if (defined('PDO::MYSQL_ATTR_USE_BUFFERED_QUERY')) {
+    $pdo->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true);
+}
 
 function ensureSchemaExists(PDO $pdo): void {
     // 1. Check if columns exist on articles table
@@ -765,7 +768,9 @@ function fetchBatch(PDO $pdo, int $lastId, int $limit, ?array $explicitIds, bool
         $stmt->bindValue(':ver', CURRENT_AUDIT_VERSION, PDO::PARAM_INT);
     }
     $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $stmt->closeCursor();
+    return $rows;
 }
 
 $processed = 0;
@@ -785,7 +790,10 @@ do {
 
         // Shared advisory lock: standard across audit and pipeline writes
         $lockStmt = $pdo->query("SELECT GET_LOCK('sarkari_article_write_{$artId}', 0)");
-        if (!$lockStmt->fetchColumn()) {
+        $hasLock = (bool)$lockStmt->fetchColumn();
+        $lockStmt->closeCursor();
+
+        if (!$hasLock) {
             echo "  ⤷ Skipping #{$artId} — locked by another process\n";
             continue;
         }
@@ -830,7 +838,14 @@ do {
             echo "❌ Error auditing article #{$artId}: " . $e->getMessage() . "\n";
             Logger::error("Audit failed for article #{$artId}: " . $e->getMessage());
         } finally {
-            $pdo->exec("SELECT RELEASE_LOCK('sarkari_article_write_{$artId}')");
+            try {
+                $unlockStmt = $pdo->query("SELECT RELEASE_LOCK('sarkari_article_write_{$artId}')");
+                if ($unlockStmt) {
+                    $unlockStmt->closeCursor();
+                }
+            } catch (Throwable $e) {
+                // Ignore lock release failures
+            }
         }
 
         $lastId = $artId;
