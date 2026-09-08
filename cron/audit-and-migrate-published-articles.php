@@ -102,6 +102,17 @@ if (defined('PDO::MYSQL_ATTR_USE_BUFFERED_QUERY')) {
 }
 
 function ensureSchemaExists(PDO $pdo): void {
+    // 0. Check if status_text column exists on articles table
+    try {
+        $stmt = $pdo->query("SHOW COLUMNS FROM `articles` LIKE 'status_text'");
+        if (!$stmt->fetch()) {
+            $pdo->exec("ALTER TABLE `articles` ADD COLUMN `status_text` VARCHAR(100) NULL AFTER `lifecycle_status`");
+            echo "✅ Schema Migration: Added status_text column to `articles`.\n";
+        }
+    } catch (Throwable $e) {
+        echo "⚠️ Note on status_text column: " . $e->getMessage() . "\n";
+    }
+
     // 1. Check if columns exist on articles table
     try {
         $stmt = $pdo->query("SHOW COLUMNS FROM `articles` LIKE 'architecture_audit_status'");
