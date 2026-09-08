@@ -24,21 +24,17 @@ if (!empty($termSlug)) {
         exit;
     }
 
-    // Optimal SERP Title: 45-60 characters (strictly <= 60 chars for search engines)
-    $candidateTitle = "{$term['acronym']} Full Form: {$term['full_form_en']}";
-    if (mb_strlen($candidateTitle) <= 42) {
-        $pageTitle = $candidateTitle . ' | ' . SITE_NAME;
-    } elseif (mb_strlen($candidateTitle) <= 60) {
+    // High-CTR Click-Magnet SERP Title (Optimal: 50-60 chars)
+    // Avoids immediate answer giveaway ("Zero-Click search") and triggers high-intent curiosity on Salary, Meaning & Eligibility
+    $candidateTitle = "{$term['acronym']} Full Form: Meaning, Salary, Job Role & Eligibility 2026";
+    if (mb_strlen($candidateTitle) <= 59) {
         $pageTitle = $candidateTitle;
     } else {
-        $pageTitle = "{$term['acronym']} Full Form & Meaning | " . SITE_NAME;
+        $pageTitle = "{$term['acronym']} Full Form: Meaning, Salary & Eligibility 2026";
     }
 
-    // Concise Meta Description: 140-155 characters (ideal SERP snippet without truncation)
-    $pageDesc = "What is the full form of {$term['acronym']}? Official full form is {$term['full_form_en']}. Check eligibility criteria, selection process and official updates.";
-    if (mb_strlen($pageDesc) > 155) {
-        $pageDesc = "Full form of {$term['acronym']} is {$term['full_form_en']}. Check official overview, eligibility criteria, selection stages and updates on Sarkari.online.";
-    }
+    // High-CTR Meta Description: 145-155 characters (ideal SERP snippet without answer-spoiler truncation)
+    $pageDesc = "What is {$term['acronym']} full form? Check official meaning in English & Hindi, salary pay scale, eligibility and selection process on Sarkari.online.";
 
     $canonicalUrl = url("full-forms/{$term['slug']}/");
     $ogType = 'article';
@@ -53,9 +49,9 @@ if (!empty($termSlug)) {
     $definedTermSchema = json_encode([
         "@context" => "https://schema.org",
         "@type" => "DefinedTerm",
-        "name" => $term['acronym'],
+        "name" => "{$term['acronym']} Full Form",
         "termCode" => $term['acronym'],
-        "description" => $term['full_form_en'] . (!empty($term['full_form_hi']) ? " (" . $term['full_form_hi'] . ")" : "") . ". " . $term['overview'],
+        "description" => "Complete guide to {$term['acronym']} full form, official meaning in English and Hindi, salary structure, eligibility criteria, duties and selection process on Sarkari.online.",
         "inDefinedTermSet" => [
             "@type" => "DefinedTermSet",
             "name" => "Sarkari.online Indian Government & Examination Acronym Glossary",
