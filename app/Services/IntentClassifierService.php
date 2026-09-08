@@ -84,6 +84,15 @@ final class IntentClassifierService
         next($scores);
         $secondScore = current($scores) ?: 0;
 
+        // Override Rule: Corrigendum Co-occurrence Guard
+        // A corrigendum is definitionally about another intent's subject matter (e.g. "Admit card date extended"),
+        // so it will almost always co-occur with that intent's keywords. Never let raw arithmetic out-score it!
+        $corrigendumScore = $scores[ArticleIntent::CORRIGENDUM->value] ?? 0;
+        if ($corrigendumScore >= 8 && $top !== ArticleIntent::CORRIGENDUM->value) {
+            Logger::info("IntentClassifier: Corrigendum co-occurrence detected (Score: {$corrigendumScore}). Forcing Tier-2 LLM evaluation for '{$headline}'");
+            return $this->llmTieBreak($headline, $rawDispatchExcerpt);
+        }
+
         // Decisive match
         if ($topScore > 0 && ($topScore - $secondScore) >= self::AMBIGUITY_MARGIN) {
             Logger::info("IntentClassifier: Deterministic match '{$top}' (Score: {$topScore} vs {$secondScore}) for '{$headline}'");
@@ -101,6 +110,10 @@ final class IntentClassifierService
 Classify the PRIMARY reader intent of this Indian government exam/recruitment dispatch.
 HEADLINE: {$headline}
 SNIPPET: {$excerpt}
+
+CRITICAL RULES:
+- If a dispatch announces a date extension, postponement, or corrigendum that ALSO mentions an admit card, result, or application form, classify as "corrigendum" — the revision is the primary news.
+- Never invent an intent outside the allowed list.
 
 ALLOWED INTENT VALUES:
 - admit_card (Exam date, City intimation slip, Hall ticket, e-call letter, Shift timings)
@@ -125,17 +138,24 @@ PROMPT;
             ]);
 
             $data = $response['data'];
-            $detected = $data['intent'] ?? ArticleIntent::RECRUITMENT->value;
+            $detected = $data['intent'] ?? null;
 
-            $intent = ArticleIntent::tryFrom($detected);
-            if ($intent) {
-                return $intent;
+            if (!empty($detected)) {
+                $intent = ArticleIntent::tryFrom($detected);
+                if ($intent) {
+                    return $intent;
+                }
             }
         } catch (Throwable $e) {
-            Logger::warning("IntentClassifier LLM tie-breaker fallback: " . $e->getMessage());
+            Logger::warning("IntentClassifier LLM tie-breaker failed: " . $e->getMessage());
         }
 
-        // Safe default if all else fails
-        return ArticleIntent::RECRUITMENT;
+        // Safety Architecture: NEVER guess or silently fall back to RECRUITMENT!
+        // Throw an UnresolvedIntentException so PipelineService routes to the human review queue.
+        Logger::error("IntentClassifier: Could not resolve intent for '{$headline}' — routing to editorial review");
+        throw new UnresolvedIntentException("Unresolved intent for headline: '{$headline}'");
     }
 }
+
+class UnresolvedIntentException extends \Exception {}
+

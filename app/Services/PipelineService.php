@@ -172,7 +172,23 @@ class PipelineService {
 
         // 1. Generate Draft
         $angle = $rawPayload['suggested_original_angle'] ?? 'Comprehensive student instructions';
-        $genResult = $this->generator->generate($trend['keyword'], $sourceData, $categorySlug, $angle, $resolvedLifecycle);
+        try {
+            $genResult = $this->generator->generate($trend['keyword'], $sourceData, $categorySlug, $angle, $resolvedLifecycle);
+        } catch (\App\Services\UnresolvedIntentException $e) {
+            Logger::warning("PipelineService: Trend #{$trendId} intent could not be resolved with high confidence. Routing to review: " . $e->getMessage());
+            TrendService::markStatus($trendId, 'approved', [
+                'trend_score' => 75,
+                'raw_payload' => array_merge($rawPayload, [
+                    'needs_human_review' => true,
+                    'review_reason' => 'Ambiguous intent classification requires editorial verification'
+                ])
+            ]);
+            return [
+                'success' => false,
+                'trend_id' => $trendId,
+                'error' => 'Intent ambiguous — routed safely to human editorial review queue.'
+            ];
+        }
         usleep(2500000); // 2.5s pause to respect Gemini Free Tier RPM limits
 
         // 2. Fact Check
