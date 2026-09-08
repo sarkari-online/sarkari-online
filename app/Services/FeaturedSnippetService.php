@@ -108,13 +108,8 @@ class FeaturedSnippetService {
                 return trim($raw['direct_answer']);
             }
         }
-        // If excerpt is already concise and rich, use it
-        $cleanExcerpt = trim(strip_tags($excerpt));
-        if (mb_strlen($cleanExcerpt) >= 80 && mb_strlen($cleanExcerpt) <= 240 && !str_contains($cleanExcerpt, '...')) {
-            return $cleanExcerpt;
-        }
 
-        // Otherwise, extract the first authoritative sentence from content
+        // 1. Check article body lead text first to guarantee alignment with vetted body facts
         if (!empty($content)) {
             $plainText = strip_tags($content);
             $plainText = preg_replace('/\s+/', ' ', $plainText);
@@ -128,6 +123,12 @@ class FeaturedSnippetService {
                     return $lead;
                 }
             }
+        }
+
+        // 2. Fallback to excerpt if concise and rich
+        $cleanExcerpt = trim(strip_tags($excerpt));
+        if (mb_strlen($cleanExcerpt) >= 80 && mb_strlen($cleanExcerpt) <= 240 && !str_contains($cleanExcerpt, '...')) {
+            return $cleanExcerpt;
         }
 
         // Fallback synthesised answer
@@ -258,12 +259,15 @@ class FeaturedSnippetService {
     private static function detectStatusText(string $title, string $content, string $lifecycle = 'active'): string {
         $t = strtolower($title);
 
-        // Admit Card: ONLY active if lifecycle is admit_card_released
+        // Admit Card: Check for City Slip vs Full Admit Card
+        if (str_contains($t, 'city slip') || str_contains($t, 'city intimation') || str_contains(strtolower(substr($content, 0, 500)), 'city intimation slip')) {
+            return 'Exam City Slip Active';
+        }
         if (str_contains($t, 'admit card') || str_contains($t, 'hall ticket')) {
             if ($lifecycle === 'admit_card_released') {
                 return 'Hall Ticket Download Active';
             }
-            return 'Admit Card: Not Released';
+            return 'Admit Card: Download Link Upcoming';
         }
 
         // Result: ONLY declared if lifecycle is result_released
