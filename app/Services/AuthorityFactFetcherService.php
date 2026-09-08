@@ -323,6 +323,10 @@ CRITICAL ANTI-HEDGING & FACT GROUNDING DIRECTIVES:
    - NEVER substitute a specific fact with vague placeholders like "expected soon", "dates awaited", or "check official portal".
 4. REGIONAL PORTALS MATRIX:
    - For RRB and SSC, map and include the exact regional board names and portal URLs from the verified directory.
+5. EXTRACTION CONFIDENCE RULES (CRITICAL):
+   - "high": The primary event facts (the core milestone announced today, e.g. Admit Card link, Exam Date, or Result declaration) are verified from the authority portal or dispatch.
+   - "medium": Core event confirmed, but minor secondary details (e.g. shift clock times or exact vacancy breakup) are awaiting gazette circular.
+   - "low": Use "low" ONLY if the entire topic appears unconfirmed, contradictory, or lacks any primary announcement signal. NOTE: Having a routine unannounced next-stage milestone (e.g. "CBT-2 date awaited" or "Interview date to be notified later") is NORMAL and MUST NOT degrade extraction_confidence to "low"!
 
 Return strictly as JSON matching this schema:
 {

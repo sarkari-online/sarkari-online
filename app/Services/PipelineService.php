@@ -244,8 +244,32 @@ class PipelineService {
         $lintViolations = self::lintContentIntegrity($linking['linked_content'], $detectedIntent);
         if (!empty($lintViolations)) {
             Logger::warning("PipelineService: Mechanical Lint Gate caught violations for Trend #{$trendId}: " . implode('; ', $lintViolations));
-            // Auto-clean forbidden section headings or banned clichés
-            $linking['linked_content'] = self::autoCleanLintIssues($linking['linked_content'], $detectedIntent);
+            
+            // Check if violation is a forbidden major structural section
+            $hasForbiddenSection = false;
+            foreach ($lintViolations as $v) {
+                if (str_contains($v, 'Forbidden section')) {
+                    $hasForbiddenSection = true;
+                    break;
+                }
+            }
+
+            if ($hasForbiddenSection) {
+                Logger::info("PipelineService: Triggering safe intent-compliant regeneration for Trend #{$trendId}...");
+                try {
+                    $correctionInstruction = "CRITICAL EDITORIAL REVISION: The previous draft improperly included forbidden sections for intent '{$detectedIntent}' (such as 'How to Apply' or 'Eligibility'). Completely exclude these sections. Strictly adhere to the {$detectedIntent} OUTLINE CONTRACT.";
+                    $genResult = $this->generator->generate($trend['keyword'], $sourceData, $categorySlug, $correctionInstruction, $resolvedLifecycle);
+                    $polished = $this->editor->polish($genResult['title'], $genResult['content'], $categorySlug, $resolvedLifecycle);
+                    $linking = $this->linker->link($polished['edited_content'], $availableArticles);
+                    Logger::info("PipelineService: Re-generation successful without forbidden sections.");
+                } catch (Throwable $e) {
+                    Logger::warning("PipelineService: Re-generation fallback failed (" . $e->getMessage() . "). Safely applying emergency auto-clean.");
+                    $linking['linked_content'] = self::autoCleanLintIssues($linking['linked_content'], $detectedIntent);
+                }
+            } else {
+                // Minor cliché cleanup
+                $linking['linked_content'] = self::autoCleanLintIssues($linking['linked_content'], $detectedIntent);
+            }
         }
 
         // 6. Calculate 8-Dimension Quality Score (Total 100 points)
