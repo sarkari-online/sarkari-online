@@ -251,6 +251,7 @@ class PipelineService {
             'source_url' => $officialPortal,
             'reference' => $verifiedFacts['official_notice_ref'] ?? ($rawPayload['source_attribution']['reference'] ?? ''),
             'notes' => $rawPayload['reasoning'] ?? $trend['keyword'],
+            'snippet' => $rawPayload['snippet'] ?? ($trend['category_hint'] ?? ''),
             'verified_facts' => $verifiedFacts
         ];
 
@@ -909,7 +910,11 @@ class PipelineService {
 
         // 3. Post-Generation Fact Completeness & Hallucination Guard (Defense-in-Depth)
         $datesTable = $articleData['dates_table'] ?? [];
-        $rawSourceText = $sourceData['verified_facts']['raw_source_text'] ?? ($sourceData['notes'] ?? '');
+        $rawSourceText = ($sourceData['verified_facts']['raw_source_text'] ?? '')
+                       . ' ' . ($sourceData['notes'] ?? '')
+                       . ' ' . ($sourceData['snippet'] ?? '')
+                       . ' ' . ($sourceData['reference'] ?? '')
+                       . ' ' . ($sourceData['keyword'] ?? '');
         $todayIssues = HallucinationGuard::checkForSuspiciousTodayDate($datesTable, $rawSourceText);
         $violations = array_merge($violations, $todayIssues);
 

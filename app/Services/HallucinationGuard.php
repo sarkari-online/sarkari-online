@@ -41,6 +41,8 @@ final class HallucinationGuard
             return [];
         }
 
+        $isBreakingAnnouncement = (bool)preg_match('/\b(declared|released|announced|published|out now|live now|today)\b/i', $rawSourceText);
+
         $issues = [];
 
         foreach ($datesTable as $field => $item) {
@@ -49,6 +51,20 @@ final class HallucinationGuard
 
             foreach ($todayVariants as $variant) {
                 if (stripos($value, $variant) !== false) {
+                    // If source announces a breaking release/declaration of this event, today's date is genuine
+                    if ($isBreakingAnnouncement) {
+                        $lowerField = strtolower($fieldName);
+                        if (
+                            (str_contains($lowerField, 'result') && preg_match('/\b(result|declared|merit)\b/i', $rawSourceText)) ||
+                            (str_contains($lowerField, 'admit') && preg_match('/\b(admit|hall ticket|call letter|released|out)\b/i', $rawSourceText)) ||
+                            (str_contains($lowerField, 'answer') && preg_match('/\b(answer key|objection|key released)\b/i', $rawSourceText)) ||
+                            (str_contains($lowerField, 'notification') && preg_match('/\b(notification|released|announced)\b/i', $rawSourceText)) ||
+                            preg_match('/\b(declared today|released today|announced today|out today)\b/i', $rawSourceText)
+                        ) {
+                            continue; // Valid breaking announcement date
+                        }
+                    }
+
                     $issues[] = "BLOCKING: Suspicious '{$fieldName}' value ('{$value}') matches today's generation timestamp but is absent from source text (Hallucination signature).";
                     break;
                 }

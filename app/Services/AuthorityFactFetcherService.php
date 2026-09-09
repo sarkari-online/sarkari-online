@@ -123,9 +123,10 @@ class AuthorityFactFetcherService {
         if (str_contains($lower, 'ssb') && !str_contains($lower, 'rsmssb') && !str_contains($lower, 'dsssb') && !str_contains($lower, 'upsssc')) return self::$authorityPortals['ssb'];
 
         // 4. Defence Forces
+        if (str_contains($lower, 'afcat')) return ['name' => 'Indian Air Force (AFCAT)', 'portal' => 'https://afcat.cdac.in', 'verification_status' => 'verified'];
         if (str_contains($lower, 'indian army') || preg_match('/\barmy\b/', $lower)) return self::$authorityPortals['army'];
         if (str_contains($lower, 'indian navy') || preg_match('/\bnavy\b/', $lower)) return self::$authorityPortals['navy'];
-        if (str_contains($lower, 'air force') || str_contains($lower, 'iaf') || str_contains($lower, 'agniveer vayu') || str_contains($lower, 'afcat')) return self::$authorityPortals['iaf'];
+        if (str_contains($lower, 'air force') || str_contains($lower, 'iaf') || str_contains($lower, 'agniveer vayu')) return self::$authorityPortals['iaf'];
         if (str_contains($lower, 'coast guard') || str_contains($lower, 'icg')) return self::$authorityPortals['coastguard'];
         if (str_contains($lower, 'drdo')) return self::$authorityPortals['drdo'];
         if (str_contains($lower, 'isro')) return self::$authorityPortals['isro'];
