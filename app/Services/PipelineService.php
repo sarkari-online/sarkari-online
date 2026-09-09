@@ -25,6 +25,10 @@ use App\Services\TemporalFactService;
 use App\Services\TemporalContentValidator;
 use App\Services\TitleBodyConfidenceDetector;
 use App\Services\GlossaryService;
+use App\Services\FactCompletenessRules;
+use App\Services\HallucinationGuard;
+use App\Services\IntentClassifierService;
+use App\Services\ArticleIntent;
 use Exception;
 use Throwable;
 
@@ -150,12 +154,59 @@ class PipelineService {
         $verifiedFacts = $factFetcher->fetchFactsForTopic($trend['keyword'], $categorySlug, $trend['url'] ?? '', $snippet);
 
         $resolvedAuth = AuthorityFactFetcherService::resolveAuthority($trend['keyword'], $trend['url'] ?? '');
+
+        // Safety Gate: Newly discovered or unverified authorities are unconditionally held for human review
+        if (($resolvedAuth['verification_status'] ?? 'verified') !== 'verified') {
+            $reason = "Authority '{$resolvedAuth['name']}' (" . ($resolvedAuth['portal'] ?: 'No portal') . ") is pending human verification. Auto-publish held.";
+            TrendService::markStatus($trendId, 'needs_enrichment', [
+                'raw_payload' => array_merge($rawPayload, [
+                    'enrichment_reason' => $reason,
+                    'first_attempted_at' => date('Y-m-d H:i:s'),
+                    'retry_count' => 0
+                ])
+            ]);
+            Logger::warning("PipelineService: Trend #{$trendId} held: {$reason}");
+            return ['success' => false, 'trend_id' => $trendId, 'status' => 'needs_enrichment', 'error' => $reason];
+        }
+
         $authorityName = (!empty($verifiedFacts['authority_name']) && !str_contains(strtolower($verifiedFacts['authority_name']), 'statutory examination board'))
             ? $verifiedFacts['authority_name']
             : $resolvedAuth['name'];
         $officialPortal = (!empty($verifiedFacts['official_portal']) && !str_contains($verifiedFacts['official_portal'], 'sarkari.online'))
             ? $verifiedFacts['official_portal']
             : $resolvedAuth['portal'];
+
+        // Pre-Generation Fact Completeness Gate
+        $intentClassifier = new IntentClassifierService();
+        $detectedIntent = $intentClassifier->classify($trend['keyword'], $snippet);
+        $completeness = FactCompletenessRules::evaluate($detectedIntent, $verifiedFacts);
+
+        if (!$completeness->isComplete) {
+            $missingList = implode(', ', $completeness->missingFacts);
+            Logger::info("PipelineService: Trend #{$trendId} missing mandatory facts for {$detectedIntent->value}: {$missingList}. Attempting targeted query...");
+            $targetedQuery = "{$authorityName} {$trend['keyword']} notification last date application fee";
+            $retryFacts = $factFetcher->fetchFactsForTopic($targetedQuery, $categorySlug, $officialPortal, $snippet);
+            $mergedFacts = array_merge($verifiedFacts, $retryFacts);
+            $completeness = FactCompletenessRules::evaluate($detectedIntent, $mergedFacts);
+            if ($completeness->isComplete) {
+                $verifiedFacts = $mergedFacts;
+            }
+        }
+
+        if (!$completeness->isComplete) {
+            $missingList = implode(', ', $completeness->missingFacts);
+            $reason = "Missing mandatory statutory facts for {$detectedIntent->value}: {$missingList}";
+            TrendService::markStatus($trendId, 'needs_enrichment', [
+                'raw_payload' => array_merge($rawPayload, [
+                    'enrichment_reason' => $reason,
+                    'missing_facts' => $completeness->missingFacts,
+                    'first_attempted_at' => date('Y-m-d H:i:s'),
+                    'retry_count' => 0
+                ])
+            ]);
+            Logger::warning("PipelineService: Trend #{$trendId} held in needs_enrichment: {$reason}");
+            return ['success' => false, 'trend_id' => $trendId, 'status' => 'needs_enrichment', 'error' => $reason];
+        }
 
         $sourceData = [
             'keyword' => $trend['keyword'],
@@ -259,10 +310,26 @@ class PipelineService {
 
         // 5d. Mechanical Intent & Anti-Boilerplate Lint Safety Gate (Section 5)
         $detectedIntent = $genResult['_intent'] ?? '';
-        $lintViolations = self::lintContentIntegrity($linking['linked_content'], $detectedIntent);
+        $lintViolations = self::lintContentIntegrity($linking['linked_content'], $detectedIntent, $genResult, $sourceData);
         if (!empty($lintViolations)) {
             Logger::warning("PipelineService: Mechanical Lint Gate caught violations for Trend #{$trendId}: " . implode('; ', $lintViolations));
             
+            // Hard block on required field placeholders or today-date hallucinations
+            foreach ($lintViolations as $v) {
+                if (str_starts_with($v, 'BLOCKING:')) {
+                    $reason = "Post-generation lint gate blocked publication: {$v}";
+                    TrendService::markStatus($trendId, 'needs_enrichment', [
+                        'raw_payload' => array_merge($rawPayload, [
+                            'enrichment_reason' => $reason,
+                            'first_attempted_at' => date('Y-m-d H:i:s'),
+                            'retry_count' => 0
+                        ])
+                    ]);
+                    Logger::warning("PipelineService: Trend #{$trendId} blocked by lint gate: {$reason}");
+                    return ['success' => false, 'trend_id' => $trendId, 'status' => 'needs_enrichment', 'error' => $reason];
+                }
+            }
+
             // Check if violation is a forbidden major structural section
             $hasForbiddenSection = false;
             foreach ($lintViolations as $v) {
@@ -731,7 +798,7 @@ class PipelineService {
      * Mechanical Intent & Anti-Boilerplate Lint Safety Gate
      * Catches forbidden sections and banned AI clichés mechanically
      */
-    public static function lintContentIntegrity(string $html, string $intent): array {
+    public static function lintContentIntegrity(string $html, string $intent, array $articleData = [], array $sourceData = []): array {
         $violations = [];
         $lower = strtolower($html);
 
@@ -757,6 +824,24 @@ class PipelineService {
                 $violations[] = "Banned cliché found: '{$bp}'";
             }
         }
+
+        // 3. Post-Generation Fact Completeness & Hallucination Guard (Defense-in-Depth)
+        $datesTable = $articleData['dates_table'] ?? [];
+        $rawSourceText = $sourceData['verified_facts']['raw_source_text'] ?? ($sourceData['notes'] ?? '');
+        $todayIssues = HallucinationGuard::checkForSuspiciousTodayDate($datesTable, $rawSourceText);
+        $violations = array_merge($violations, $todayIssues);
+
+        try {
+            $intentEnum = ArticleIntent::tryFrom($intent);
+            if ($intentEnum) {
+                foreach (FactCompletenessRules::requiredFieldsFor($intentEnum) as $reqField) {
+                    $val = $datesTable[$reqField] ?? null;
+                    if ($val === ArticleGenerator::NOT_YET_ANNOUNCED_LABEL || empty($val)) {
+                        $violations[] = "BLOCKING: Required field '{$reqField}' is unresolved ('Not Yet Officially Announced') — cannot auto-publish";
+                    }
+                }
+            }
+        } catch (Throwable $e) {}
 
         return $violations;
     }

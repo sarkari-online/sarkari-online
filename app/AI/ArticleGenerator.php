@@ -32,6 +32,20 @@ class ArticleGenerator {
      * @param string $lifecycleStatus Resolved lifecycle state (active, closed, etc.)
      * @return array Generated article structure
      */
+    public const NOT_YET_ANNOUNCED_LABEL = 'Not Yet Officially Announced';
+
+    /**
+     * Generate complete in-depth article package (1000+ words) with Intent-Driven Dynamic Outlines
+     * Decoupled Architecture: Dates and Fee tables are constructed strictly by PHP from verified facts;
+     * LLM only authors prose and is never asked to invent or fill dates as free text.
+     * 
+     * @param string $topic Title or topic headline
+     * @param array $sourceData Verified factual notes, official notice text, dates, statutory agency
+     * @param string $category Category slug
+     * @param string $angle Suggested editorial angle
+     * @param string $lifecycleStatus Resolved lifecycle state (active, closed, etc.)
+     * @return array Generated article structure
+     */
     public function generate(string $topic, array $sourceData, string $category = 'exam-results', string $angle = '', string $lifecycleStatus = 'active'): array {
         $currentDateFormatted = date('F d, Y');
         
@@ -39,6 +53,12 @@ class ArticleGenerator {
         $rawSnippet = $sourceData['notes'] ?? ($sourceData['snippet'] ?? '');
         $intent = $this->classifier->classify($topic, $rawSnippet);
         $outlineContract = OutlineContracts::forIntent($intent);
+
+        // Stage 2: Construct Structured Tables directly in PHP (Zero LLM Fabrication)
+        $verifiedFacts = $sourceData['verified_facts'] ?? $sourceData;
+        $datesTable = $this->buildDatesTableFromFacts($verifiedFacts, $intent);
+        $feeTable = $this->buildFeeTableFromFacts($verifiedFacts, $intent);
+        $datesTableHtml = $this->renderDatesTableHtml($datesTable);
 
         $systemInstruction = <<<SYS
 You are the Senior Investigative Education Journalist, Master Aspirant Mentor, and Editorial Director for Sarkari.online, India's premier student intelligence and examination guidance portal.
@@ -53,18 +73,17 @@ Every article you create blends authentic human mentorship with 100% rigorous fa
 SENIOR WRITER STORYTELLING & EDITORIAL MANDATE:
 1. THE NARRATIVE HOOK & ASPIRANT CONTEXT:
    - Begin the article by acknowledging the real-world human journey: The months of rigorous preparation, early-morning study sessions, and the clarity brought by this official release.
-   - Explain the "Why": Why is this notification, admit card, or answer key a critical turning point? (e.g. revised vacancy numbers, city slip vs call letter schedule, biometric screening).
+   - Explain the "Why": Why is this notification, admit card, or answer key a critical turning point?
    - Clear up rumors: Address misleading claims circulating on social media and replace them with calm, authoritative official facts.
 
 2. MENTORSHIP & EMPATHETIC GUIDANCE:
-   - Talk directly to the student as an experienced mentor sitting across the table:
-     * "If you are attempting this CBT exam for the first time, keep in mind that the countdown timer on the test screen runs continuously..."
-     * "Candidates frequently face server timeouts during peak hours. Download and print multiple copies of your e-call letter immediately..."
+   - Talk directly to the student as an experienced mentor sitting across the table.
+   - Highlight critical statutory instructions without generic filler.
 
-3. RIGOROUS STATUTORY CROSS-VERIFICATION & ZERO HEDGING:
-   - Every single fact, date, code, and quota MUST be grounded in VERIFIED SOURCE CONTEXT.
-   - If a fact is marked as unavailable or pending, state plainly: "Awaiting Official Circular / To Be Announced (TBA)".
-   - NEVER invent speculative shift timings, dummy gate-closure minutes, or arbitrary shoe/clothing bans.
+3. STRICT FACT GROUNDING & ZERO DATE INVENTIONS:
+   - You MUST refer strictly to the CONFIRMED DATES & STATUTORY FACTS provided in the prompt.
+   - NEVER invent speculative dates, dummy shift minutes, or unannounced deadlines.
+   - If a date is labeled '{$this->getNotYetAnnouncedLabel()}', describe it as awaiting official release; NEVER replace it with today's date or a guessed calendar date.
    - BANNED CLICHÉS: Never use "In today's digital world", "Without further ado", "Stay tuned", "Let's dive in", "It is important to note that".
 
 4. DYNAMIC INTENT STRUCTURAL CONTRACT:
@@ -73,10 +92,11 @@ SENIOR WRITER STORYTELLING & EDITORIAL MANDATE:
 5. CLEAN SEMANTIC HTML:
    - Use standard HTML tags: <h2>, <h3>, <p>, <ul>, <ol>, <li>, <table>, <thead>, <tbody>, <tr>, <th>, <td>, <strong>, <em>.
    - Every <h2> heading MUST contain the specific Examination/Recruitment entity name.
-   - Format steps as clean numbered lists (<ol><li>) and comparisons/dates as clean HTML tables.
+   - Format steps as clean numbered lists (<ol><li>).
 SYS;
 
         $sourceFactsJson = json_encode($sourceData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $datesTableJson = json_encode($datesTable, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
         $userPrompt = <<<USER_PROMPT
 Please generate an original, highly authoritative, search-intent driven editorial article for Sarkari.online.
@@ -88,6 +108,9 @@ EDITORIAL FOCUS: {$angle}
 CURRENT DATE: {$currentDateFormatted}
 CURRENT LIFECYCLE STATE: {$lifecycleStatus}
 
+CONFIRMED STATUTORY DATES (READ-ONLY GROUND TRUTH):
+{$datesTableJson}
+
 VERIFIED SOURCE CONTEXT:
 {$sourceFactsJson}
 
@@ -95,9 +118,10 @@ MANDATORY STRUCTURAL GUIDELINE:
 Follow the OUTLINE CONTRACT for {$intent->value} in the system prompt exactly.
 - Direct Answer Box first (40-60 words), answering the single question that brought the reader to the page.
 - Every <h2> heading MUST contain the specific Examination/Recruitment entity name.
-- CRITICAL: Do NOT generate sections forbidden by this intent contract (e.g. No 'How to Apply' or 'Eligibility' in Admit Card or Result articles!).
+- CRITICAL: Do NOT generate sections forbidden by this intent contract.
+- CRITICAL: You do NOT generate date tables or fee tables in JSON — they are strictly constructed by the system. Refer to the confirmed dates above in your prose.
 
-Return strictly as JSON with this exact schema:
+Return strictly as JSON with this exact schema (NO dates_table field):
 {
   "title": "100% Unique search-intent headline under 80 chars (NEVER copied verbatim from source)",
   "excerpt": "Direct 2-sentence summary outlining what happened and key action (under 160 characters)",
@@ -116,13 +140,6 @@ Return strictly as JSON with this exact schema:
     "Key fact 2",
     "Key fact 3",
     "Key fact 4"
-  ],
-  "dates_table": [
-    {
-      "event": "Event name",
-      "date": "Official date or timeline",
-      "status": "confirmed"
-    }
   ],
   "source_attribution": {
     "name": "Official Authority Name",
@@ -148,7 +165,123 @@ USER_PROMPT;
             }
         }
 
+        // Attach PHP-constructed tables (Guaranteed 100% immune to LLM hallucination)
+        $data['dates_table'] = $datesTable;
+        $data['fee_table'] = $feeTable;
         $data['_intent'] = $intent->value;
+
+        // Ensure the content contains the authentic PHP-constructed dates table HTML
+        $data['content'] = $this->injectPhpDatesTable($data['content'], $datesTableHtml);
+
         return $data;
     }
+
+    public function getNotYetAnnouncedLabel(): string {
+        return self::NOT_YET_ANNOUNCED_LABEL;
+    }
+
+    /**
+     * Construct structured dates table in PHP from verified facts
+     */
+    public function buildDatesTableFromFacts(array $facts, ArticleIntent $intent): array
+    {
+        $requiredFields = \App\Services\FactCompletenessRules::requiredFieldsFor($intent);
+        $table = [];
+
+        // 1. Required fields for the intent
+        foreach ($requiredFields as $field) {
+            $fact = \App\Services\FactCompletenessRules::findFactByType($facts, $field);
+            $table[$field] = ($fact && ($fact['source_confidence'] ?? '') !== 'unavailable' && !empty($fact['value']))
+                ? $fact['value']
+                : self::NOT_YET_ANNOUNCED_LABEL;
+        }
+
+        // 2. Additional standard milestones from dates_schedule if available
+        $schedule = $facts['dates_schedule'] ?? ($facts['verified_facts']['dates_schedule'] ?? []);
+        if (is_array($schedule)) {
+            foreach ($schedule as $item) {
+                $m = $item['milestone'] ?? '';
+                $d = $item['date'] ?? '';
+                if (!empty($m) && !empty($d) && !isset($table[$m])) {
+                    $status = $item['status'] ?? 'Confirmed';
+                    $table[$m] = ($status === 'Awaiting Official Circular' || stripos($d, 'to be announced') !== false)
+                        ? self::NOT_YET_ANNOUNCED_LABEL
+                        : $d;
+                }
+            }
+        }
+
+        return $table;
+    }
+
+    /**
+     * Construct fee table in PHP from verified facts
+     */
+    public function buildFeeTableFromFacts(array $facts, ArticleIntent $intent): array
+    {
+        if ($intent !== ArticleIntent::RECRUITMENT) {
+            return [];
+        }
+
+        $feeFact = \App\Services\FactCompletenessRules::findFactByType($facts, 'fee_amount_general');
+        if ($feeFact && !empty($feeFact['value'])) {
+            return [
+                'general_obc_ews' => $feeFact['value'],
+                'sc_st' => $facts['fee_amount_sc_st'] ?? 'As per official notification',
+                'ph' => $facts['fee_amount_ph'] ?? 'As per official notification'
+            ];
+        }
+
+        return [];
+    }
+
+    /**
+     * Render clean semantic HTML table from dates array
+     */
+    private function renderDatesTableHtml(array $datesTable): string
+    {
+        if (empty($datesTable)) {
+            return '';
+        }
+
+        $html = '<div class="table-responsive"><table class="data-table"><thead><tr><th>Statutory Milestone</th><th>Official Date / Status</th></tr></thead><tbody>';
+        foreach ($datesTable as $event => $date) {
+            $cleanEvent = ucwords(str_replace('_', ' ', (string)$event));
+            $isTba = ($date === self::NOT_YET_ANNOUNCED_LABEL || stripos((string)$date, 'not yet') !== false);
+            $valDisplay = $isTba
+                ? '<span class="status-pill status-pill-upcoming">' . htmlspecialchars(self::NOT_YET_ANNOUNCED_LABEL) . '</span>'
+                : '<strong>' . htmlspecialchars((string)$date) . '</strong>';
+
+            $html .= "<tr><td>{$cleanEvent}</td><td>{$valDisplay}</td></tr>";
+        }
+        $html .= '</tbody></table></div>';
+        return $html;
+    }
+
+    /**
+     * Replace any LLM-fabricated table with the verified PHP-constructed dates table
+     */
+    private function injectPhpDatesTable(string $content, string $datesTableHtml): string
+    {
+        if (empty($datesTableHtml)) {
+            return $content;
+        }
+
+        // If the LLM already generated a table right after the first H2, replace that first table
+        if (preg_match('/<div class="table-responsive">.*?<\/table><\/div>/s', $content)) {
+            return preg_replace('/<div class="table-responsive">.*?<\/table><\/div>/s', $datesTableHtml, $content, 1);
+        }
+
+        if (preg_match('/<table>.*?<\/table>/s', $content)) {
+            return preg_replace('/<table>.*?<\/table>/s', $datesTableHtml, $content, 1);
+        }
+
+        // Otherwise inject right after the first paragraph following H2
+        if (preg_match('/(<\/h2>\s*<p>.*?<\/p>)/s', $content, $m)) {
+            return str_replace($m[1], $m[1] . "\n" . $datesTableHtml, $content);
+        }
+
+        return $content . "\n" . $datesTableHtml;
+    }
 }
+

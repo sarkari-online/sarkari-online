@@ -19,6 +19,29 @@ if (!$article) {
 $id = (int)$article['id'];
 $content = $article['content'];
 
+// Record pre-fix snapshot for rollback safety
+Database::execute("
+    CREATE TABLE IF NOT EXISTS article_migration_snapshots (
+        id BIGINT AUTO_INCREMENT PRIMARY KEY,
+        article_id INT NOT NULL,
+        slug VARCHAR(255) NOT NULL,
+        old_content MEDIUMTEXT NOT NULL,
+        snapshot_reason VARCHAR(255) NOT NULL,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_article (article_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+");
+
+Database::execute("
+    INSERT INTO article_migration_snapshots (article_id, slug, old_content, snapshot_reason, created_at)
+    VALUES (:id, :slug, :content, 'Pre-fix manual update for UPESSC verified dates/fees', NOW())
+", [
+    'id' => $id,
+    'slug' => $article['slug'],
+    'content' => $content
+]);
+echo "📸 Pre-update snapshot safely saved to article_migration_snapshots.\n";
+
 // 1. Replace the Dates Table
 $oldTablePattern = '/<div class="table-responsive"><table><thead><tr><th>Event<\/th><th>Date<\/th><\/tr><\/thead><tbody>.*?<\/tbody><\/table><\/div>/s';
 $newTable = '<div class="table-responsive"><table><thead><tr><th>Event</th><th>Important Date</th></tr></thead><tbody>' .

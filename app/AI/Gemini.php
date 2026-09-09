@@ -143,6 +143,10 @@ class Gemini {
             ];
         }
 
+        if (!empty($options['tools'])) {
+            $payload['tools'] = $options['tools'];
+        }
+
         // Active Google Gemini models in 2026: high-throughput flash-lite models first, followed by next-gen flash
         // Deprecated gemini-2.5-flash / gemini-2.5-flash-lite completely removed (they return 404 from Google)
         $modelsToTry = array_unique(array_filter([
@@ -171,6 +175,7 @@ class Gemini {
                         $json = json_decode($rawBody, true);
                         $text = $json['candidates'][0]['content']['parts'][0]['text'] ?? '';
                         $tokensUsed = $json['usageMetadata']['totalTokenCount'] ?? 0;
+                        $groundingMetadata = $json['candidates'][0]['groundingMetadata'] ?? null;
 
                         $this->logOperation($stage, $articleId, $trendId, $prompt, $text, $tokensUsed, true, null);
 
@@ -178,7 +183,8 @@ class Gemini {
                             'text' => $text,
                             'tokens_used' => $tokensUsed,
                             'model' => $currentModel,
-                            'status' => 'success'
+                            'status' => 'success',
+                            'grounding_metadata' => $groundingMetadata
                         ];
                     }
 
@@ -249,6 +255,23 @@ class Gemini {
             'tokens_used' => $response['tokens_used'] ?? 0,
             'raw_text' => $rawText
         ];
+    }
+
+    /**
+     * Generate response with Google Search Grounding enabled
+     */
+    public function generateGrounded(string $prompt, array $tools = ['googleSearch'], array $options = []): array {
+        $toolPayload = [];
+        foreach ($tools as $tool) {
+            if ($tool === 'googleSearch' || $tool === 'google_search') {
+                $toolPayload[] = ['googleSearch' => (object)[]];
+            } else {
+                $toolPayload[] = $tool;
+            }
+        }
+        $options['tools'] = $toolPayload;
+        $options['stage'] = $options['stage'] ?? 'grounded_search';
+        return $this->generate($prompt, $options);
     }
 
     /**

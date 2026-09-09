@@ -202,22 +202,34 @@ class AuthorityFactFetcherService {
             if ($host && !str_contains($host, 'sarkari.online')) {
                 return [
                     'name' => 'Statutory Examination Board / Agency',
-                    'portal' => $sourceUrl
+                    'portal' => $sourceUrl,
+                    'verification_status' => 'verified'
                 ];
             }
         }
 
-        // 13. Dynamic Acronym Extraction Fallback (Extract e.g. "UPESSC" or "AIIMS" from headline)
+        // 13. Dynamic Authority Portal Resolution via AuthorityPortalResolverService
         if (preg_match('/\b([A-Z]{3,8})\b/', $topic, $acr)) {
+            $resolver = new AuthorityPortalResolverService();
+            $resolved = $resolver->resolve($acr[1], $topic);
+            if ($resolved) {
+                return [
+                    'name'                => $resolved['name'],
+                    'portal'              => $resolved['portal'],
+                    'verification_status' => $resolved['verification_status'] ?? 'pending_review'
+                ];
+            }
             return [
-                'name' => $acr[1] . ' (Statutory Examination Body)',
-                'portal' => ''
+                'name'                => $acr[1] . ' (Statutory Examination Body)',
+                'portal'              => '',
+                'verification_status' => 'unresolved'
             ];
         }
 
         return [
-            'name' => 'Statutory Examination Board / Agency',
-            'portal' => ''
+            'name'                => 'Statutory Examination Board / Agency',
+            'portal'              => '',
+            'verification_status' => 'unresolved'
         ];
     }
 
@@ -363,6 +375,11 @@ Return strictly as JSON matching this schema:
     "total_vacancies": "Total post count if mentioned (e.g. 3058 Posts)",
     "candidate_count": "Total candidates appearing if mentioned (e.g. 45,900+ candidates)"
   },
+  "application_start_date": "Exact Start Date if stated in circular, or null",
+  "application_deadline": "Exact Last Date to Apply if stated in circular, or null",
+  "fee_amount_general": "Rupee fee amount for General/OBC (e.g. ₹2,000) or Fee-Exempt, or null",
+  "fee_amount_sc_st": "Rupee fee amount for SC/ST or null",
+  "fee_amount_ph": "Rupee fee amount for PH or null",
   "mandatory_documents": [
     "Printed Official Admit Card with recent colour photograph",
     "Original Valid Government Photo ID (Aadhaar / PAN / Voter ID / Passport / Driving License)"
