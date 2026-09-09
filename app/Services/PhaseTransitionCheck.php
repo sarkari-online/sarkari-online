@@ -2,8 +2,15 @@
 declare(strict_types=1);
 /**
  * PhaseTransitionCheck — Phase B
- * Uses Grounded Gemini to detect real exam lifecycle phase and update exam_cycles row.
- * Rules: monotonic forward-only phase, TBA/Awaited FORBIDDEN in LLM output, 429 retry.
+ * Detects real exam lifecycle phase and updates exam_cycles DB row.
+ * 
+ * DESIGN FOR ZERO-API-COST / FREE-TIER COMPATIBILITY:
+ * 1. Uses CircularCrawlerService to pull live notices from official .gov.in/.nic.in portals.
+ * 2. Uses Deterministic Linked-Article Heuristics (if result/admit card/key article exists).
+ * 3. Calls Gemini via generateJson() without paid search grounding tools (100% Free Tier compatible).
+ * 4. Fallback-safe: if Gemini hits rate limit, heuristic cleanly elevates phase without failing.
+ * 5. Strictly monotonic: phase only advances forward, never backward.
+ * 6. TBA / Awaited placeholders are strictly forbidden and scrubbed to null.
  */
 
 namespace App\Services;
@@ -70,9 +77,7 @@ class PhaseTransitionCheck
     }
 
     /**
-     * Detect real current phase via Grounded Gemini and update exam_cycles row.
-     * @param  array $cycle  One exam_cycles DB row
-     * @return array         Updated row (or original if detection failed)
+     * Detect real current phase and update exam_cycles row.
      */
     public function check(array $cycle): array
     {
@@ -80,9 +85,50 @@ class PhaseTransitionCheck
         $currentPhase = $cycle['current_phase'] ?? 'ANNUAL_CALENDAR_ONLY';
         $currentIdx   = self::PHASE_ORDER[$currentPhase] ?? 0;
 
+        $examLabel  = trim(($cycle['authority_code'] ?? '') . ' ' . ($cycle['exam_name'] ?? '') . ' ' . ($cycle['cycle_year'] ?? ''));
+        $cycleIdStr = !empty($cycle['cycle_identifier']) ? " ({$cycle['cycle_identifier']})" : '';
+        $today      = date('d F Y');
+
+        // ── 1. Deterministic Heuristic from Linked Articles & Titles ─────────
+        $inferredFromArticles = $this->inferPhaseFromLinkedArticles($cycleId, $cycle);
+        $bestPhase = $currentPhase;
+        $bestIdx   = $currentIdx;
+        $evidenceUrl = $cycle['phase_evidence_url'] ?? null;
+        $confidence  = $cycle['phase_confidence'] ?? 'INFERRED';
+
+        if ($inferredFromArticles !== null) {
+            $inferredIdx = self::PHASE_ORDER[$inferredFromArticles['phase']] ?? 0;
+            if ($inferredIdx > $bestIdx) {
+                $bestPhase   = $inferredFromArticles['phase'];
+                $bestIdx     = $inferredIdx;
+                $evidenceUrl = $inferredFromArticles['evidence_url'] ?? $evidenceUrl;
+                $confidence  = 'VERIFIED';
+                Logger::info("PhaseTransitionCheck: Deterministic article evidence elevated cycle #{$cycleId} to {$bestPhase}");
+            }
+        }
+
+        // ── 2. Gather Official Portal Crawl Data ──────────────────────────────
+        $crawlContext = '';
+        try {
+            $auth = AuthorityFactFetcherService::resolveAuthority($examLabel);
+            $portal = $auth['portal'] ?? '';
+            if (!empty($portal)) {
+                $crawler = new CircularCrawlerService();
+                $crawlData = $crawler->gather($portal, $examLabel, false);
+                if (!empty($crawlData['documents'])) {
+                    foreach (array_slice($crawlData['documents'], 0, 3) as $doc) {
+                        $crawlContext .= "[NOTICE: {$doc['url']}]\n" . mb_substr($doc['text'], 0, 800) . "\n\n";
+                    }
+                }
+            }
+        } catch (Throwable $e) {
+            Logger::debug("PhaseTransitionCheck: Circular crawl skipped: " . $e->getMessage());
+        }
+
+        // ── 3. AI Phase Refinement via Gemini (Free Tier JSON Mode) ───────────
         $forwardPhases = array_filter(
             self::PHASE_ORDER,
-            fn(int $idx) => $idx >= $currentIdx,
+            fn(int $idx) => $idx >= $bestIdx,
             ARRAY_FILTER_USE_BOTH
         );
 
@@ -92,105 +138,173 @@ class PhaseTransitionCheck
             $phaseListText .= "  - {$phaseName}: {$desc}\n";
         }
 
-        $examLabel  = trim(($cycle['authority_code'] ?? '') . ' ' . ($cycle['exam_name'] ?? '') . ' ' . ($cycle['cycle_year'] ?? ''));
-        $cycleIdStr = !empty($cycle['cycle_identifier']) ? " ({$cycle['cycle_identifier']})" : '';
-        $today      = date('d F Y');
-        $curDesc    = self::PHASE_DESCRIPTIONS[$currentPhase] ?? '';
+        $contextBlock = !empty($crawlContext) ? "OFFICIAL RECENT PORTAL CIRCULARS:\n{$crawlContext}\n" : "";
 
-        $prompt = "You are a fact-verifier for Sarkari.online. Today: {$today}.\n\n"
-            . "EXAM: {$examLabel}{$cycleIdStr}\n"
-            . "CURRENT PHASE: {$currentPhase} ({$curDesc})\n\n"
-            . "Using Google Search, find the ACTUAL CURRENT phase of this exam today.\n\n"
-            . "ALLOWED PHASES (forward-only from {$currentPhase}):\n{$phaseListText}\n"
-            . "STRICT RULES:\n"
-            . "1. Only return facts verifiable from official .gov.in/.nic.in sources.\n"
-            . "2. For any unknown fact return null. NEVER write TBA, Awaited, Coming Soon, "
-            . "To Be Announced, Not Announced, Expected Soon, Will be announced. "
-            . "These placeholder strings are ABSOLUTELY FORBIDDEN.\n"
-            . "3. detected_phase MUST be one of the allowed phase names above.\n"
-            . "4. If unsure, keep phase as {$currentPhase}.\n"
-            . "5. evidence_url must be a real .gov.in/.nic.in URL if confidence=VERIFIED.\n\n"
-            . 'Return ONLY JSON: {"detected_phase":"PHASE_NAME","confidence":"VERIFIED or INFERRED",'
-            . '"evidence_url":"url or null","next_expected_transition":"YYYY-MM-DD or null",'
-            . '"facts":{"notification_date":"YYYY-MM-DD or null","application_start":"YYYY-MM-DD or null",'
-            . '"application_end":"YYYY-MM-DD or null","correction_window_start":"YYYY-MM-DD or null",'
-            . '"correction_window_end":"YYYY-MM-DD or null","admit_card_date":"YYYY-MM-DD or null",'
-            . '"exam_dates":["YYYY-MM-DD"] or null,"answer_key_date":"YYYY-MM-DD or null",'
-            . '"objection_end":"YYYY-MM-DD or null","result_date":"YYYY-MM-DD or null",'
-            . '"vacancies":integer or null,"application_fee_general":integer or null,'
-            . '"application_fee_sc_st":integer or null,"age_min":integer or null,"age_max":integer or null}}';
+        $prompt = <<<PROMPT
+You are a senior exam lifecycle verification analyst for Sarkari.online. Today: {$today}.
 
-        $response = $this->callGeminiWithRetry($prompt);
-        if ($response === null) {
-            Logger::warning("PhaseTransitionCheck: Gemini failed for cycle #{$cycleId} — phase unchanged");
-            return $cycle;
+EXAM: {$examLabel}{$cycleIdStr}
+CURRENT VERIFIED STAGE: {$bestPhase}
+
+{$contextBlock}
+Analyze the lifecycle of this Indian government examination.
+ALLOWED FORWARD PHASES (cannot go backward from {$bestPhase}):
+{$phaseListText}
+
+STRICT INSTRUCTIONS:
+1. Identify the furthest officially confirmed phase. If unsure, stay at {$bestPhase}.
+2. For dates or numbers, return null if unknown or not announced.
+3. NEVER write "TBA", "Awaited", "Coming Soon", "To Be Announced", or "Expected Soon". Strings like that are STRICTLY FORBIDDEN.
+4. Return ONLY valid JSON:
+{
+  "detected_phase": "PHASE_NAME",
+  "confidence": "VERIFIED",
+  "evidence_url": "https://official-portal-or-notice-url",
+  "next_expected_transition": "YYYY-MM-DD or null",
+  "facts": {
+    "notification_date": "YYYY-MM-DD or null",
+    "application_start": "YYYY-MM-DD or null",
+    "application_end": "YYYY-MM-DD or null",
+    "admit_card_date": "YYYY-MM-DD or null",
+    "exam_dates": ["YYYY-MM-DD"] or null,
+    "answer_key_date": "YYYY-MM-DD or null",
+    "result_date": "YYYY-MM-DD or null",
+    "vacancies": integer or null,
+    "application_fee_general": integer or null
+  }
+}
+PROMPT;
+
+        $response = $this->callGeminiSafe($prompt);
+        if ($response !== null) {
+            $validated = $this->validateResponse($response, $bestIdx);
+            if ($validated !== null) {
+                $bestPhase   = $validated['detected_phase'];
+                $confidence  = $validated['confidence'];
+                $evidenceUrl = $validated['evidence_url'] ?: $evidenceUrl;
+                $facts       = $validated['facts'];
+                $nextTrans   = $validated['next_expected_transition'];
+
+                $this->updateCycle($cycleId, [
+                    'detected_phase'           => $bestPhase,
+                    'confidence'               => $confidence,
+                    'evidence_url'             => $evidenceUrl,
+                    'next_expected_transition' => $nextTrans,
+                    'facts'                    => $facts,
+                ]);
+            }
+        } elseif ($bestPhase !== $currentPhase) {
+            // Heuristic elevated the phase even if Gemini was rate-limited!
+            $this->updateCycle($cycleId, [
+                'detected_phase'           => $bestPhase,
+                'confidence'               => $confidence,
+                'evidence_url'             => $evidenceUrl,
+                'next_expected_transition' => null,
+                'facts'                    => [],
+            ]);
         }
 
-        $validated = $this->validateResponse($response, $currentIdx);
-        if ($validated === null) {
-            Logger::warning("PhaseTransitionCheck: Invalid response for cycle #{$cycleId} — phase unchanged");
-            return $cycle;
-        }
-
-        $this->updateCycle($cycleId, $validated);
         $updated = Database::fetchOne("SELECT * FROM exam_cycles WHERE id = :id LIMIT 1", ['id' => $cycleId]);
-        Logger::info("PhaseTransitionCheck: cycle #{$cycleId} {$currentPhase} -> {$validated['detected_phase']} ({$validated['confidence']})");
         return $updated ?: $cycle;
     }
 
-    private function callGeminiWithRetry(string $prompt): ?array
+    /**
+     * Deterministic heuristic: if articles already exist in DB for this exam,
+     * inspect their roles and titles to determine minimum proven phase.
+     */
+    private function inferPhaseFromLinkedArticles(int $cycleId, array $cycle): ?array
     {
-        for ($attempt = 1; $attempt <= 2; $attempt++) {
-            try {
-                $response = $this->gemini->generateGrounded($prompt, ['googleSearch'], [
-                    'stage'       => 'phase_transition_check',
-                    'temperature' => 0.0,
-                ]);
-                $rawText = $response['text'] ?? '';
-                $parsed = Gemini::extractAndRepairJson($rawText);
-                if ($parsed !== null) {
-                    // If evidence_url was omitted by LLM, extract top search source from grounding metadata
-                    if (empty($parsed['evidence_url']) && !empty($response['grounding_metadata']['groundingChunks'])) {
-                        foreach ($response['grounding_metadata']['groundingChunks'] as $chunk) {
-                            $uri = $chunk['web']['uri'] ?? '';
-                            if (!empty($uri)) {
-                                $parsed['evidence_url'] = $uri;
-                                break;
-                            }
-                        }
-                    }
-                    return $parsed;
-                }
-                Logger::warning("PhaseTransitionCheck: JSON parsing failed from raw text: " . substr($rawText, 0, 200));
-                return null;
-            } catch (Throwable $e) {
-                $msg = $e->getMessage();
-                if ((str_contains($msg, '429') || str_contains($msg, 'quota')) && $attempt < 2) {
-                    Logger::warning('PhaseTransitionCheck: Rate limit — sleeping 60s');
-                    sleep(60);
-                    continue;
-                }
-                Logger::error("PhaseTransitionCheck Gemini error attempt {$attempt}: {$msg}");
-                return null;
+        $rows = Database::fetchAll(
+            "SELECT a.id, a.title, a.source_url, eca.article_role
+               FROM exam_cycle_articles eca
+               JOIN articles a ON a.id = eca.article_id
+              WHERE eca.exam_cycle_id = :cid",
+            ['cid' => $cycleId]
+        );
+
+        if (empty($rows)) {
+            // Fallback: search articles by exam name keywords
+            $examName = $cycle['exam_name'] ?? '';
+            if (mb_strlen($examName) >= 4) {
+                $rows = Database::fetchAll(
+                    "SELECT id, title, source_url, 'GENERAL' as article_role
+                       FROM articles
+                      WHERE title LIKE :q AND status = 'published' LIMIT 5",
+                    ['q' => '%' . $examName . '%']
+                );
             }
         }
+
+        if (empty($rows)) return null;
+
+        $highestPhase = null;
+        $highestIdx   = -1;
+        $evidenceUrl  = null;
+
+        foreach ($rows as $r) {
+            $t = mb_strtolower($r['title']);
+            $role = strtoupper($r['article_role'] ?? '');
+
+            $candidatePhase = null;
+
+            if ($role === 'RESULT' || str_contains($t, 'result') || str_contains($t, 'merit list') || str_contains($t, 'scorecard')) {
+                $candidatePhase = 'RESULT_DECLARED';
+            } elseif ($role === 'ANSWER_KEY' || str_contains($t, 'answer key') || str_contains($t, 'objection')) {
+                $candidatePhase = 'ANSWER_KEY_OBJECTION';
+            } elseif (str_contains($t, 'concluded') || str_contains($t, 'shift timing') || str_contains($t, 'analysis')) {
+                $candidatePhase = 'EXAM_CONDUCTED';
+            } elseif ($role === 'ADMIT_CARD' || str_contains($t, 'admit card') || str_contains($t, 'city slip') || str_contains($t, 'hall ticket')) {
+                $candidatePhase = 'ADMIT_CARD_RELEASED';
+            } elseif ($role === 'NOTIFICATION' || str_contains($t, 'notification') || str_contains($t, 'apply online') || str_contains($t, 'registration')) {
+                $candidatePhase = 'APPLICATION_OPEN';
+            }
+
+            if ($candidatePhase !== null) {
+                $idx = self::PHASE_ORDER[$candidatePhase] ?? 0;
+                if ($idx > $highestIdx) {
+                    $highestIdx   = $idx;
+                    $highestPhase = $candidatePhase;
+                    $evidenceUrl  = !empty($r['source_url']) ? $r['source_url'] : null;
+                }
+            }
+        }
+
+        if ($highestPhase !== null) {
+            return ['phase' => $highestPhase, 'evidence_url' => $evidenceUrl];
+        }
+
         return null;
+    }
+
+    private function callGeminiSafe(string $prompt): ?array
+    {
+        // Don't call if circuit breaker is already active
+        if (Gemini::isCircuitBreakerActive()) {
+            return null;
+        }
+
+        try {
+            // Standard JSON mode without search grounding tools — works 100% on Free Tier!
+            $response = $this->gemini->generateJson($prompt, [
+                'stage'       => 'phase_transition_check',
+                'temperature' => 0.0,
+            ]);
+            return $response['data'] ?? null;
+        } catch (Throwable $e) {
+            Logger::warning("PhaseTransitionCheck: Gemini free-tier call skipped/failed: " . $e->getMessage());
+            return null;
+        }
     }
 
     private function validateResponse(array $data, int $currentIdx): ?array
     {
         $detectedPhase = $data['detected_phase'] ?? null;
-        if (!isset(self::PHASE_ORDER[$detectedPhase])) {
-            Logger::warning("PhaseTransitionCheck: Unknown phase '{$detectedPhase}'");
-            return null;
-        }
-        if (self::PHASE_ORDER[$detectedPhase] < $currentIdx) {
-            Logger::warning("PhaseTransitionCheck: Backward phase '{$detectedPhase}' rejected");
-            return null;
-        }
+        if (!isset(self::PHASE_ORDER[$detectedPhase])) return null;
+        if (self::PHASE_ORDER[$detectedPhase] < $currentIdx) return null;
+
         $confidence  = in_array($data['confidence'] ?? '', ['VERIFIED', 'INFERRED'], true) ? $data['confidence'] : 'INFERRED';
         $evidenceUrl = $data['evidence_url'] ?? null;
-        if ($confidence === 'VERIFIED' && empty($evidenceUrl)) $confidence = 'INFERRED';
+
         return [
             'detected_phase'           => $detectedPhase,
             'confidence'               => $confidence,
@@ -229,13 +343,24 @@ class PhaseTransitionCheck
     {
         $factsJson = !empty($v['facts']) ? json_encode($v['facts'], JSON_UNESCAPED_UNICODE) : null;
         Database::execute(
-            "UPDATE exam_cycles SET current_phase=:phase, phase_confidence=:confidence,
-             phase_evidence_url=:evidence_url, phase_detected_at=NOW(),
-             next_expected_transition=:next_transition, facts_json=:facts_json,
-             last_verified_at=NOW(), updated_at=NOW() WHERE id=:id",
-            ['phase'=>$v['detected_phase'],'confidence'=>$v['confidence'],
-             'evidence_url'=>$v['evidence_url'],'next_transition'=>$v['next_expected_transition'],
-             'facts_json'=>$factsJson,'id'=>$cycleId]
+            "UPDATE exam_cycles SET
+                current_phase            = :phase,
+                phase_confidence         = :confidence,
+                phase_evidence_url       = :evidence_url,
+                phase_detected_at        = NOW(),
+                next_expected_transition = :next_transition,
+                facts_json               = COALESCE(:facts_json, facts_json),
+                last_verified_at         = NOW(),
+                updated_at               = NOW()
+             WHERE id = :id",
+            [
+                'phase'           => $v['detected_phase'],
+                'confidence'      => $v['confidence'],
+                'evidence_url'    => $v['evidence_url'],
+                'next_transition' => $v['next_expected_transition'],
+                'facts_json'      => $factsJson,
+                'id'              => $cycleId,
+            ]
         );
     }
 }
