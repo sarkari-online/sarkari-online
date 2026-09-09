@@ -29,6 +29,9 @@ use App\Services\FactCompletenessRules;
 use App\Services\HallucinationGuard;
 use App\Services\IntentClassifierService;
 use App\Services\ArticleIntent;
+use App\Services\ExamCycleResolverService;
+use App\Services\PhaseTransitionCheck;
+use App\Services\TableIntegrityGate;
 use Exception;
 use Throwable;
 
@@ -154,6 +157,40 @@ class PipelineService {
         $verifiedFacts = $factFetcher->fetchFactsForTopic($trend['keyword'], $categorySlug, $trend['url'] ?? '', $snippet);
 
         $resolvedAuth = AuthorityFactFetcherService::resolveAuthority($trend['keyword'], $trend['url'] ?? '');
+
+        // ── Step 3A.5: ExamCycleContext ───────────────────────────────────────
+        // Resolve (or create) the exam_cycle row for this keyword, then run
+        // PhaseTransitionCheck to detect the real current phase via Grounded Gemini.
+        // The detected phase flows into $verifiedFacts so downstream steps
+        // (AuthorityFactFetcherService prompt, ArticleGenerator) are phase-aware.
+        $examCycle = null;
+        $examPhase = 'ANNUAL_CALENDAR_ONLY';
+        try {
+            $cycleResolver = new ExamCycleResolverService();
+            $examCycle     = $cycleResolver->resolve($trend['keyword']);
+            if ($examCycle !== null) {
+                $needsCheck = (
+                    empty($examCycle['last_verified_at']) ||
+                    strtotime($examCycle['last_verified_at']) < time() - 6 * 3600 ||
+                    ($examCycle['phase_confidence'] ?? '') === 'STALE'
+                );
+                if ($needsCheck) {
+                    $phaseChecker = new PhaseTransitionCheck();
+                    $examCycle    = $phaseChecker->check($examCycle);
+                }
+                $examPhase = $examCycle['current_phase'] ?? 'ANNUAL_CALENDAR_ONLY';
+                // Inject phase context into verifiedFacts so ArticleGenerator is phase-aware
+                $verifiedFacts['_exam_cycle_id']    = (int)$examCycle['id'];
+                $verifiedFacts['_exam_phase']        = $examPhase;
+                $verifiedFacts['_exam_facts_json']   = $examCycle['facts_json'] ?? null;
+                $verifiedFacts['_phase_evidence_url'] = $examCycle['phase_evidence_url'] ?? null;
+                Logger::info("PipelineService: ExamCycleContext resolved — cycle #{$examCycle['id']}, phase={$examPhase}");
+            }
+        } catch (Throwable $cycleEx) {
+            Logger::warning("PipelineService: ExamCycleContext failed (non-blocking): " . $cycleEx->getMessage());
+        }
+        // ── End Step 3A.5 ─────────────────────────────────────────────────────
+
 
         // Safety Gate: Newly discovered or unverified authorities are unconditionally held for human review
         if (($resolvedAuth['verification_status'] ?? 'verified') !== 'verified') {
@@ -307,6 +344,29 @@ class PipelineService {
                 Logger::info("TemporalContentValidator auto-repaired " . count($temporalAudit['repairs_applied']) . " items for Trend #{$trendId}: " . implode('; ', $temporalAudit['repairs_applied']));
             }
         }
+
+        // ── Step 3E.5: TableIntegrityGate ─────────────────────────────────────
+        // Scan for TBA/Awaited/placeholder strings inside <td> table cells.
+        // This is the last line of defense before the existing lint gate.
+        $tableGate = new TableIntegrityGate();
+        $tableViolations = $tableGate->scan($linking['linked_content']);
+        if (!empty($tableViolations)) {
+            $reason = "TableIntegrityGate blocked: " . implode('; ', $tableViolations);
+            Database::execute(
+                "UPDATE articles SET article_health_status='NEEDS_REVIEW' WHERE trend_id=:tid",
+                ['tid' => $trendId]
+            );
+            TrendService::markStatus($trendId, 'needs_enrichment', [
+                'raw_payload' => array_merge($rawPayload, [
+                    'enrichment_reason'  => $reason,
+                    'first_attempted_at' => date('Y-m-d H:i:s'),
+                    'retry_count'        => 0,
+                ])
+            ]);
+            Logger::warning("PipelineService: Trend #{$trendId} blocked by TableIntegrityGate: " . count($tableViolations) . " violation(s)");
+            return ['success' => false, 'trend_id' => $trendId, 'status' => 'needs_enrichment', 'error' => $reason];
+        }
+        // ── End Step 3E.5 ─────────────────────────────────────────────────────
 
         // 5d. Mechanical Intent & Anti-Boilerplate Lint Safety Gate (Section 5)
         $detectedIntent = $genResult['_intent'] ?? '';
@@ -500,6 +560,28 @@ class PipelineService {
                 TemporalFactService::recordFact($articleId, $factName, $val, $src);
             } catch (Throwable $e) {
                 Logger::error("PipelineService: Failed to record temporal fact '{$factName}' for Article #{$articleId}: " . $e->getMessage());
+            }
+        }
+
+        // 8c. Link article to exam_cycle (Phase B — non-blocking)
+        if (!empty($examCycle['id'])) {
+            try {
+                $cycleResolver2 = new ExamCycleResolverService();
+                // Detect role from intent
+                $intentToRole = [
+                    'admit_card'     => 'ADMIT_CARD',
+                    'answer_key'     => 'ANSWER_KEY',
+                    'result_cutoff'  => 'RESULT',
+                    'syllabus_change'=> 'SYLLABUS',
+                    'recruitment'    => 'NOTIFICATION',
+                    'counselling'    => 'RESULT',
+                    'corrigendum'    => 'NOTIFICATION',
+                ];
+                $articleRole = $intentToRole[strtolower($genResult['_intent'] ?? '')] ?? 'GENERAL';
+                $cycleResolver2->linkArticle((int)$examCycle['id'], $articleId, $articleRole);
+                Logger::info("PipelineService: Article #{$articleId} linked to exam_cycle #{$examCycle['id']} as {$articleRole}");
+            } catch (Throwable $linkEx) {
+                Logger::warning("PipelineService: exam_cycle link failed for Article #{$articleId}: " . $linkEx->getMessage());
             }
         }
 
