@@ -244,18 +244,51 @@ document.addEventListener('DOMContentLoaded', () => {
         return v ? v[2] : null;
     }
 
-    function setCookie(name, value, days) {
-        const d = new Date();
-        d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
-        document.cookie = name + "=" + value + ";path=/;expires=" + d.toUTCString();
+    function clearGoogleTranslateCookies() {
+        const host = window.location.hostname;
+        const hostParts = host.split('.');
+        const domains = ['', host, '.' + host];
+        if (hostParts.length > 2) {
+            const rootDomain = hostParts.slice(-2).join('.');
+            domains.push(rootDomain, '.' + rootDomain);
+        }
+        const paths = ['/', window.location.pathname];
+        
+        domains.forEach(dom => {
+            paths.forEach(p => {
+                const domAttr = dom ? '; domain=' + dom : '';
+                document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=' + p + domAttr;
+                document.cookie = 'googtrans=/en/en; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=' + p + domAttr;
+                document.cookie = 'googtrans=; max-age=0; path=' + p + domAttr;
+            });
+        });
+    }
+
+    function setGoogleTranslateCookie(langCode) {
+        const host = window.location.hostname;
+        const hostParts = host.split('.');
+        const domains = ['', host, '.' + host];
+        if (hostParts.length > 2) {
+            const rootDomain = hostParts.slice(-2).join('.');
+            domains.push(rootDomain, '.' + rootDomain);
+        }
+        const val = '/en/' + langCode;
+        domains.forEach(dom => {
+            const domAttr = dom ? '; domain=' + dom : '';
+            document.cookie = 'googtrans=' + val + '; path=/; max-age=2592000' + domAttr;
+        });
     }
 
     function getCurrentLanguage() {
-        const c = getCookie('googtrans');
-        if (c) {
-            const parts = c.split('/');
-            if (parts.length >= 3 && parts[2]) {
-                return parts[2];
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const c = cookies[i].trim();
+            if (c.startsWith('googtrans=')) {
+                const val = c.substring('googtrans='.length);
+                const parts = val.split('/');
+                if (parts.length >= 3 && parts[2]) {
+                    return (parts[2] === 'en') ? 'en' : parts[2];
+                }
             }
         }
         return 'en';
@@ -263,22 +296,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function setSiteLanguage(langCode) {
         if (!langCode || langCode === 'en') {
-            setCookie('googtrans', '/en/en', 30);
-            document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        } else {
-            setCookie('googtrans', '/en/' + langCode, 30);
+            // Switching back to English (Original)
+            clearGoogleTranslateCookies();
+            setGoogleTranslateCookie('en');
+            updateLanguageUI('en');
+
+            const teCombo = document.querySelector('.goog-te-combo');
+            if (teCombo) {
+                teCombo.value = '';
+                teCombo.dispatchEvent(new Event('change'));
+            }
+
+            // Always reload to cleanly strip Google Translate's DOM wrappers and restore original text
+            window.location.reload();
+            return;
         }
 
+        // Switching to a regional language
+        clearGoogleTranslateCookies();
+        setGoogleTranslateCookie(langCode);
         updateLanguageUI(langCode);
 
         const teCombo = document.querySelector('.goog-te-combo');
         if (teCombo) {
-            teCombo.value = langCode === 'en' ? '' : langCode;
+            teCombo.value = langCode;
             teCombo.dispatchEvent(new Event('change'));
         } else {
+            if (typeof loadGoogleTranslate === 'function') {
+                loadGoogleTranslate();
+            }
             window.location.reload();
         }
     }
+
+    // Expose globally for header and footer components
+    window.setSiteLanguage = setSiteLanguage;
+    window.getCurrentLanguage = getCurrentLanguage;
 
     function updateLanguageUI(langCode) {
         const displayName = langNames[langCode] || 'English';

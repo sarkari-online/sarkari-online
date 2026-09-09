@@ -260,6 +260,9 @@ document.addEventListener('DOMContentLoaded', function() {
         btnEn.addEventListener('click', function() {
             localStorage.setItem('sarkari_lang_banner_closed', 'true');
             banner.style.display = 'none';
+            if (typeof setSiteLanguage === 'function') {
+                setSiteLanguage('en');
+            }
         });
     }
 
