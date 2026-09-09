@@ -20,27 +20,38 @@ $id = (int)$article['id'];
 $content = $article['content'];
 
 // Record pre-fix snapshot for rollback safety
-Database::execute("
-    CREATE TABLE IF NOT EXISTS article_migration_snapshots (
-        id BIGINT AUTO_INCREMENT PRIMARY KEY,
-        article_id INT NOT NULL,
-        slug VARCHAR(255) NOT NULL,
-        old_content MEDIUMTEXT NOT NULL,
-        snapshot_reason VARCHAR(255) NOT NULL,
-        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        INDEX idx_article (article_id)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-");
+try {
+    Database::execute("
+        CREATE TABLE IF NOT EXISTS `article_migration_snapshots` (
+            `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+            `article_id` BIGINT NOT NULL,
+            `snapshot_json` LONGTEXT NOT NULL,
+            `audit_run_id` CHAR(36) NOT NULL,
+            `action_taken` ENUM('tier1_autofix','tier2_regenerated','flagged_only') NOT NULL,
+            `original_updated_at` DATETIME NULL,
+            `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            INDEX `idx_article` (`article_id`),
+            INDEX `idx_run` (`audit_run_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    ");
 
-Database::execute("
-    INSERT INTO article_migration_snapshots (article_id, slug, old_content, snapshot_reason, created_at)
-    VALUES (:id, :slug, :content, 'Pre-fix manual update for UPESSC verified dates/fees', NOW())
-", [
-    'id' => $id,
-    'slug' => $article['slug'],
-    'content' => $content
-]);
-echo "📸 Pre-update snapshot safely saved to article_migration_snapshots.\n";
+    Database::execute("
+        INSERT INTO `article_migration_snapshots` 
+            (`article_id`, `snapshot_json`, `audit_run_id`, `action_taken`, `created_at`)
+        VALUES 
+            (:id, :json, 'manual_upessc_fix', 'tier1_autofix', NOW())
+    ", [
+        'id'   => $id,
+        'json' => json_encode([
+            'slug'    => $article['slug'],
+            'content' => $content,
+            'reason'  => 'Pre-fix manual update for UPESSC verified dates/fees'
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+    ]);
+    echo "📸 Pre-update snapshot safely saved to article_migration_snapshots.\n";
+} catch (Throwable $e) {
+    echo "⚠️ Note on snapshot: " . $e->getMessage() . "\n";
+}
 
 // 1. Replace the Dates Table
 $oldTablePattern = '/<div class="table-responsive"><table><thead><tr><th>Event<\/th><th>Date<\/th><\/tr><\/thead><tbody>.*?<\/tbody><\/table><\/div>/s';
