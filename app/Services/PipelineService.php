@@ -24,6 +24,7 @@ use App\Services\ArticleUpdateService;
 use App\Services\TemporalFactService;
 use App\Services\TemporalContentValidator;
 use App\Services\TitleBodyConfidenceDetector;
+use App\Services\GlossaryService;
 use Exception;
 use Throwable;
 
@@ -466,6 +467,13 @@ class PipelineService {
             $linking['linked_content'] = $vitalsCheck['fixed_content'];
             Database::update('articles', ['content' => $vitalsCheck['fixed_content']], 'id = :id', ['id' => $articleId]);
             Logger::info("Article #{$articleId}: WebVitals auto-fixed {$vitalsCheck['fixes_applied']} HTML issues.");
+        }
+
+        // 10c. Autonomous Acronym Harvester: scan for unknown acronyms into candidate queue
+        try {
+            GlossaryService::scanContentForCandidates((int)$articleId, $linking['linked_content'] . ' ' . $polished['edited_title']);
+        } catch (Throwable $e) {
+            Logger::error("PipelineService: Acronym Harvester error for Article #{$articleId}: " . $e->getMessage());
         }
 
         // 11. Update Trend Status to 'published'

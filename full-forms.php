@@ -24,52 +24,21 @@ if (!empty($termSlug)) {
         exit;
     }
 
-    // High-CTR Click-Magnet SERP Title (Optimal: 50-60 chars)
-    // Avoids immediate answer giveaway ("Zero-Click search") and triggers high-intent curiosity on Salary, Meaning & Eligibility
-    $candidateTitle = "{$term['acronym']} Full Form: Meaning, Salary, Job Role & Eligibility 2026";
-    if (mb_strlen($candidateTitle) <= 59) {
-        $pageTitle = $candidateTitle;
-    } else {
-        $pageTitle = "{$term['acronym']} Full Form: Meaning, Salary & Eligibility 2026";
-    }
-
-    // High-CTR Meta Description: 145-155 characters (ideal SERP snippet without answer-spoiler truncation)
-    $pageDesc = "What is {$term['acronym']} full form? Check official meaning in English & Hindi, salary pay scale, eligibility and selection process on Sarkari.online.";
-
+    // High-CTR Dynamic SERP Title (Anti-spoiler for regional/posts, authoritative for national)
+    $pageTitle = GlossaryService::generateMetaTitle($term);
+    $pageDesc = GlossaryService::generateMetaDescription($term);
     $canonicalUrl = url("full-forms/{$term['slug']}/");
+    $hubUrl = url('full-forms/');
     $ogType = 'article';
 
     $crumbs = [
         ['label' => 'Home', 'url' => url()],
-        ['label' => 'Full Forms (A-Z)', 'url' => url('full-forms/')],
+        ['label' => 'Full Forms (A-Z)', 'url' => $hubUrl],
         ['label' => $term['acronym'], 'url' => null]
     ];
 
-    // Structured Data: Schema.org DefinedTerm & BreadcrumbList (NO FAQPage per Google policy)
-    $definedTermSchema = json_encode([
-        "@context" => "https://schema.org",
-        "@type" => "DefinedTerm",
-        "name" => "{$term['acronym']} Full Form",
-        "termCode" => $term['acronym'],
-        "description" => "Complete guide to {$term['acronym']} full form, official meaning in English and Hindi, salary structure, eligibility criteria, duties and selection process on Sarkari.online.",
-        "inDefinedTermSet" => [
-            "@type" => "DefinedTermSet",
-            "name" => "Sarkari.online Indian Government & Examination Acronym Glossary",
-            "url" => url('full-forms/')
-        ]
-    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-
-    $breadcrumbSchema = json_encode([
-        "@context" => "https://schema.org",
-        "@type" => "BreadcrumbList",
-        "itemListElement" => [
-            ["@type" => "ListItem", "position" => 1, "name" => "Home", "item" => url()],
-            ["@type" => "ListItem", "position" => 2, "name" => "Full Forms (A-Z)", "item" => url('full-forms/')],
-            ["@type" => "ListItem", "position" => 3, "name" => $term['acronym'], "item" => $canonicalUrl]
-        ]
-    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-
-    $customHeadHtml = "<script type=\"application/ld+json\">{$definedTermSchema}</script>\n<script type=\"application/ld+json\">{$breadcrumbSchema}</script>";
+    // Structured Data: Schema.org DefinedTerm & BreadcrumbList (NO FAQPage per Google guidelines)
+    $customHeadHtml = GlossaryService::generateDefinedTermSchema($term, $canonicalUrl, $hubUrl);
 
     $relatedTerms = GlossaryService::getRelatedTerms((int)$term['id'], $term['category'], 6);
 
@@ -107,36 +76,11 @@ if (!empty($termSlug)) {
                     Full Form of <?= e($term['acronym']) ?>
                 </h1>
 
-                <!-- Direct Answer Official Definition Box (Simple clean card, no left border) -->
-                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.5rem; margin: 1.5rem 0 2rem 0;">
-                    <div style="font-size: 0.75rem; font-weight: 700; color: #1e3a8a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.45rem;">
-                        Official Full Form &amp; Meaning
-                    </div>
-                    <div style="font-size: 1.45rem; font-weight: 800; color: #0f172a; line-height: 1.3; margin-bottom: 0.35rem;">
-                        <?= e($term['full_form_en']) ?>
-                    </div>
-                    <?php if (!empty($term['full_form_hi'])): ?>
-                        <div style="font-size: 1.15rem; font-weight: 700; color: #1e3a8a; margin-bottom: 0.85rem; font-family: 'Noto Sans Devanagari', sans-serif;">
-                            हिंदी अर्थ: <?= e($term['full_form_hi']) ?>
-                        </div>
-                    <?php endif; ?>
+                <!-- Google Position 0 Direct Answer Snippet Target Block -->
+                <?= GlossaryService::renderDirectAnswerBlock($term) ?>
 
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-top: 1.15rem; padding-top: 1.15rem; border-top: 1px solid #e2e8f0; font-size: 0.875rem;">
-                        <div>
-                            <span style="color: #64748b; display: block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em;">Conducting / Regulatory Authority</span>
-                            <strong style="color: #0f172a; font-size: 0.925rem;"><?= e($term['conducting_body'] ?? 'Government of India') ?></strong>
-                        </div>
-                        <?php if (!empty($term['official_portal'])): ?>
-                            <div>
-                                <span style="color: #64748b; display: block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em;">Official Authority Portal</span>
-                                <a href="<?= e($term['official_portal']) ?>" target="_blank" rel="noopener noreferrer" style="color: #1e3a8a; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; font-size: 0.925rem;">
-                                    <span><?= parse_url($term['official_portal'], PHP_URL_HOST) ?></span>
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                                </a>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
+                <!-- Structured Compact Facts Table -->
+                <?= GlossaryService::renderFactsTable($term) ?>
 
                 <!-- Structured Factual Sections -->
                 <div style="font-size: 0.95rem; color: #334155; line-height: 1.7;">
@@ -233,7 +177,10 @@ if (!empty($termSlug)) {
 // -----------------------------------------------------------------------------
 // CASE B: MASTER DIRECTORY HUB VIEW (/full-forms/)
 // -----------------------------------------------------------------------------
-$allTerms = GlossaryService::getTerms(null, null, null, 250, 0);
+$reqLetter = $_GET['letter'] ?? null;
+$reqLetter = (!empty($reqLetter) && strtoupper($reqLetter) !== 'ALL') ? strtoupper(substr($reqLetter, 0, 1)) : null;
+
+$allTerms = GlossaryService::getTerms(null, null, null, 350, 0);
 $alphabetCounts = GlossaryService::getAlphabetCounts();
 $categoryCounts = GlossaryService::getCategoryCounts();
 $totalCount = GlossaryService::getTotalCount();
@@ -248,21 +195,8 @@ $crumbs = [
     ['label' => 'Full Forms (A-Z)', 'url' => $canonicalUrl]
 ];
 
-// DefinedTermSet Schema for Directory
-$definedTermSetSchema = json_encode([
-    "@context" => "https://schema.org",
-    "@type" => "DefinedTermSet",
-    "name" => "Sarkari.online Indian Government & Examination Acronym Directory",
-    "url" => $canonicalUrl,
-    "description" => $pageDesc,
-    "publisher" => [
-        "@type" => "Organization",
-        "name" => SITE_NAME,
-        "url" => SITE_URL
-    ]
-], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-
-$customHeadHtml = "<script type=\"application/ld+json\">{$definedTermSetSchema}</script>";
+// DefinedTermSet Schema for Directory with individual DefinedTerm items
+$customHeadHtml = GlossaryService::generateHubSchema($allTerms, $canonicalUrl);
 
 include __DIR__ . '/components/head.php';
 include __DIR__ . '/components/header.php';
@@ -295,7 +229,7 @@ include __DIR__ . '/components/header.php';
             </div>
         </div>
 
-        <!-- Live Search Input -->
+        <!-- Live Search Input (Pure client-side filter, creates zero junk crawl URLs) -->
         <div style="margin-bottom: 1.5rem; position: relative; max-width: 680px;">
             <input type="text" id="glossarySearchInput" placeholder="Search by acronym, full name, or Hindi meaning (e.g. UPSC, SSC, NEET, Police, Bank)..." style="width: 100%; padding: 0.85rem 1rem 0.85rem 2.75rem; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; outline: none; background: #ffffff; color: #0f172a; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04); transition: border-color 0.15s ease, box-shadow 0.15s ease;" onfocus="this.style.borderColor='#1e3a8a'; this.style.boxShadow='0 0 0 3px rgba(30, 58, 138, 0.12)';" onblur="this.style.borderColor='#cbd5e1'; this.style.boxShadow='0 1px 2px rgba(15, 23, 42, 0.04)';" oninput="filterGlossaryCards()">
             <svg style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #64748b;" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -337,19 +271,26 @@ include __DIR__ . '/components/header.php';
             </div>
         </div>
 
-        <!-- Horizontal Alphabet Jump Bar (A to Z) -->
+        <!-- Crawlable Alphabet Jump Bar (A to Z) with clean click interception -->
         <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.75rem 1rem; margin-bottom: 2rem; overflow-x: auto; white-space: nowrap; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);">
             <div style="display: inline-flex; align-items: center; gap: 6px;">
-                <button type="button" class="alpha-btn active" data-letter="ALL" onclick="selectAlphabet('ALL')" style="padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; border: 1px solid #1e3a8a; background: #1e3a8a; color: #ffffff; cursor: pointer; transition: all 0.15s ease;">
+                <a href="<?= url('full-forms/') ?>" class="alpha-btn <?= empty($reqLetter) ? 'active' : '' ?>" data-letter="ALL" onclick="selectAlphabet('ALL', event)" style="padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; border: 1px solid #1e3a8a; background: <?= empty($reqLetter) ? '#1e3a8a' : '#ffffff' ?>; color: <?= empty($reqLetter) ? '#ffffff' : '#0f172a' ?>; text-decoration: none; display: inline-block; transition: all 0.15s ease;">
                     ALL (<?= $totalCount ?>)
-                </button>
+                </a>
                 <?php for ($i = 65; $i <= 90; $i++): 
                     $char = chr($i);
                     $hasTerms = !empty($alphabetCounts[$char]);
+                    $isSel = ($reqLetter === $char);
                 ?>
-                    <button type="button" class="alpha-btn" data-letter="<?= $char ?>" onclick="selectAlphabet('<?= $char ?>')" style="padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; border: 1px solid <?= $hasTerms ? '#cbd5e1' : '#f1f5f9' ?>; background: <?= $hasTerms ? '#ffffff' : '#f8fafc' ?>; color: <?= $hasTerms ? '#0f172a' : '#cbd5e1' ?>; cursor: <?= $hasTerms ? 'pointer' : 'default' ?>; transition: all 0.15s ease;" <?= $hasTerms ? '' : 'disabled' ?>>
-                        <?= $char ?> <?= $hasTerms ? "<span style='font-size: 0.7rem; color: #64748b;'>({$alphabetCounts[$char]})</span>" : '' ?>
-                    </button>
+                    <?php if ($hasTerms): ?>
+                        <a href="<?= url('full-forms/?letter=' . $char) ?>" class="alpha-btn <?= $isSel ? 'active' : '' ?>" data-letter="<?= $char ?>" onclick="selectAlphabet('<?= $char ?>', event)" style="padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; border: 1px solid <?= $isSel ? '#1e3a8a' : '#cbd5e1' ?>; background: <?= $isSel ? '#1e3a8a' : '#ffffff' ?>; color: <?= $isSel ? '#ffffff' : '#0f172a' ?>; text-decoration: none; display: inline-block; transition: all 0.15s ease;">
+                            <?= $char ?> <span style="font-size: 0.7rem; color: <?= $isSel ? '#bfdbfe' : '#64748b' ?>;">(<?= $alphabetCounts[$char] ?>)</span>
+                        </a>
+                    <?php else: ?>
+                        <span class="alpha-btn disabled" data-letter="<?= $char ?>" style="padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; border: 1px solid #f1f5f9; background: #f8fafc; color: #cbd5e1; display: inline-block; cursor: default;">
+                            <?= $char ?>
+                        </span>
+                    <?php endif; ?>
                 <?php endfor; ?>
             </div>
         </div>
@@ -409,17 +350,20 @@ include __DIR__ . '/components/header.php';
 </main>
 
 <script>
-let currentLetter = 'ALL';
+let currentLetter = '<?= $reqLetter ?: "ALL" ?>';
 let currentCategory = 'ALL';
 
-function selectAlphabet(letter) {
+function selectAlphabet(letter, event) {
+    if (event) {
+        event.preventDefault();
+    }
     currentLetter = letter;
     document.querySelectorAll('.alpha-btn').forEach(btn => {
         if (btn.getAttribute('data-letter') === letter) {
             btn.style.background = '#1e3a8a';
             btn.style.color = '#ffffff';
             btn.style.borderColor = '#1e3a8a';
-        } else if (!btn.disabled) {
+        } else if (!btn.classList.contains('disabled')) {
             btn.style.background = '#ffffff';
             btn.style.color = '#0f172a';
             btn.style.borderColor = '#cbd5e1';

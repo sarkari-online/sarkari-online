@@ -1035,6 +1035,36 @@ $terms = json_decode(<<<'JSON'
         "related_article_slug": null
     },
     {
+        "acronym": "NSP",
+        "slug": "nsp",
+        "letter": "N",
+        "full_form_en": "National Scholarship Portal",
+        "full_form_hi": "राष्ट्रीय छात्रवृत्ति पोर्टल",
+        "category": "entrance",
+        "conducting_body": "Ministry of Electronics and Information Technology (MeitY), Government of India",
+        "official_portal" : "https://scholarships.gov.in",
+        "overview": "The National Scholarship Portal (NSP) is a dedicated digital Mission Mode Project under the Digital India initiative. It acts as a single-window centralized common application and disbursement gateway for educational scholarships offered by central ministries, UGC, AICTE, and state governments across pre-matric, post-matric, and higher technical studies.",
+        "eligibility_criteria": "Enrolled student at a recognized school, college, or university with a minimum prescribed academic score (typically 50% or above). Annual family income ceiling ranges from Rs 1.5 Lakh to Rs 8 Lakh depending on the specific Central or State scholarship scheme.",
+        "selection_process": "Online application via One-Time Registration (OTR), biometric Aadhaar authentication, institutional verification by the school/college nodal officer, district/state approval, and Direct Benefit Transfer (DBT) into the student's Aadhaar-seeded bank account.",
+        "syllabus_snapshot": "Merit scholarships administered via NSP include National Means-cum-Merit Scholarship (NMMS), Central Sector Scheme of Scholarship for College and University Students, and Post-Matric Scholarships for Minorities and SC/ST candidates.",
+        "related_article_slug": null
+    },
+    {
+        "acronym": "NTA",
+        "slug": "nta",
+        "letter": "N",
+        "full_form_en": "National Testing Agency",
+        "full_form_hi": "राष्ट्रीय परीक्षा एजेंसी",
+        "category": "entrance",
+        "conducting_body": "Department of Higher Education, Ministry of Education, Government of India",
+        "official_portal": "https://nta.ac.in",
+        "overview": "The National Testing Agency (NTA) is an autonomous, self-sustained statutory testing organization registered under the Societies Registration Act 1860. Established following Union Cabinet approval in 2017, NTA conducts premier national entrance examinations including NEET-UG, JEE-Main, CUET, UGC-NET, and CSIR-NET using specialized Computer-Based Testing (CBT) and psychometric protocols.",
+        "eligibility_criteria": "Eligibility varies by examination: 10+2 with Physics, Chemistry, Mathematics/Biology for JEE Main / NEET UG; Master's degree with minimum 55% marks (50% for reserved categories) for UGC-NET; Bachelor's degree for graduate entrance tests.",
+        "selection_process": "Conducts nationwide Computer-Based Tests (CBT) and Pen-and-Paper OMR assessments across secure testing centers, computes normalized percentile scores (NTA Score), and releases official answer keys and merit ranks for central counselling.",
+        "syllabus_snapshot": "Harmonized with National Education Policy (NEP) guidelines, NCERT Class 11 and 12 curricula for undergraduate competitive tests, and specialized university postgraduate syllabi for UGC-NET and CSIR-NET examinations.",
+        "related_article_slug": "neet-ug-2026-counselling-schedule-released-mcc-nic-in"
+    },
+    {
         "acronym": "ONGC",
         "slug": "ongc",
         "letter": "O",
