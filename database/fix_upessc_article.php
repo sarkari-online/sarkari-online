@@ -53,40 +53,65 @@ try {
     echo "⚠️ Note on snapshot: " . $e->getMessage() . "\n";
 }
 
-// 1. Replace the Dates Table
-$oldTablePattern = '/<div class="table-responsive"><table><thead><tr><th>Event<\/th><th>Date<\/th><\/tr><\/thead><tbody>.*?<\/tbody><\/table><\/div>/s';
-$newTable = '<div class="table-responsive"><table><thead><tr><th>Event</th><th>Important Date</th></tr></thead><tbody>' .
+// 1. Replace the Dates Table (handle raw <table> or wrapped <div class="table-responsive"><table>)
+$newTable = '<table><thead><tr><th>Event</th><th>Important Date</th></tr></thead><tbody>' .
     '<tr><td>Official Notification Released (Advt 04/2026)</td><td>September 08, 2026</td></tr>' .
     '<tr><td>Online Application Start Date</td><td>September 08, 2026</td></tr>' .
     '<tr><td>Last Date to Apply Online (Registration)</td><td><strong>October 07, 2026</strong></td></tr>' .
     '<tr><td>Last Date for Application Fee Payment</td><td><strong>October 07, 2026</strong></td></tr>' .
     '<tr><td>Online Form Correction Window</td><td>October 08 to October 11, 2026</td></tr>' .
-    '<tr><td>Written Exam Date (Tentative)</td><td><span class="status-pill status-pill-active">November 19–20, 2026</span></td></tr>' .
-    '</tbody></table></div>';
+    '<tr><td>Written Exam Date (Tentative)</td><td>November 19–20, 2026</td></tr>' .
+    '</tbody></table>';
 
-$content = preg_replace($oldTablePattern, $newTable, $content);
+// Match first table in the article (or table within table-responsive)
+$count = 0;
+if (preg_match('/<div class="table-responsive">\s*<table\b[^>]*>.*?<\/table>\s*<\/div>/is', $content)) {
+    $content = preg_replace('/<div class="table-responsive">\s*<table\b[^>]*>.*?<\/table>\s*<\/div>/is', $newTable, $content, 1, $count);
+} elseif (preg_match('/<table\b[^>]*>.*?<\/table>/is', $content)) {
+    $content = preg_replace('/<table\b[^>]*>.*?<\/table>/is', $newTable, $content, 1, $count);
+}
+echo "  - Table replaced: " . ($count > 0 ? "YES ($count match)" : "NO") . "\n";
 
-// 2. Enhance the Application Fee Section
-$newFee = '<h2 id="upessc-assistant-professor-recruitment-2026-application-fee-and-payment">UPESSC Assistant Professor Recruitment 2026: Application Fee and Payment</h2>' .
+// 2. Enhance the Application Fee Section (with category fee table)
+$newFee = '<h2>UPESSC Assistant Professor Recruitment 2026: Application Fee and Payment</h2>' .
     '<p>Candidates can complete the payment online via Net Banking, Debit/Credit Card, or UPI on the UPESSC portal before October 07, 2026:</p>' .
-    '<div class="table-responsive"><table><thead><tr><th>Category</th><th>Application Fee</th></tr></thead><tbody>' .
+    '<table><thead><tr><th>Category</th><th>Application Fee</th></tr></thead><tbody>' .
     '<tr><td>General / OBC / EWS</td><td><strong>₹2,000</strong></td></tr>' .
     '<tr><td>SC / ST</td><td><strong>₹1,500</strong></td></tr>' .
     '<tr><td>PH (Divyangjan)</td><td><strong>₹1,000</strong></td></tr>' .
-    '</tbody></table></div>';
+    '</tbody></table>';
 
-if (str_contains($content, 'UPESSC Assistant Professor Recruitment 2026: Application Fee and Payment')) {
-    $content = preg_replace('/<h2 id="upessc-assistant-professor-recruitment-2026-application-fee-and-payment">.*?<\/p>/s', $newFee, $content);
+$feeCount = 0;
+// Match heading with or without id attribute, and the following paragraph
+$pattern = '/<h2[^>]*>.*?Application Fee and Payment<\/h2>\s*<p>.*?<\/p>(?:\s*<table>.*?<\/table>)?/is';
+if (preg_match($pattern, $content)) {
+    $content = preg_replace($pattern, $newFee, $content, 1, $feeCount);
 }
+echo "  - Fee section replaced: " . ($feeCount > 0 ? "YES ($feeCount match)" : "NO") . "\n";
 
 // 3. Enhance Age Limit in Eligibility
 $oldAge = "Age limits are calculated as of August 01, 2026, with standard relaxations for reserved categories:";
 $newAge = "The maximum age limit for UPESSC Assistant Professor is <strong>62 years</strong> (as of July 01, 2026) as per UGC and UP Higher Education Department norms. Category relaxations apply:";
-$content = str_replace($oldAge, $newAge, $content);
+if (str_contains($content, $oldAge)) {
+    $content = str_replace($oldAge, $newAge, $content);
+    echo "  - Age limit replaced: YES\n";
+} else {
+    echo "  - Age limit already updated or pattern not found.\n";
+}
+
+// 4. Integrity assertions before saving
+if (!str_contains($content, 'October 07, 2026')) {
+    echo "❌ FATAL: Replacement failed! 'October 07, 2026' not found in content.\n";
+    exit(1);
+}
+if (!str_contains($content, '₹2,000')) {
+    echo "❌ FATAL: Replacement failed! '₹2,000' fee not found in content.\n";
+    exit(1);
+}
 
 Database::execute(
     "UPDATE articles SET content = :content, updated_at = NOW() WHERE id = :id",
     ['content' => $content, 'id' => $id]
 );
 
-echo "✅ Article #{$id} ({$article['slug']}) successfully updated with verified dates, fees, and age criteria!\n";
+echo "✅ Article #{$id} ({$article['slug']}) verified and successfully written to database!\n";
