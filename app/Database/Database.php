@@ -82,6 +82,13 @@ class Database {
     }
 
     /**
+     * Execute a statement (INSERT/UPDATE/DELETE) and return affected row count
+     */
+    public static function execute(string $sql, array $params = []): int {
+        return self::query($sql, $params)->rowCount();
+    }
+
+    /**
      * Fetch a single row
      */
     public static function fetchOne(string $sql, array $params = []): ?array {

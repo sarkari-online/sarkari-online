@@ -183,7 +183,7 @@ $inserted = 0;
 
 foreach ($missingTerms as $t) {
     try {
-        Database::execute(
+        Database::query(
             "INSERT INTO `glossary_terms` 
              (`acronym`, `slug`, `letter`, `full_form_en`, `full_form_hi`, `category`, `conducting_body`, `official_portal`, `overview`, `eligibility_criteria`, `selection_process`, `syllabus_snapshot`, `related_article_slug`, `last_reviewed_at`)
              VALUES 
