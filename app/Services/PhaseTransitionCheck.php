@@ -142,12 +142,27 @@ class PhaseTransitionCheck
     {
         for ($attempt = 1; $attempt <= 2; $attempt++) {
             try {
-                $response = $this->gemini->generateJson($prompt, [
+                $response = $this->gemini->generateGrounded($prompt, ['googleSearch'], [
                     'stage'       => 'phase_transition_check',
                     'temperature' => 0.0,
-                    'tools'       => ['googleSearch' => []],
                 ]);
-                return $response['data'] ?? null;
+                $rawText = $response['text'] ?? '';
+                $parsed = Gemini::extractAndRepairJson($rawText);
+                if ($parsed !== null) {
+                    // If evidence_url was omitted by LLM, extract top search source from grounding metadata
+                    if (empty($parsed['evidence_url']) && !empty($response['grounding_metadata']['groundingChunks'])) {
+                        foreach ($response['grounding_metadata']['groundingChunks'] as $chunk) {
+                            $uri = $chunk['web']['uri'] ?? '';
+                            if (!empty($uri)) {
+                                $parsed['evidence_url'] = $uri;
+                                break;
+                            }
+                        }
+                    }
+                    return $parsed;
+                }
+                Logger::warning("PhaseTransitionCheck: JSON parsing failed from raw text: " . substr($rawText, 0, 200));
+                return null;
             } catch (Throwable $e) {
                 $msg = $e->getMessage();
                 if ((str_contains($msg, '429') || str_contains($msg, 'quota')) && $attempt < 2) {
