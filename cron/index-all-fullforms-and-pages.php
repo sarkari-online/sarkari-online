@@ -68,7 +68,7 @@ $chunks = array_chunk($allUrls, 50);
 $indexNowSuccess = 0;
 foreach ($chunks as $chunkIdx => $chunk) {
     $cNum = $chunkIdx + 1;
-    $res = IndexNowService::submitBatch($chunk);
+    $res = IndexNowService::pingBatch($chunk);
     if (!empty($res['success'])) {
         echo "  [Batch #{$cNum}] Successfully sent " . count($chunk) . " URLs to IndexNow.\n";
         $indexNowSuccess += count($chunk);

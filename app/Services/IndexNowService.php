@@ -77,6 +77,13 @@ class IndexNowService {
     }
 
     /**
+     * Submit a batch of URLs to IndexNow (alias: submitBatch)
+     */
+    public static function submitBatch(array $urls): array {
+        return self::pingBatch($urls);
+    }
+
+    /**
      * Submit a batch of URLs to IndexNow
      */
     public static function pingBatch(array $urls): array {
