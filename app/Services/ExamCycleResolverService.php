@@ -34,9 +34,10 @@ class ExamCycleResolverService
     private const AUTHORITY_MAP = [
         // Railways
         'rrb'             => 'RRB',
+        'rrc'             => 'RRB',
+        'rpf'             => 'RRB',
         'railway'         => 'RRB',
         'railways'        => 'RRB',
-        'rpf'             => 'RRB',
 
         // SSC
         'ssc'             => 'SSC',
@@ -46,7 +47,6 @@ class ExamCycleResolverService
         'upsc'            => 'UPSC',
         'union public service' => 'UPSC',
         'ias'             => 'UPSC',
-        'ips'             => 'UPSC',
         'civil services'  => 'UPSC',
 
         // Banking
@@ -54,6 +54,7 @@ class ExamCycleResolverService
         'sbi po'          => 'SBI',
         'sbi clerk'       => 'SBI',
         'sbi'             => 'SBI',
+        'bank of baroda'  => 'BOB',
 
         // Defence
         'iaf'             => 'IAF',
@@ -71,26 +72,56 @@ class ExamCycleResolverService
         'itbp'            => 'ITBP',
         'ssb'             => 'SSB',
 
-        // NTA / National
-        'nta'             => 'NTA',
+        // NTA / National — specific exams BEFORE generic 'nta'
+        'neet ug'         => 'NTA',
+        'neet pg'         => 'NTA',
         'neet'            => 'NTA',
+        'jee main'        => 'NTA',
+        'jee advanced'    => 'NTA',
         'jee'             => 'NTA',
         'cuet'            => 'NTA',
+        'pm yasasvi'      => 'NTA',
+        'yasasvi'         => 'NTA',
+        'nta'             => 'NTA',
+
+        // UGC / CSIR
         'ugc net'         => 'UGC',
         'ugc'             => 'UGC',
+        'csir net'        => 'CSIR',
+        'csir'            => 'CSIR',
+
+        // GATE
+        'gate'            => 'GATE',
+
+        // ICAR
+        'icar aieea'      => 'ICAR',
+        'icar'            => 'ICAR',
+
+        // Education boards / councils
         'ctet'            => 'CTET',
         'cbse'            => 'CBSE',
         'aicte'           => 'AICTE',
         'ignou'           => 'IGNOU',
         'aiims'           => 'AIIMS',
         'nbems'           => 'NBEMS',
+        'fmge'            => 'NBEMS',
 
-        // UP State
+        // Karnataka
+        'kcet'            => 'KEA',
+        'kpsc'            => 'KPSC',
+
+        // Maharashtra
+        'mht cet'         => 'MAHACET',
+        'mhtcet'          => 'MAHACET',
+        'mahacet'         => 'MAHACET',
+
+        // UP State — specific before generic
         'upessc'          => 'UPESSC',
         'upsssc'          => 'UPSSSC',
         'upprpb'          => 'UPPRPB',
         'up police'       => 'UPPRPB',
         'uppsc'           => 'UPPSC',
+        'uptet'           => 'UPBEB',
 
         // Bihar
         'bpsc'            => 'BPSC',
@@ -104,6 +135,7 @@ class ExamCycleResolverService
         // Rajasthan
         'rpsc'            => 'RPSC',
         'rsmssb'          => 'RSMSSB',
+        'rvunl'           => 'RVUNL',
 
         // Haryana
         'hssc'            => 'HSSC',
@@ -117,24 +149,37 @@ class ExamCycleResolverService
         'ukpsc'           => 'UKPSC',
         'upmsp'           => 'UPMSP',
 
-        // Karnataka
-        'kpsc'            => 'KPSC',
-
         // West Bengal
         'wbjeeb'          => 'WBJEE',
         'wbjee'           => 'WBJEE',
         'wbssc'           => 'WBSSC',
 
-        // Schools
+        // Schools / scholarships
         'kvs'             => 'KVS',
         'nvs'             => 'NVS',
         'dsssb'           => 'DSSSB',
+        'pmsss'           => 'AICTE',
 
-        // PSU
+        // PSU / Central bodies
         'coal india'      => 'COALINDIA',
         'josaa'           => 'JOSAA',
         'mcc'             => 'MCC',
         'nsp'             => 'NSP',
+
+        // India Post
+        'india post'      => 'INDPOST',
+        'gds'             => 'INDPOST',
+
+        // Delhi University
+        'du sol'          => 'DUSOL',
+        'delhi university' => 'DUSOL',
+
+        // Bar Council
+        'aibe'            => 'BCI',
+        'bar council'     => 'BCI',
+
+        // Punjab
+        'punjab pti'      => 'PPSC',
     ];
 
     // ─── Phase forward-map (for reference — used in Phase B PhaseTransitionCheck) ──
@@ -214,6 +259,11 @@ class ExamCycleResolverService
      * Extract (authority_code, exam_name, cycle_year, cycle_identifier|null) from free text.
      *
      * Returns null if authority or year cannot be determined.
+     *
+     * KEY DESIGN: exam_name is extracted from the portion BEFORE the first ":" in the title.
+     * "RRB Group D 2026: Notification..." and "RRB Group D 2026: Admit Card..." both resolve
+     * to exam_name="RRB Group D" → share ONE exam_cycle row (correct).
+     * "RRB NTPC 2026: ..." → exam_name="RRB NTPC" → DIFFERENT row (correct).
      */
     private function parseKeyword(string $keyword): ?array
     {
@@ -223,7 +273,7 @@ class ExamCycleResolverService
         preg_match('/\b(20[2-4]\d)\b/', $keyword, $yearMatch);
         $cycleYear = isset($yearMatch[1]) ? (int)$yearMatch[1] : (int)date('Y');
 
-        // 2. Extract cycle identifier — common patterns like CEN-01/2024, Phase-VIII, etc.
+        // 2. Extract cycle identifier — CEN-01/2024, Phase-VIII, etc.
         $cycleIdentifier = null;
         if (preg_match('/\b(CEN[-\s]?[\w\/]+)\b/i', $keyword, $cenMatch)) {
             $cycleIdentifier = strtoupper(trim($cenMatch[1]));
@@ -245,17 +295,38 @@ class ExamCycleResolverService
             return null; // Cannot determine authority — caller must handle
         }
 
-        // 4. Derive canonical exam_name:
-        //    Strip year, strip cycle_identifier, normalise whitespace, title-case.
-        $examName = $keyword;
-        $examName = preg_replace('/\b20[2-4]\d\b/', '', $examName);         // strip year
-        if ($cycleIdentifier) {
-            $examName = str_ireplace($cycleIdentifier, '', $examName);       // strip cycle id
+        // 4. exam_name = title portion BEFORE the first ":" → strip year → strip trailing role-words
+        //    "RRB Group D 2026: Notification..." → exam part "RRB Group D 2026" → "RRB Group D"
+        //    "NEET PG 2026 Answer Key: ..."      → exam part "NEET PG 2026 Answer Key"
+        //                                          → after stripping "answer key" → "NEET PG"
+        $examPart = strpos($keyword, ':') !== false
+            ? trim(strstr($keyword, ':', true))
+            : $keyword;
+
+        // Strip year from exam part
+        $examPart = trim(preg_replace('/\b20[2-4]\d\b/', '', $examPart));
+
+        // Strip role-descriptor words from the END (they don't distinguish one exam from another)
+        $roleWords = [
+            'notification', 'recruitment', 'result', 'admit', 'card', 'answer', 'key',
+            'syllabus', 'registration', 'application', 'guide', 'complete', 'official',
+            'update', 'schedule', 'declared', 'released', 'concluded', 'scorecard',
+            'august', 'september', 'october', 'november', 'december', 'january',
+            'february', 'march', 'april', 'may', 'june', 'july',
+        ];
+        $words = preg_split('/\s+/', $examPart);
+        while (!empty($words) && in_array(mb_strtolower(end($words)), $roleWords, true)) {
+            array_pop($words);
         }
+        $examName = implode(' ', $words);
+
+        if ($cycleIdentifier) {
+            $examName = str_ireplace($cycleIdentifier, '', $examName);
+        }
+
         $examName = preg_replace('/\s+/', ' ', trim($examName));
         $examName = $this->toTitleCase($examName);
 
-        // If exam_name ended up empty/too short, fall back to authority code
         if (mb_strlen($examName) < 3) {
             $examName = $authorityCode . ' Exam';
         }
@@ -303,20 +374,9 @@ class ExamCycleResolverService
             );
         }
 
-        // Fuzzy fallback — if exam_name format differs slightly, match on authority+year
-        if (!$row) {
-            $row = Database::fetchOne(
-                "SELECT * FROM exam_cycles
-                  WHERE authority_code = :authority_code
-                    AND cycle_year     = :cycle_year
-                  ORDER BY id DESC
-                  LIMIT 1",
-                [
-                    'authority_code' => $authorityCode,
-                    'cycle_year'     => $cycleYear,
-                ]
-            );
-        }
+        // NO fuzzy fallback by authority+year — different exams under same authority
+        // (NEET UG, NEET PG, CUET, JEE Main are all NTA but DIFFERENT exam_cycles).
+        // If exam_name doesn't match exactly → return null → caller creates a new cycle row.
 
         return $row ?: null;
     }
