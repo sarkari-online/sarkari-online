@@ -254,7 +254,7 @@ USER_PROMPT;
     /**
      * Render clean semantic HTML table from dates array using MilestoneStatusRenderer
      */
-    private function renderDatesTableHtml(array $datesTable): string
+    public function renderDatesTableHtml(array $datesTable): string
     {
         if (empty($datesTable)) {
             return '';

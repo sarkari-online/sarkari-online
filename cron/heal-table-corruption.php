@@ -28,6 +28,7 @@ use App\Services\MilestoneTableRenderer;
 use App\Services\MilestoneStatusRenderer;
 use App\Services\ContentIntegrityGuard;
 use App\Services\TableIntegrityGate;
+use App\Services\IntentClassifierService;
 use App\AI\ArticleGenerator;
 
 echo "================================================================================\n";
@@ -157,127 +158,106 @@ file_put_contents($snapshotFile, json_encode([
 echo "📸 Snapshot saved to: {$snapshotFile}\n";
 
 // -----------------------------------------------------------------------------
-// 4. RE-EXTRACT GROUNDED FACTS (DATES + EXAM PATTERNS)
+// 4. RE-EXTRACT GROUNDED FACTS DYNAMICALLY FOR THIS ARTICLE
 // -----------------------------------------------------------------------------
-echo "🔄 Extracting verified statutory facts and exam pattern...\n";
+echo "🔄 Extracting verified statutory facts and exam pattern dynamically for '{$title}'...\n";
 
-// Use verified grounded facts for SBI Clerk 2026
+$category = 'recruitment';
+if (!empty($article['category_id'])) {
+    try {
+        $cat = Database::fetchOne("SELECT slug FROM categories WHERE id = :id LIMIT 1", ['id' => $article['category_id']]);
+        if ($cat && !empty($cat['slug'])) {
+            $category = $cat['slug'];
+        }
+    } catch (\Throwable $e) {}
+}
+
 $fetcher = new AuthorityFactFetcherService();
-$verifiedFacts = [
-    'authority_name' => 'State Bank of India (SBI)',
-    'official_portal' => 'https://sbi.co.in/web/careers',
-    'notification_code' => 'CRPD/CR/2026-27/01',
-    'notification_date' => '2026-08-11',
-    'application_start' => '2026-08-11',
-    'application_end'   => '2026-08-31',
-    'prelims_exam_date' => [
-        'value' => 'Late September 2026',
-        'source_confidence' => 'tentative_estimate',
-        'tentative_basis' => 'Per SBI FY26-27 recruitment calendar and 2025 cycle precedent'
-    ],
-    'mains_exam_date' => [
-        'value' => 'November 2026',
-        'source_confidence' => 'tentative_estimate',
-        'tentative_basis' => 'Precedent: SBI Clerk Mains conducted 6-8 weeks post-prelims per 2024/2025 archives'
-    ],
-    'vacancies' => 9124,
-    'application_fee_general' => 750,
-    'prelims_pattern' => [
-        'total_questions' => 100,
-        'total_marks' => 100,
-        'duration_minutes' => 60,
-        'negative_marking' => '0.25 (1/4th mark deducted per incorrect answer)',
-        'sections' => [
-            ['subject' => 'English Language', 'questions' => 30, 'marks' => 30, 'duration_minutes' => 20],
-            ['subject' => 'Quantitative Aptitude', 'questions' => 35, 'marks' => 35, 'duration_minutes' => 20],
-            ['subject' => 'Reasoning Ability', 'questions' => 35, 'marks' => 35, 'duration_minutes' => 20]
-        ]
-    ],
-    'mains_pattern' => [
-        'total_questions' => 190,
-        'total_marks' => 200,
-        'duration_minutes' => 160,
-        'negative_marking' => '0.25 (1/4th mark deducted per incorrect answer)',
-        'sections' => [
-            ['subject' => 'General / Financial Awareness', 'questions' => 50, 'marks' => 50, 'duration_minutes' => 35],
-            ['subject' => 'General English', 'questions' => 40, 'marks' => 40, 'duration_minutes' => 35],
-            ['subject' => 'Quantitative Aptitude', 'questions' => 50, 'marks' => 50, 'duration_minutes' => 45],
-            ['subject' => 'Reasoning Ability & Computer Aptitude', 'questions' => 50, 'marks' => 60, 'duration_minutes' => 45]
-        ]
-    ]
-];
+$verifiedFacts = $fetcher->fetchFactsForTopic($title, $category, $article['source_portal'] ?? '');
+
+$classifier = new IntentClassifierService();
+$intent = $classifier->classify($title, $category);
+$generator = new ArticleGenerator();
 
 // -----------------------------------------------------------------------------
 // 5. BUILD EXPANDED DATES TABLE HTML
 // -----------------------------------------------------------------------------
-$renderer = new MilestoneTableRenderer();
-$cyclePayload = ['facts_json' => json_encode($verifiedFacts)];
-$datesTableHtml = $renderer->render($cyclePayload, 'recruitment');
+$datesTable = $generator->buildDatesTableFromFacts($verifiedFacts, $intent);
+$datesTableHtml = $generator->renderDatesTableHtml($datesTable);
 
 // -----------------------------------------------------------------------------
-// 6. RECONSTRUCT GROUNDED EXAM PATTERN TABLES
+// 6. RECONSTRUCT GROUNDED EXAM PATTERN TABLES (IF EXTRACTED)
 // -----------------------------------------------------------------------------
-$prelims = $verifiedFacts['prelims_pattern'];
-$mains   = $verifiedFacts['mains_pattern'];
+$patternSectionHtml = '';
+$prelims = $verifiedFacts['prelims_pattern'] ?? null;
+$mains   = $verifiedFacts['mains_pattern'] ?? null;
 
-$patternSectionHtml = <<<HTML
-<div class="exam-pattern-section" style="margin: 1.5rem 0;">
-  <h3>Preliminary Examination Pattern (Objective Type)</h3>
-  <div class="table-responsive">
-    <table class="table table-bordered table-striped data-table">
-      <thead class="table-dark">
-        <tr><th>Section / Subject</th><th>No. of Questions</th><th>Max Marks</th><th>Duration</th></tr>
-      </thead>
-      <tbody>
-HTML;
+$hasPrelims = !empty($prelims['sections']) && is_array($prelims['sections']);
+$hasMains   = !empty($mains['sections']) && is_array($mains['sections']);
 
-foreach ($prelims['sections'] as $sec) {
-    $patternSectionHtml .= "<tr><td><strong>{$sec['subject']}</strong></td><td>{$sec['questions']}</td><td>{$sec['marks']}</td><td>{$sec['duration_minutes']} Minutes</td></tr>\n";
+if ($hasPrelims || $hasMains) {
+    $patternSectionHtml .= "<div class=\"exam-pattern-section\" style=\"margin: 1.5rem 0;\">\n";
+    if ($hasPrelims) {
+        $patternSectionHtml .= "  <h3>Preliminary Examination Pattern (Objective Type)</h3>\n";
+        $patternSectionHtml .= "  <div class=\"table-responsive\">\n";
+        $patternSectionHtml .= "    <table class=\"table table-bordered table-striped data-table\">\n";
+        $patternSectionHtml .= "      <thead class=\"table-dark\">\n";
+        $patternSectionHtml .= "        <tr><th>Section / Subject</th><th>No. of Questions</th><th>Max Marks</th><th>Duration</th></tr>\n";
+        $patternSectionHtml .= "      </thead>\n      <tbody>\n";
+        foreach ($prelims['sections'] as $sec) {
+            $patternSectionHtml .= "        <tr><td><strong>" . htmlspecialchars((string)($sec['subject'] ?? ''), ENT_QUOTES, 'UTF-8') . "</strong></td><td>" . ($sec['questions'] ?? '-') . "</td><td>" . ($sec['marks'] ?? '-') . "</td><td>" . ($sec['duration_minutes'] ?? '-') . " Minutes</td></tr>\n";
+        }
+        $totQ = $prelims['total_questions'] ?? '-';
+        $totM = $prelims['total_marks'] ?? '-';
+        $totD = $prelims['duration_minutes'] ?? '-';
+        $patternSectionHtml .= "        <tr class=\"table-info\"><td><strong>Total</strong></td><td><strong>{$totQ}</strong></td><td><strong>{$totM}</strong></td><td><strong>{$totD} Minutes</strong></td></tr>\n";
+        $patternSectionHtml .= "      </tbody>\n    </table>\n  </div>\n";
+        if (!empty($prelims['negative_marking'])) {
+            $patternSectionHtml .= "  <p><small><em>Negative Marking: " . htmlspecialchars((string)$prelims['negative_marking'], ENT_QUOTES, 'UTF-8') . "</em></small></p>\n";
+        }
+    }
+
+    if ($hasMains) {
+        $patternSectionHtml .= "  <h3 style=\"margin-top: 1.5rem;\">Main Examination Pattern (Objective Type)</h3>\n";
+        $patternSectionHtml .= "  <div class=\"table-responsive\">\n";
+        $patternSectionHtml .= "    <table class=\"table table-bordered table-striped data-table\">\n";
+        $patternSectionHtml .= "      <thead class=\"table-dark\">\n";
+        $patternSectionHtml .= "        <tr><th>Section / Subject</th><th>No. of Questions</th><th>Max Marks</th><th>Duration</th></tr>\n";
+        $patternSectionHtml .= "      </thead>\n      <tbody>\n";
+        foreach ($mains['sections'] as $sec) {
+            $patternSectionHtml .= "        <tr><td><strong>" . htmlspecialchars((string)($sec['subject'] ?? ''), ENT_QUOTES, 'UTF-8') . "</strong></td><td>" . ($sec['questions'] ?? '-') . "</td><td>" . ($sec['marks'] ?? '-') . "</td><td>" . ($sec['duration_minutes'] ?? '-') . " Minutes</td></tr>\n";
+        }
+        $totQ = $mains['total_questions'] ?? '-';
+        $totM = $mains['total_marks'] ?? '-';
+        $totD = $mains['duration_minutes'] ?? '-';
+        $patternSectionHtml .= "        <tr class=\"table-info\"><td><strong>Total</strong></td><td><strong>{$totQ}</strong></td><td><strong>{$totM}</strong></td><td><strong>{$totD} Minutes</strong></td></tr>\n";
+        $patternSectionHtml .= "      </tbody>\n    </table>\n  </div>\n";
+        if (!empty($mains['negative_marking'])) {
+            $patternSectionHtml .= "  <p><small><em>Negative Marking: " . htmlspecialchars((string)$mains['negative_marking'], ENT_QUOTES, 'UTF-8') . "</em></small></p>\n";
+        }
+    }
+    $patternSectionHtml .= "</div>\n";
 }
-$patternSectionHtml .= <<<HTML
-        <tr class="table-info"><td><strong>Total</strong></td><td><strong>{$prelims['total_questions']}</strong></td><td><strong>{$prelims['total_marks']}</strong></td><td><strong>{$prelims['duration_minutes']} Minutes (1 Hour)</strong></td></tr>
-      </tbody>
-    </table>
-  </div>
-  <p><small><em>Negative Marking: {$prelims['negative_marking']}. Each section has separate 20-minute timing.</em></small></p>
-
-  <h3 style="margin-top: 1.5rem;">Main Examination Pattern (Objective Type)</h3>
-  <div class="table-responsive">
-    <table class="table table-bordered table-striped data-table">
-      <thead class="table-dark">
-        <tr><th>Section / Subject</th><th>No. of Questions</th><th>Max Marks</th><th>Duration</th></tr>
-      </thead>
-      <tbody>
-HTML;
-
-foreach ($mains['sections'] as $sec) {
-    $patternSectionHtml .= "<tr><td><strong>{$sec['subject']}</strong></td><td>{$sec['questions']}</td><td>{$sec['marks']}</td><td>{$sec['duration_minutes']} Minutes</td></tr>\n";
-}
-$patternSectionHtml .= <<<HTML
-        <tr class="table-info"><td><strong>Total</strong></td><td><strong>{$mains['total_questions']}</strong></td><td><strong>{$mains['total_marks']}</strong></td><td><strong>{$mains['duration_minutes']} Minutes (2 Hours 40 Mins)</strong></td></tr>
-      </tbody>
-    </table>
-  </div>
-  <p><small><em>Negative Marking: {$mains['negative_marking']}. Sectional timings apply.</em></small></p>
-</div>
-HTML;
 
 // -----------------------------------------------------------------------------
 // 7. ASSEMBLE HEALED CONTENT
 // -----------------------------------------------------------------------------
 $healed = $before;
 
-// Step A: Replace the corrupted 1-row milestone table under Exam Pattern Comparison
-// Remove the corrupted single-row table from its incorrect location
-$healed = preg_replace(
-    '/<div class="table-responsive">\s*<table class="data-table">.*?SBI Clerk Junior Associate 2026 Notification.*?<\/table>\s*<\/div>/s',
-    $patternSectionHtml,
-    $healed
-);
+// Step A: If pattern tables exist, replace any corrupted single-row table under Exam Pattern headings
+if (!empty($patternSectionHtml)) {
+    // Replace single-row or corrupted table under Pattern / Syllabus headings
+    $healed = preg_replace(
+        '/(<h[23]>[^<]*(?:Exam Pattern|Syllabus|Selection Process|Scheme of Exam)[^<]*<\/h[23]>\s*(?:<p>.*?<\/p>\s*)?)<div class="table-responsive">\s*<table class="data-table">.*?<\/table>\s*<\/div>/si',
+        "$1\n" . $patternSectionHtml,
+        $healed
+    );
+}
 
 // Step B: Safely inject the authentic Dates Milestone Table after the first H2 Overview
-$generator = new ArticleGenerator();
-$healed = $generator->injectPhpDatesTable($healed, $datesTableHtml);
+if (!empty($datesTableHtml)) {
+    $healed = $generator->injectPhpDatesTable($healed, $datesTableHtml);
+}
 
 // -----------------------------------------------------------------------------
 // 8. STRUCTURAL LOSS GUARD & GATE SCAN
