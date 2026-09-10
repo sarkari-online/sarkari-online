@@ -53,6 +53,7 @@ class AuthorityFactFetcherService {
         'nvs'       => ['name' => 'Navodaya Vidyalaya Samiti (NVS)', 'portal' => 'https://navodaya.gov.in'],
         'dsssb'     => ['name' => 'Delhi Subordinate Services Selection Board (DSSSB)', 'portal' => 'https://dsssb.delhi.gov.in'],
         'upsssc'    => ['name' => 'UP Subordinate Services Selection Commission (UPSSSC)', 'portal' => 'https://upsssc.gov.in'],
+        'upessc'    => ['name' => 'Uttar Pradesh Education Service Selection Commission (UPESSC)', 'portal' => 'https://upessc.up.gov.in'],
         'uppbpb'    => ['name' => 'Uttar Pradesh Police Recruitment & Promotion Board (UPPRPB)', 'portal' => 'https://uppbpb.gov.in'],
         'hpbose'    => ['name' => 'HPBOSE (Himachal Pradesh Board of School Education)', 'portal' => 'https://hpbose.org'],
         'ignou'     => ['name' => 'Indira Gandhi National Open University (IGNOU)', 'portal' => 'https://ignouadmission.samarth.edu.in'],
@@ -106,6 +107,7 @@ class AuthorityFactFetcherService {
         if (str_contains($lower, 'ugc') || str_contains($lower, 'net exam')) return self::$authorityPortals['ugc'];
 
         // 2. Multi-letter State Selection Boards (Check BEFORE central SSC to prevent false match)
+        if (str_contains($lower, 'upessc') || str_contains($lower, 'uttar pradesh education service selection') || str_contains($lower, 'assistant professor') && str_contains($lower, 'uttar pradesh')) return self::$authorityPortals['upessc'];
         if (str_contains($lower, 'upsssc') || str_contains($lower, 'up pet') || str_contains($lower, 'pet 202')) return self::$authorityPortals['upsssc'];
         if (str_contains($lower, 'wbssc')) return self::$authorityPortals['wbssc'];
         if (str_contains($lower, 'hssc') || str_contains($lower, 'haryana ssc') || str_contains($lower, 'haryana cet')) return self::$authorityPortals['hssc'];

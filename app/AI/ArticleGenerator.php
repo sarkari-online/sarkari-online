@@ -197,17 +197,28 @@ USER_PROMPT;
         }
 
         // 2. Additional standard milestones from dates_schedule if available
+        // Normalize all existing keys to snake_case for deduplication comparison
+        $existingKeysNormalized = array_map(
+            fn($k) => strtolower(preg_replace('/[\s\-]+/', '_', (string)$k)),
+            array_keys($table)
+        );
+
         $schedule = $facts['dates_schedule'] ?? ($facts['verified_facts']['dates_schedule'] ?? []);
         if (is_array($schedule)) {
             foreach ($schedule as $item) {
                 $m = $item['milestone'] ?? '';
                 $d = $item['date'] ?? '';
-                if (!empty($m) && !empty($d) && !isset($table[$m])) {
-                    $status = $item['status'] ?? 'Confirmed';
-                    $table[$m] = ($status === 'Awaiting Official Circular' || stripos($d, 'to be announced') !== false)
-                        ? self::NOT_YET_ANNOUNCED_LABEL
-                        : $d;
-                }
+                if (empty($m) || empty($d)) continue;
+
+                // Normalize incoming milestone to snake_case for dedup check
+                $mNormalized = strtolower(preg_replace('/[\s\-]+/', '_', $m));
+                if (in_array($mNormalized, $existingKeysNormalized, true)) continue; // already covered by required fields
+
+                $status = $item['status'] ?? 'Confirmed';
+                $table[$m] = ($status === 'Awaiting Official Circular' || stripos($d, 'to be announced') !== false)
+                    ? self::NOT_YET_ANNOUNCED_LABEL
+                    : $d;
+                $existingKeysNormalized[] = $mNormalized; // track this to avoid further self-dupes
             }
         }
 
@@ -217,6 +228,7 @@ USER_PROMPT;
     /**
      * Construct fee table in PHP from verified facts
      */
+
     public function buildFeeTableFromFacts(array $facts, ArticleIntent $intent): array
     {
         if ($intent !== ArticleIntent::RECRUITMENT) {
