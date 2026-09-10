@@ -89,56 +89,73 @@ class GlossaryService {
     /**
      * Determine if full expansion should be withheld in the meta title
      * to protect CTR and prevent Zero-Click searches on Google.
+     * Withheld for 100% of terms to maintain uniform curiosity gap.
      */
     public static function shouldWithholdExpansionInTitle(array $term): bool {
-        $acronym = strtoupper(trim($term['acronym'] ?? ''));
-        return !in_array($acronym, self::WELL_KNOWN_INSTITUTIONS, true);
+        return true;
     }
 
     /**
      * Generate high-CTR, Google-compliant SERP Meta Title (Under 60 chars)
+     * Never leaks the full expansion directly into the SERP snippet.
      */
     public static function generateMetaTitle(array $term): string {
-        $acronym = $term['acronym'];
-        $withhold = self::shouldWithholdExpansionInTitle($term);
+        $acronym = trim($term['acronym'] ?? '');
+        $fullEn = trim($term['full_form_en'] ?? '');
 
-        if ($withhold) {
-            // High-Curiosity, Anti-Spoiler Formula for Regional Posts, State PSCs & Field Roles
-            $title = "{$acronym} Full Form: Meaning in Hindi, Salary & Selection 2026";
-            if (mb_strlen($title) <= 59) {
-                return $title;
-            }
-            $title = "{$acronym} Full Form: Meaning, Salary & Eligibility 2026";
-            if (mb_strlen($title) <= 59) {
-                return $title;
-            }
-            return "{$acronym} Full Form: Meaning & Eligibility 2026";
-        } else {
-            // Authoritative Pattern for Top National Institutions
-            $title = "{$acronym} Full Form & Meaning | " . $term['full_form_en'];
-            if (mb_strlen($title) <= 59) {
-                return $title;
-            }
-            $title = "{$acronym} Full Form: " . $term['full_form_en'] . " Meaning";
-            if (mb_strlen($title) <= 59) {
-                return $title;
-            }
-            return "{$acronym} Full Form: Official Meaning & Portal 2026";
+        // High-Curiosity, Anti-Spoiler Formula across all 132 terms
+        $title = "{$acronym} Full Form: Meaning in Hindi, Salary & Selection 2026";
+        if (mb_strlen($title) <= 59) {
+            self::validateMetaAgainstExpansion($title, $fullEn);
+            return $title;
         }
+
+        $title = "{$acronym} Full Form: Meaning, Salary & Eligibility 2026";
+        if (mb_strlen($title) <= 59) {
+            self::validateMetaAgainstExpansion($title, $fullEn);
+            return $title;
+        }
+
+        $title = "{$acronym} Full Form: Meaning, Salary & Selection";
+        if (mb_strlen($title) <= 59) {
+            self::validateMetaAgainstExpansion($title, $fullEn);
+            return $title;
+        }
+
+        $title = "{$acronym} Full Form: Meaning & Eligibility 2026";
+        self::validateMetaAgainstExpansion($title, $fullEn);
+        return $title;
     }
 
     /**
      * Generate high-CTR SERP Meta Description (145-155 chars)
+     * Free of zero-click full-form spoilers across all 132 terms.
      */
     public static function generateMetaDescription(array $term): string {
-        $acronym = $term['acronym'];
-        $withhold = self::shouldWithholdExpansionInTitle($term);
+        $acronym = trim($term['acronym'] ?? '');
+        $fullEn = trim($term['full_form_en'] ?? '');
 
-        if ($withhold) {
-            return "What is {$acronym} full form? Check official statutory meaning in English & Hindi, 7th CPC salary structure, age limit and selection process on Sarkari.online.";
-        } else {
-            return "What does {$acronym} ({$term['full_form_en']}) stand for? Check official statutory authority, exam schedule, eligibility norms and portal on Sarkari.online.";
+        $desc = "What is {$acronym} full form? Check official statutory meaning in English & Hindi, salary structure, eligibility criteria and selection process on Sarkari.online.";
+        self::validateMetaAgainstExpansion($desc, $fullEn);
+        return $desc;
+    }
+
+    /**
+     * Validate that a meta title or description does NOT leak the literal full expansion.
+     * Future-proofing anti-spoiler gate.
+     */
+    public static function validateMetaAgainstExpansion(string $metaText, string $fullFormEn): bool {
+        $cleanExpansion = trim($fullFormEn);
+        if (empty($cleanExpansion) || strlen($cleanExpansion) < 4) {
+            return true;
         }
+
+        if (stripos($metaText, $cleanExpansion) !== false) {
+            Logger::warning("GlossaryService: Meta text leaks literal full expansion '{$cleanExpansion}' in string: '{$metaText}'");
+            return false;
+        }
+
+        return true;
     }
 
     /**

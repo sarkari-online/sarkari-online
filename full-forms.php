@@ -7,6 +7,9 @@
 require_once __DIR__ . '/config.php';
 
 use App\Services\GlossaryService;
+use App\Services\SalaryTableRenderer;
+use App\Services\FaqSchemaRenderer;
+use App\Database\Database;
 use App\Helpers\Sanitizer;
 use App\Helpers\SEOHelper;
 
@@ -41,6 +44,41 @@ if (!empty($termSlug)) {
     $customHeadHtml = GlossaryService::generateDefinedTermSchema($term, $canonicalUrl, $hubUrl);
 
     $relatedTerms = GlossaryService::getRelatedTerms((int)$term['id'], $term['category'], 6);
+
+    // Fetch verified entity facts (Phase B/C integration)
+    $facts = null;
+    try {
+        $facts = Database::fetchOne("SELECT * FROM full_form_entity_facts WHERE full_form_id = :fid LIMIT 1", ['fid' => (int)$term['id']]);
+    } catch (\Throwable $e) {}
+
+    $salaryTableHtml = !empty($facts) ? SalaryTableRenderer::render($facts) : null;
+    $faqBlockHtml = !empty($facts['faqs_json']) ? FaqSchemaRenderer::render($facts['faqs_json']) : null;
+
+    // Internal link candidate resolver (Live published articles/updates)
+    $matchedArticle = null;
+    if (!empty($term['related_article_slug'])) {
+        $matchedArticle = [
+            'slug'  => $term['related_article_slug'],
+            'title' => "Verified 2026 Examination Schedule & Application Guide for {$term['acronym']}"
+        ];
+    } else {
+        try {
+            $matched = Database::fetchOne(
+                "SELECT slug, title FROM articles 
+                 WHERE status = 'published' 
+                   AND (title LIKE :acr OR title LIKE :fn OR slug LIKE :slg) 
+                 ORDER BY published_at DESC LIMIT 1",
+                [
+                    'acr' => '%' . $term['acronym'] . '%',
+                    'fn'  => '%' . $term['full_form_en'] . '%',
+                    'slg' => '%' . $term['slug'] . '%'
+                ]
+            );
+            if ($matched) {
+                $matchedArticle = $matched;
+            }
+        } catch (\Throwable $e) {}
+    }
 
     include __DIR__ . '/components/head.php';
     include __DIR__ . '/components/header.php';
@@ -119,16 +157,42 @@ if (!empty($termSlug)) {
                         </p>
                     <?php endif; ?>
 
+                    <!-- Section 5: Salary & Pay Scale (Only rendered when verified facts are present) -->
+                    <?php if (!empty($salaryTableHtml)): ?>
+                        <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 2rem 0 0.5rem 0;">
+                            5. Salary, Pay Scale &amp; 7th CPC Allowances
+                        </h2>
+                        <?= $salaryTableHtml ?>
+                    <?php endif; ?>
+
+                    <!-- Section 6: Career Growth & Promotion Hierarchy -->
+                    <?php if (!empty($facts['career_growth_summary'])): ?>
+                        <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 2rem 0 0.5rem 0;">
+                            6. Career Growth &amp; Promotion Hierarchy
+                        </h2>
+                        <p style="margin: 0 0 1.25rem 0; background: #f8fafc; border-left: 4px solid #1e3a8a; padding: 0.85rem 1.15rem; border-radius: 0 8px 8px 0; color: #334155; line-height: 1.7;">
+                            <?= nl2br(e($facts['career_growth_summary'])) ?>
+                        </p>
+                    <?php endif; ?>
+
+                    <!-- Section 7: Frequently Asked Questions & FAQPage Schema -->
+                    <?php if (!empty($faqBlockHtml)): ?>
+                        <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 2rem 0 0.5rem 0;">
+                            7. Frequently Asked Questions (FAQs)
+                        </h2>
+                        <?= $faqBlockHtml ?>
+                    <?php endif; ?>
+
                 </div>
 
                 <!-- Internal Linking Engine / Live Exam Updates Connection -->
-                <?php if (!empty($term['related_article_slug'])): ?>
+                <?php if (!empty($matchedArticle)): ?>
                     <div style="margin-top: 2rem; padding: 1.25rem 1.5rem; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px;">
                         <span style="font-weight: 800; color: #1e3a8a; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; display: block; margin-bottom: 0.35rem;">
-                            📌 LIVE NOTIFICATIONS &amp; DATES
+                            📌 LIVE RECRUITMENT &amp; EXAM UPDATES
                         </span>
-                        <a href="<?= url('article/' . $term['related_article_slug'] . '/') ?>" style="color: #1e3a8a; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; font-size: 1rem;">
-                            Check Verified 2026 Examination Schedule &amp; Application Guide for <?= e($term['acronym']) ?> &rarr;
+                        <a href="<?= url('article/' . $matchedArticle['slug'] . '/') ?>" style="color: #1e3a8a; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; font-size: 1rem;">
+                            <?= e($matchedArticle['title']) ?> &rarr;
                         </a>
                     </div>
                 <?php endif; ?>
