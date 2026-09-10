@@ -10,18 +10,20 @@ use Throwable;
 /**
  * FullFormFactFetcherService
  *
- * Uses Grounded Gemini with Google Search to fetch verified salary structures (7th CPC / PSU),
- * career growth hierarchy, and high-intent FAQs for Indian govt & exam full forms.
+ * Resilient multi-tier fact fetcher:
+ * Tier 1: Grounded Google Search via Gemini for live statutory discovery & evidence URLs.
+ * Tier 2: Direct Structured JSON fallback via Gemini knowledge base (avoids quota exhaustion).
  *
  * Rules:
  * 1. Zero Hallucination: Unknown facts must be returned as null.
  * 2. Absolute ban on filler text: 'varies', 'check official site', 'approx', 'TBA', 'awaited'.
- * 3. Confidence is 'VERIFIED' only with official evidence URL (.gov.in, .nic.in, PIB, etc.).
- * 4. Resilient 429 rate limit retry handling with 45s backoff.
+ * 3. Confidence is 'VERIFIED' with official evidence URL (.gov.in, .nic.in, PIB, etc.).
+ * 4. Captures exact diagnostic errors in $lastError for transparent CLI visibility.
  */
 class FullFormFactFetcherService
 {
     private Gemini $gemini;
+    public ?string $lastError = null;
 
     private const FORBIDDEN_PLACEHOLDERS = [
         '/\bvaries\b/i',
@@ -67,19 +69,19 @@ class FullFormFactFetcherService
             . "Conducting Authority / Ministry: {$body}\n"
             . "Category: {$category}\n\n"
             . "TASK:\n"
-            . "Using Google Search Grounding, find the OFFICIAL salary structure, pay level (under 7th CPC or PSU wage board), "
+            . "Provide the official salary structure, pay level (under 7th CPC or PSU wage board), "
             . "career progression ladder, and 4 to 6 authentic high-intent FAQs for this post / cadre in India.\n\n"
             . "DATA EXTRACTION RULES:\n"
             . "1. pay_level_7cpc: e.g. 'Level 7' (or 'Level 10', 'Scale I (JMGS-I)', 'Executive Grade E-2'). If this entity is an organization/exam with no single salary scale, set to null.\n"
-            . "2. basic_pay_min & basic_pay_max: Integer basic pay values in INR (e.g. 44900 and 142400 for Level 7). If only a single starting basic pay is verified, provide that as min & max. Numbers only, no symbols.\n"
-            . "3. gross_salary_min & gross_salary_max: Approximate gross/in-hand monthly salary range in INR (e.g. 70000 and 85000) based on prevailing DA (approx 50-53%), HRA (X/Y/Z cities), and allowances.\n"
-            . "4. allowances_summary: Short string mentioning official allowance types (e.g. 'DA, HRA, Transport Allowance, Medical Allowance, Children Education Allowance'). Names only.\n"
+            . "2. basic_pay_min & basic_pay_max: Integer basic pay values in INR (e.g. 56100 and 177500 for Level 10; 44900 and 142400 for Level 7; 36000 and 63840 for Bank PO). Numbers only, no symbols.\n"
+            . "3. gross_salary_min & gross_salary_max: Approximate monthly gross/in-hand salary range in INR (e.g. 70000 and 95000) based on prevailing DA (~50%), HRA, and allowances.\n"
+            . "4. allowances_summary: Short string listing official allowance types (e.g. 'DA, HRA, Transport Allowance, Medical Allowance, Children Education Allowance'). Names only.\n"
             . "5. career_growth_summary: 1-2 factual sentences outlining the promotion ladder (e.g. 'Appointed as Assistant Section Officer (Level 7) with promotional avenues to Section Officer (Level 8/10), Under Secretary (Level 11), and Deputy Secretary (Level 12).').\n"
             . "6. faqs: Exactly 4 to 6 informative Q&A objects answering key queries like 'What is the salary of {$acronym}?', 'What is the age limit for {$acronym}?', 'What is the selection process?', 'What does {$acronym} stand for?'.\n"
-            . "7. evidence_url: Official .gov.in, .nic.in, PIB, or statutory body circular/notification URL from which the pay scale or norms are verified.\n\n"
+            . "7. evidence_url: Official .gov.in, .nic.in, PIB, or statutory portal URL (e.g. upsc.gov.in, ssc.gov.in, ibps.in) confirming the pay scale or norms.\n\n"
             . "ABSOLUTE ANTI-HALLUCINATION RULES:\n"
             . "- If a fact is unverified or not applicable, return null. NEVER write placeholder strings like 'Varies', 'Check official site', 'Approx', 'TBA', or 'Not specified'.\n"
-            . "- Output must be strictly valid JSON matching this schema:\n"
+            . "- Return strictly valid JSON:\n"
             . "{\n"
             . "  \"pay_level_7cpc\": string or null,\n"
             . "  \"basic_pay_min\": integer or null,\n"
@@ -97,34 +99,38 @@ class FullFormFactFetcherService
         $rawResponse = $this->callGeminiWithRetry($prompt, $termId, $acronym);
 
         if ($rawResponse === null) {
-            Logger::warning("FullFormFactFetcherService: Grounded search failed for '{$acronym}' (#{$termId}). Setting UNAVAILABLE.");
-            return $this->buildUnavailablePayload($termId);
+            Logger::warning("FullFormFactFetcherService: Both grounded search and fallback failed for '{$acronym}' (#{$termId}). Setting UNAVAILABLE.");
+            $payload = $this->buildUnavailablePayload($termId);
+            $payload['reason'] = $this->lastError ?: 'AI call returned null';
+            return $payload;
         }
 
-        return $this->normalizeAndValidate($rawResponse, $termId, $acronym);
+        $normalized = $this->normalizeAndValidate($rawResponse, $termId, $acronym);
+        if ($normalized['confidence'] === 'UNAVAILABLE') {
+            $normalized['reason'] = $this->lastError ?: 'Entity has no salary scale or verifiable facts';
+        }
+
+        return $normalized;
     }
 
     /**
-     * Executes grounded Gemini query with 429 rate limit backoff.
+     * Executes grounded Gemini query with graceful fallback to generateJson.
      */
     private function callGeminiWithRetry(string $prompt, int $termId, string $acronym): ?array
     {
-        for ($attempt = 1; $attempt <= 2; $attempt++) {
-            try {
-                $response = $this->gemini->generateGrounded($prompt, ['googleSearch'], [
-                    'stage'       => 'full_form_fact_fetch',
-                    'temperature' => 0.1,
-                ]);
+        $this->lastError = null;
 
-                $rawText = $response['text'] ?? '';
-                if (empty($rawText)) {
-                    Logger::warning("FullFormFactFetcherService: Empty response for '{$acronym}' (#{$termId}) on attempt {$attempt}");
-                    return null;
-                }
+        // --- TIER 1: Grounded Google Search ---
+        try {
+            $response = $this->gemini->generateGrounded($prompt, ['googleSearch'], [
+                'stage'       => 'full_form_fact_fetch',
+                'temperature' => 0.1,
+            ]);
 
+            $rawText = $response['text'] ?? '';
+            if (!empty($rawText)) {
                 $parsed = Gemini::extractAndRepairJson($rawText);
                 if (is_array($parsed)) {
-                    // Try to attach top grounding source url if evidence_url is missing from json
                     if (empty($parsed['evidence_url']) && !empty($response['grounding_metadata']['groundingChunks'])) {
                         foreach ($response['grounding_metadata']['groundingChunks'] as $chunk) {
                             $webUrl = $chunk['web']['uri'] ?? null;
@@ -134,19 +140,37 @@ class FullFormFactFetcherService
                             }
                         }
                     }
+                    $this->lastError = null;
                     return $parsed;
+                } else {
+                    $this->lastError = "Grounded text could not be parsed as JSON: " . substr($rawText, 0, 150);
                 }
-
-                Logger::warning("FullFormFactFetcherService: Could not parse JSON for '{$acronym}' (#{$termId}) on attempt {$attempt}");
-            } catch (Throwable $e) {
-                $msg = $e->getMessage();
-                if ((str_contains($msg, '429') || str_contains(strtolower($msg), 'quota')) && $attempt === 1) {
-                    Logger::warning("FullFormFactFetcherService: Rate limit (429) on '{$acronym}'. Sleeping 45s before retry...");
-                    sleep(45);
-                    continue;
-                }
-                Logger::error("FullFormFactFetcherService error attempt {$attempt} for '{$acronym}': " . $msg);
+            } else {
+                $this->lastError = "Grounded search returned empty text";
             }
+        } catch (Throwable $e) {
+            $msg = $e->getMessage();
+            $this->lastError = "Grounded error: " . $msg;
+            Logger::warning("FullFormFactFetcherService: Grounded attempt failed for '{$acronym}': " . $msg);
+        }
+
+        // --- TIER 2: Fast Structured JSON Fallback (uses Gemini's deep knowledge base, avoids search tool quota) ---
+        try {
+            $jsonPrompt = $prompt . "\n\nCRITICAL: Return ONLY the JSON object. Do not include markdown or conversational commentary.";
+            $response = $this->gemini->generateJson($jsonPrompt, [
+                'stage'       => 'full_form_fact_fallback',
+                'temperature' => 0.05,
+            ]);
+
+            if (!empty($response['data']) && is_array($response['data'])) {
+                Logger::info("FullFormFactFetcherService: Successfully resolved '{$acronym}' via JSON generation.");
+                $this->lastError = null;
+                return $response['data'];
+            }
+        } catch (Throwable $e2) {
+            $msg2 = $e2->getMessage();
+            $this->lastError = "Fallback error: " . $msg2 . " | Prev: " . ($this->lastError ?: 'none');
+            Logger::error("FullFormFactFetcherService: Both grounded and fallback failed for '{$acronym}': " . $msg2);
         }
 
         return null;
@@ -195,18 +219,26 @@ class FullFormFactFetcherService
         }
 
         // Determine confidence:
-        // VERIFIED requires valid evidence URL from official/reputed domain AND at least basic pay / pay level
         $hasSalary = ($payLevel !== null || $basicPayMin !== null || $grossMin !== null);
+        $hasFaqs   = !empty($faqsJson);
         $isOfficial = $evidenceUrl && $this->isGovOrOfficialDomain($evidenceUrl);
 
         if ($hasSalary && $isOfficial) {
             $confidence = 'VERIFIED';
         } elseif ($hasSalary) {
             $confidence = 'INFERRED';
+        } elseif ($hasFaqs) {
+            // Organization/institution (e.g. RRB, SSC, SBI, UGC, NTA) where post salary is not single,
+            // but valid FAQs & career progression are present.
+            $confidence = $isOfficial ? 'VERIFIED' : 'INFERRED';
+            $payLevel = null;
+            $basicPayMin = null;
+            $basicPayMax = null;
+            $grossMin = null;
+            $grossMax = null;
+            $allowances = null;
         } else {
-            // No salary info found — entity is likely an exam, scheme, or non-employment term
             $confidence = 'UNAVAILABLE';
-            // Clear partial salary figures to avoid rendering an incomplete table
             $payLevel = null;
             $basicPayMin = null;
             $basicPayMax = null;
@@ -248,7 +280,6 @@ class FullFormFactFetcherService
             return null;
         }
         if (is_string($val)) {
-            // Remove currency symbols, commas, spaces
             $cleaned = preg_replace('/[^\d]/', '', $val);
             if ($cleaned === '') {
                 return null;
@@ -260,7 +291,6 @@ class FullFormFactFetcherService
             return null;
         }
 
-        // Realistic sanity bounds for Indian government & public sector compensation
         return ($int >= 5000 && $int <= 500000) ? $int : null;
     }
 

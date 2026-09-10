@@ -160,6 +160,9 @@ foreach ($candidates as $index => $term) {
         $confidence = $facts['confidence'] ?? 'UNAVAILABLE';
 
         echo "  Confidence: {$confidence}\n";
+        if (!empty($facts['reason'])) {
+            echo "  Reason    : \033[33m{$facts['reason']}\033[0m\n";
+        }
         if (!empty($facts['pay_level_7cpc'])) {
             echo "  Pay Level : {$facts['pay_level_7cpc']}\n";
         }
