@@ -344,11 +344,22 @@ class AuthorityFactFetcherService {
         }
         $combinedText = mb_substr(trim($combinedText), 0, 4500);
 
-        // Anti-bot/JS-SPA fallback: If primary crawl is sparse (< 250 chars), fetch fresh Google News dispatches
+        // News dispatches: ALWAYS fetch for every topic (not just sparse crawl).
+        // Uses Google News RSS — zero extra Gemini API calls, high signal for dates.
+        // Run two targeted queries: general topic + notification-specific.
         $dispatchesText = '';
-        if (mb_strlen($combinedText) < 250) {
-            $dispatchesText = $this->fetchNewsDispatches($topic);
+        $newsGeneral = $this->fetchNewsDispatches($topic);
+        if (!empty($newsGeneral)) {
+            $dispatchesText .= $newsGeneral . "\n";
         }
+        // Targeted notification / application-dates query
+        $notifQuery = preg_replace('/syllabus|exam pattern|result|admit card/i', '', $topic);
+        $notifQuery = trim($notifQuery . ' official notification application dates ' . $currentYear);
+        $newsNotif = $this->fetchNewsDispatches($notifQuery);
+        if (!empty($newsNotif)) {
+            $dispatchesText .= $newsNotif;
+        }
+        $dispatchesText = mb_substr(trim($dispatchesText), 0, 2000);
 
         $regionalListStr = '';
         if (!empty($crawlData['regional_portals'])) {
@@ -372,11 +383,10 @@ class AuthorityFactFetcherService {
         }
 
         // ─────────────────────────────────────────────────────────────────────
-        // GOOGLE SEARCH GROUNDING LAYER
-        // Ask Gemini to search Google in real-time for the topic facts.
-        // This is what makes Google AI Overview accurate — we now do the same.
-        // Wrapped in try-catch: if API tier doesn't support grounding or call
-        // fails, we silently fall back to crawl-only context (no breakage).
+        // GOOGLE SEARCH GROUNDING LAYER (enhancement — non-blocking)
+        // Asks Gemini to search Google live. If it hits 429 or unsupported,
+        // we reset the circuit breaker so the main JSON extraction is NEVER
+        // blocked by a grounding failure. Grounding is enhancement-only.
         // ─────────────────────────────────────────────────────────────────────
         try {
             $groundingSearchPrompt = <<<GSEARCH
@@ -420,17 +430,25 @@ GSEARCH;
             $groundedText = trim($groundedResponse['text'] ?? '');
 
             if (!empty($groundedText)) {
-                // Label as highest priority so JSON extractor trusts this over sparse crawl
                 $contextPrompt .= "\nGOOGLE SEARCH GROUNDED FACTS — VERIFIED REAL-TIME (HIGHEST PRIORITY, USE THESE OVER CRAWL DATA):\n"
                     . mb_substr($groundedText, 0, 3500) . "\n";
                 Logger::info("AuthorityFactFetcherService: Google Search grounding succeeded for '{$topic}' ("
                     . mb_strlen($groundedText) . " chars grounded context added)");
             }
         } catch (Throwable $groundingEx) {
-            // Grounding unavailable (API tier limitation, rate limit, or network error)
-            // This is non-fatal — continue with crawled context
+            // Grounding is optional enhancement — log warning, NEVER let it block main extraction.
             Logger::warning("AuthorityFactFetcherService: Google Search grounding unavailable for '{$topic}': "
-                . $groundingEx->getMessage() . " — proceeding with crawl-only context");
+                . $groundingEx->getMessage() . " — proceeding with crawl+news context");
+
+            // CRITICAL: If grounding tripped the circuit breaker, reset it now.
+            // Grounding failure must NEVER prevent the main fact-extraction call from running.
+            try {
+                Database::query(
+                    "UPDATE settings SET value = '0' WHERE `key` = 'gemini_circuit_breaker_until'",
+                    []
+                );
+                Logger::info("AuthorityFactFetcherService: Circuit breaker reset after grounding failure — main extraction will proceed");
+            } catch (Throwable $ignored) {}
         }
 
         $prompt = <<<PROMPT
