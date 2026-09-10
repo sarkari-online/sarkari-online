@@ -276,7 +276,10 @@ class AuthorityFactFetcherService {
     }
 
     /**
-     * Fetch fresh statutory dispatches from Google News RSS when portal crawl is blocked/sparse
+     * Fetch fresh statutory dispatches from Google News RSS.
+     * Also follows the first 3 article links to extract meta descriptions —
+     * meta tags are server-rendered (no JS), fast to fetch, and often contain
+     * concise summaries with exact dates (e.g. "Apply Sep 8–Oct 7, 2026").
      */
     public function fetchNewsDispatches(string $topic): string {
         $cleanQuery = preg_replace('/[^\w\s\-]/u', ' ', $topic);
@@ -305,11 +308,34 @@ class AuthorityFactFetcherService {
             $xml = @simplexml_load_string($xmlContent);
             if ($xml && isset($xml->channel->item)) {
                 $count = 0;
+                $metaFetched = 0; // Fetch meta for first 3 articles only (speed)
                 foreach ($xml->channel->item as $item) {
-                    $t = trim((string)$item->title);
-                    $d = trim((string)$item->pubDate);
+                    $t    = trim((string)$item->title);
+                    $d    = trim((string)$item->pubDate);
                     $desc = trim(strip_tags((string)$item->description));
-                    $items[] = "- Headline: {$t} (Published: {$d})\n  Excerpt: {$desc}";
+                    // Google News RSS description is just "title – source", not useful.
+                    // Strip it if it's essentially a duplicate of the title.
+                    if (similar_text($t, $desc) / max(strlen($t), 1) > 0.7) {
+                        $desc = '';
+                    }
+
+                    $entry = "- Headline: {$t} (Published: {$d})";
+
+                    // Follow article link to get meta description (server-rendered, has actual dates)
+                    $link = trim((string)($item->link ?? $item->guid ?? ''));
+                    if ($metaFetched < 3 && !empty($link) && str_starts_with($link, 'http')) {
+                        $meta = $this->fetchArticleMeta($link);
+                        if (!empty($meta)) {
+                            $entry .= "\n  Article Summary: {$meta}";
+                            $metaFetched++;
+                        }
+                    }
+
+                    if (!empty($desc) && empty($meta ?? '')) {
+                        $entry .= "\n  Excerpt: {$desc}";
+                    }
+
+                    $items[] = $entry;
                     if (++$count >= 6) break;
                 }
             }
@@ -319,6 +345,59 @@ class AuthorityFactFetcherService {
             return '';
         }
     }
+
+    /**
+     * Fetch article meta description from a news article URL.
+     * Only reads first 20KB of HTML (enough for <head> meta tags).
+     * Meta descriptions are server-rendered and often contain date summaries.
+     */
+    private function fetchArticleMeta(string $url): string {
+        try {
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT        => 5,
+                CURLOPT_CONNECTTIMEOUT => 3,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_MAXREDIRS      => 3,
+                CURLOPT_SSL_VERIFYPEER => false,
+                // Fetch only first 25KB — enough for <head> and meta tags
+                CURLOPT_RANGE          => '0-25000',
+                CURLOPT_USERAGENT      => 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+            ]);
+            $html = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if (empty($html) || ($httpCode !== 200 && $httpCode !== 206)) {
+                return '';
+            }
+
+            // Try standard meta description patterns (order: og:description → name=description → twitter:description)
+            $patterns = [
+                '/<meta[^>]+property=["\']og:description["\'][^>]+content=["\'](.*?)["\']/i',
+                '/<meta[^>]+content=["\'](.*?)["\']\s+property=["\']og:description["\']/i',
+                '/<meta[^>]+name=["\']description["\'][^>]+content=["\'](.*?)["\']/i',
+                '/<meta[^>]+content=["\'](.*?)["\']\s+name=["\']description["\']/i',
+                '/<meta[^>]+name=["\']twitter:description["\'][^>]+content=["\'](.*?)["\']/i',
+            ];
+
+            foreach ($patterns as $pattern) {
+                if (preg_match($pattern, $html, $m)) {
+                    $meta = html_entity_decode(strip_tags($m[1]), ENT_QUOTES, 'UTF-8');
+                    $meta = trim(preg_replace('/\s+/', ' ', $meta));
+                    if (strlen($meta) > 30) { // Skip trivially short descriptions
+                        return mb_substr($meta, 0, 500);
+                    }
+                }
+            }
+
+            return '';
+        } catch (Throwable $e) {
+            return ''; // Non-fatal — article might block bots or be slow
+        }
+    }
+
 
     /**
      * Synthesize and extract structured statutory facts for any topic
