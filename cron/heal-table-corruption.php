@@ -31,6 +31,7 @@ use App\Services\MilestoneStatusRenderer;
 use App\Services\ContentIntegrityGuard;
 use App\Services\TableIntegrityGate;
 use App\Services\IntentClassifierService;
+use App\Services\LegacyTableDetector;
 use App\AI\ArticleGenerator;
 
 echo "================================================================================\n";
@@ -230,8 +231,24 @@ foreach ($targets as $idx => $article) {
             $patternSectionHtml .= "</div>\n";
         }
 
-        // 4. Assemble healed content
-        $healed = $before;
+        // ---------------------------------------------------------------------
+        // 4. TWO-PHASE ASSEMBLY & INTENTIONAL DEDUPLICATION
+        // ---------------------------------------------------------------------
+        // Phase A: Identify and remove legacy corrupted placeholder tables (Counted Removal)
+        $legacyTables = LegacyTableDetector::findLegacyTables($before);
+        $afterRemoval = $before;
+        foreach ($legacyTables as $legacy) {
+            $targetToRemove = !empty($legacy['wrapper_html']) ? $legacy['wrapper_html'] : $legacy['html'];
+            $afterRemoval = str_replace($targetToRemove, '', $afterRemoval);
+        }
+        ContentIntegrityGuard::assertIntentionalReplacement($before, $afterRemoval, count($legacyTables));
+
+        if (!empty($legacyTables)) {
+            echo "  Legacy corrupted tables cleanly deduplicated & removed: " . count($legacyTables) . "\n";
+        }
+
+        // Phase B: Inject fresh, verified tables into cleaned content
+        $healed = $afterRemoval;
 
         if (!empty($patternSectionHtml)) {
             $healed = preg_replace(
@@ -245,8 +262,8 @@ foreach ($targets as $idx => $article) {
             $healed = $generator->injectPhpDatesTable($healed, $datesTableHtml);
         }
 
-        // 5. Integrity & Safety verification
-        ContentIntegrityGuard::assertNoStructuralLoss($before, $healed);
+        // Must not lose any structure compared to afterRemoval!
+        ContentIntegrityGuard::assertNoStructuralLoss($afterRemoval, $healed);
 
         $gate = new TableIntegrityGate();
         $violations = $gate->scan($healed);

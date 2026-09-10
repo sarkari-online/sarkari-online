@@ -277,20 +277,20 @@ class AuthorityFactFetcherService {
 
     /**
      * Fetch fresh statutory dispatches from Google News + Bing News RSS.
+     * Returns structured array of dispatches for PHP-side recency filtering.
+     * Publication dates are consumed strictly by NewsDispatchSanitizer in PHP
+     * and NEVER exposed as extractable text to the LLM prompt.
      *
-     * Google News: good India/exam coverage → headlines with publication dates.
-     * Bing News: provides DIRECT article URLs (no Google redirect) → meta descriptions
-     *   which often contain concise summaries with exact dates.
-     * Combined, these give Gemini rich, real-time context about the exam.
+     * @return array Array of ['headline' => string, 'body_snippet' => string, 'published_at' => string, 'source_url' => string]
      */
-    public function fetchNewsDispatches(string $topic): string {
+    public function fetchNewsDispatches(string $topic): array {
         $cleanQuery = preg_replace('/[^\w\s\-]/u', ' ', $topic);
         $cleanQuery = trim(preg_replace('/\s+/', ' ', (string)$cleanQuery));
 
         $browserUA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
-        $items = [];
+        $dispatches = [];
 
-        // ── SOURCE 1: Google News RSS — headlines and publication dates ─────────
+        // ── SOURCE 1: Google News RSS ─────────────────────────────────────────
         try {
             $gUrl = "https://news.google.com/rss/search?q=" . urlencode($cleanQuery) . "&hl=en-IN&gl=IN&ceid=IN:en";
             $ch = curl_init($gUrl);
@@ -308,9 +308,14 @@ class AuthorityFactFetcherService {
                 if ($xml && isset($xml->channel->item)) {
                     $count = 0;
                     foreach ($xml->channel->item as $item) {
-                        $t    = trim((string)$item->title);
-                        $d    = trim((string)$item->pubDate);
-                        $items[] = "- Headline: {$t} (Published: {$d})";
+                        $t = trim((string)$item->title);
+                        $d = trim((string)$item->pubDate);
+                        $dispatches[] = [
+                            'headline'     => $t,
+                            'body_snippet' => '',
+                            'published_at' => $d,
+                            'source_url'   => (string)($item->link ?? '')
+                        ];
                         if (++$count >= 6) break;
                     }
                 }
@@ -319,9 +324,7 @@ class AuthorityFactFetcherService {
             Logger::warning("fetchNewsDispatches[Google]: " . $e->getMessage());
         }
 
-        // ── SOURCE 2: Bing News RSS — DIRECT article URLs, rich descriptions ───
-        // Bing RSS <link> points to real article URLs (no redirect), so
-        // fetchArticleMeta works correctly here to get actual date summaries.
+        // ── SOURCE 2: Bing News RSS (Direct URLs + Article Meta Summaries) ───
         try {
             $bUrl = "https://www.bing.com/news/search?q=" . urlencode($cleanQuery) . "&format=rss";
             $ch = curl_init($bUrl);
@@ -342,23 +345,22 @@ class AuthorityFactFetcherService {
                         $t    = trim((string)$item->title);
                         $d    = trim((string)$item->pubDate);
                         $desc = trim(strip_tags((string)$item->description));
-                        // Bing descriptions are actual snippets — keep them
-                        $entry = "[Bing] - Headline: {$t} (Published: {$d})";
-                        if (!empty($desc) && strlen($desc) > 30) {
-                            $entry .= "\n  Snippet: " . mb_substr($desc, 0, 300);
-                        }
-                        // Also try meta for first 3 Bing articles (direct URLs work)
                         $link = trim((string)($item->link ?? ''));
+                        $meta = '';
                         if ($metaFetched < 3 && !empty($link) && str_starts_with($link, 'http')) {
                             $meta = $this->fetchArticleMeta($link);
                             if (!empty($meta)) {
-                                $entry .= "\n  Article Summary: {$meta}";
                                 $metaFetched++;
                             }
                         }
-                        $items[] = $entry;
-                        if ($metaFetched >= 3) break; // Stop after 3 successful meta fetches
-                        if (count($items) >= 10) break;
+                        $bodySnippet = !empty($meta) ? $meta : mb_substr($desc, 0, 300);
+                        $dispatches[] = [
+                            'headline'     => $t,
+                            'body_snippet' => $bodySnippet,
+                            'published_at' => $d,
+                            'source_url'   => $link
+                        ];
+                        if ($metaFetched >= 3 || count($dispatches) >= 12) break;
                     }
                 }
             }
@@ -366,7 +368,7 @@ class AuthorityFactFetcherService {
             Logger::warning("fetchNewsDispatches[Bing]: " . $e->getMessage());
         }
 
-        return implode("\n", $items);
+        return $dispatches;
     }
 
 
@@ -478,22 +480,31 @@ class AuthorityFactFetcherService {
         }
         $combinedText = mb_substr(trim($combinedText), 0, 4500);
 
-        // News dispatches: ALWAYS fetch for every topic (not just sparse crawl).
-        // Uses Google News RSS — zero extra Gemini API calls, high signal for dates.
-        // Run two targeted queries: general topic + notification-specific.
-        $dispatchesText = '';
-        $newsGeneral = $this->fetchNewsDispatches($topic);
-        if (!empty($newsGeneral)) {
-            $dispatchesText .= $newsGeneral . "\n";
-        }
-        // Targeted notification / application-dates query
+        // News dispatches: Gather raw dispatches from Google News and Bing News
         $notifQuery = preg_replace('/syllabus|exam pattern|result|admit card/i', '', $topic);
         $notifQuery = trim($notifQuery . ' official notification application dates ' . $currentYear);
-        $newsNotif = $this->fetchNewsDispatches($notifQuery);
-        if (!empty($newsNotif)) {
-            $dispatchesText .= $newsNotif;
+
+        $rawDispatches = array_merge(
+            $this->fetchNewsDispatches($topic),
+            $this->fetchNewsDispatches($notifQuery)
+        );
+
+        // Sanitize & filter in PHP: Drops publication dates completely before LLM context!
+        // The model literally cannot confuse a news publish date with an event date.
+        $sanitizedDispatches = NewsDispatchSanitizer::filterAndSanitize($rawDispatches, 14);
+
+        $dispatchesText = '';
+        if (!empty($sanitizedDispatches)) {
+            $formattedItems = [];
+            foreach ($sanitizedDispatches as $d) {
+                $entry = "- Headline: {$d['headline']}";
+                if (!empty($d['body_snippet'])) {
+                    $entry .= "\n  Report Excerpt: {$d['body_snippet']}";
+                }
+                $formattedItems[] = $entry;
+            }
+            $dispatchesText = mb_substr(implode("\n", array_slice($formattedItems, 0, 8)), 0, 2500);
         }
-        $dispatchesText = mb_substr(trim($dispatchesText), 0, 2000);
 
         $regionalListStr = '';
         if (!empty($crawlData['regional_portals'])) {
@@ -507,10 +518,10 @@ class AuthorityFactFetcherService {
             $contextPrompt .= "NEWS WIRE & DISPATCH DETAILS:\n" . mb_substr($snippet, 0, 1500) . "\n";
         }
         if (!empty($combinedText)) {
-            $contextPrompt .= "CRAWLED OFFICIAL CIRCULARS & NOTICE BOARDS:\n" . $combinedText . "\n";
+            $contextPrompt .= "CRAWLED OFFICIAL CIRCULARS & NOTICE BOARDS (PRIMARY SOURCE):\n" . $combinedText . "\n";
         }
         if (!empty($dispatchesText)) {
-            $contextPrompt .= "VERIFIED OFFICIAL/MEDIA WIRE DISPATCHES (GROUNDED NEWS FEED):\n" . $dispatchesText . "\n";
+            $contextPrompt .= "SUPPORTING NEWS COVERAGE (CONTEXT ONLY — NO PUBLISH DATES INCLUDED):\n" . $dispatchesText . "\n";
         }
         if (!empty($regionalListStr)) {
             $contextPrompt .= "VERIFIED REGIONAL EXAMINATION PORTALS DIRECTORY:\n" . $regionalListStr . "\n";
@@ -550,6 +561,17 @@ CRITICAL ANTI-HEDGING & FACT GROUNDING DIRECTIVES:
 
 4. REGIONAL PORTALS MATRIX:
    - For RRB and SSC, map and include the exact regional board names and portal URLs from the verified directory.
+
+5. CRITICAL ANTI-DATE-CONFUSION RULE ON NEWS COVERAGE:
+   - The "SUPPORTING NEWS COVERAGE" section above contains NO publication dates — this is strictly intentional.
+   - You must NEVER infer, assume, or estimate an exam date, answer key date, or result date based on today's date ({$currentDate}) or when an article was written.
+   - A date is ONLY valid for a milestone if it is EXPLICITLY STATED within the text body as the date of that specific event (e.g. text explicitly says "released on September 7" or "exam scheduled for November 19-20").
+   - If supporting news coverage discusses a topic but does not explicitly state a date for a milestone, that milestone MUST be marked as "Not yet announced" with source_confidence = "unavailable".
+
+6. TENSE DISCIPLINE FOR RESULT & ANSWER-KEY EVENTS:
+   - Before assigning source_confidence = "confirmed_primary_source" or "confirmed_secondary_source" to a "release" or "declared" milestone, confirm the source text uses PAST-TENSE, DECLARATIVE language specifically about the event itself — e.g. "has been released", "was declared on", "is now available for download".
+   - If the source text instead uses FUTURE or CONDITIONAL language — "will be released", "expected to be released", "candidates can check once declared", "is likely to be announced" — the event is NOT confirmed. Mark date as "Not yet announced" and source_confidence as "unavailable".
+   - An article explaining HOW to check an answer key or result once out is NOT evidence that it IS out. Do NOT conflate procedural/explanatory content with a factual release confirmation.
 
 Return strictly as JSON matching this schema:
 {
@@ -645,6 +667,20 @@ PROMPT;
                         $basis = trim((string)($item['tentative_basis'] ?? ''));
                         // If tentative estimate has no credible citation, force to unavailable
                         if (empty($basis) || !preg_match('/\b(202\d|official|circular|calendar|press|sbi|upsc|ssc|rrb|ibps|archive|portal|notification|cycle)\b/i', $basis)) {
+                            $item['source_confidence'] = 'unavailable';
+                            $item['date'] = 'Not yet announced';
+                            $item['tentative_basis'] = null;
+                        }
+                    }
+
+                    // Defense-in-depth: If an event date equals today's date, verify that the source
+                    // explicitly confirmed it was released today (not just an article written today)
+                    $dateVal = trim((string)($item['date'] ?? ''));
+                    if (!empty($dateVal) && (stripos($dateVal, $currentDate) !== false || $dateVal === date('Y-m-d'))) {
+                        $fullContextCorpus = $combinedText . ' ' . $dispatchesText;
+                        $hasExplicitRelease = (bool)preg_match('/\b(has been released|was declared|published today|released today|declared today)\b/i', $fullContextCorpus);
+                        if (!$hasExplicitRelease && preg_match('/result|answer key|scorecard|cut[\s\-]?off/i', $item['milestone'] ?? '')) {
+                            Logger::warning("AuthorityFactFetcherService: Cleaned unconfirmed same-day date '{$dateVal}' for '{$item['milestone']}' — forcing to 'Not yet announced'");
                             $item['source_confidence'] = 'unavailable';
                             $item['date'] = 'Not yet announced';
                             $item['tentative_basis'] = null;
