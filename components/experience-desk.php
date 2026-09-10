@@ -111,9 +111,12 @@ try {
             <input type="hidden" name="form_time" value="<?= $formTime ?>">
             <input type="hidden" name="form_token" value="<?= $formToken ?>">
             
-            <!-- Honeypot anti-spam -->
-            <input type="text" name="website_hp_guard" style="display: none !important;" tabindex="-1" autocomplete="off">
-            <input type="email" name="user_email_hp" style="display: none !important;" tabindex="-1" autocomplete="off">
+            <!-- Honeypot anti-spam: position absolute, zero size, invisible to browser autofill -->
+            <div style="position:absolute;left:-9999px;width:0;height:0;overflow:hidden;" aria-hidden="true">
+                <input type="text" name="website_hp_guard" tabindex="-1" autocomplete="nope" value="">
+                <input type="text" name="user_email_hp" tabindex="-1" autocomplete="nope" value="">
+            </div>
+
 
             <!-- 50% / 50% Center Grid Fields -->
             <div id="centerSpecificFields" class="desk-grid-row" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.85rem; margin-bottom: 0.85rem;">
