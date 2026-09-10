@@ -49,14 +49,16 @@ final class LegacyTableDetector
 
     private static function matchesLegacySignature(string $tableHtml): bool
     {
-        // Signal 1: ALL known legacy headers must be present (or either Statutory Milestone / Official Date)
+        // Signal 1: Check for legacy milestone table header patterns
+        // Pattern A: Contains 'Statutory Milestone' or 'Official Date'
+        // Pattern B: Contains both 'Milestone' AND 'Status' (legacy 2-row template)
         $hasHeader = false;
-        foreach (self::LEGACY_HEADER_SIGNATURES as $sig) {
-            if (stripos($tableHtml, $sig) !== false) {
-                $hasHeader = true;
-                break;
-            }
+        if (stripos($tableHtml, 'Statutory Milestone') !== false || stripos($tableHtml, 'Official Date') !== false) {
+            $hasHeader = true;
+        } elseif (stripos($tableHtml, 'Milestone') !== false && stripos($tableHtml, 'Status') !== false) {
+            $hasHeader = true;
         }
+
         if (!$hasHeader) {
             return false;
         }
