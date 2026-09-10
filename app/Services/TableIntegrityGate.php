@@ -31,21 +31,31 @@ class TableIntegrityGate
 
     /**
      * Scan HTML for forbidden placeholders inside <td> table cells.
+     * Exempts authenticated grounded tentative badges (<span class="status-pill status-pill-tentative">)
+     * carrying a verifiable basis note.
+     * 
      * @param  string $htmlContent  Full article HTML
      * @return array                Violation description strings (empty = clean)
      */
     public function scan(string $htmlContent): array
     {
         $violations = [];
-        $cells = $this->extractTableCellContents($htmlContent);
-        foreach ($cells as $idx => $cellText) {
-            foreach (self::FORBIDDEN_PATTERNS as $pattern => $description) {
-                if (preg_match($pattern, $cellText)) {
-                    $snippet    = mb_substr(strip_tags($cellText), 0, 60);
-                    $violation  = "{$description} in table cell #{$idx}: \"{$snippet}\"";
-                    $violations[] = $violation;
-                    Logger::warning("TableIntegrityGate: {$violation}");
-                    break; // one violation per cell
+        if (preg_match_all('/<td\b[^>]*>(.*?)<\/td>/is', $htmlContent, $matches)) {
+            foreach ($matches[1] as $idx => $cellHtml) {
+                // If this is an authenticated grounded tentative badge with basis, exempt from violation
+                if (str_contains($cellHtml, 'status-pill-tentative') && str_contains($cellHtml, 'basis-note')) {
+                    continue;
+                }
+
+                $cellText = strip_tags($cellHtml);
+                foreach (self::FORBIDDEN_PATTERNS as $pattern => $description) {
+                    if (preg_match($pattern, $cellText)) {
+                        $snippet    = mb_substr($cellText, 0, 60);
+                        $violation  = "{$description} in table cell #{$idx}: \"{$snippet}\"";
+                        $violations[] = $violation;
+                        Logger::warning("TableIntegrityGate: {$violation}");
+                        break; // one violation per cell
+                    }
                 }
             }
         }
@@ -67,6 +77,12 @@ class TableIntegrityGate
         return preg_replace_callback('/<td\b([^>]*)>(.*?)<\/td>/is', function ($m) {
             $attrs = $m[1];
             $body  = $m[2];
+
+            // If this is an authenticated grounded tentative badge with basis, preserve it untouched
+            if (str_contains($body, 'status-pill-tentative') && str_contains($body, 'basis-note')) {
+                return "<td{$attrs}>{$body}</td>";
+            }
+
             $clean = strip_tags($body);
 
             $hasViolation = false;

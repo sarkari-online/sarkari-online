@@ -19,16 +19,23 @@ class MilestoneTableRenderer
     // show_if_null=false -> omit row entirely if null
     private const INTENT_ROWS = [
         'recruitment' => [
-            ['notification_date',       'Notification Released',          false],
-            ['application_start',       'Apply Online Start Date',        false],
-            ['application_end',         'Apply Online Last Date',         true],
-            ['correction_window_start', 'Application Correction Window',  false],
-            ['vacancies',               'Total Vacancies',                false],
-            ['application_fee_general', 'Application Fee (General/OBC)', false],
-            ['application_fee_sc_st',   'Application Fee (SC/ST/PH)',    false],
-            ['age_min',                 'Age Limit (Minimum)',            false],
-            ['age_max',                 'Age Limit (Maximum)',            false],
-            ['exam_dates',              'Exam Date',                      true],
+            ['notification_date',       'Official Notification Released',  true],
+            ['application_start',       'Online Application Start Date',   true],
+            ['application_end',         'Apply Online Last Date',          true],
+            ['correction_window_start', 'Application Correction Window',   false],
+            ['prelims_city_slip',       'Prelims Exam City Slip Release',  false],
+            ['prelims_admit_card',      'Prelims Admit Card Download',     false],
+            ['prelims_exam_date',       'Preliminary Examination Date',    true],
+            ['prelims_result',          'Prelims Result Declaration',      false],
+            ['mains_admit_card',        'Mains Admit Card Release',        false],
+            ['mains_exam_date',         'Mains Examination Date',          true],
+            ['final_merit_list',        'Final Selection / Merit List',    false],
+            ['vacancies',               'Total Vacancies',                 false],
+            ['application_fee_general', 'Application Fee (General/OBC)',  false],
+            ['application_fee_sc_st',   'Application Fee (SC/ST/PH)',     false],
+            ['age_min',                 'Age Limit (Minimum)',             false],
+            ['age_max',                 'Age Limit (Maximum)',             false],
+            ['exam_dates',              'Exam Date (Overall Schedule)',    false],
         ],
         'admit_card' => [
             ['exam_dates',              'Exam Date',                      true],
@@ -56,9 +63,12 @@ class MilestoneTableRenderer
             ['vacancies',               'Total Seats / Vacancies',        false],
         ],
         'syllabus_change' => [
-            ['notification_date',       'Notification Date',              false],
-            ['application_end',         'Application Last Date',          false],
-            ['exam_dates',              'Exam Date',                      true],
+            ['notification_date',       'Official Notification Released',  true],
+            ['application_start',       'Application Registration Window', false],
+            ['application_end',         'Application Last Date',           false],
+            ['prelims_exam_date',       'Preliminary Examination Date',    true],
+            ['mains_exam_date',         'Mains Examination Date',          true],
+            ['exam_dates',              'Exam Date (Overall Schedule)',    false],
         ],
         'corrigendum' => [
             ['notification_date',       'Original Notification Date',     false],
@@ -89,8 +99,7 @@ class MilestoneTableRenderer
             $value        = $facts[$factKey] ?? null;
             $displayValue = $this->formatValue($factKey, $value);
             if ($displayValue === null) {
-                if ($showIfNull) $rows[] = ['label' => $label, 'value' => 'Not yet announced'];
-                // else: omit row entirely — no TBA, no placeholders
+                if ($showIfNull) $rows[] = ['label' => $label, 'value' => MilestoneStatusRenderer::renderBadge('Not yet announced')];
             } else {
                 $rows[] = ['label' => $label, 'value' => $displayValue];
             }
@@ -112,28 +121,41 @@ class MilestoneTableRenderer
 
         $dateKeys = ['notification_date','application_start','application_end',
                      'correction_window_start','correction_window_end','admit_card_date',
-                     'answer_key_date','objection_end','result_date'];
-        if (in_array($key, $dateKeys, true)) return $this->formatDate((string)$value);
+                     'answer_key_date','objection_end','result_date','prelims_exam_date',
+                     'mains_exam_date','prelims_city_slip','prelims_admit_card',
+                     'prelims_result','mains_admit_card','final_merit_list'];
 
-        if ($key === 'exam_dates') {
-            if (!is_array($value) || empty($value)) return null;
-            $formatted = array_filter(array_map(fn($d) => $this->formatDate((string)$d), $value));
-            if (empty($formatted)) return null;
-            if (count($formatted) === 1) return reset($formatted);
-            return reset($formatted) . ' to ' . end($formatted);
+        if (is_array($value)) {
+            if (isset($value['value'])) {
+                $rawVal = (string)$value['value'];
+                $formatted = in_array($key, $dateKeys, true) ? ($this->formatDate($rawVal) ?: $rawVal) : $rawVal;
+                $value['value'] = $formatted;
+                return MilestoneStatusRenderer::renderBadge($value);
+            }
+            if ($key === 'exam_dates') {
+                $formatted = array_filter(array_map(fn($d) => $this->formatDate((string)$d) ?: (string)$d, $value));
+                if (empty($formatted)) return null;
+                $range = (count($formatted) === 1) ? reset($formatted) : (reset($formatted) . ' to ' . end($formatted));
+                return MilestoneStatusRenderer::renderBadge($range);
+            }
+        }
+
+        if (in_array($key, $dateKeys, true)) {
+            $formatted = $this->formatDate((string)$value) ?: (string)$value;
+            return MilestoneStatusRenderer::renderBadge($formatted);
         }
 
         if (in_array($key, ['application_fee_general','application_fee_sc_st'], true)) {
-            if (!is_numeric($value)) return null;
+            if (!is_numeric($value)) return (string)$value;
             $amt = (int)$value;
             return $amt === 0 ? 'Fee Exempt' : "\u{20B9}" . number_format($amt);
         }
         if ($key === 'vacancies') {
-            if (!is_numeric($value)) return null;
+            if (!is_numeric($value)) return (string)$value;
             return number_format((int)$value) . ' Posts';
         }
         if (in_array($key, ['age_min','age_max'], true)) {
-            if (!is_numeric($value)) return null;
+            if (!is_numeric($value)) return (string)$value;
             return (int)$value . ' Years';
         }
         return (string)$value;
@@ -152,12 +174,12 @@ class MilestoneTableRenderer
         $tbody = '';
         foreach ($rows as $row) {
             $l = htmlspecialchars($row['label'], ENT_QUOTES, 'UTF-8');
-            $v = htmlspecialchars($row['value'], ENT_QUOTES, 'UTF-8');
+            $v = $row['value'];
             $tbody .= "<tr><td><strong>{$l}</strong></td><td>{$v}</td></tr>\n";
         }
         return "<div class=\"table-responsive\">\n"
             . "<table class=\"table table-bordered table-striped\">\n"
-            . "<thead class=\"table-dark\"><tr><th>Event</th><th>Date / Details</th></tr></thead>\n"
+            . "<thead class=\"table-dark\"><tr><th>Event / Statutory Milestone</th><th>Official Date / Details</th></tr></thead>\n"
             . "<tbody>\n{$tbody}</tbody>\n</table>\n</div>";
     }
 }

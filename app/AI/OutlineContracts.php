@@ -9,7 +9,15 @@ final class OutlineContracts
 {
     public static function forIntent(ArticleIntent $intent): string
     {
-        return match ($intent) {
+        $tableRule = <<<RULE
+CRITICAL TABLE & PLACEHOLDER INSTRUCTION:
+- Insert the literal text <!--DATES_MILESTONE_TABLE--> immediately after the first <h2> Overview / Circular section.
+- Do NOT generate a dates or statutory milestone table yourself — the system automatically inserts the verified dates table at that exact marker.
+- Any other domain table you generate (Exam Pattern Comparison, Subject Weightage, Shift Schedule, Vacancy Distribution, Fee Structure, Cutoffs, Regional Portals) MUST use standard semantic <table> tags and will be preserved untouched.
+
+RULE;
+
+        $contract = match ($intent) {
             ArticleIntent::ADMIT_CARD => <<<PROMPT
 MANDATORY OUTLINE CONTRACT — Admit Card / Exam City Intimation Slip Article:
 CRITICAL NEGATIVE CONSTRAINT: Do NOT include any "How to Apply Online", "Application Fee", or "Age Limit / Eligibility Criteria" section! The candidates have ALREADY completed the application process months ago.
@@ -179,5 +187,7 @@ Required Structural Flow:
 6. <h2>Official Notice Reference & Gazetted Circular Links</h2>
 PROMPT,
         };
+
+        return $tableRule . "\n" . $contract;
     }
 }

@@ -9,6 +9,8 @@ namespace App\AI;
 
 use App\Services\IntentClassifierService;
 use App\Services\ArticleIntent;
+use App\Services\ContentIntegrityGuard;
+use App\Helpers\Logger;
 use App\AI\OutlineContracts;
 use Exception;
 
@@ -17,22 +19,13 @@ class ArticleGenerator {
     private Gemini $gemini;
     private IntentClassifierService $classifier;
 
+    public const DATES_TABLE_PLACEHOLDER = '<!--DATES_MILESTONE_TABLE-->';
+    public const NOT_YET_ANNOUNCED_LABEL = 'Not Yet Officially Announced';
+
     public function __construct(?Gemini $gemini = null, ?IntentClassifierService $classifier = null) {
         $this->gemini = $gemini ?: new Gemini();
         $this->classifier = $classifier ?: new IntentClassifierService($this->gemini);
     }
-
-    /**
-     * Generate complete in-depth article package (1000+ words) with Intent-Driven Dynamic Outlines
-     * 
-     * @param string $topic Title or topic headline
-     * @param array $sourceData Verified factual notes, official notice text, dates, statutory agency
-     * @param string $category Category slug
-     * @param string $angle Suggested editorial angle
-     * @param string $lifecycleStatus Resolved lifecycle state (active, closed, etc.)
-     * @return array Generated article structure
-     */
-    public const NOT_YET_ANNOUNCED_LABEL = 'Not Yet Officially Announced';
 
     /**
      * Generate complete in-depth article package (1000+ words) with Intent-Driven Dynamic Outlines
@@ -191,9 +184,11 @@ USER_PROMPT;
         // 1. Required fields for the intent
         foreach ($requiredFields as $field) {
             $fact = \App\Services\FactCompletenessRules::findFactByType($facts, $field);
-            $table[$field] = ($fact && ($fact['source_confidence'] ?? '') !== 'unavailable' && !empty($fact['value']))
-                ? $fact['value']
-                : self::NOT_YET_ANNOUNCED_LABEL;
+            if ($fact && ($fact['source_confidence'] ?? '') !== 'unavailable' && !empty($fact['value'])) {
+                $table[$field] = $fact;
+            } else {
+                $table[$field] = self::NOT_YET_ANNOUNCED_LABEL;
+            }
         }
 
         // 2. Additional standard milestones from dates_schedule if available
@@ -215,9 +210,18 @@ USER_PROMPT;
                 if (in_array($mNormalized, $existingKeysNormalized, true)) continue; // already covered by required fields
 
                 $status = $item['status'] ?? 'Confirmed';
-                $table[$m] = ($status === 'Awaiting Official Circular' || stripos($d, 'to be announced') !== false)
-                    ? self::NOT_YET_ANNOUNCED_LABEL
-                    : $d;
+                $confidence = $item['source_confidence'] ?? ($status === 'Confirmed' ? 'confirmed_primary_source' : 'unavailable');
+                $basis = $item['tentative_basis'] ?? null;
+
+                if ($status === 'Awaiting Official Circular' || stripos($d, 'to be announced') !== false || $confidence === 'unavailable') {
+                    $table[$m] = self::NOT_YET_ANNOUNCED_LABEL;
+                } else {
+                    $table[$m] = [
+                        'value' => $d,
+                        'source_confidence' => $confidence,
+                        'tentative_basis' => $basis
+                    ];
+                }
                 $existingKeysNormalized[] = $mNormalized; // track this to avoid further self-dupes
             }
         }
@@ -248,7 +252,7 @@ USER_PROMPT;
     }
 
     /**
-     * Render clean semantic HTML table from dates array
+     * Render clean semantic HTML table from dates array using MilestoneStatusRenderer
      */
     private function renderDatesTableHtml(array $datesTable): string
     {
@@ -257,13 +261,9 @@ USER_PROMPT;
         }
 
         $html = '<div class="table-responsive"><table class="data-table"><thead><tr><th>Statutory Milestone</th><th>Official Date / Status</th></tr></thead><tbody>';
-        foreach ($datesTable as $event => $date) {
+        foreach ($datesTable as $event => $dateFact) {
             $cleanEvent = ucwords(str_replace('_', ' ', (string)$event));
-            $isTba = ($date === self::NOT_YET_ANNOUNCED_LABEL || stripos((string)$date, 'not yet') !== false);
-            $valDisplay = $isTba
-                ? '<span class="status-pill status-pill-upcoming">' . htmlspecialchars(self::NOT_YET_ANNOUNCED_LABEL) . '</span>'
-                : '<strong>' . htmlspecialchars((string)$date) . '</strong>';
-
+            $valDisplay = \App\Services\MilestoneStatusRenderer::renderBadge($dateFact);
             $html .= "<tr><td>{$cleanEvent}</td><td>{$valDisplay}</td></tr>";
         }
         $html .= '</tbody></table></div>';
@@ -271,29 +271,39 @@ USER_PROMPT;
     }
 
     /**
-     * Replace any LLM-fabricated table with the verified PHP-constructed dates table
+     * Safely inject the verified PHP-constructed dates table into the article content.
+     * Uses explicit placeholder token to guarantee other domain tables (Exam Pattern, Syllabus,
+     * Fees, Cutoffs) are NEVER overwritten or destroyed.
      */
-    private function injectPhpDatesTable(string $content, string $datesTableHtml): string
+    public function injectPhpDatesTable(string $content, string $datesTableHtml): string
     {
         if (empty($datesTableHtml)) {
-            return $content;
+            Logger::warning('ArticleGenerator: injectPhpDatesTable called with empty datesTableHtml — stripped placeholder without table injection');
+            return str_replace(self::DATES_TABLE_PLACEHOLDER, '', $content);
         }
 
-        // If the LLM already generated a table right after the first H2, replace that first table
-        if (preg_match('/<div class="table-responsive">.*?<\/table><\/div>/s', $content)) {
-            return preg_replace('/<div class="table-responsive">.*?<\/table><\/div>/s', $datesTableHtml, $content, 1);
+        $before = $content;
+        $after = '';
+
+        if (str_contains($content, self::DATES_TABLE_PLACEHOLDER)) {
+            $after = str_replace(self::DATES_TABLE_PLACEHOLDER, $datesTableHtml, $content);
+        } else {
+            // Placeholder missing (LLM didn't follow the prompt instruction).
+            // Do NOT fall back to guessing which <table> to overwrite — that was the destructive bug.
+            // Insert safely instead: right after the first </h2>, which is reliably the Overview
+            // section boundary in every OutlineContract, and never touches existing table markup.
+            Logger::warning('ArticleGenerator: DATES_TABLE_PLACEHOLDER missing from generated content — using safe fallback insertion');
+            if (preg_match('/(<\/h2>)/i', $content)) {
+                $after = preg_replace('/(<\/h2>)/i', "$1\n" . $datesTableHtml, $content, 1);
+            } else {
+                $after = $datesTableHtml . "\n" . $content;
+            }
         }
 
-        if (preg_match('/<table>.*?<\/table>/s', $content)) {
-            return preg_replace('/<table>.*?<\/table>/s', $datesTableHtml, $content, 1);
-        }
+        // Hard-block any structural degradation (ensures no tables or h2 tags were clobbered)
+        ContentIntegrityGuard::assertNoStructuralLoss($before, $after);
 
-        // Otherwise inject right after the first paragraph following H2
-        if (preg_match('/(<\/h2>\s*<p>.*?<\/p>)/s', $content, $m)) {
-            return str_replace($m[1], $m[1] . "\n" . $datesTableHtml, $content);
-        }
-
-        return $content . "\n" . $datesTableHtml;
+        return $after;
     }
 }
 

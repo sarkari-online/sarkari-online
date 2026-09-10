@@ -69,6 +69,30 @@ final class FactCompletenessRules
     }
 
     /**
+     * Check whether a fact satisfies the strict completeness requirement.
+     * Tiered trust: confirmed sources always satisfy; tentative estimates satisfy
+     * ONLY if grounded in a verifiable citation (year, portal, cycle, official signal).
+     */
+    public static function satisfiesRequirement(array $fact): bool
+    {
+        $confidence = $fact['source_confidence'] ?? ($fact['status'] ?? 'confirmed');
+        if ($confidence === 'unavailable' || $confidence === 'Awaiting Official Circular') {
+            return false;
+        }
+
+        if ($confidence === 'tentative_estimate') {
+            $basis = trim((string)($fact['tentative_basis'] ?? ''));
+            if (empty($basis)) {
+                return false;
+            }
+            // Must contain a substantive citation (a cycle year, portal, circular, or official body reference)
+            return (bool)preg_match('/\b(202\d|official|circular|calendar|press|sbi|upsc|ssc|rrb|ibps|archive|portal|notification|cycle)\b/i', $basis);
+        }
+
+        return in_array($confidence, ['confirmed_primary_source', 'confirmed_secondary_source', 'confirmed', 'active'], true);
+    }
+
+    /**
      * Check whether fact value is substantive (not placeholder, not empty, not TBA)
      */
     private static function isValidFactValue(mixed $fact): bool
@@ -78,6 +102,9 @@ final class FactCompletenessRules
             $confidence = $fact['source_confidence'] ?? ($fact['status'] ?? 'confirmed');
             if ($confidence === 'unavailable' || $confidence === 'Awaiting Official Circular') {
                 return false;
+            }
+            if ($confidence === 'tentative_estimate') {
+                return self::satisfiesRequirement($fact);
             }
         } else {
             $val = (string)$fact;
@@ -92,11 +119,8 @@ final class FactCompletenessRules
             'to be announced',
             'tba',
             'not yet officially announced',
-            'awaited',
             'dates awaited',
             'check official portal',
-            'as per notification',
-            'expected soon',
             'refer to official portal'
         ];
 

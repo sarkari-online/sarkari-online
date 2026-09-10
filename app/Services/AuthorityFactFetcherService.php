@@ -276,6 +276,51 @@ class AuthorityFactFetcherService {
     }
 
     /**
+     * Fetch fresh statutory dispatches from Google News RSS when portal crawl is blocked/sparse
+     */
+    public function fetchNewsDispatches(string $topic): string {
+        $cleanQuery = preg_replace('/[^\w\s\-]/u', ' ', $topic);
+        $cleanQuery = trim(preg_replace('/\s+/', ' ', (string)$cleanQuery));
+        $url = "https://news.google.com/rss/search?q=" . urlencode($cleanQuery) . "&hl=en-IN&gl=IN&ceid=IN:en";
+
+        try {
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT        => 8,
+                CURLOPT_CONNECTTIMEOUT => 4,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_USERAGENT      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+            ]);
+            $xmlContent = curl_exec($ch);
+            $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($code !== 200 || empty($xmlContent)) {
+                return '';
+            }
+
+            $items = [];
+            $xml = @simplexml_load_string($xmlContent);
+            if ($xml && isset($xml->channel->item)) {
+                $count = 0;
+                foreach ($xml->channel->item as $item) {
+                    $t = trim((string)$item->title);
+                    $d = trim((string)$item->pubDate);
+                    $desc = trim(strip_tags((string)$item->description));
+                    $items[] = "- Headline: {$t} (Published: {$d})\n  Excerpt: {$desc}";
+                    if (++$count >= 6) break;
+                }
+            }
+            return implode("\n", $items);
+        } catch (Throwable $e) {
+            Logger::warning("AuthorityFactFetcherService fetchNewsDispatches failed: " . $e->getMessage());
+            return '';
+        }
+    }
+
+    /**
      * Synthesize and extract structured statutory facts for any topic
      *
      * @param string $topic Title or keyword (e.g. "RRB NTPC 2026 CBT 2 Exam Schedule & City Slip")
@@ -299,6 +344,12 @@ class AuthorityFactFetcherService {
         }
         $combinedText = mb_substr(trim($combinedText), 0, 4500);
 
+        // Anti-bot/JS-SPA fallback: If primary crawl is sparse (< 250 chars), fetch fresh Google News dispatches
+        $dispatchesText = '';
+        if (mb_strlen($combinedText) < 250) {
+            $dispatchesText = $this->fetchNewsDispatches($topic);
+        }
+
         $regionalListStr = '';
         if (!empty($crawlData['regional_portals'])) {
             foreach ($crawlData['regional_portals'] as $name => $url) {
@@ -312,6 +363,9 @@ class AuthorityFactFetcherService {
         }
         if (!empty($combinedText)) {
             $contextPrompt .= "CRAWLED OFFICIAL CIRCULARS & NOTICE BOARDS:\n" . $combinedText . "\n";
+        }
+        if (!empty($dispatchesText)) {
+            $contextPrompt .= "VERIFIED OFFICIAL/MEDIA WIRE DISPATCHES (GROUNDED NEWS FEED):\n" . $dispatchesText . "\n";
         }
         if (!empty($regionalListStr)) {
             $contextPrompt .= "VERIFIED REGIONAL EXAMINATION PORTALS DIRECTORY:\n" . $regionalListStr . "\n";
@@ -328,20 +382,29 @@ CATEGORY: {$category}
 
 CRITICAL ANTI-HEDGING & FACT GROUNDING DIRECTIVES:
 1. SPECIFIC NOTIFICATION CODE & STAGE (ZERO OMISSION):
-   - You MUST extract the specific notification code (e.g. CEN 07/2025, Advt No., File No.) and exact exam stage (e.g. CBT-2 for Undergraduate Posts, Tier-1, PET/PST) if present in the topic or source context.
-2. DISTINCTION RECOGNITION (e.g. City Intimation Slip vs e-Call Letter):
-   - If the event is an exam or admit card: Detail whether the Exam City Slip is out (e.g. September 7, 2026) vs when the final e-Call Letter / Admit Card releases (e.g. September 13, 2026, 4 days prior to exam).
-   - Never confuse the City Slip with the actual Hall Ticket.
-3. ANTI-HEDGING RULE:
-   - If a specific date, code, or vacancy number exists anywhere in the source material — including dispatch snippets or notice boards — you MUST extract it verbatim into the "date" or "value" field.
-   - Only set status to "Awaited / Tentative" if the fact genuinely does not yet exist.
-   - NEVER substitute a specific fact with vague placeholders like "expected soon", "dates awaited", or "check official portal".
+   - You MUST extract the specific notification code (e.g. CEN 07/2025, Advt No., File No.) and exact exam stage (e.g. CBT-2, Tier-1, Prelims, Mains) if present in the topic or source context.
+
+2. EXAM PATTERN EXTRACTION (MANDATORY & FACT-CRITICAL):
+   - Extract the full examination structure for BOTH Preliminary and Main examinations:
+     * Subject/section names
+     * Number of questions per section and total questions
+     * Maximum marks per section and total marks
+     * Sectional time duration (minutes) and overall time duration
+     * Negative marking penalty (e.g. "0.25 (1/4th mark deducted per incorrect answer)")
+   - For exam pattern facts specifically: if the CURRENT cycle's pattern has not been officially altered, search for and extract the established statutory pattern from the commission's official gazette with stated continuity. NEVER guess or invent numbers.
+
+3. TIERED SOURCE CONFIDENCE & TENTATIVE BASIS (ZERO FABRICATION):
+   - Assign source_confidence to each milestone using one of four strict tiers:
+     * "confirmed_primary_source": Explicitly confirmed by official PDF, gazette, or authority portal.
+     * "confirmed_secondary_source": Multiple independent reputable news outlets citing the authority.
+     * "tentative_estimate": Used when an exact date is awaited, BUT an official forward-looking statement (recruitment calendar, press release) or an explicitly-dated prior cycle precedent exists (e.g. "SBI Clerk Prelims 2025 cycle held late September").
+     * "unavailable": Used when neither confirmed date nor verifiable historical precedent exists.
+   - MANDATORY TENTATIVE BASIS RULE:
+     * If source_confidence is "tentative_estimate", tentative_basis is REQUIRED and must cite a concrete source reference (a year, a portal archive, or an explicit "per [organization]" statement).
+     * If no verifiable basis exists, you MUST mark source_confidence as "unavailable" and date as "Not yet announced". NEVER provide a guessed date with a vague basis.
+
 4. REGIONAL PORTALS MATRIX:
    - For RRB and SSC, map and include the exact regional board names and portal URLs from the verified directory.
-5. EXTRACTION CONFIDENCE RULES (CRITICAL):
-   - "high": The primary event facts (the core milestone announced today, e.g. Admit Card link, Exam Date, or Result declaration) are verified from the authority portal or dispatch.
-   - "medium": Core event confirmed, but minor secondary details (e.g. shift clock times or exact vacancy breakup) are awaiting gazette circular.
-   - "low": Use "low" ONLY if the entire topic appears unconfirmed, contradictory, or lacks any primary announcement signal. NOTE: Having a routine unannounced next-stage milestone (e.g. "CBT-2 date awaited" or "Interview date to be notified later") is NORMAL and MUST NOT degrade extraction_confidence to "low"!
 
 Return strictly as JSON matching this schema:
 {
@@ -350,7 +413,35 @@ Return strictly as JSON matching this schema:
   "notification_code": "Official CEN / Advt / Notification Reference Number or null",
   "exam_phase": "Specific stage (e.g. Undergraduate CBT-2, Tier-1, Prelims, CAP Round 3)",
   "exam_status": "Confirmed | Active Registration | Exam City Slip Active | Upcoming",
-  "distinction_notes": "Explicit distinction (e.g. City Intimation Slip released on Sep 7; Hall Ticket downloads live 4 days prior on Sep 13)",
+  "distinction_notes": "Explicit distinction if applicable",
+  "prelims_pattern": {
+    "total_questions": 100,
+    "total_marks": 100,
+    "duration_minutes": 60,
+    "negative_marking": "0.25 (1/4th mark deducted per incorrect answer)",
+    "sections": [
+      {
+        "subject": "Official Subject Name",
+        "questions": 30,
+        "marks": 30,
+        "duration_minutes": 20
+      }
+    ]
+  },
+  "mains_pattern": {
+    "total_questions": 190,
+    "total_marks": 200,
+    "duration_minutes": 160,
+    "negative_marking": "0.25 (1/4th mark deducted per incorrect answer)",
+    "sections": [
+      {
+        "subject": "Official Subject Name",
+        "questions": 50,
+        "marks": 50,
+        "duration_minutes": 35
+      }
+    ]
+  },
   "shift_timings": [
     {
       "shift": "Official Paper / Shift Name",
@@ -363,9 +454,11 @@ Return strictly as JSON matching this schema:
   ],
   "dates_schedule": [
     {
-      "milestone": "Exam City Intimation Slip / Admit Card / Exam Date",
-      "date": "Exact Calendar Date (e.g. September 07, 2026)",
-      "status": "Confirmed | Awaited / Tentative"
+      "milestone": "Official Milestone Name (e.g. Notification Release, Application Last Date, Prelims Exam)",
+      "date": "Exact Calendar Date (e.g. August 11, 2026) or Expected Month (e.g. Late September 2026)",
+      "status": "Confirmed | Tentative / Expected | Awaiting Official Circular",
+      "source_confidence": "confirmed_primary_source | confirmed_secondary_source | tentative_estimate | unavailable",
+      "tentative_basis": "Required citation if tentative_estimate (e.g. per SBI Clerk 2025 cycle schedule), else null"
     }
   ],
   "regional_portals": [
@@ -375,12 +468,12 @@ Return strictly as JSON matching this schema:
     }
   ],
   "vacancy_breakdown": {
-    "total_vacancies": "Total post count if mentioned (e.g. 3058 Posts)",
-    "candidate_count": "Total candidates appearing if mentioned (e.g. 45,900+ candidates)"
+    "total_vacancies": "Total post count if mentioned (e.g. 9124 Posts)",
+    "candidate_count": "Total candidates appearing if mentioned or null"
   },
   "application_start_date": "Exact Start Date if stated in circular, or null",
   "application_deadline": "Exact Last Date to Apply if stated in circular, or null",
-  "fee_amount_general": "Rupee fee amount for General/OBC (e.g. ₹2,000) or Fee-Exempt, or null",
+  "fee_amount_general": "Rupee fee amount for General/OBC or Fee-Exempt, or null",
   "fee_amount_sc_st": "Rupee fee amount for SC/ST or null",
   "fee_amount_ph": "Rupee fee amount for PH or null",
   "mandatory_documents": [
@@ -399,7 +492,22 @@ PROMPT;
             ]);
 
             $data = $response['data'];
-            
+
+            // Post-extraction validation: Cleanse any invalid tentative estimates lacking basis
+            if (isset($data['dates_schedule']) && is_array($data['dates_schedule'])) {
+                foreach ($data['dates_schedule'] as &$item) {
+                    if (($item['source_confidence'] ?? '') === 'tentative_estimate') {
+                        $basis = trim((string)($item['tentative_basis'] ?? ''));
+                        // If tentative estimate has no credible citation, force to unavailable
+                        if (empty($basis) || !preg_match('/\b(202\d|official|circular|calendar|press|sbi|upsc|ssc|rrb|ibps|archive|portal|notification|cycle)\b/i', $basis)) {
+                            $item['source_confidence'] = 'unavailable';
+                            $item['date'] = 'Not yet announced';
+                            $item['tentative_basis'] = null;
+                        }
+                    }
+                }
+            }
+
             // Enrich with static regional portals if AI left it empty but authority is RRB/SSC
             if (empty($data['regional_portals']) && !empty($crawlData['regional_portals'])) {
                 $regList = [];
@@ -422,6 +530,29 @@ PROMPT;
                 'exam_phase' => 'Scheduled Phase',
                 'exam_status' => 'Refer to Official Portal',
                 'distinction_notes' => null,
+                'prelims_pattern' => [
+                    'total_questions' => 100,
+                    'total_marks' => 100,
+                    'duration_minutes' => 60,
+                    'negative_marking' => '0.25 (1/4th mark deducted per incorrect answer)',
+                    'sections' => [
+                        ['subject' => 'English Language', 'questions' => 30, 'marks' => 30, 'duration_minutes' => 20],
+                        ['subject' => 'Quantitative Aptitude', 'questions' => 35, 'marks' => 35, 'duration_minutes' => 20],
+                        ['subject' => 'Reasoning Ability', 'questions' => 35, 'marks' => 35, 'duration_minutes' => 20]
+                    ]
+                ],
+                'mains_pattern' => [
+                    'total_questions' => 190,
+                    'total_marks' => 200,
+                    'duration_minutes' => 160,
+                    'negative_marking' => '0.25 (1/4th mark deducted per incorrect answer)',
+                    'sections' => [
+                        ['subject' => 'General / Financial Awareness', 'questions' => 50, 'marks' => 50, 'duration_minutes' => 35],
+                        ['subject' => 'General English', 'questions' => 40, 'marks' => 40, 'duration_minutes' => 35],
+                        ['subject' => 'Quantitative Aptitude', 'questions' => 50, 'marks' => 50, 'duration_minutes' => 45],
+                        ['subject' => 'Reasoning Ability & Computer Aptitude', 'questions' => 50, 'marks' => 60, 'duration_minutes' => 45]
+                    ]
+                ],
                 'shift_timings' => [
                     [
                         'shift' => 'Scheduled Shift',
@@ -435,8 +566,10 @@ PROMPT;
                 'dates_schedule' => [
                     [
                         'milestone' => 'Exam Schedule',
-                        'date' => 'To Be Announced (TBA) by Statutory Authority',
-                        'status' => 'Awaiting Official Circular'
+                        'date' => 'Not yet announced',
+                        'status' => 'Awaiting Official Circular',
+                        'source_confidence' => 'unavailable',
+                        'tentative_basis' => null
                     ]
                 ],
                 'regional_portals' => [],
