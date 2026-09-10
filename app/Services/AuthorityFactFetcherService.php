@@ -276,75 +276,99 @@ class AuthorityFactFetcherService {
     }
 
     /**
-     * Fetch fresh statutory dispatches from Google News RSS.
-     * Also follows the first 3 article links to extract meta descriptions —
-     * meta tags are server-rendered (no JS), fast to fetch, and often contain
-     * concise summaries with exact dates (e.g. "Apply Sep 8–Oct 7, 2026").
+     * Fetch fresh statutory dispatches from Google News + Bing News RSS.
+     *
+     * Google News: good India/exam coverage → headlines with publication dates.
+     * Bing News: provides DIRECT article URLs (no Google redirect) → meta descriptions
+     *   which often contain concise summaries with exact dates.
+     * Combined, these give Gemini rich, real-time context about the exam.
      */
     public function fetchNewsDispatches(string $topic): string {
         $cleanQuery = preg_replace('/[^\w\s\-]/u', ' ', $topic);
         $cleanQuery = trim(preg_replace('/\s+/', ' ', (string)$cleanQuery));
-        $url = "https://news.google.com/rss/search?q=" . urlencode($cleanQuery) . "&hl=en-IN&gl=IN&ceid=IN:en";
 
+        $browserUA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+        $items = [];
+
+        // ── SOURCE 1: Google News RSS — headlines and publication dates ─────────
         try {
-            $ch = curl_init($url);
+            $gUrl = "https://news.google.com/rss/search?q=" . urlencode($cleanQuery) . "&hl=en-IN&gl=IN&ceid=IN:en";
+            $ch = curl_init($gUrl);
             curl_setopt_array($ch, [
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_TIMEOUT        => 8,
-                CURLOPT_CONNECTTIMEOUT => 4,
-                CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_SSL_VERIFYPEER => false,
-                CURLOPT_USERAGENT      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 8,
+                CURLOPT_CONNECTTIMEOUT => 4, CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_SSL_VERIFYPEER => false, CURLOPT_USERAGENT => $browserUA,
             ]);
             $xmlContent = curl_exec($ch);
-            $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $gCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
 
-            if ($code !== 200 || empty($xmlContent)) {
-                return '';
-            }
-
-            $items = [];
-            $xml = @simplexml_load_string($xmlContent);
-            if ($xml && isset($xml->channel->item)) {
-                $count = 0;
-                $metaFetched = 0; // Fetch meta for first 3 articles only (speed)
-                foreach ($xml->channel->item as $item) {
-                    $t    = trim((string)$item->title);
-                    $d    = trim((string)$item->pubDate);
-                    $desc = trim(strip_tags((string)$item->description));
-                    // Google News RSS description is just "title – source", not useful.
-                    // Strip it if it's essentially a duplicate of the title.
-                    if (similar_text($t, $desc) / max(strlen($t), 1) > 0.7) {
-                        $desc = '';
+            if ($gCode === 200 && !empty($xmlContent)) {
+                $xml = @simplexml_load_string($xmlContent);
+                if ($xml && isset($xml->channel->item)) {
+                    $count = 0;
+                    foreach ($xml->channel->item as $item) {
+                        $t    = trim((string)$item->title);
+                        $d    = trim((string)$item->pubDate);
+                        $items[] = "- Headline: {$t} (Published: {$d})";
+                        if (++$count >= 6) break;
                     }
-
-                    $entry = "- Headline: {$t} (Published: {$d})";
-
-                    // Follow article link to get meta description (server-rendered, has actual dates)
-                    $link = trim((string)($item->link ?? $item->guid ?? ''));
-                    if ($metaFetched < 3 && !empty($link) && str_starts_with($link, 'http')) {
-                        $meta = $this->fetchArticleMeta($link);
-                        if (!empty($meta)) {
-                            $entry .= "\n  Article Summary: {$meta}";
-                            $metaFetched++;
-                        }
-                    }
-
-                    if (!empty($desc) && empty($meta ?? '')) {
-                        $entry .= "\n  Excerpt: {$desc}";
-                    }
-
-                    $items[] = $entry;
-                    if (++$count >= 6) break;
                 }
             }
-            return implode("\n", $items);
         } catch (Throwable $e) {
-            Logger::warning("AuthorityFactFetcherService fetchNewsDispatches failed: " . $e->getMessage());
-            return '';
+            Logger::warning("fetchNewsDispatches[Google]: " . $e->getMessage());
         }
+
+        // ── SOURCE 2: Bing News RSS — DIRECT article URLs, rich descriptions ───
+        // Bing RSS <link> points to real article URLs (no redirect), so
+        // fetchArticleMeta works correctly here to get actual date summaries.
+        try {
+            $bUrl = "https://www.bing.com/news/search?q=" . urlencode($cleanQuery) . "&format=rss";
+            $ch = curl_init($bUrl);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 8,
+                CURLOPT_CONNECTTIMEOUT => 4, CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_SSL_VERIFYPEER => false, CURLOPT_USERAGENT => $browserUA,
+            ]);
+            $bContent = curl_exec($ch);
+            $bCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($bCode === 200 && !empty($bContent)) {
+                $bXml = @simplexml_load_string($bContent);
+                if ($bXml && isset($bXml->channel->item)) {
+                    $metaFetched = 0;
+                    foreach ($bXml->channel->item as $item) {
+                        $t    = trim((string)$item->title);
+                        $d    = trim((string)$item->pubDate);
+                        $desc = trim(strip_tags((string)$item->description));
+                        // Bing descriptions are actual snippets — keep them
+                        $entry = "[Bing] - Headline: {$t} (Published: {$d})";
+                        if (!empty($desc) && strlen($desc) > 30) {
+                            $entry .= "\n  Snippet: " . mb_substr($desc, 0, 300);
+                        }
+                        // Also try meta for first 3 Bing articles (direct URLs work)
+                        $link = trim((string)($item->link ?? ''));
+                        if ($metaFetched < 3 && !empty($link) && str_starts_with($link, 'http')) {
+                            $meta = $this->fetchArticleMeta($link);
+                            if (!empty($meta)) {
+                                $entry .= "\n  Article Summary: {$meta}";
+                                $metaFetched++;
+                            }
+                        }
+                        $items[] = $entry;
+                        if ($metaFetched >= 3) break; // Stop after 3 successful meta fetches
+                        if (count($items) >= 10) break;
+                    }
+                }
+            }
+        } catch (Throwable $e) {
+            Logger::warning("fetchNewsDispatches[Bing]: " . $e->getMessage());
+        }
+
+        return implode("\n", $items);
     }
+
 
     /**
      * Fetch article meta description from a news article URL.
