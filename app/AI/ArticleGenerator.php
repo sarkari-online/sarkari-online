@@ -287,11 +287,11 @@ USER_PROMPT;
 
         if (str_contains($content, self::DATES_TABLE_PLACEHOLDER)) {
             $after = str_replace(self::DATES_TABLE_PLACEHOLDER, $datesTableHtml, $content);
+        } elseif (preg_match('/(?:<div[^>]*class=["\'][^"\']*table-responsive[^"\']*["\'][^>]*>\s*)?<table\b[^>]*>.*?Statutory Milestone.*?<\/table>(?:\s*<\/div>)?/is', $content, $existingMilestoneMatch)) {
+            // An existing milestone table already exists in the content — replace it in-place instead of stacking a duplicate!
+            $after = str_replace($existingMilestoneMatch[0], $datesTableHtml, $content);
         } else {
-            // Placeholder missing (LLM didn't follow the prompt instruction).
-            // Do NOT fall back to guessing which <table> to overwrite — that was the destructive bug.
-            // Insert safely instead: right after the first </h2>, which is reliably the Overview
-            // section boundary in every OutlineContract, and never touches existing table markup.
+            // Placeholder missing and no milestone table exists — insert safely after the first </h2>
             Logger::warning('ArticleGenerator: DATES_TABLE_PLACEHOLDER missing from generated content — using safe fallback insertion');
             if (preg_match('/(<\/h2>)/i', $content)) {
                 $after = preg_replace('/(<\/h2>)/i', "$1\n" . $datesTableHtml, $content, 1);

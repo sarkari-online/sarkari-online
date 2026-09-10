@@ -82,6 +82,9 @@ final class LegacyTableDetector
         if (empty($normalized)) {
             return true;
         }
+        if (str_contains($normalized, 'not yet') || str_contains($normalized, 'to be announced') || str_contains($normalized, 'tba') || str_contains($normalized, 'awaited') || str_contains($normalized, 'refer to official')) {
+            return true;
+        }
         foreach (self::PLACEHOLDER_TERMS as $term) {
             if (str_contains($normalized, $term)) {
                 return true;
