@@ -371,6 +371,68 @@ class AuthorityFactFetcherService {
             $contextPrompt .= "VERIFIED REGIONAL EXAMINATION PORTALS DIRECTORY:\n" . $regionalListStr . "\n";
         }
 
+        // ─────────────────────────────────────────────────────────────────────
+        // GOOGLE SEARCH GROUNDING LAYER
+        // Ask Gemini to search Google in real-time for the topic facts.
+        // This is what makes Google AI Overview accurate — we now do the same.
+        // Wrapped in try-catch: if API tier doesn't support grounding or call
+        // fails, we silently fall back to crawl-only context (no breakage).
+        // ─────────────────────────────────────────────────────────────────────
+        try {
+            $groundingSearchPrompt = <<<GSEARCH
+You are a fact-extraction assistant for an Indian government exam information portal.
+
+Use Google Search to find current, VERIFIED official information about the following topic.
+Today's Date: {$currentDate}
+
+TOPIC: {$topic}
+AUTHORITY: {$authority['name']}
+OFFICIAL PORTAL: {$authority['portal']}
+
+Search and report ONLY verified facts — no guessing or fabrication:
+
+1. EXAM PATTERN (mandatory — search official notification or gazette):
+   - Preliminary Exam: number of sections, questions per section, marks per section, total questions, total marks, total duration, sectional time limits, negative marking penalty
+   - Main / Mains Exam: same fields as above
+   - If exam is single-stage only, report that structure
+
+2. CURRENT CYCLE DATES (search for the {$currentYear} notification):
+   - Notification release date and circular/advt number
+   - Application start date and last date
+   - Exam date(s) — confirmed or expected
+   - Result date if announced
+
+3. VACANCIES & FEE:
+   - Total vacancies
+   - Application fee (General/OBC, SC/ST, PH)
+
+4. ANY RECENT OFFICIAL CIRCULAR OR UPDATE
+
+Report everything you find with the source URL or publication it came from. If a specific fact is genuinely not yet officially announced, say so clearly for that item only.
+GSEARCH;
+
+            $groundedResponse = $this->gemini->generateGrounded(
+                $groundingSearchPrompt,
+                ['googleSearch'],
+                ['stage' => 'grounded_fact_search', 'temperature' => 0.05]
+            );
+
+            $groundedText = trim($groundedResponse['text'] ?? '');
+
+            if (!empty($groundedText)) {
+                // Label as highest priority so JSON extractor trusts this over sparse crawl
+                $contextPrompt .= "\nGOOGLE SEARCH GROUNDED FACTS — VERIFIED REAL-TIME (HIGHEST PRIORITY, USE THESE OVER CRAWL DATA):\n"
+                    . mb_substr($groundedText, 0, 3500) . "\n";
+                Logger::info("AuthorityFactFetcherService: Google Search grounding succeeded for '{$topic}' ("
+                    . mb_strlen($groundedText) . " chars grounded context added)");
+            }
+        } catch (Throwable $groundingEx) {
+            // Grounding unavailable (API tier limitation, rate limit, or network error)
+            // This is non-fatal — continue with crawled context
+            Logger::warning("AuthorityFactFetcherService: Google Search grounding unavailable for '{$topic}': "
+                . $groundingEx->getMessage() . " — proceeding with crawl-only context");
+        }
+
         $prompt = <<<PROMPT
 You are the Forensic Fact-Extraction and Chief Verification Officer for Sarkari.online.
 Today's Date: {$currentDate}.
