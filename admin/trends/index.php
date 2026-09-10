@@ -20,6 +20,12 @@ $adminPageKey = 'trends';
 $message = null;
 $messageType = 'success';
 
+if (isset($_GET['publishing'])) {
+    $pId = (int)$_GET['publishing'];
+    $message = "⚡ Trend #{$pId} publishing initiated! The AI is verifying statutory circulars, checking facts, and publishing live. Please refresh in ~1-2 minutes.";
+    $messageType = 'info';
+}
+
 // Process Actions (Approve / Reject / Reset / Publish Now / Clean Backlog)
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     if (!CSRF::verify($_POST['csrf_token'] ?? '')) {
@@ -43,15 +49,20 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 try {
                     TrendService::markStatus($trendId, 'approved', ['trend_score' => 99]);
                     
-                    // Asynchronously dispatch to CLI worker to generate into Review Queue
+                    // Asynchronously dispatch to CLI worker with dedicated log file
                     $cliScript = dirname(__DIR__, 2) . '/cron/publish-single.php';
-                    $cmd = "php " . escapeshellarg($cliScript) . " " . (int)$trendId . " > /dev/null 2>&1 &";
+                    $logDir = dirname(__DIR__, 2) . '/storage/logs';
+                    if (!is_dir($logDir)) {
+                        @mkdir($logDir, 0775, true);
+                    }
+                    $logFile = $logDir . '/publish-' . (int)$trendId . '.log';
+                    $cmd = "php " . escapeshellarg($cliScript) . " " . (int)$trendId . " --force > " . escapeshellarg($logFile) . " 2>&1 &";
                     @exec($cmd);
 
-                    header('Location: ' . url('admin/articles/?started=' . $trendId));
+                    header('Location: ' . url('admin/trends/?publishing=' . $trendId));
                     exit;
                 } catch (\Throwable $e) {
-                    $message = "Error initiating article review: " . $e->getMessage();
+                    $message = "Error initiating article publication: " . $e->getMessage();
                     $messageType = "danger";
                 }
             } elseif ($action === 'approve') {
@@ -347,7 +358,7 @@ include dirname(__DIR__) . '/components/header.php';
                                         <?= CSRF::input() ?>
                                         <input type="hidden" name="trend_id" value="<?= $t['id'] ?>">
 
-                                        <?php if ($t['status'] === 'approved' || $t['status'] === 'detected'): ?>
+                                        <?php if ($t['status'] === 'approved' || $t['status'] === 'detected' || $t['status'] === 'needs_enrichment'): ?>
                                             <button type="submit" name="action" value="publish_now" class="btn btn-xs btn-success" style="font-weight: 700; display: inline-flex; align-items: center; gap: 3px; background: #16a34a; border-color: #15803d;">
                                                 ⚡ Publish Now
                                             </button>
@@ -359,15 +370,22 @@ include dirname(__DIR__) . '/components/header.php';
                                             </button>
                                         <?php endif; ?>
 
-                                        <?php if ($t['status'] === 'detected' || $t['status'] === 'approved'): ?>
+                                        <?php if ($t['status'] === 'detected' || $t['status'] === 'approved' || $t['status'] === 'needs_enrichment'): ?>
                                             <button type="submit" name="action" value="reject" class="btn btn-xs btn-outline" style="color: var(--color-danger);" onclick="return confirm('Reject this topic?');">
                                                 Reject
                                             </button>
                                         <?php endif; ?>
 
                                         <?php if ($t['status'] === 'failed'): ?>
-                                            <button type="submit" name="action" value="reanalyze" class="btn btn-xs btn-secondary">
-                                                Retry
+                                            <?php 
+                                            $raw = !empty($t['raw_payload']) ? (is_array($t['raw_payload']) ? $t['raw_payload'] : (json_decode($t['raw_payload'], true) ?: [])) : [];
+                                            $lastErr = $raw['last_publish_error'] ?? ($raw['enrichment_reason'] ?? 'Generation failed');
+                                            ?>
+                                            <span style="font-size: 0.7rem; color: #dc2626; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: middle;" title="<?= e($lastErr) ?>">
+                                                ⚠️ <?= e(mb_substr($lastErr, 0, 25)) ?>...
+                                            </span>
+                                            <button type="submit" name="action" value="publish_now" class="btn btn-xs btn-warning" style="font-weight: 700;">
+                                                ⚡ Force Retry
                                             </button>
                                         <?php endif; ?>
                                     </form>

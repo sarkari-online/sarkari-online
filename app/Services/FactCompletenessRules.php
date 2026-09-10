@@ -133,6 +133,25 @@ final class FactCompletenessRules
             }
         }
 
+        // 2b. Inside _exam_facts_json (ExamCycleContext from PhaseTransitionCheck)
+        if (!empty($facts['_exam_facts_json'])) {
+            $cycleFacts = is_array($facts['_exam_facts_json']) 
+                ? $facts['_exam_facts_json'] 
+                : (json_decode($facts['_exam_facts_json'], true) ?: []);
+            
+            $cycleMapping = [
+                'result_date' => 'result_date',
+                'admit_card_release_date' => 'admit_card_date',
+                'application_start_date' => 'application_start',
+                'application_deadline' => 'application_end',
+                'fee_amount_general' => 'application_fee_general'
+            ];
+            $targetKey = $cycleMapping[$factType] ?? $factType;
+            if (!empty($cycleFacts[$targetKey])) {
+                return ['value' => (string)$cycleFacts[$targetKey], 'source_confidence' => 'verified'];
+            }
+        }
+
         // 3. Match from dates_schedule milestones
         $milestones = $facts['dates_schedule'] ?? ($facts['verified_facts']['dates_schedule'] ?? []);
         if (is_array($milestones)) {

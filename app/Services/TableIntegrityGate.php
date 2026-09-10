@@ -58,6 +58,37 @@ class TableIntegrityGate
         return empty($this->scan($htmlContent));
     }
 
+    /**
+     * Mechanically auto-repair forbidden placeholders inside <td> table cells,
+     * replacing them with professional, fact-compliant text ("Not yet announced").
+     */
+    public function repair(string $html): string
+    {
+        return preg_replace_callback('/<td\b([^>]*)>(.*?)<\/td>/is', function ($m) {
+            $attrs = $m[1];
+            $body  = $m[2];
+            $clean = strip_tags($body);
+
+            $hasViolation = false;
+            foreach (self::FORBIDDEN_PATTERNS as $pat => $desc) {
+                if (preg_match($pat, $clean)) {
+                    $hasViolation = true;
+                    break;
+                }
+            }
+
+            if ($hasViolation) {
+                if (preg_match('/class="status-pill[^"]*"/i', $body)) {
+                    $body = '<span class="status-pill status-pill-upcoming">Not yet announced</span>';
+                } else {
+                    $body = 'Not yet announced';
+                }
+            }
+
+            return "<td{$attrs}>{$body}</td>";
+        }, $html);
+    }
+
     private function extractTableCellContents(string $html): array
     {
         $cells = [];

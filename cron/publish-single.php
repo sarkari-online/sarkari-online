@@ -48,12 +48,28 @@ try {
         echo "[" . date('Y-m-d H:i:s') . "] SUCCESS: Article #{$articleId} successfully GENERATED and PUBLISHED LIVE!\n";
         Logger::info("CLI Background: Article #{$articleId} generated and published live directly from Trend #{$trendId}");
     } else {
-        echo "[" . date('Y-m-d H:i:s') . "] FAILED: " . ($res['error'] ?? 'Unknown error') . "\n";
-        Logger::error("CLI Background: Generation failed for Trend #{$trendId}: " . ($res['error'] ?? 'Unknown error'));
-        TrendService::markStatus($trendId, 'approved');
+        $err = $res['error'] ?? 'Unknown error';
+        echo "[" . date('Y-m-d H:i:s') . "] FAILED: " . $err . "\n";
+        Logger::error("CLI Background: Generation failed for Trend #{$trendId}: " . $err);
+
+        $trend = Database::fetchOne("SELECT raw_payload FROM trends WHERE id = :id LIMIT 1", ['id' => $trendId]);
+        $raw = !empty($trend['raw_payload']) ? (is_array($trend['raw_payload']) ? $trend['raw_payload'] : (json_decode($trend['raw_payload'], true) ?: [])) : [];
+        $raw['last_publish_error'] = $err;
+        $raw['last_publish_failed_at'] = date('Y-m-d H:i:s');
+        Database::execute("UPDATE trends SET status = 'failed', raw_payload = :raw WHERE id = :id", [
+            'raw' => json_encode($raw, JSON_UNESCAPED_UNICODE),
+            'id' => $trendId
+        ]);
     }
 } catch (\Throwable $e) {
     echo "[" . date('Y-m-d H:i:s') . "] EXCEPTION: " . $e->getMessage() . "\n";
     Logger::error("CLI Background exception for Trend #{$trendId}: " . $e->getMessage());
-    TrendService::markStatus($trendId, 'approved');
+    $trend = Database::fetchOne("SELECT raw_payload FROM trends WHERE id = :id LIMIT 1", ['id' => $trendId]);
+    $raw = !empty($trend['raw_payload']) ? (is_array($trend['raw_payload']) ? $trend['raw_payload'] : (json_decode($trend['raw_payload'], true) ?: [])) : [];
+    $raw['last_publish_error'] = $e->getMessage();
+    $raw['last_publish_failed_at'] = date('Y-m-d H:i:s');
+    Database::execute("UPDATE trends SET status = 'failed', raw_payload = :raw WHERE id = :id", [
+        'raw' => json_encode($raw, JSON_UNESCAPED_UNICODE),
+        'id' => $trendId
+    ]);
 }

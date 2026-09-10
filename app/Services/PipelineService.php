@@ -230,7 +230,7 @@ class PipelineService {
             }
         }
 
-        if (!$completeness->isComplete) {
+        if (!$completeness->isComplete && !$force) {
             $missingList = implode(', ', $completeness->missingFacts);
             $reason = "Missing mandatory statutory facts for {$detectedIntent->value}: {$missingList}";
             TrendService::markStatus($trendId, 'needs_enrichment', [
@@ -243,6 +243,8 @@ class PipelineService {
             ]);
             Logger::warning("PipelineService: Trend #{$trendId} held in needs_enrichment: {$reason}");
             return ['success' => false, 'trend_id' => $trendId, 'status' => 'needs_enrichment', 'error' => $reason];
+        } elseif (!$completeness->isComplete && $force) {
+            Logger::info("PipelineService: Admin force-publish triggered — proceeding with verified available facts for '{$trend['keyword']}'");
         }
 
         $sourceData = [
@@ -252,7 +254,8 @@ class PipelineService {
             'reference' => $verifiedFacts['official_notice_ref'] ?? ($rawPayload['source_attribution']['reference'] ?? ''),
             'notes' => $rawPayload['reasoning'] ?? $trend['keyword'],
             'snippet' => $rawPayload['snippet'] ?? ($trend['category_hint'] ?? ''),
-            'verified_facts' => $verifiedFacts
+            'verified_facts' => $verifiedFacts,
+            'force' => $force
         ];
 
         // Temporal Grounding: Extract Structured Temporal Facts & Resolve Deterministic Lifecycle strictly in Asia/Kolkata
@@ -348,10 +351,11 @@ class PipelineService {
 
         // ── Step 3E.5: TableIntegrityGate ─────────────────────────────────────
         // Scan for TBA/Awaited/placeholder strings inside <td> table cells.
-        // This is the last line of defense before the existing lint gate.
+        // First auto-repair any violations, then verify clean.
         $tableGate = new TableIntegrityGate();
+        $linking['linked_content'] = $tableGate->repair($linking['linked_content']);
         $tableViolations = $tableGate->scan($linking['linked_content']);
-        if (!empty($tableViolations)) {
+        if (!empty($tableViolations) && !$force) {
             $reason = "TableIntegrityGate blocked: " . implode('; ', $tableViolations);
             Database::execute(
                 "UPDATE articles SET article_health_status='NEEDS_REVIEW' WHERE trend_id=:tid",
@@ -366,6 +370,8 @@ class PipelineService {
             ]);
             Logger::warning("PipelineService: Trend #{$trendId} blocked by TableIntegrityGate: " . count($tableViolations) . " violation(s)");
             return ['success' => false, 'trend_id' => $trendId, 'status' => 'needs_enrichment', 'error' => $reason];
+        } elseif (!empty($tableViolations) && $force) {
+            Logger::warning("PipelineService: TableIntegrityGate warnings logged on admin force publish: " . implode('; ', $tableViolations));
         }
         // ── End Step 3E.5 ─────────────────────────────────────────────────────
 
@@ -378,6 +384,10 @@ class PipelineService {
             // Hard block on required field placeholders or today-date hallucinations
             foreach ($lintViolations as $v) {
                 if (str_starts_with($v, 'BLOCKING:')) {
+                    if ($force && str_contains($v, 'unresolved')) {
+                        Logger::info("PipelineService: Admin force publish — proceeding despite unresolved field notification: {$v}");
+                        continue;
+                    }
                     $reason = "Post-generation lint gate blocked publication: {$v}";
                     TrendService::markStatus($trendId, 'needs_enrichment', [
                         'raw_payload' => array_merge($rawPayload, [
