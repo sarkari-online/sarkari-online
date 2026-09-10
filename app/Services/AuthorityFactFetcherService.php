@@ -348,32 +348,61 @@ class AuthorityFactFetcherService {
 
     /**
      * Fetch article meta description from a news article URL.
-     * Only reads first 20KB of HTML (enough for <head> meta tags).
-     * Meta descriptions are server-rendered and often contain date summaries.
+     * Two-step approach:
+     *   1. HEAD request following all redirects → resolves Google News redirect to real article URL
+     *   2. Partial GET (first 25KB) of real article URL → extract <meta> description
+     * This avoids the "Comprehensive news coverage..." Google fallback page.
      */
     private function fetchArticleMeta(string $url): string {
         try {
+            $browserUA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+
+            // Step 1: Follow all redirects (HEAD only) to resolve the actual article URL.
+            // Google News links redirect to the real article — we must not send Range here.
             $ch = curl_init($url);
             curl_setopt_array($ch, [
+                CURLOPT_NOBODY         => true,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_HEADER         => true,
+                CURLOPT_TIMEOUT        => 6,
+                CURLOPT_CONNECTTIMEOUT => 3,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_MAXREDIRS      => 6,
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_USERAGENT      => $browserUA,
+            ]);
+            curl_exec($ch);
+            $finalUrl = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
+            curl_close($ch);
+
+            // If redirect didn't resolve away from Google, skip
+            if (empty($finalUrl) || str_contains($finalUrl, 'news.google.com')) {
+                return '';
+            }
+
+            // Step 2: Fetch only first 25KB of the real article (enough for <head> meta tags).
+            $ch2 = curl_init($finalUrl);
+            curl_setopt_array($ch2, [
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_TIMEOUT        => 5,
                 CURLOPT_CONNECTTIMEOUT => 3,
-                CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_MAXREDIRS      => 3,
                 CURLOPT_SSL_VERIFYPEER => false,
-                // Fetch only first 25KB — enough for <head> and meta tags
                 CURLOPT_RANGE          => '0-25000',
-                CURLOPT_USERAGENT      => 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+                CURLOPT_USERAGENT      => $browserUA,
+                CURLOPT_HTTPHEADER     => [
+                    'Accept: text/html,application/xhtml+xml',
+                    'Accept-Language: en-IN,en;q=0.9',
+                ],
             ]);
-            $html = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
+            $html     = curl_exec($ch2);
+            $httpCode = curl_getinfo($ch2, CURLINFO_HTTP_CODE);
+            curl_close($ch2);
 
             if (empty($html) || ($httpCode !== 200 && $httpCode !== 206)) {
                 return '';
             }
 
-            // Try standard meta description patterns (order: og:description → name=description → twitter:description)
+            // Extract meta description — try og:description, name=description, twitter:description
             $patterns = [
                 '/<meta[^>]+property=["\']og:description["\'][^>]+content=["\'](.*?)["\']/i',
                 '/<meta[^>]+content=["\'](.*?)["\']\s+property=["\']og:description["\']/i',
@@ -386,7 +415,8 @@ class AuthorityFactFetcherService {
                 if (preg_match($pattern, $html, $m)) {
                     $meta = html_entity_decode(strip_tags($m[1]), ENT_QUOTES, 'UTF-8');
                     $meta = trim(preg_replace('/\s+/', ' ', $meta));
-                    if (strlen($meta) > 30) { // Skip trivially short descriptions
+                    // Skip trivially short or clearly generic descriptions
+                    if (strlen($meta) > 40 && !str_contains(strtolower($meta), 'comprehensive') && !str_contains(strtolower($meta), 'google news')) {
                         return mb_substr($meta, 0, 500);
                     }
                 }
@@ -397,6 +427,7 @@ class AuthorityFactFetcherService {
             return ''; // Non-fatal — article might block bots or be slow
         }
     }
+
 
 
     /**
