@@ -192,8 +192,8 @@ class PipelineService {
         // ── End Step 3A.5 ─────────────────────────────────────────────────────
 
 
-        // Safety Gate: Newly discovered or unverified authorities are unconditionally held for human review
-        if (($resolvedAuth['verification_status'] ?? 'verified') !== 'verified') {
+        // Safety Gate: Newly discovered or unverified authorities are unconditionally held for human review (bypassed if admin clicked Publish Now)
+        if (!$force && ($resolvedAuth['verification_status'] ?? 'verified') !== 'verified') {
             $reason = "Authority '{$resolvedAuth['name']}' (" . ($resolvedAuth['portal'] ?: 'No portal') . ") is pending human verification. Auto-publish held.";
             TrendService::markStatus($trendId, 'needs_enrichment', [
                 'raw_payload' => array_merge($rawPayload, [

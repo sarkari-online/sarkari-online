@@ -143,18 +143,27 @@ class AuthorityFactFetcherService {
         if (str_contains($lower, 'ignou') || str_contains($lower, 'indira gandhi national open')) return self::$authorityPortals['ignou'];
         if (str_contains($lower, 'coal india') || str_contains($lower, 'cil mt') || str_contains($lower, 'coalindia')) return self::$authorityPortals['coalindia'];
 
-        // 7. State Admission & CET Cells
+        // 7. Premier Institutes & National Entrance Tests
+        if (str_contains($lower, 'iit jam') || str_contains($lower, 'jam 202') || str_contains($lower, 'jam.iit')) {
+            return ['name' => 'IIT JAM (Joint Admission test for Masters)', 'portal' => 'https://jam2026.iitb.ac.in', 'verification_status' => 'verified'];
+        }
+        if (str_contains($lower, 'gate 202') || str_contains($lower, 'gate exam')) {
+            return ['name' => 'GATE (Graduate Aptitude Test in Engineering)', 'portal' => 'https://gate2026.iitr.ac.in', 'verification_status' => 'verified'];
+        }
+        if (str_contains($lower, 'iit') || str_contains($lower, 'indian institute of technology')) {
+            return ['name' => 'Indian Institute of Technology (IIT)', 'portal' => 'https://www.iitb.ac.in', 'verification_status' => 'verified'];
+        }
         if (str_contains($lower, 'mht cet') || str_contains($lower, 'mahacet') || str_contains($lower, 'cap round')) {
-            return ['name' => 'State Common Entrance Test Cell, Maharashtra', 'portal' => 'https://cetcell.mahacet.org'];
+            return ['name' => 'State Common Entrance Test Cell, Maharashtra', 'portal' => 'https://cetcell.mahacet.org', 'verification_status' => 'verified'];
         }
         if (str_contains($lower, 'rajasthan neet') || str_contains($lower, 'neetrajasthan')) {
-            return ['name' => 'State Medical & Dental Counselling Board, Rajasthan', 'portal' => 'https://ug.neetrajasthan.com'];
+            return ['name' => 'State Medical & Dental Counselling Board, Rajasthan', 'portal' => 'https://ug.neetrajasthan.com', 'verification_status' => 'verified'];
         }
         if (str_contains($lower, 'csir') || str_contains($lower, 'csirnet')) {
-            return ['name' => 'Council of Scientific and Industrial Research (CSIR / NTA)', 'portal' => 'https://csirnet.nta.nic.in'];
+            return ['name' => 'Council of Scientific and Industrial Research (CSIR / NTA)', 'portal' => 'https://csirnet.nta.nic.in', 'verification_status' => 'verified'];
         }
         if (str_contains($lower, 'icar') || str_contains($lower, 'aieea')) {
-            return ['name' => 'Indian Council of Agricultural Research (ICAR / NTA)', 'portal' => 'https://icar.nta.nic.in'];
+            return ['name' => 'Indian Council of Agricultural Research (ICAR / NTA)', 'portal' => 'https://icar.nta.nic.in', 'verification_status' => 'verified'];
         }
 
         // 8. State Boards & Commissions
