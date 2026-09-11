@@ -11,7 +11,6 @@ $primaryNavLinks = [
     ['label' => 'Admit Cards', 'url' => 'category/admit-cards/'],
     ['label' => 'Exam Dates', 'url' => 'category/exam-dates/'],
     ['label' => 'Latest Jobs', 'url' => 'latest-jobs/'],
-    ['label' => 'How to Apply', 'url' => 'how-to-apply/'],
     ['label' => 'Scholarships', 'url' => 'category/scholarships/'],
 ];
 
