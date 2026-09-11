@@ -24,6 +24,7 @@ use Throwable;
 class FullFormFactFetcherService
 {
     private Gemini $gemini;
+    public ?string $lastError = null;
     private const FORBIDDEN_PLACEHOLDERS = [
         '/\bvaries\b/i',
         '/\bcheck official site\b/i',
