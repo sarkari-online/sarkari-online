@@ -155,38 +155,36 @@ include __DIR__ . '/components/head.php';
 include __DIR__ . '/components/header.php';
 ?>
 
-<main class="site-main py-4" style="background-color: #f8fafc; min-height: 80vh;">
-    <div class="container">
+<main class="site-main" style="padding: 2rem 0 5rem 0; background: #f8fafc; min-height: 80vh;">
+    <div class="container" style="max-width: 960px; margin: 0 auto; padding: 0 1rem;">
         
         <!-- Breadcrumbs -->
-        <nav aria-label="breadcrumb" class="mb-3">
-            <ol class="breadcrumb bg-transparent p-0 mb-0" style="font-size: 0.85rem;">
-                <li class="breadcrumb-item"><a href="<?= url() ?>" class="text-decoration-none text-primary font-weight-bold">Home</a></li>
-                <li class="breadcrumb-item"><a href="<?= url('category/application-form/') ?>" class="text-decoration-none text-secondary">Application Guides</a></li>
-                <li class="breadcrumb-item active text-dark font-weight-bold" aria-current="page"><?= $authCode ?> <?= $year ?></li>
+        <nav class="breadcrumb-nav" aria-label="Breadcrumb" style="margin-bottom: 1.5rem;">
+            <ol style="display: flex; flex-wrap: wrap; gap: 0.5rem; list-style: none; padding: 0; margin: 0; font-size: 0.8125rem; color: #64748b;">
+                <li><a href="<?= url() ?>" style="color: var(--color-primary); text-decoration: none; font-weight: 500;">Home</a> <span style="margin: 0 0.35rem; color: #cbd5e1;">/</span></li>
+                <li><a href="<?= url('category/application-form/') ?>" style="color: var(--color-primary); text-decoration: none; font-weight: 500;">Application Guides</a> <span style="margin: 0 0.35rem; color: #cbd5e1;">/</span></li>
+                <li style="color: #0f172a; font-weight: 600;"><?= $authCode ?> <?= $year ?></li>
             </ol>
         </nav>
 
-        <div class="row">
-            <div class="col-lg-8 mx-auto">
-                <div class="card shadow-sm border-0 rounded-3 p-4 p-md-5 bg-white">
-                    
-                    <!-- Authority Verified Badge -->
-                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 pb-3 border-bottom">
-                        <span class="badge bg-primary px-3 py-2" style="font-size: 0.8rem; letter-spacing: 0.5px;">
-                            OFFICIAL STATUTORY DIRECTIVE
-                        </span>
-                        <div class="text-success font-weight-bold" style="font-size: 0.8rem;">
-                            ✓ Verified Portal Authority: <?= $authCode ?> &middot; <?= date('d M Y') ?>
-                        </div>
-                    </div>
-
-                    <!-- Rendered Guide Content -->
-                    <?= $guideData['html'] ?>
-
+        <!-- Main Guide Card -->
+        <article style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 2.25rem; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05); margin-bottom: 2rem;">
+            
+            <!-- Authority Verified Badge & Strip -->
+            <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 1.5rem; padding-bottom: 1.25rem; border-bottom: 1px solid #f1f5f9;">
+                <span style="font-size: 0.72rem; font-weight: 700; color: #1e3a8a; background: #eff6ff; border: 1px solid #bfdbfe; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+                    <?= $authCode ?> OFFICIAL APPLICATION GUIDE
+                </span>
+                <div style="font-size: 0.75rem; color: #15803d; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 4px 10px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+                    <span>Verified Authority &middot; Last Checked: <?= date('M d, Y') ?></span>
                 </div>
             </div>
-        </div>
+
+            <!-- Rendered Guide Content -->
+            <?= $guideData['html'] ?>
+
+        </article>
 
     </div>
 </main>
