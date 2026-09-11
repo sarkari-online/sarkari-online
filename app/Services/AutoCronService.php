@@ -420,6 +420,7 @@ class AutoCronService {
 
         // Ground-Truth Verification: Inspect actual articles published today in MySQL
         // If an article was already published in a slot window today, that slot is guaranteed completed!
+        // Stale or ghost slot records are purged if no matching published article exists.
         try {
             $todayArticles = Database::fetchAll(
                 "SELECT id, published_at FROM articles 
@@ -430,6 +431,7 @@ class AutoCronService {
                 ['today' => $today]
             );
 
+            $verifiedSlots = [];
             foreach ($todayArticles as $art) {
                 $h = (int)date('H', strtotime($art['published_at']));
                 $slotMatched = null;
@@ -441,11 +443,37 @@ class AutoCronService {
                     $slotMatched = 3; // Evening Slot 3 (06:00 PM to 11:59 PM IST)
                 }
 
-                if ($slotMatched && !in_array($slotMatched, $default['completed_slots'], true)) {
-                    $default['completed_slots'][] = $slotMatched;
+                if ($slotMatched && !in_array($slotMatched, $verifiedSlots, true)) {
+                    $verifiedSlots[] = $slotMatched;
                 }
             }
-            sort($default['completed_slots']);
+
+            // Also keep slots from state only if their recorded article_id exists and is published today
+            if (!empty($default['slot_history'])) {
+                foreach ($default['slot_history'] as $sNum => $hist) {
+                    $artId = (int)($hist['article_id'] ?? 0);
+                    if ($artId > 0) {
+                        $isPub = (int)Database::fetchValue(
+                            "SELECT COUNT(*) FROM articles WHERE id = :id AND status = 'published' AND DATE(published_at) = :today LIMIT 1",
+                            ['id' => $artId, 'today' => $today]
+                        );
+                        if ($isPub > 0 && !in_array((int)$sNum, $verifiedSlots, true)) {
+                            $verifiedSlots[] = (int)$sNum;
+                        }
+                    }
+                }
+            }
+
+            sort($verifiedSlots);
+            $default['completed_slots'] = $verifiedSlots;
+            
+            // If the persisted state had stale slots, re-sync Settings
+            if (isset($val)) {
+                $persistedCompleted = is_array($decoded['completed_slots'] ?? null) ? $decoded['completed_slots'] : [];
+                if ($persistedCompleted !== $verifiedSlots) {
+                    SettingsService::set('cron_daily_slots_state', json_encode($default), 'json', 'Daily autonomous slot execution state');
+                }
+            }
         } catch (Throwable $e) {}
 
         return $default;

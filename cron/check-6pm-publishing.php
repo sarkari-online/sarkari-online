@@ -80,7 +80,7 @@ echo "  • Detected Trends (Waiting analysis)  : {$detectedCount}\n";
 echo "  • In Analysis / Processing           : {$analyzingCount} / {$processingCount}\n";
 
 $topApproved = Database::fetchAll(
-    "SELECT id, keyword, source, trend_score, status, approved_at 
+    "SELECT id, keyword, source, trend_score, status, analyzed_at 
      FROM trends 
      WHERE status = 'approved' 
      ORDER BY trend_score DESC, id DESC 
