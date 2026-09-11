@@ -174,4 +174,31 @@ echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
     </url>
     <?php endforeach; ?>
 
+    <!-- Individual Verified Application Guides (Phase-Gated) -->
+    <?php
+    try {
+        $appGuideCycles = \App\Database\Database::fetchAll(
+            "SELECT authority_code, cycle_year, last_verified_at, updated_at 
+               FROM exam_cycles 
+              WHERE current_phase IN ('APPLICATION_OPEN', 'APPLICATION_CORRECTION')
+                AND phase_confidence = 'VERIFIED'"
+        );
+        foreach ($appGuideCycles as $agCycle):
+            $agSlug = strtolower($agCycle['authority_code']) . '-' . $agCycle['cycle_year'];
+            $agUrl = url('how-to-apply/' . $agSlug . '/');
+            if (isset($seenUrls[$agUrl])) continue;
+            $seenUrls[$agUrl] = true;
+            $agLastmod = !empty($agCycle['last_verified_at']) 
+                ? date('Y-m-d', strtotime($agCycle['last_verified_at'])) 
+                : (!empty($agCycle['updated_at']) ? date('Y-m-d', strtotime($agCycle['updated_at'])) : date('Y-m-d'));
+    ?>
+    <url>
+        <loc><?= htmlspecialchars($agUrl, ENT_XML1, 'UTF-8') ?></loc>
+        <lastmod><?= $agLastmod ?></lastmod>
+    </url>
+    <?php 
+        endforeach;
+    } catch (\Throwable $e) {}
+    ?>
+
 </urlset>
