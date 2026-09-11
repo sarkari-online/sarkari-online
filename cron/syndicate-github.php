@@ -108,5 +108,14 @@ if (count($liveLinks) > 10) {
     echo "   ... and " . (count($liveLinks) - 10) . " more active GitHub backlinks!\n";
 }
 
+echo "3. Rebuilding GitHub Pages Knowledge Hub Landing Page...\n";
+$rebuildRes = GithubSyndicationService::rebuildLandingPage();
+if (!empty($rebuildRes['success'])) {
+    echo "   ↳ [✓ SUCCESS] Landing Page updated with " . ($rebuildRes['total_notices'] ?? 0) . " notices!\n";
+    echo "   ↳ Live URL: " . ($rebuildRes['landing_url'] ?? '') . "\n\n";
+} else {
+    echo "   ↳ [✗ WARNING] " . ($rebuildRes['error'] ?? 'Rebuild failed') . "\n\n";
+}
+
 echo "=================================================================\n";
-echo "✅ Complete! All backlinks are open, indexable, and live on GitHub (DA 96).\n";
+echo "✅ Complete! All backlinks and Landing Page are live on GitHub (DA 96).\n";
