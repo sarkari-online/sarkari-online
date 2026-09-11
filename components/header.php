@@ -252,6 +252,7 @@
         <div class="search-quick-tags">
             <div class="search-tags-title">Popular Searches</div>
             <div class="search-tag-list">
+                <a href="<?= url('how-to-apply/') ?>" class="search-tag-chip" title="How to Apply Online — Govt Exam Application Guides">How to Apply</a>
                 <a href="<?= url('category/entrance-exams/') ?>" class="search-tag-chip" title="Search NEET UG 2026 Updates">NEET UG 2026</a>
                 <a href="<?= url('category/exam-results/') ?>" class="search-tag-chip" title="Search JEE Advanced Cutoff">JEE Advanced Cutoff</a>
                 <a href="<?= url('category/government-jobs/') ?>" class="search-tag-chip" title="Search SSC CGL 2026 Recruitment">SSC CGL 2026</a>

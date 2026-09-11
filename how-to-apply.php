@@ -42,9 +42,10 @@ if (empty($slug)) {
     $canonicalUrl = url('how-to-apply/');
     $ogType       = 'website';
 
+    // Relative breadcrumbs path (breadcrumbs.php wraps url() internally)
     $crumbs = [
-        ['label' => 'Home', 'url' => url()],
-        ['label' => 'Application Guides', 'url' => null]
+        ['label' => 'Home', 'url' => ''],
+        ['label' => 'How to Apply', 'url' => null]
     ];
 
     // Fetch Active Cycles (APPLICATION_OPEN or APPLICATION_CORRECTION)
@@ -60,7 +61,7 @@ if (empty($slug)) {
         "SELECT * FROM exam_cycles 
           WHERE current_phase IN ('ANNUAL_CALENDAR_ONLY', 'NOTIFICATION_RELEASED')
             AND phase_confidence = 'VERIFIED'
-          ORDER BY id DESC LIMIT 20"
+          ORDER BY id DESC LIMIT 25"
     );
 
     // Fetch Concluded / Reference Verified Cycles
@@ -78,7 +79,7 @@ if (empty($slug)) {
                 '@type' => 'BreadcrumbList',
                 'itemListElement' => [
                     ['@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => url()],
-                    ['@type' => 'ListItem', 'position' => 2, 'name' => 'Application Guides', 'item' => $canonicalUrl]
+                    ['@type' => 'ListItem', 'position' => 2, 'name' => 'How to Apply', 'item' => $canonicalUrl]
                 ]
             ],
             [
@@ -102,119 +103,68 @@ if (empty($slug)) {
             <!-- Breadcrumbs -->
             <?php include __DIR__ . '/components/breadcrumbs.php'; ?>
 
-            <div class="article-layout-grid">
+            <!-- Full Width Container (No right-side sidebar) -->
+            <div style="width: 100%; margin-top: 1.5rem;">
                 
-                <!-- Main Content Column (Full Width in Grid) -->
-                <article class="article-main-column">
-                    
-                    <header style="margin-bottom: 2rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 1.5rem;">
-                        <h1 style="font-size: 2rem; font-weight: 800; color: #0f172a; margin: 0 0 0.75rem 0; line-height: 1.25; letter-spacing: -0.02em;">
-                            Government Exam Application Guides (2026)
-                        </h1>
-                        <p style="font-size: 1.05rem; color: #475569; line-height: 1.6; margin: 0;">
-                            Official step-by-step registration guides, active application portals, document upload guidelines, and form correction procedures verified against statutory commission circulars.
-                        </p>
-                    </header>
+                <header style="margin-bottom: 2rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 1.5rem;">
+                    <h1 style="font-size: 2rem; font-weight: 800; color: #0f172a; margin: 0 0 0.75rem 0; line-height: 1.25; letter-spacing: -0.02em;">
+                        Government Exam Application Guides (2026)
+                    </h1>
+                    <p style="font-size: 1.05rem; color: #475569; line-height: 1.6; margin: 0;">
+                        Official step-by-step registration guides, active application portals, document upload guidelines, and form correction procedures verified against statutory commission circulars.
+                    </p>
+                </header>
 
-                    <!-- Section 1: Active Application Windows -->
-                    <section style="margin-bottom: 3rem;">
-                        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem;">
-                            <h2 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 0;">
-                                Active Application &amp; Correction Portals
-                            </h2>
-                            <span style="font-size: 0.75rem; font-weight: 700; color: #166534; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 3px 8px; border-radius: 4px;">
-                                Live Now
-                            </span>
-                        </div>
-
-                        <?php if (!empty($activeCycles)): ?>
-                            <div style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
-                                <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
-                                    <thead>
-                                        <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
-                                            <th style="padding: 0.85rem 1rem; text-align: left; color: #1e3a8a; font-weight: 700;">Examination / Recruitment</th>
-                                            <th style="padding: 0.85rem 1rem; text-align: left; color: #475569; font-weight: 600;">Authority</th>
-                                            <th style="padding: 0.85rem 1rem; text-align: left; color: #475569; font-weight: 600;">Current Phase</th>
-                                            <th style="padding: 0.85rem 1rem; text-align: left; color: #475569; font-weight: 600;">Last Date</th>
-                                            <th style="padding: 0.85rem 1rem; text-align: right; color: #475569; font-weight: 600;">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php foreach ($activeCycles as $c): 
-                                            $cSlug = formatGuideSlug($c);
-                                            $facts = !empty($c['facts_json']) ? json_decode($c['facts_json'], true) : [];
-                                            $lastDate = !empty($facts['application_end']) ? date('d M Y', strtotime($facts['application_end'])) : 'Refer Notice';
-                                            $phaseBadge = $c['current_phase'] === 'APPLICATION_CORRECTION' 
-                                                ? '<span style="color: #1e40af; background: #eff6ff; border: 1px solid #bfdbfe; font-size: 0.75rem; font-weight: 700; padding: 2px 6px; border-radius: 4px;">Correction Window</span>'
-                                                : '<span style="color: #166534; background: #f0fdf4; border: 1px solid #bbf7d0; font-size: 0.75rem; font-weight: 700; padding: 2px 6px; border-radius: 4px;">Application Open</span>';
-                                        ?>
-                                            <tr style="border-bottom: 1px solid #f1f5f9;">
-                                                <td style="padding: 0.85rem 1rem; font-weight: 700;">
-                                                    <a href="<?= url("how-to-apply/{$cSlug}/") ?>" style="color: #0f172a; text-decoration: none;">
-                                                        <?= e($c['exam_name']) ?> (<?= e((string)$c['cycle_year']) ?>)
-                                                    </a>
-                                                </td>
-                                                <td style="padding: 0.85rem 1rem; color: #475569; font-weight: 600;">
-                                                    <?= e($c['authority_code']) ?>
-                                                </td>
-                                                <td style="padding: 0.85rem 1rem;">
-                                                    <?= $phaseBadge ?>
-                                                </td>
-                                                <td style="padding: 0.85rem 1rem; color: #334155;">
-                                                    <?= e($lastDate) ?>
-                                                </td>
-                                                <td style="padding: 0.85rem 1rem; text-align: right;">
-                                                    <a href="<?= url("how-to-apply/{$cSlug}/") ?>" style="display: inline-block; background: #1e3a8a; color: #ffffff; font-size: 0.8rem; font-weight: 700; padding: 4px 10px; border-radius: 4px; text-decoration: none;">
-                                                        View Guide &rarr;
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                        <?php endforeach; ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                        <?php else: ?>
-                            <p style="color: #64748b;">Currently no application forms are active. Check upcoming schedules below.</p>
-                        <?php endif; ?>
-                    </section>
-
-                    <!-- Section 2: Upcoming & Announced Cycles -->
-                    <section style="margin-bottom: 3rem;">
-                        <h2 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 0 0 1rem 0;">
-                            Upcoming Examination Schedules &amp; Calendars
+                <!-- Section 1: Active Application Windows -->
+                <section style="margin-bottom: 3rem;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem;">
+                        <h2 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 0;">
+                            Active Application &amp; Correction Portals
                         </h2>
+                        <span style="font-size: 0.75rem; font-weight: 700; color: #166534; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 3px 8px; border-radius: 4px;">
+                            Live Now
+                        </span>
+                    </div>
+
+                    <?php if (!empty($activeCycles)): ?>
                         <div style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
                             <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
                                 <thead>
                                     <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
-                                        <th style="padding: 0.85rem 1rem; text-align: left; color: #1e3a8a; font-weight: 700;">Examination</th>
+                                        <th style="padding: 0.85rem 1rem; text-align: left; color: #1e3a8a; font-weight: 700;">Examination / Recruitment</th>
                                         <th style="padding: 0.85rem 1rem; text-align: left; color: #475569; font-weight: 600;">Authority</th>
-                                        <th style="padding: 0.85rem 1rem; text-align: left; color: #475569; font-weight: 600;">Official Portal</th>
-                                        <th style="padding: 0.85rem 1rem; text-align: right; color: #475569; font-weight: 600;">Guide</th>
+                                        <th style="padding: 0.85rem 1rem; text-align: left; color: #475569; font-weight: 600;">Current Phase</th>
+                                        <th style="padding: 0.85rem 1rem; text-align: left; color: #475569; font-weight: 600;">Last Date</th>
+                                        <th style="padding: 0.85rem 1rem; text-align: right; color: #475569; font-weight: 600;">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php foreach ($upcomingCycles as $c): 
+                                    <?php foreach ($activeCycles as $c): 
                                         $cSlug = formatGuideSlug($c);
-                                        $portal = $c['phase_evidence_url'] ?: 'https://' . strtolower($c['authority_code']) . '.gov.in';
+                                        $facts = !empty($c['facts_json']) ? json_decode($c['facts_json'], true) : [];
+                                        $lastDate = !empty($facts['application_end']) ? date('d M Y', strtotime($facts['application_end'])) : 'Refer Notice';
+                                        $phaseBadge = $c['current_phase'] === 'APPLICATION_CORRECTION' 
+                                            ? '<span style="color: #1e40af; background: #eff6ff; border: 1px solid #bfdbfe; font-size: 0.75rem; font-weight: 700; padding: 2px 6px; border-radius: 4px;">Correction Window</span>'
+                                            : '<span style="color: #166534; background: #f0fdf4; border: 1px solid #bbf7d0; font-size: 0.75rem; font-weight: 700; padding: 2px 6px; border-radius: 4px;">Application Open</span>';
                                     ?>
                                         <tr style="border-bottom: 1px solid #f1f5f9;">
-                                            <td style="padding: 0.85rem 1rem; font-weight: 600; color: #0f172a;">
+                                            <td style="padding: 0.85rem 1rem; font-weight: 700;">
                                                 <a href="<?= url("how-to-apply/{$cSlug}/") ?>" style="color: #0f172a; text-decoration: none;">
                                                     <?= e($c['exam_name']) ?> (<?= e((string)$c['cycle_year']) ?>)
                                                 </a>
                                             </td>
-                                            <td style="padding: 0.85rem 1rem; color: #475569;">
+                                            <td style="padding: 0.85rem 1rem; color: #475569; font-weight: 600;">
                                                 <?= e($c['authority_code']) ?>
                                             </td>
                                             <td style="padding: 0.85rem 1rem;">
-                                                <a href="<?= e($portal) ?>" target="_blank" rel="noopener noreferrer" style="color: #1e3a8a; text-decoration: underline;">
-                                                    <?= parse_url($portal, PHP_URL_HOST) ?> &rarr;
-                                                </a>
+                                                <?= $phaseBadge ?>
+                                            </td>
+                                            <td style="padding: 0.85rem 1rem; color: #334155;">
+                                                <?= e($lastDate) ?>
                                             </td>
                                             <td style="padding: 0.85rem 1rem; text-align: right;">
-                                                <a href="<?= url("how-to-apply/{$cSlug}/") ?>" style="color: #1e3a8a; font-weight: 700; text-decoration: none;">
-                                                    Read Process &rarr;
+                                                <a href="<?= url("how-to-apply/{$cSlug}/") ?>" style="display: inline-block; background: #1e3a8a; color: #ffffff; font-size: 0.8rem; font-weight: 700; padding: 5px 12px; border-radius: 4px; text-decoration: none;">
+                                                    View Guide &rarr;
                                                 </a>
                                             </td>
                                         </tr>
@@ -222,46 +172,90 @@ if (empty($slug)) {
                                 </tbody>
                             </table>
                         </div>
-                    </section>
-
-                    <!-- Section 3: Reference & Past Cycles -->
-                    <?php if (!empty($referenceCycles)): ?>
-                    <section style="margin-bottom: 2rem;">
-                        <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0 0 1rem 0;">
-                            Archived Procedural References
-                        </h2>
-                        <div style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
-                            <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
-                                <tbody>
-                                    <?php foreach ($referenceCycles as $c): 
-                                        $cSlug = formatGuideSlug($c);
-                                    ?>
-                                        <tr style="border-bottom: 1px solid #f1f5f9;">
-                                            <td style="padding: 0.75rem 1rem; font-weight: 600;">
-                                                <a href="<?= url("how-to-apply/{$cSlug}/") ?>" style="color: #334155; text-decoration: none;">
-                                                    <?= e($c['exam_name']) ?> (<?= e((string)$c['cycle_year']) ?>)
-                                                </a>
-                                            </td>
-                                            <td style="padding: 0.75rem 1rem; color: #64748b;">
-                                                <?= e($c['authority_code']) ?>
-                                            </td>
-                                            <td style="padding: 0.75rem 1rem; text-align: right;">
-                                                <a href="<?= url("how-to-apply/{$cSlug}/") ?>" style="color: #64748b; text-decoration: none;">
-                                                    View Reference &rarr;
-                                                </a>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    </section>
+                    <?php else: ?>
+                        <p style="color: #64748b;">Currently no application forms are active. Check upcoming schedules below.</p>
                     <?php endif; ?>
+                </section>
 
-                </article>
+                <!-- Section 2: Upcoming & Announced Cycles -->
+                <section style="margin-bottom: 3rem;">
+                    <h2 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 0 0 1rem 0;">
+                        Upcoming Examination Schedules &amp; Calendars
+                    </h2>
+                    <div style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                            <thead>
+                                <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                                    <th style="padding: 0.85rem 1rem; text-align: left; color: #1e3a8a; font-weight: 700;">Examination</th>
+                                    <th style="padding: 0.85rem 1rem; text-align: left; color: #475569; font-weight: 600;">Authority</th>
+                                    <th style="padding: 0.85rem 1rem; text-align: left; color: #475569; font-weight: 600;">Official Portal</th>
+                                    <th style="padding: 0.85rem 1rem; text-align: right; color: #475569; font-weight: 600;">Guide</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($upcomingCycles as $c): 
+                                    $cSlug = formatGuideSlug($c);
+                                    $portal = $c['phase_evidence_url'] ?: 'https://' . strtolower($c['authority_code']) . '.gov.in';
+                                ?>
+                                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                                        <td style="padding: 0.85rem 1rem; font-weight: 600; color: #0f172a;">
+                                            <a href="<?= url("how-to-apply/{$cSlug}/") ?>" style="color: #0f172a; text-decoration: none;">
+                                                <?= e($c['exam_name']) ?> (<?= e((string)$c['cycle_year']) ?>)
+                                            </a>
+                                        </td>
+                                        <td style="padding: 0.85rem 1rem; color: #475569;">
+                                            <?= e($c['authority_code']) ?>
+                                        </td>
+                                        <td style="padding: 0.85rem 1rem;">
+                                            <a href="<?= e($portal) ?>" target="_blank" rel="noopener noreferrer" style="color: #1e3a8a; text-decoration: underline;">
+                                                <?= parse_url($portal, PHP_URL_HOST) ?> &rarr;
+                                            </a>
+                                        </td>
+                                        <td style="padding: 0.85rem 1rem; text-align: right;">
+                                            <a href="<?= url("how-to-apply/{$cSlug}/") ?>" style="color: #1e3a8a; font-weight: 700; text-decoration: none;">
+                                                Read Process &rarr;
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
 
-                <!-- Right Sidebar -->
-                <?php include __DIR__ . '/components/sidebar.php'; ?>
+                <!-- Section 3: Reference & Past Cycles -->
+                <?php if (!empty($referenceCycles)): ?>
+                <section style="margin-bottom: 2rem;">
+                    <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0 0 1rem 0;">
+                        Archived Procedural References
+                    </h2>
+                    <div style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+                            <tbody>
+                                <?php foreach ($referenceCycles as $c): 
+                                    $cSlug = formatGuideSlug($c);
+                                ?>
+                                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                                        <td style="padding: 0.75rem 1rem; font-weight: 600;">
+                                            <a href="<?= url("how-to-apply/{$cSlug}/") ?>" style="color: #334155; text-decoration: none;">
+                                                <?= e($c['exam_name']) ?> (<?= e((string)$c['cycle_year']) ?>)
+                                            </a>
+                                        </td>
+                                        <td style="padding: 0.75rem 1rem; color: #64748b;">
+                                            <?= e($c['authority_code']) ?>
+                                        </td>
+                                        <td style="padding: 0.75rem 1rem; text-align: right;">
+                                            <a href="<?= url("how-to-apply/{$cSlug}/") ?>" style="color: #64748b; text-decoration: none;">
+                                                View Reference &rarr;
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+                <?php endif; ?>
 
             </div>
 
@@ -346,9 +340,10 @@ $year      = htmlspecialchars((string)$cycle['cycle_year'], ENT_QUOTES, 'UTF-8')
 $portalUrl = $cycle['phase_evidence_url'] ?: 'https://' . strtolower($authCode) . '.nic.in';
 
 // 3. Structured Data: HowTo & Breadcrumbs
+// Pass relative paths to avoid url(url()) double domain
 $crumbs = [
-    ['label' => 'Home', 'url' => url()],
-    ['label' => 'Application Guides', 'url' => url('how-to-apply/')],
+    ['label' => 'Home', 'url' => ''],
+    ['label' => 'How to Apply', 'url' => 'how-to-apply/'],
     ['label' => "{$authCode} {$year}", 'url' => null]
 ];
 
@@ -359,7 +354,7 @@ $schemaJson = json_encode([
             '@type' => 'BreadcrumbList',
             'itemListElement' => [
                 ['@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => url()],
-                ['@type' => 'ListItem', 'position' => 2, 'name' => 'Application Guides', 'item' => url('how-to-apply/')],
+                ['@type' => 'ListItem', 'position' => 2, 'name' => 'How to Apply', 'item' => url('how-to-apply/')],
                 ['@type' => 'ListItem', 'position' => 3, 'name' => "{$authCode} {$year} Guide", 'item' => $canonicalUrl]
             ]
         ],
@@ -415,10 +410,10 @@ include __DIR__ . '/components/header.php';
         <!-- Breadcrumbs -->
         <?php include __DIR__ . '/components/breadcrumbs.php'; ?>
 
-        <div class="article-layout-grid">
+        <!-- Full Width Layout (No right sidebar) -->
+        <div style="width: 100%; margin-top: 1.5rem;">
             
-            <!-- Left Main Column (Full width in grid, zero floating card borders) -->
-            <article class="article-main-column">
+            <article style="width: 100%;">
                 
                 <!-- Authority Verified Header Strip -->
                 <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 1.5rem; padding-bottom: 0.75rem; border-bottom: 1px solid #e2e8f0;">
@@ -453,9 +448,6 @@ include __DIR__ . '/components/header.php';
                 </div>
 
             </article>
-
-            <!-- Right Sidebar (Standard Sarkari.online Sidebar) -->
-            <?php include __DIR__ . '/components/sidebar.php'; ?>
 
         </div>
 

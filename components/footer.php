@@ -44,6 +44,7 @@
                     <h3 class="footer-heading">Recruitment &amp; Aid</h3>
                     <ul class="footer-links-list">
                         <li><a href="<?= url('state-jobs/') ?>" class="footer-link" title="State Government Jobs 2026 — 28 States &amp; UTs">State Govt Jobs 2026</a></li>
+                        <li><a href="<?= url('how-to-apply/') ?>" class="footer-link" title="How to Apply Online — Govt Exam Application Guides">How to Apply (Forms)</a></li>
                         <li><a href="<?= url('category/government-jobs/') ?>" class="footer-link" title="Staff Selection Commission (SSC) Recruitment">Staff Selection (SSC)</a></li>
                         <li><a href="<?= url('category/government-jobs/') ?>" class="footer-link" title="Railway Recruitment Board (RRB) Jobs">Railway Recruitment (RRB)</a></li>
                         <li><a href="<?= url('tools/age-calculator/') ?>" class="footer-link" title="Govt Job Age Calculator &amp; Eligibility Tool">Govt Job Age Calculator</a></li>
