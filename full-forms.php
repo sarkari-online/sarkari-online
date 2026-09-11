@@ -106,7 +106,12 @@ if (!empty($termSlug)) {
                     </span>
                     <div style="font-size: 0.75rem; color: #15803d; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 3px 9px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
-                        <span>Verified Statutory Lexicon &middot; Last Reviewed: <?= date('M d, Y', strtotime($term['last_reviewed_at'])) ?></span>
+                        <?php 
+                        $reviewDate = !empty($facts['last_verified_at']) 
+                            ? $facts['last_verified_at'] 
+                            : (!empty($term['last_reviewed_at']) ? $term['last_reviewed_at'] : 'now');
+                        ?>
+                        <span>Verified Statutory Lexicon &middot; Last Reviewed: <?= date('M d, Y', strtotime($reviewDate)) ?></span>
                     </div>
                 </div>
 

@@ -231,6 +231,9 @@ foreach ($candidates as $index => $term) {
                 'conf'     => $confidence,
             ]);
 
+            // Synchronize glossary_terms review timestamp
+            Database::execute("UPDATE glossary_terms SET last_reviewed_at = CURDATE(), updated_at = NOW() WHERE id = :id", ['id' => $termId]);
+
             echo "  Status    : \033[32m✅ LIVE PERSISTED\033[0m\n";
         } else {
             echo "  Status    : \033[33m⚡ DRY-RUN SIMULATED (No DB write)\033[0m\n";

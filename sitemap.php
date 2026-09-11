@@ -164,7 +164,9 @@ echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
         $gUrl = url('full-forms/' . $gTerm['slug'] . '/');
         if (isset($seenUrls[$gUrl])) continue;
         $seenUrls[$gUrl] = true;
-        $gLastmod = !empty($gTerm['updated_at']) ? date('Y-m-d', strtotime($gTerm['updated_at'])) : ($gTerm['last_reviewed_at'] ?? '2026-09-07');
+        $gLastmod = !empty($gTerm['last_verified_at']) 
+            ? date('Y-m-d', strtotime($gTerm['last_verified_at'])) 
+            : (!empty($gTerm['updated_at']) ? date('Y-m-d', strtotime($gTerm['updated_at'])) : ($gTerm['last_reviewed_at'] ?? '2026-09-07'));
     ?>
     <url>
         <loc><?= htmlspecialchars($gUrl, ENT_XML1, 'UTF-8') ?></loc>

@@ -540,7 +540,10 @@ class GlossaryService {
     public static function getAllForSitemap(): array {
         self::initTable();
         try {
-            return Database::fetchAll("SELECT slug, last_reviewed_at, updated_at FROM glossary_terms ORDER BY acronym ASC");
+            return Database::fetchAll("SELECT g.slug, g.last_reviewed_at, g.updated_at, f.last_verified_at 
+                FROM glossary_terms g 
+                LEFT JOIN full_form_entity_facts f ON g.id = f.full_form_id 
+                ORDER BY g.acronym ASC");
         } catch (Throwable $e) {
             return [];
         }
