@@ -286,11 +286,14 @@ class FullFormFactFetcherService
         ];
     }
 
-    private function cleanString(?string $val): ?string
+    private function cleanString(?string $val, int $maxLength = 255): ?string
     {
         if ($val === null) return null;
         $trimmed = trim($val);
         if ($trimmed === '' || $this->hasForbiddenPlaceholder($trimmed)) return null;
+        if ($maxLength > 0 && mb_strlen($trimmed) > $maxLength) {
+            return mb_substr($trimmed, 0, $maxLength);
+        }
         return $trimmed;
     }
 
