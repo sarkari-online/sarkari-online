@@ -73,14 +73,18 @@ if (!empty($cleanPath) && $cleanPath !== 'index.php') {
         exit;
     }
 
-    // Dynamic Application Guides Router: route /how-to-apply/{slug}
+    // Dynamic Application Guides Directory Hub & Router: route /how-to-apply or /how-to-apply/{slug}
+    if ($cleanPath === 'how-to-apply' || $cleanPath === 'how-to-apply/') {
+        require __DIR__ . '/how-to-apply.php';
+        exit;
+    }
     if (str_starts_with($cleanPath, 'how-to-apply/')) {
         $guideSlug = trim(substr($cleanPath, 13), '/');
         if (!empty($guideSlug)) {
             $_GET['slug'] = $guideSlug;
-            require __DIR__ . '/how-to-apply.php';
-            exit;
         }
+        require __DIR__ . '/how-to-apply.php';
+        exit;
     }
 
     // Dynamic Author Profile Router: route /author or /author/{slug}
