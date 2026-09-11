@@ -40,11 +40,11 @@ try {
 // 2. IndexNow (Bing, Yandex, Naver)
 echo "\n2. Pinging IndexNow API (Bing / Yahoo / Seznam)...\n";
 try {
-    $resIndexNow = IndexNowService::ping($url);
-    if ($resIndexNow) {
-        echo "   ✅ IndexNow: SUCCESS (HTTP 200/202)\n";
+    $resIndexNow = IndexNowService::pingUrl($url);
+    if (!empty($resIndexNow['success'])) {
+        echo "   ✅ IndexNow: SUCCESS (HTTP " . ($resIndexNow['status_code'] ?? 200) . ")\n";
     } else {
-        echo "   ⚠️ IndexNow: Failed or disabled\n";
+        echo "   ⚠️ IndexNow: " . ($resIndexNow['message'] ?? 'Failed') . "\n";
     }
 } catch (\Throwable $e) {
     echo "   ❌ IndexNow Error: " . $e->getMessage() . "\n";
