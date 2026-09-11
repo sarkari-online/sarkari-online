@@ -24,7 +24,21 @@ use Throwable;
 class FullFormFactFetcherService
 {
     private Gemini $gemini;
-    public ?string $lastError = null;
+    private const FORBIDDEN_PLACEHOLDERS = [
+        '/\bvaries\b/i',
+        '/\bcheck official site\b/i',
+        '/\bapprox\b/i',
+        '/\bapproximate\b/i',
+        '/\bnot specified\b/i',
+        '/\bnot available\b/i',
+        '/\btba\b/i',
+        '/\bto be announced\b/i',
+        '/\bawaited\b/i',
+        '/\bcoming soon\b/i',
+        '/\byet to be\b/i',
+        '/\bdepending on\b/i',
+        '/\bas per norms\b/i',
+    ];
 
     /**
      * Authoritative Central Government, Defence, Banking, and PSU Pay Structures
@@ -76,36 +90,37 @@ class FullFormFactFetcherService
         $category = trim((string)($fullFormRow['category'] ?? ''));
         $body     = trim((string)($fullFormRow['conducting_body'] ?? ''));
 
-        // Check if Gemini is currently in cooldown or if API call is viable
-        $circuitBreakerActive = Gemini::isCircuitBreakerActive();
+        // Fast-path: If entity is an established central cadre or if Gemini circuit breaker is active,
+        // use authoritative statutory compensation engine immediately (zero API quota used).
+        if (isset(self::STATUTORY_PAY_SCALES[$acronym]) || Gemini::isCircuitBreakerActive()) {
+            return $this->buildFromStatutoryKnowledge($fullFormRow);
+        }
 
-        if (!$circuitBreakerActive) {
-            $today = date('d F Y');
-            $prompt = "You are an expert Indian Government Compensation & Administrative Analyst for Sarkari.online. Today: {$today}.\n\n"
-                . "TARGET ENTITY / POST:\n"
-                . "Acronym: {$acronym}\n"
-                . "Full Name: {$fullEn}\n"
-                . "Conducting Authority / Ministry: {$body}\n"
-                . "Category: {$category}\n\n"
-                . "Provide the official salary structure (7th CPC or PSU), career growth ladder, and 4-6 authentic FAQs in JSON format:\n"
-                . "{\n"
-                . "  \"pay_level_7cpc\": string or null,\n"
-                . "  \"basic_pay_min\": integer or null,\n"
-                . "  \"basic_pay_max\": integer or null,\n"
-                . "  \"gross_salary_min\": integer or null,\n"
-                . "  \"gross_salary_max\": integer or null,\n"
-                . "  \"allowances_summary\": string or null,\n"
-                . "  \"career_growth_summary\": string or null,\n"
-                . "  \"faqs\": [{\"q\": \"...\", \"a\": \"...\"}],\n"
-                . "  \"evidence_url\": string or null\n"
-                . "}";
+        $today = date('d F Y');
+        $prompt = "You are an expert Indian Government Compensation & Administrative Analyst for Sarkari.online. Today: {$today}.\n\n"
+            . "TARGET ENTITY / POST:\n"
+            . "Acronym: {$acronym}\n"
+            . "Full Name: {$fullEn}\n"
+            . "Conducting Authority / Ministry: {$body}\n"
+            . "Category: {$category}\n\n"
+            . "Provide the official salary structure (7th CPC or PSU), career growth ladder, and 4-6 authentic FAQs in JSON format:\n"
+            . "{\n"
+            . "  \"pay_level_7cpc\": string or null,\n"
+            . "  \"basic_pay_min\": integer or null,\n"
+            . "  \"basic_pay_max\": integer or null,\n"
+            . "  \"gross_salary_min\": integer or null,\n"
+            . "  \"gross_salary_max\": integer or null,\n"
+            . "  \"allowances_summary\": string or null,\n"
+            . "  \"career_growth_summary\": string or null,\n"
+            . "  \"faqs\": [{\"q\": \"...\", \"a\": \"...\"}],\n"
+            . "  \"evidence_url\": string or null\n"
+            . "}";
 
-            $rawResponse = $this->callGeminiSafe($prompt, $termId, $acronym);
-            if ($rawResponse !== null) {
-                $normalized = $this->normalizeAndValidate($rawResponse, $termId, $acronym);
-                if ($normalized['confidence'] !== 'UNAVAILABLE') {
-                    return $normalized;
-                }
+        $rawResponse = $this->callGeminiSafe($prompt, $termId, $acronym);
+        if ($rawResponse !== null) {
+            $normalized = $this->normalizeAndValidate($rawResponse, $termId, $acronym);
+            if ($normalized['confidence'] !== 'UNAVAILABLE') {
+                return $normalized;
             }
         }
 

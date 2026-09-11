@@ -25,6 +25,8 @@ require_once dirname(__DIR__) . '/config.php';
 
 use App\Database\Database;
 use App\Services\GlossaryService;
+use App\Services\SalaryTableRenderer;
+use App\Services\FaqSchemaRenderer;
 use App\Helpers\Logger;
 
 echo "================================================================================\n";
@@ -91,6 +93,15 @@ foreach ($terms as $term) {
     $directAnswerHtml = GlossaryService::renderDirectAnswerBlock($term);
     $factsTableHtml   = GlossaryService::renderFactsTable($term);
 
+    // Fetch verified entity facts if present in full_form_entity_facts
+    $facts = null;
+    try {
+        $facts = Database::fetchOne("SELECT * FROM full_form_entity_facts WHERE full_form_id = :fid LIMIT 1", ['fid' => (int)$term['id']]);
+    } catch (\Throwable $e) {}
+
+    $salaryTableHtml = !empty($facts) ? SalaryTableRenderer::render($facts) : null;
+    $faqBlockHtml = !empty($facts['faqs_json']) ? FaqSchemaRenderer::render($facts['faqs_json']) : null;
+
     $sectionsHtml = '';
     $sectionsHtml .= "<h2>1. Official Mandate, Scope & Background</h2>\n<p>" . nl2br(htmlspecialchars($term['overview'] ?? '')) . "</p>\n";
     if (!empty($term['eligibility_criteria'])) {
@@ -102,10 +113,38 @@ foreach ($terms as $term) {
     if (!empty($term['syllabus_snapshot'])) {
         $sectionsHtml .= "<h2>4. Core Syllabus & Key Subjects</h2>\n<p>" . nl2br(htmlspecialchars($term['syllabus_snapshot'])) . "</p>\n";
     }
+    if (!empty($salaryTableHtml)) {
+        $sectionsHtml .= "<h2>5. Salary, Pay Scale & 7th CPC Allowances</h2>\n" . $salaryTableHtml . "\n";
+    }
+    if (!empty($facts['career_growth_summary'])) {
+        $sectionsHtml .= "<h2>6. Career Growth & Promotion Hierarchy</h2>\n<p>" . nl2br(htmlspecialchars($facts['career_growth_summary'])) . "</p>\n";
+    }
+    if (!empty($faqBlockHtml)) {
+        $sectionsHtml .= "<h2>7. Frequently Asked Questions (FAQs)</h2>\n" . $faqBlockHtml . "\n";
+    }
 
     $relatedArticleHtml = '';
+    $hasDynamicArticle = false;
     if (!empty($term['related_article_slug'])) {
         $relatedArticleHtml = '<a href="' . url('article/' . $term['related_article_slug'] . '/') . '">Check Verified 2026 Examination Schedule & Application Guide</a>';
+    } else {
+        try {
+            $matched = Database::fetchOne(
+                "SELECT slug, title FROM articles 
+                 WHERE status = 'published' 
+                   AND (title LIKE :acr OR title LIKE :fn OR slug LIKE :slg) 
+                 ORDER BY published_at DESC LIMIT 1",
+                [
+                    'acr' => '%' . $term['acronym'] . '%',
+                    'fn'  => '%' . $term['full_form_en'] . '%',
+                    'slg' => '%' . $term['slug'] . '%'
+                ]
+            );
+            if ($matched) {
+                $relatedArticleHtml = '<a href="' . url('article/' . $matched['slug'] . '/') . '">' . htmlspecialchars($matched['title']) . '</a>';
+                $hasDynamicArticle = true;
+            }
+        } catch (\Throwable $e) {}
     }
 
     $bodyHtml = "<h1>Full Form of {$acronym}</h1>\n"
@@ -184,7 +223,8 @@ foreach ($terms as $term) {
     // F. Check 3: Schema Verification
     $schemaJson = GlossaryService::generateDefinedTermSchema($term, $canonicalUrl, $hubUrl);
     $hasDefinedTerm = str_contains($schemaJson, '"@type": "DefinedTerm"') || str_contains($schemaJson, '"@type":"DefinedTerm"');
-    $hasFaqPage     = str_contains($schemaJson, '"@type": "FAQPage"')     || str_contains($schemaJson, '"@type":"FAQPage"');
+    $hasFaqPage     = str_contains($schemaJson, '"@type": "FAQPage"') 
+                   || (!empty($faqBlockHtml) && (str_contains($faqBlockHtml, '"@type": "FAQPage"') || str_contains($faqBlockHtml, '"@type":"FAQPage"')));
     $hasSchema      = ($hasDefinedTerm || $hasFaqPage);
 
     if ($hasDefinedTerm) $stats['has_defined_term_schema']++;
