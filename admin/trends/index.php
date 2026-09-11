@@ -45,12 +45,13 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             $message = "Successfully purged {$purged} duplicate trend records from database.";
             $messageType = 'success';
         } elseif ($trendId > 0) {
-            if ($action === 'publish_now') {
+            if ($action === 'publish_now' || $action === 'approve') {
                 try {
-                    TrendService::markStatus($trendId, 'approved', ['trend_score' => 99]);
+                    TrendService::markStatus($trendId, 'analyzing', ['trend_score' => 99]);
                     
                     @ignore_user_abort(true);
-                    @set_time_limit(180);
+                    @ini_set('max_execution_time', '300');
+                    @set_time_limit(300);
 
                     $pipeline = new PipelineService();
                     $res = $pipeline->generateFromTrend($trendId, true);
@@ -65,16 +66,25 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                         $messageType = 'success';
                     } else {
                         $err = $res['error'] ?? 'Unknown generation error';
+                        TrendService::markStatus($trendId, 'failed', [
+                            'raw_payload' => [
+                                'last_publish_error' => $err,
+                                'failed_at' => date('Y-m-d H:i:s')
+                            ]
+                        ]);
                         $message = "Publication failed for Trend #{$trendId}: {$err}";
                         $messageType = 'danger';
                     }
                 } catch (\Throwable $e) {
+                    TrendService::markStatus($trendId, 'failed', [
+                        'raw_payload' => [
+                            'last_publish_error' => $e->getMessage(),
+                            'failed_at' => date('Y-m-d H:i:s')
+                        ]
+                    ]);
                     $message = "Error generating article: " . $e->getMessage();
                     $messageType = "danger";
                 }
-            } elseif ($action === 'approve') {
-                TrendService::markStatus($trendId, 'approved', ['trend_score' => 95]);
-                $message = "Trend #{$trendId} manually approved for AI article generation.";
             } elseif ($action === 'reject') {
                 TrendService::markStatus($trendId, 'rejected');
                 $message = "Trend #{$trendId} rejected.";
@@ -365,15 +375,9 @@ include dirname(__DIR__) . '/components/header.php';
                                         <?= CSRF::input() ?>
                                         <input type="hidden" name="trend_id" value="<?= $t['id'] ?>">
 
-                                        <?php if ($t['status'] === 'approved' || $t['status'] === 'detected' || $t['status'] === 'needs_enrichment'): ?>
+                                        <?php if ($t['status'] === 'approved' || $t['status'] === 'detected' || $t['status'] === 'needs_enrichment' || $t['status'] === 'rejected'): ?>
                                             <button type="submit" name="action" value="publish_now" class="btn btn-xs btn-success" style="font-weight: 700; display: inline-flex; align-items: center; gap: 3px; background: #16a34a; border-color: #15803d;" onclick="this.innerHTML='⚡ Generating...'; this.style.opacity='0.7';">
                                                 ⚡ Publish Now
-                                            </button>
-                                        <?php endif; ?>
-
-                                        <?php if ($t['status'] === 'detected' || $t['status'] === 'rejected'): ?>
-                                            <button type="submit" name="action" value="approve" class="btn btn-xs btn-primary">
-                                                Approve
                                             </button>
                                         <?php endif; ?>
 

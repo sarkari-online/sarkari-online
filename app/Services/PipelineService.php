@@ -269,37 +269,44 @@ class PipelineService {
         try {
             $genResult = $this->generator->generate($trend['keyword'], $sourceData, $categorySlug, $angle, $resolvedLifecycle);
         } catch (\App\Services\UnresolvedIntentException $e) {
-            Logger::warning("PipelineService: Trend #{$trendId} intent could not be resolved with high confidence. Routing to review: " . $e->getMessage());
-            TrendService::markStatus($trendId, 'approved', [
-                'trend_score' => 75,
-                'raw_payload' => array_merge($rawPayload, [
-                    'needs_human_review' => true,
-                    'review_reason' => 'Ambiguous intent classification requires editorial verification'
-                ])
-            ]);
-            return [
-                'success' => false,
-                'trend_id' => $trendId,
-                'error' => 'Intent ambiguous — routed safely to human editorial review queue.'
-            ];
+            Logger::warning("PipelineService: Trend #{$trendId} intent could not be resolved with high confidence: " . $e->getMessage());
+            if ($force) {
+                Logger::info("PipelineService: Admin force publish — retrying generation with default RECRUITMENT intent");
+                $sourceData['verified_facts']['_intent'] = 'recruitment';
+                $genResult = $this->generator->generate($trend['keyword'], $sourceData, $categorySlug, 'Comprehensive recruitment instructions', $resolvedLifecycle);
+            } else {
+                TrendService::markStatus($trendId, 'approved', [
+                    'trend_score' => 75,
+                    'raw_payload' => array_merge($rawPayload, [
+                        'needs_human_review' => true,
+                        'review_reason' => 'Ambiguous intent classification requires editorial verification'
+                    ])
+                ]);
+                return [
+                    'success' => false,
+                    'trend_id' => $trendId,
+                    'error' => 'Intent ambiguous — routed safely to human editorial review queue.'
+                ];
+            }
         }
-        usleep(2500000); // 2.5s pause to respect Gemini Free Tier RPM limits
+        $paceDelay = $force ? 500000 : 2500000;
+        usleep($paceDelay); // Pacing delay (500ms for admin force, 2.5s for autonomous background)
 
         // 2. Fact Check
         $factAudit = $this->checker->check([
             'title' => $genResult['title'],
             'content' => $genResult['content']
         ], $sourceData);
-        usleep(2500000);
+        usleep($paceDelay);
 
         // 3. Editorial Polish & Format
         $polished = $this->editor->polish($genResult['title'], $genResult['content'], $categorySlug, $resolvedLifecycle);
-        usleep(2500000);
+        usleep($paceDelay);
 
         // 4. Contextual Internal Linking
         $availableArticles = ArticleService::getLatestPublished(20);
         $linking = $this->linker->link($polished['edited_content'], $availableArticles);
-        usleep(2500000);
+        usleep($paceDelay);
 
         // 5. Search Engine Optimization (SEO)
         $seoData = $this->seoGen->generate($polished['edited_title'], $linking['linked_content'], $categorySlug, $resolvedLifecycle);
@@ -384,8 +391,8 @@ class PipelineService {
             // Hard block on required field placeholders or today-date hallucinations
             foreach ($lintViolations as $v) {
                 if (str_starts_with($v, 'BLOCKING:')) {
-                    if ($force && str_contains($v, 'unresolved')) {
-                        Logger::info("PipelineService: Admin force publish — proceeding despite unresolved field notification: {$v}");
+                    if ($force) {
+                        Logger::info("PipelineService: Admin force publish — proceeding despite lint notification: {$v}");
                         continue;
                     }
                     $reason = "Post-generation lint gate blocked publication: {$v}";
@@ -480,7 +487,10 @@ class PipelineService {
         // - Score 80–89 -> Publish ONLY when all critical facts are verified, else Review
         // - Score 70–79 -> Review
         // - Score < 70 -> Reject
-        if (!$safetyPass['pass'] || $finalScore < 70) {
+        if ($force) {
+            $finalStatus = 'published';
+            Logger::info("PipelineService: Admin force publish — ensuring status is published (Score: {$finalScore})");
+        } elseif (!$safetyPass['pass'] || $finalScore < 70) {
             $finalStatus = 'rejected';
             Logger::warning("Article rejected (Score: {$finalScore}): " . implode(', ', $safetyPass['reasons']));
         } else {
