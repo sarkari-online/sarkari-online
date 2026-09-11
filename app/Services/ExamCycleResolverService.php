@@ -358,6 +358,7 @@ class ExamCycleResolverService
                     'cycle_identifier' => $cycleIdentifier,
                 ]
             );
+            if ($row) return $row;
         } else {
             $row = Database::fetchOne(
                 "SELECT * FROM exam_cycles
@@ -372,13 +373,64 @@ class ExamCycleResolverService
                     'cycle_year'     => $cycleYear,
                 ]
             );
+            if ($row) return $row;
         }
 
-        // NO fuzzy fallback by authority+year — different exams under same authority
-        // (NEET UG, NEET PG, CUET, JEE Main are all NTA but DIFFERENT exam_cycles).
-        // If exam_name doesn't match exactly → return null → caller creates a new cycle row.
+        // Normalized Fuzzy Match: Catches variations like "Cbse Ctet" vs "Ctet Teacher Eligibility Test"
+        // while strictly preserving distinct exams (NEET UG vs NEET PG, JEE Main vs JEE Advanced).
+        $sql = "SELECT * FROM exam_cycles 
+                 WHERE authority_code = :authority_code 
+                   AND cycle_year = :cycle_year " . 
+                   ($cycleIdentifier !== null ? "AND cycle_identifier = :cycle_identifier" : "AND cycle_identifier IS NULL");
+        $params = ['authority_code' => $authorityCode, 'cycle_year' => $cycleYear];
+        if ($cycleIdentifier !== null) {
+            $params['cycle_identifier'] = $cycleIdentifier;
+        }
 
-        return $row ?: null;
+        try {
+            $candidates = Database::fetchAll($sql, $params);
+            if (!empty($candidates)) {
+                $normTarget = $this->normalizeExamName($examName);
+                if ($normTarget !== '') {
+                    foreach ($candidates as $cand) {
+                        $normCand = $this->normalizeExamName($cand['exam_name']);
+                        if ($normCand === '') continue;
+
+                        if ($normTarget === $normCand) {
+                            Logger::info("ExamCycleResolver: Fuzzy matched '{$examName}' to existing cycle '{$cand['exam_name']}' (#{$cand['id']})");
+                            return $cand;
+                        }
+
+                        $targetTokens = array_filter(explode(' ', $normTarget));
+                        $candTokens   = array_filter(explode(' ', $normCand));
+                        $intersection = array_intersect($targetTokens, $candTokens);
+
+                        if (!empty($intersection) && (count($intersection) === count($targetTokens) || count($intersection) === count($candTokens))) {
+                            Logger::info("ExamCycleResolver: Token-containment matched '{$examName}' to existing cycle '{$cand['exam_name']}' (#{$cand['id']})");
+                            return $cand;
+                        }
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            Logger::warning("ExamCycleResolver fuzzy match error: " . $e->getMessage());
+        }
+
+        return null;
+    }
+
+    private function normalizeExamName(string $name): string
+    {
+        $lower = mb_strtolower(trim($name));
+        $noiseWords = [
+            'cbse', 'notification', 'recruitment', 'exam', 'examination', 'test',
+            'online', 'form', 'guide', 'syllabus', 'teacher', 'eligibility',
+            'admit', 'card', 'result', 'scorecard', 'official', 'update'
+        ];
+        $cleaned = preg_replace('/[^\p{L}\p{N}\s]/u', ' ', $lower);
+        $words = preg_split('/\s+/', (string)$cleaned, -1, PREG_SPLIT_NO_EMPTY);
+        $filtered = array_filter($words, fn($w) => !in_array($w, $noiseWords, true));
+        return implode(' ', $filtered);
     }
 
     private function createCycle(

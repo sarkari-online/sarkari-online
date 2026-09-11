@@ -128,8 +128,10 @@ PROMPT;
             }
         }
 
-        // 3. Assemble Meta Information
-        $metaTitle = "{$kw['primary_meta']} ({$year}): Step-by-Step Guide & Portal Link";
+        // 3. Assemble Meta Information (Bug 3: Eliminate duplicate year)
+        $hasYearInMeta = str_contains($kw['primary_meta'], (string)$year);
+        $metaTitleSuffix = $hasYearInMeta ? "" : " ({$year})";
+        $metaTitle = "{$kw['primary_meta']}{$metaTitleSuffix}: Step-by-Step Guide & Portal Link";
         $metaDesc  = "{$kw['primary_h1']} — Complete step-by-step online registration, application correction process, document upload, and fee guidelines for {$examName} {$year}.";
 
         // 4. Generate Content HTML
@@ -151,7 +153,17 @@ PROMPT;
         $authCode   = htmlspecialchars((string)$cycle['authority_code'], ENT_QUOTES, 'UTF-8');
         $portalUrl  = htmlspecialchars($portal, ENT_QUOTES, 'UTF-8');
         $phase      = (string)$cycle['current_phase'];
-        $primaryH1  = htmlspecialchars($kw['primary_h1'], ENT_QUOTES, 'UTF-8');
+
+        // Bug 4: Natural single-sentence H1 without colon stacking
+        $cleanH1Phrase = trim($kw['primary_h1']);
+        if (!preg_match('/^[A-Z]/', $cleanH1Phrase)) {
+            $cleanH1Phrase = ucfirst($cleanH1Phrase);
+        }
+        if (preg_match('/(step by step|kaise kare|kaise bhare)$/i', $cleanH1Phrase)) {
+            $h1Headline = "{$cleanH1Phrase} — Janein Online Registration aur Form Submission Process";
+        } else {
+            $h1Headline = "{$cleanH1Phrase} Online Kaise Bhare — Step-by-Step Registration Guide";
+        }
 
         // Status Banner
         $statusBannerHtml = '';
@@ -188,10 +200,25 @@ HTML;
 HTML;
         }
 
-        // Facts Table
-        $appStart = !empty($facts['application_start']) ? date('d F Y', strtotime($facts['application_start'])) : 'See Official Circular';
-        $appEnd   = !empty($facts['application_end']) ? date('d F Y', strtotime($facts['application_end'])) : 'See Official Circular';
-        $feeGen   = isset($facts['application_fee_general']) && is_numeric($facts['application_fee_general']) ? '₹' . number_format((int)$facts['application_fee_general']) : 'As per category rules';
+        // Bug 1 & 2: Facts Table — Omit row completely if data is null; NO vague filler strings
+        $appStart = !empty($facts['application_start']) ? date('d F Y', strtotime($facts['application_start'])) : null;
+        $appEnd   = !empty($facts['application_end']) ? date('d F Y', strtotime($facts['application_end'])) : null;
+        $feeGen   = isset($facts['application_fee_general']) && is_numeric($facts['application_fee_general']) ? '₹' . number_format((int)$facts['application_fee_general']) : null;
+
+        $tableRowsHtml = "<tr><td><strong>Conducting Authority</strong></td><td>{$authCode}</td></tr>\n";
+        if ($appStart !== null && $appEnd !== null) {
+            $tableRowsHtml .= "                    <tr><td><strong>Application Window</strong></td><td>{$appStart} to {$appEnd}</td></tr>\n";
+        } elseif ($appEnd !== null) {
+            $tableRowsHtml .= "                    <tr><td><strong>Last Date to Apply</strong></td><td>{$appEnd}</td></tr>\n";
+        } elseif ($appStart !== null) {
+            $tableRowsHtml .= "                    <tr><td><strong>Application Start Date</strong></td><td>{$appStart}</td></tr>\n";
+        }
+
+        if ($feeGen !== null) {
+            $tableRowsHtml .= "                    <tr><td><strong>General / OBC Application Fee</strong></td><td>{$feeGen}</td></tr>\n";
+        }
+
+        $tableRowsHtml .= "                    <tr><td><strong>Official Application Portal</strong></td><td><a href=\"{$portalUrl}\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"text-primary font-weight-bold\">{$portalUrl} ↗</a></td></tr>";
 
         $leadPhrase1 = htmlspecialchars($kw['phrases'][0] ?? "{$examName} form kaise bhare", ENT_QUOTES, 'UTF-8');
         $leadPhrase2 = htmlspecialchars($kw['phrases'][1] ?? "online apply kaise kare step by step", ENT_QUOTES, 'UTF-8');
@@ -199,7 +226,7 @@ HTML;
         return <<<HTML
 <article class="application-guide-module my-4">
     <header class="guide-header mb-4">
-        <h1 class="h2 font-weight-bold text-dark">{$primaryH1}: Online Apply & Step-by-Step Registration Guide</h1>
+        <h1 class="h2 font-weight-bold text-dark">{$h1Headline}</h1>
         <p class="lead text-secondary mt-2">
             Agar aap jaan-na chahte hain ki <strong>{$leadPhrase1}</strong> aur <strong>{$leadPhrase2}</strong>, to yeh comprehensive statutory guide aapko official portal ke pure process ko asaan steps mein batati hai.
         </p>
@@ -214,10 +241,7 @@ HTML;
                     <tr><th colspan="2" class="text-primary font-weight-bold">📌 {$examName} {$year} Application Summary</th></tr>
                 </thead>
                 <tbody>
-                    <tr><td><strong>Conducting Authority</strong></td><td>{$authCode}</td></tr>
-                    <tr><td><strong>Application Window</strong></td><td>{$appStart} to {$appEnd}</td></tr>
-                    <tr><td><strong>General / OBC Application Fee</strong></td><td>{$feeGen}</td></tr>
-                    <tr><td><strong>Official Application Portal</strong></td><td><a href="{$portalUrl}" target="_blank" rel="noopener noreferrer" class="text-primary font-weight-bold">{$portalUrl} ↗</a></td></tr>
+{$tableRowsHtml}
                 </tbody>
             </table>
         </div>
