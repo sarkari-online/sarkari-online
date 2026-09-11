@@ -73,6 +73,16 @@ if (!empty($cleanPath) && $cleanPath !== 'index.php') {
         exit;
     }
 
+    // Dynamic Application Guides Router: route /how-to-apply/{slug}
+    if (str_starts_with($cleanPath, 'how-to-apply/')) {
+        $guideSlug = trim(substr($cleanPath, 13), '/');
+        if (!empty($guideSlug)) {
+            $_GET['slug'] = $guideSlug;
+            require __DIR__ . '/how-to-apply.php';
+            exit;
+        }
+    }
+
     // Dynamic Author Profile Router: route /author or /author/{slug}
     if ($cleanPath === 'author' || $cleanPath === 'author/') {
         require __DIR__ . '/author.php';
