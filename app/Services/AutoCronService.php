@@ -27,6 +27,7 @@ class AutoCronService {
     private const INTERVAL_PUBLISH   = 1800;  // 30 mins (Slot guard controls actual publish time; no need to hammer every 2 mins)
     private const INTERVAL_BACKLINKS = 14400; // 4 hours
     private const INTERVAL_TEMPORAL_LIFECYCLE = 1800; // 30 mins (Temporal revalidation in Asia/Kolkata)
+    private const INTERVAL_EXAM_CYCLES_REVERIFY = 7200; // 2 hours (Re-verify exam cycles batch)
 
     /**
      * Fetch schedule state from database with file fallback
@@ -113,6 +114,9 @@ class AutoCronService {
             if (($now - ($state['temporal_lifecycle'] ?? 0)) >= self::INTERVAL_TEMPORAL_LIFECYCLE) {
                 $tasksDue[] = 'temporal_lifecycle';
             }
+            if (($now - ($state['exam_cycles_reverify'] ?? 0)) >= self::INTERVAL_EXAM_CYCLES_REVERIFY) {
+                $tasksDue[] = 'exam_cycles_reverify';
+            }
 
             if (empty($tasksDue)) {
                 return;
@@ -161,10 +165,25 @@ class AutoCronService {
                     case 'temporal_lifecycle':
                         self::runTemporalLifecycle();
                         break;
+                    case 'exam_cycles_reverify':
+                        self::runExamCyclesReverify();
+                        break;
                 }
             } catch (Throwable $e) {
                 Logger::error("AutoCron task '{$task}' failed: " . $e->getMessage());
             }
+        }
+    }
+
+    private static function runExamCyclesReverify(): void {
+        Logger::info('AutoCron: Starting Exam Cycles TTL Re-Verification Batch');
+        try {
+            $script = dirname(__DIR__, 2) . '/cron/reverify-exam-cycles.php';
+            if (file_exists($script)) {
+                exec("php " . escapeshellarg($script) . " --limit=10 > /dev/null 2>&1 &");
+            }
+        } catch (Throwable $e) {
+            Logger::error('AutoCron Exam Cycles Reverify error: ' . $e->getMessage());
         }
     }
 

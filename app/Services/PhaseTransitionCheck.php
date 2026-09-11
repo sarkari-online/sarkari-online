@@ -170,7 +170,10 @@ STRICT INSTRUCTIONS:
     "answer_key_date": "YYYY-MM-DD or null",
     "result_date": "YYYY-MM-DD or null",
     "vacancies": integer or null,
-    "application_fee_general": integer or null
+    "application_fee_general": integer or null,
+    "required_documents": [
+      {"item": "Document Name", "mandatory": true, "applies_to": "All Candidates"}
+    ] or null
   }
 }
 PROMPT;
@@ -322,12 +325,35 @@ PROMPT;
                     if (preg_match($pattern, $value)) { $facts[$key] = null; break; }
                 }
             } elseif (is_array($value)) {
-                $cleaned = array_values(array_filter($value, function($item) {
-                    if (!is_string($item)) return true;
-                    foreach (self::FORBIDDEN_PATTERNS as $p) { if (preg_match($p, $item)) return false; }
-                    return true;
-                }));
-                $facts[$key] = empty($cleaned) ? null : $cleaned;
+                $cleaned = [];
+                foreach ($value as $item) {
+                    if (is_string($item)) {
+                        $forbidden = false;
+                        foreach (self::FORBIDDEN_PATTERNS as $p) {
+                            if (preg_match($p, $item)) { $forbidden = true; break; }
+                        }
+                        if (!$forbidden) {
+                            $cleaned[] = $item;
+                        }
+                    } elseif (is_array($item)) {
+                        $forbidden = false;
+                        foreach ($item as $subK => $subV) {
+                            if (is_string($subV)) {
+                                foreach (self::FORBIDDEN_PATTERNS as $p) {
+                                    if (preg_match($p, $subV)) { $forbidden = true; break 2; }
+                                }
+                            }
+                        }
+                        if (!$forbidden && !empty($item['item'])) {
+                            $cleaned[] = [
+                                'item'        => (string)$item['item'],
+                                'mandatory'   => !empty($item['mandatory']),
+                                'applies_to'  => !empty($item['applies_to']) ? (string)$item['applies_to'] : 'All Candidates',
+                            ];
+                        }
+                    }
+                }
+                $facts[$key] = empty($cleaned) ? null : array_values($cleaned);
             }
         }
         return $facts;
@@ -341,7 +367,23 @@ PROMPT;
 
     private function updateCycle(int $cycleId, array $v): void
     {
-        $factsJson = !empty($v['facts']) ? json_encode($v['facts'], JSON_UNESCAPED_UNICODE) : null;
+        $existing = Database::fetchOne("SELECT facts_json FROM exam_cycles WHERE id = :id LIMIT 1", ['id' => $cycleId]);
+        $mergedFacts = [];
+        if (!empty($existing['facts_json'])) {
+            $prev = json_decode($existing['facts_json'], true);
+            if (is_array($prev)) {
+                $mergedFacts = $prev;
+            }
+        }
+        if (!empty($v['facts']) && is_array($v['facts'])) {
+            foreach ($v['facts'] as $fk => $fv) {
+                if ($fv !== null) {
+                    $mergedFacts[$fk] = $fv;
+                }
+            }
+        }
+        $factsJson = !empty($mergedFacts) ? json_encode($mergedFacts, JSON_UNESCAPED_UNICODE) : null;
+
         Database::execute(
             "UPDATE exam_cycles SET
                 current_phase            = :phase,
@@ -349,7 +391,7 @@ PROMPT;
                 phase_evidence_url       = :evidence_url,
                 phase_detected_at        = NOW(),
                 next_expected_transition = :next_transition,
-                facts_json               = COALESCE(:facts_json, facts_json),
+                facts_json               = :facts_json,
                 last_verified_at         = NOW(),
                 updated_at               = NOW()
              WHERE id = :id",

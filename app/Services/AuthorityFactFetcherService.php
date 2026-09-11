@@ -573,6 +573,11 @@ CRITICAL ANTI-HEDGING & FACT GROUNDING DIRECTIVES:
    - If the source text instead uses FUTURE or CONDITIONAL language — "will be released", "expected to be released", "candidates can check once declared", "is likely to be announced" — the event is NOT confirmed. Mark date as "Not yet announced" and source_confidence as "unavailable".
    - An article explaining HOW to check an answer key or result once out is NOT evidence that it IS out. Do NOT conflate procedural/explanatory content with a factual release confirmation.
 
+7. REQUIRED DOCUMENTS CHECKLIST (ZERO SPECULATION):
+   - List every document explicitly named as mandatory or conditional in the official notification/bulletin for application/candidature.
+   - For conditional documents, specify who it applies to in applies_to (e.g. 'OBC-NCL candidates seeking reservation', 'PwBD candidates requiring scribe').
+   - Do NOT infer common documents that are not explicitly cited in the official notification. If none are explicitly cited in the circulars, return an empty array.
+
 Return strictly as JSON matching this schema:
 {
   "authority_name": "{$authority['name']}",
@@ -646,6 +651,13 @@ Return strictly as JSON matching this schema:
   "mandatory_documents": [
     "Printed Official Admit Card with recent colour photograph",
     "Original Valid Government Photo ID (Aadhaar / PAN / Voter ID / Passport / Driving License)"
+  ],
+  "required_documents": [
+    {
+      "item": "10th Marksheet / Birth Certificate",
+      "mandatory": true,
+      "applies_to": "All Candidates"
+    }
   ],
   "official_notice_ref": "Official Notification Circular at {$authority['portal']}",
   "extraction_confidence": "high | medium | low"
