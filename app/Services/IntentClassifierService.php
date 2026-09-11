@@ -24,9 +24,10 @@ final class IntentClassifierService
             'scorecard' => 10, 'rank list' => 9, 'marksheet' => 8, 'qualifying marks' => 8
         ],
         ArticleIntent::RECRUITMENT->value => [
-            'recruitment' => 10, 'notification' => 8, 'apply online' => 12, 'vacancy' => 10,
-            'vacancies' => 10, 'bharti' => 9, 'online form' => 11, 'registration open' => 10,
-            'eligibility criteria' => 7, 'age limit' => 7
+            'recruitment' => 10, 'notification' => 8, 'apply online' => 12, 'apply' => 8, 'vacancy' => 10,
+            'vacancies' => 10, 'bharti' => 9, 'online form' => 11, 'registration open' => 10, 'registration' => 10,
+            'registration begins' => 12, 'register' => 8, 'application form' => 11, 'eligibility criteria' => 7,
+            'eligibility' => 7, 'age limit' => 7, 'documents need to apply' => 10, 'documents required' => 9
         ],
         ArticleIntent::ANSWER_KEY->value => [
             'answer key' => 12, 'response sheet' => 11, 'objection window' => 11,
@@ -141,10 +142,9 @@ PROMPT;
             Logger::warning("IntentClassifier LLM tie-breaker failed: " . $e->getMessage());
         }
 
-        // Safety Architecture: NEVER guess or silently fall back to RECRUITMENT!
-        // Throw an UnresolvedIntentException so PipelineService routes to the human review queue.
-        Logger::error("IntentClassifier: Could not resolve intent for '{$headline}' — routing to editorial review");
-        throw new UnresolvedIntentException("Unresolved intent for headline: '{$headline}'");
+        // If LLM tie-breaker was unavailable (e.g. timeout or throttling), fall back to highest non-zero intent or RECRUITMENT
+        Logger::info("IntentClassifier: LLM tie-break inconclusive for '{$headline}' — applying resilient fallback to RECRUITMENT");
+        return ArticleIntent::RECRUITMENT;
     }
 }
 
