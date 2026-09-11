@@ -25,7 +25,8 @@ if (!isset($crumbs) || empty($crumbs)) {
     <?php endforeach; ?>
 </nav>
 
-<!-- BreadcrumbList Structured Data Placeholder -->
+<?php if (!empty($renderBreadcrumbSchema)): ?>
+<!-- BreadcrumbList Structured Data -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -35,7 +36,13 @@ if (!isset($crumbs) || empty($crumbs)) {
     $totalCrumbs = count($crumbs);
     foreach ($crumbs as $i => $c): 
         $pos = $i + 1;
-        $crumbUrl = !empty($c['url']) ? url($c['url']) : SITE_URL;
+        if ($i === 0) {
+            $crumbUrl = rtrim(SITE_URL, '/') . '/';
+        } elseif (!empty($c['url'])) {
+            $crumbUrl = url($c['url']);
+        } else {
+            $crumbUrl = !empty($canonicalUrl) ? $canonicalUrl : (SITE_URL . ($_SERVER['REQUEST_URI'] ?? '/'));
+        }
     ?>
     {
       "@type": "ListItem",
@@ -47,3 +54,4 @@ if (!isset($crumbs) || empty($crumbs)) {
   ]
 }
 </script>
+<?php endif; ?>

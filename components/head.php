@@ -88,7 +88,6 @@ if (!$isAdminSession):
 
     <!-- Multi-Language & Regional Alternate Directives (Hreflang) -->
     <link rel="alternate" hreflang="en-IN" href="<?= e($metaCanonical) ?>">
-    <link rel="alternate" hreflang="hi-IN" href="<?= e($metaCanonical) ?>">
     <link rel="alternate" hreflang="x-default" href="<?= e($metaCanonical) ?>">
     <!-- Google Search Console Ownership Verification -->
     <meta name="google-site-verification" content="tbEauc4I8_zvPJ8zJOf_YA3-40UtKAZNRxgo881ZLiY">

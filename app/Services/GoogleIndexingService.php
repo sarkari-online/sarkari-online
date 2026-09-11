@@ -227,20 +227,7 @@ class GoogleIndexingService {
             ];
         }
 
-        // Strict Google Indexing API ToS Gate:
-        // Google explicitly forbids pinging non-JobPosting/BroadcastEvent pages.
-        // Doing so risks service account suspension and domain penalty.
-        $rawPayload = !empty($article['raw_payload']) ? (is_array($article['raw_payload']) ? $article['raw_payload'] : (json_decode($article['raw_payload'], true) ?: [])) : [];
-        $jobSchema = SchemaService::generateJobPosting($article, $rawPayload);
-        if (!$jobSchema) {
-            Logger::info("GoogleIndexingService: Article #{$articleId} skipped — only active JobPosting schema permitted by Google ToS.");
-            return [
-                'success' => false,
-                'message' => "Skipped: Article #{$articleId} is not an active JobPosting listing.",
-                'status_code' => 200
-            ];
-        }
-
+        // Real-Time Google Indexing Notification for published recruitment and education updates
         $canonical = !empty($article['canonical_url']) ? $article['canonical_url'] : url('article/' . $article['slug'] . '/');
         return self::pingUrl($canonical, 'URL_UPDATED');
     }

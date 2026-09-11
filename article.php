@@ -404,16 +404,11 @@ include __DIR__ . '/components/header.php';
     </div>
 </main>
 
-<!-- Rich Structured Data JSON-LD — NewsArticle, FAQPage, Event, HowTo -->
+<!-- Rich Structured Data JSON-LD — NewsArticle, BreadcrumbList, JobPosting -->
 <?php
 $schemas = SchemaService::generate($article, $article['category_slug'] ?? '');
 echo SchemaService::injectIntoHead($schemas);
 ?>
-
-<!-- BreadcrumbList JSON-LD Structured Data -->
-<script type="application/ld+json">
-<?= SEOHelper::breadcrumbSchema($crumbs) ?>
-</script>
 
 <!-- Table of Contents Smooth Toggle Script -->
 <script>
