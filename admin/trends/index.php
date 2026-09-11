@@ -49,20 +49,27 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 try {
                     TrendService::markStatus($trendId, 'approved', ['trend_score' => 99]);
                     
-                    // Asynchronously dispatch to CLI worker with dedicated log file
-                    $cliScript = dirname(__DIR__, 2) . '/cron/publish-single.php';
-                    $logDir = dirname(__DIR__, 2) . '/storage/logs';
-                    if (!is_dir($logDir)) {
-                        @mkdir($logDir, 0775, true);
-                    }
-                    $logFile = $logDir . '/publish-' . (int)$trendId . '.log';
-                    $cmd = "php " . escapeshellarg($cliScript) . " " . (int)$trendId . " --force > " . escapeshellarg($logFile) . " 2>&1 &";
-                    @exec($cmd);
+                    @ignore_user_abort(true);
+                    @set_time_limit(180);
 
-                    header('Location: ' . url('admin/trends/?publishing=' . $trendId));
-                    exit;
+                    $pipeline = new PipelineService();
+                    $res = $pipeline->generateFromTrend($trendId, true);
+
+                    if (!empty($res['success']) && !empty($res['article_id'])) {
+                        $artId = (int)$res['article_id'];
+                        $art = Database::fetchOne("SELECT title, slug FROM articles WHERE id = :id LIMIT 1", ['id' => $artId]);
+                        $slug = $art['slug'] ?? '';
+                        $artTitle = $art['title'] ?? ($res['title'] ?? 'Article');
+                        $artUrl = url('article/' . $slug . '/');
+                        $message = "Article #{$artId} successfully generated and published live: <a href='{$artUrl}' target='_blank' style='color: #fff; font-weight: bold; text-decoration: underline; margin-left: 6px;'>View Live Article &rarr;</a>";
+                        $messageType = 'success';
+                    } else {
+                        $err = $res['error'] ?? 'Unknown generation error';
+                        $message = "Publication failed for Trend #{$trendId}: {$err}";
+                        $messageType = 'danger';
+                    }
                 } catch (\Throwable $e) {
-                    $message = "Error initiating article publication: " . $e->getMessage();
+                    $message = "Error generating article: " . $e->getMessage();
                     $messageType = "danger";
                 }
             } elseif ($action === 'approve') {
@@ -223,7 +230,7 @@ include dirname(__DIR__) . '/components/header.php';
 
 <?php if ($message): ?>
     <div class="alert alert-<?= $messageType ?>" style="margin-bottom: 1.25rem;">
-        <?= e($message) ?>
+        <?= str_contains($message, '<a') ? $message : e($message) ?>
     </div>
 <?php endif; ?>
 
@@ -359,7 +366,7 @@ include dirname(__DIR__) . '/components/header.php';
                                         <input type="hidden" name="trend_id" value="<?= $t['id'] ?>">
 
                                         <?php if ($t['status'] === 'approved' || $t['status'] === 'detected' || $t['status'] === 'needs_enrichment'): ?>
-                                            <button type="submit" name="action" value="publish_now" class="btn btn-xs btn-success" style="font-weight: 700; display: inline-flex; align-items: center; gap: 3px; background: #16a34a; border-color: #15803d;">
+                                            <button type="submit" name="action" value="publish_now" class="btn btn-xs btn-success" style="font-weight: 700; display: inline-flex; align-items: center; gap: 3px; background: #16a34a; border-color: #15803d;" onclick="this.innerHTML='⚡ Generating...'; this.style.opacity='0.7';">
                                                 ⚡ Publish Now
                                             </button>
                                         <?php endif; ?>
