@@ -32,6 +32,10 @@ use App\Services\ArticleIntent;
 use App\Services\ExamCycleResolverService;
 use App\Services\PhaseTransitionCheck;
 use App\Services\TableIntegrityGate;
+use App\Services\GoogleIndexingService;
+use App\Services\IndexNowService;
+use App\Services\TelegraphSyndicationService;
+use App\Services\GithubSyndicationService;
 use Exception;
 use Throwable;
 
@@ -663,6 +667,39 @@ class PipelineService {
         }
 
         Logger::info("🚀 Article #{$articleId} successfully GENERATED and PUBLISHED LIVE on Sarkari.online! (Score: {$finalScore})");
+
+        // 12. Real-Time Search Engine Indexing & High-Authority Backlink Syndication
+        if ($finalStatus === 'published') {
+            try {
+                if (GoogleIndexingService::isConfigured()) {
+                    $gRes = GoogleIndexingService::pingArticle($articleId);
+                    Logger::info("PipelineService: Google Indexing API ping for Article #{$articleId}: " . ($gRes['message'] ?? 'Done'));
+                } else {
+                    Logger::info("PipelineService: Google Indexing API skipped (key file not present in storage/).");
+                }
+            } catch (Throwable $e) {
+                Logger::warning("PipelineService: Google Indexing API ping error: " . $e->getMessage());
+            }
+
+            try {
+                if (IndexNowService::isConfigured()) {
+                    $inRes = IndexNowService::pingArticle($articleId);
+                    Logger::info("PipelineService: IndexNow ping for Article #{$articleId}: " . ($inRes['message'] ?? 'Done'));
+                }
+            } catch (Throwable $e) {
+                Logger::warning("PipelineService: IndexNow ping error: " . $e->getMessage());
+            }
+
+            try {
+                $publishedArt = ArticleService::getById($articleId);
+                if ($publishedArt) {
+                    TelegraphSyndicationService::syndicateArticle($publishedArt);
+                    GithubSyndicationService::syndicateArticle($publishedArt);
+                }
+            } catch (Throwable $e) {
+                Logger::warning("PipelineService: Syndication error: " . $e->getMessage());
+            }
+        }
 
         return [
             'success' => ($finalStatus === 'published'),
