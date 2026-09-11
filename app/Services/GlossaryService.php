@@ -99,24 +99,52 @@ class GlossaryService {
      * Generate high-CTR, Google-compliant SERP Meta Title (Under 60 chars)
      * Never leaks the full expansion directly into the SERP snippet.
      */
-    public static function generateMetaTitle(array $term): string {
+    public static function generateMetaTitle(array $term, ?array $facts = null): string {
         $acronym = trim($term['acronym'] ?? '');
         $fullEn = trim($term['full_form_en'] ?? '');
 
-        // High-Curiosity, Anti-Spoiler Formula across all 132 terms
-        $title = "{$acronym} Full Form: Meaning in Hindi, Salary & Selection 2026";
+        // Determine if this entity has verified salary data
+        $hasSalary = false;
+        if ($facts !== null) {
+            $hasSalary = !empty($facts['pay_level_7cpc']) || !empty($facts['basic_pay_min']) || !empty($facts['gross_salary_min']);
+        } elseif (!empty($term['id'])) {
+            try {
+                $fact = Database::fetchOne("SELECT pay_level_7cpc, basic_pay_min, gross_salary_min FROM full_form_entity_facts WHERE full_form_id = :fid LIMIT 1", ['fid' => (int)$term['id']]);
+                if ($fact && (!empty($fact['pay_level_7cpc']) || !empty($fact['basic_pay_min']) || !empty($fact['gross_salary_min']))) {
+                    $hasSalary = true;
+                }
+            } catch (\Throwable $e) {}
+        }
+
+        if ($hasSalary) {
+            // High-Curiosity, Anti-Spoiler Formula for salary-holding recruitment posts
+            $title = "{$acronym} Full Form: Meaning in Hindi, Salary & Selection 2026";
+            if (mb_strlen($title) <= 59) {
+                self::validateMetaAgainstExpansion($title, $fullEn);
+                return $title;
+            }
+
+            $title = "{$acronym} Full Form: Meaning, Salary & Eligibility 2026";
+            if (mb_strlen($title) <= 59) {
+                self::validateMetaAgainstExpansion($title, $fullEn);
+                return $title;
+            }
+
+            $title = "{$acronym} Full Form: Meaning, Salary & Selection";
+            if (mb_strlen($title) <= 59) {
+                self::validateMetaAgainstExpansion($title, $fullEn);
+                return $title;
+            }
+        }
+
+        // For entrance examinations, academic tests, or statutory commissions without pay scale:
+        $title = "{$acronym} Full Form: Meaning, Eligibility & Selection 2026";
         if (mb_strlen($title) <= 59) {
             self::validateMetaAgainstExpansion($title, $fullEn);
             return $title;
         }
 
-        $title = "{$acronym} Full Form: Meaning, Salary & Eligibility 2026";
-        if (mb_strlen($title) <= 59) {
-            self::validateMetaAgainstExpansion($title, $fullEn);
-            return $title;
-        }
-
-        $title = "{$acronym} Full Form: Meaning, Salary & Selection";
+        $title = "{$acronym} Full Form: Meaning in Hindi & Eligibility 2026";
         if (mb_strlen($title) <= 59) {
             self::validateMetaAgainstExpansion($title, $fullEn);
             return $title;
@@ -131,11 +159,29 @@ class GlossaryService {
      * Generate high-CTR SERP Meta Description (145-155 chars)
      * Free of zero-click full-form spoilers across all 132 terms.
      */
-    public static function generateMetaDescription(array $term): string {
+    public static function generateMetaDescription(array $term, ?array $facts = null): string {
         $acronym = trim($term['acronym'] ?? '');
         $fullEn = trim($term['full_form_en'] ?? '');
 
-        $desc = "What is {$acronym} full form? Check official statutory meaning in English & Hindi, salary structure, eligibility criteria and selection process on Sarkari.online.";
+        // Determine if this entity has verified salary data
+        $hasSalary = false;
+        if ($facts !== null) {
+            $hasSalary = !empty($facts['pay_level_7cpc']) || !empty($facts['basic_pay_min']) || !empty($facts['gross_salary_min']);
+        } elseif (!empty($term['id'])) {
+            try {
+                $fact = Database::fetchOne("SELECT pay_level_7cpc, basic_pay_min, gross_salary_min FROM full_form_entity_facts WHERE full_form_id = :fid LIMIT 1", ['fid' => (int)$term['id']]);
+                if ($fact && (!empty($fact['pay_level_7cpc']) || !empty($fact['basic_pay_min']) || !empty($fact['gross_salary_min']))) {
+                    $hasSalary = true;
+                }
+            } catch (\Throwable $e) {}
+        }
+
+        if ($hasSalary) {
+            $desc = "What is {$acronym} full form? Check official statutory meaning in English & Hindi, salary structure, eligibility criteria and selection process on Sarkari.online.";
+        } else {
+            $desc = "What is {$acronym} full form? Check official statutory meaning in English & Hindi, eligibility criteria, exam pattern and selection process on Sarkari.online.";
+        }
+
         self::validateMetaAgainstExpansion($desc, $fullEn);
         return $desc;
     }

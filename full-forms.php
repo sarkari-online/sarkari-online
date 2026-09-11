@@ -27,9 +27,15 @@ if (!empty($termSlug)) {
         exit;
     }
 
+    // Fetch verified entity facts (Phase B/C integration)
+    $facts = null;
+    try {
+        $facts = Database::fetchOne("SELECT * FROM full_form_entity_facts WHERE full_form_id = :fid LIMIT 1", ['fid' => (int)$term['id']]);
+    } catch (\Throwable $e) {}
+
     // High-CTR Dynamic SERP Title (Anti-spoiler for regional/posts, authoritative for national)
-    $pageTitle = GlossaryService::generateMetaTitle($term);
-    $pageDesc = GlossaryService::generateMetaDescription($term);
+    $pageTitle = GlossaryService::generateMetaTitle($term, $facts);
+    $pageDesc = GlossaryService::generateMetaDescription($term, $facts);
     $canonicalUrl = url("full-forms/{$term['slug']}/");
     $hubUrl = url('full-forms/');
     $ogType = 'article';
@@ -44,12 +50,6 @@ if (!empty($termSlug)) {
     $customHeadHtml = GlossaryService::generateDefinedTermSchema($term, $canonicalUrl, $hubUrl);
 
     $relatedTerms = GlossaryService::getRelatedTerms((int)$term['id'], $term['category'], 6);
-
-    // Fetch verified entity facts (Phase B/C integration)
-    $facts = null;
-    try {
-        $facts = Database::fetchOne("SELECT * FROM full_form_entity_facts WHERE full_form_id = :fid LIMIT 1", ['fid' => (int)$term['id']]);
-    } catch (\Throwable $e) {}
 
     $salaryTableHtml = !empty($facts) ? SalaryTableRenderer::render($facts) : null;
     $faqBlockHtml = !empty($facts['faqs_json']) ? FaqSchemaRenderer::render($facts['faqs_json']) : null;

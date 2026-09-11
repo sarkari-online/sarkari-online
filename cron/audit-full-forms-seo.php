@@ -83,21 +83,21 @@ foreach ($terms as $term) {
     $acronym = (string)$term['acronym'];
     $fullEn = (string)$term['full_form_en'];
 
+    // Fetch verified entity facts if present in full_form_entity_facts
+    $facts = null;
+    try {
+        $facts = Database::fetchOne("SELECT * FROM full_form_entity_facts WHERE full_form_id = :fid LIMIT 1", ['fid' => (int)$term['id']]);
+    } catch (\Throwable $e) {}
+
     // A. Generate Meta Title & Meta Description as output by GlossaryService
-    $metaTitle = GlossaryService::generateMetaTitle($term);
-    $metaDesc  = GlossaryService::generateMetaDescription($term);
+    $metaTitle = GlossaryService::generateMetaTitle($term, $facts);
+    $metaDesc  = GlossaryService::generateMetaDescription($term, $facts);
     $canonicalUrl = url("full-forms/{$slug}/");
     $hubUrl       = url('full-forms/');
 
     // B. Assemble rendered page body (strictly inside <article>, excluding nav/header/footer/related acronyms)
     $directAnswerHtml = GlossaryService::renderDirectAnswerBlock($term);
     $factsTableHtml   = GlossaryService::renderFactsTable($term);
-
-    // Fetch verified entity facts if present in full_form_entity_facts
-    $facts = null;
-    try {
-        $facts = Database::fetchOne("SELECT * FROM full_form_entity_facts WHERE full_form_id = :fid LIMIT 1", ['fid' => (int)$term['id']]);
-    } catch (\Throwable $e) {}
 
     $salaryTableHtml = !empty($facts) ? SalaryTableRenderer::render($facts) : null;
     $faqBlockHtml = !empty($facts['faqs_json']) ? FaqSchemaRenderer::render($facts['faqs_json']) : null;
