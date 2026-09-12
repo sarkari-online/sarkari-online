@@ -135,13 +135,13 @@ class GoogleIndexingService {
      * @return array
      */
     public static function pingUrl(string $url, string $type = 'URL_UPDATED'): array {
-        if (!self::isConfigured()) {
-            return [
-                'success' => false,
-                'message' => 'Google Indexing key file not installed at storage/google-indexing-key.json',
-                'status_code' => 0
-            ];
-        }
+        // Hard Kill-Switch: Permanently halted for non-JobPosting articles to protect domain trust.
+        // Google restricts Indexing API to JobPosting and BroadcastEvent only; misuse causes index suppression.
+        return [
+            'success' => false,
+            'message' => 'Google Indexing API is halted for algorithmic recovery. Rely on XML Sitemap and Search Console.',
+            'status_code' => 403
+        ];
 
         $accessToken = self::getAccessToken();
         if (!$accessToken) {

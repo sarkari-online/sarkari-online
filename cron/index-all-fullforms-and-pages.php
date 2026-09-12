@@ -79,88 +79,10 @@ foreach ($chunks as $chunkIdx => $chunk) {
 }
 echo "IndexNow submission complete!\n\n";
 
-// ====================================================================
-// STEP B: SUBMIT TO GOOGLE REAL-TIME INDEXING API
-// ====================================================================
-echo ">>> STEP 2: Submitting to Google Real-Time Indexing API...\n";
-
-if (!GoogleIndexingService::isConfigured()) {
-    echo "⚠️ Google Indexing key not found at storage/google-indexing-key.json\n";
-    echo "Skipping Google API submission (IndexNow completed).\n";
-    exit;
-}
-
-// Prioritize: Hub, Top Search Console Full Forms, and Newly Added Terms
-$priorityAcronyms = [
-    'vro', 'mppsc', 'zsi', 'jssc', 'qco', 'hppsc', 'lekhpal', 'patwari',
-    'fact', 'sebi', 'udc', 'mpsc', 'ldc', 'nsp', 'nta', 'alp', 'po',
-    'uppsc', 'ras', 'cpo', 'aso', 'bdo', 'apfc', 'csat', 'cse', 'dgp',
-    'rrc', 'ossc', 'psc', 'cuet', 'bssc', 'bpsc', 'rpsc', 'ctet', 'tgt',
-    'prt', 'capf', 'rbi', 'sbi', 'neet', 'nda', 'aiims', 'ugc', 'ias'
-];
-
-$googleTargetUrls = [
-    'https://sarkari.online/full-forms/',
-    'https://sarkari.online/'
-];
-
-// Add priority full-form URLs first
-foreach ($priorityAcronyms as $pacr) {
-    $target = 'https://sarkari.online/full-forms/' . $pacr . '/';
-    if (in_array($target, $allUrls, true) && !in_array($target, $googleTargetUrls, true)) {
-        $googleTargetUrls[] = $target;
-    }
-}
-
-// Add remaining full-form URLs
-foreach ($glossaryUrls as $gurl) {
-    if (!in_array($gurl, $googleTargetUrls, true)) {
-        $googleTargetUrls[] = $gurl;
-    }
-}
-
-// Add recent article URLs
-foreach ($articleUrls as $aurl) {
-    if (!in_array($aurl, $googleTargetUrls, true)) {
-        $googleTargetUrls[] = $aurl;
-    }
-}
-
-// Respect Google's daily quota limit (max 180 to be safely within 200 quota)
-$googleBatch = array_slice($googleTargetUrls, 0, 180);
-$gCount = count($googleBatch);
-
-echo "Sending {$gCount} highest-priority URLs directly to Googlebot...\n";
-
-$gSuccess = 0;
-$gFail = 0;
-
-foreach ($googleBatch as $idx => $gUrl) {
-    $num = $idx + 1;
-    echo "  [{$num}/{$gCount}] Pinging Google: {$gUrl} ... ";
-    
-    $res = GoogleIndexingService::pingUrl($gUrl, 'URL_UPDATED');
-    if (!empty($res['success'])) {
-        echo "✅ [HTTP 200 OK]\n";
-        $gSuccess++;
-    } else {
-        $msg = $res['message'] ?? 'Failed';
-        echo "⚠️ [{$msg}]\n";
-        $gFail++;
-        // If daily quota exceeded, break cleanly
-        if (str_contains($msg, '429') || str_contains($msg, 'Quota')) {
-            echo "\n🛑 Daily Google API Quota Reached (200 requests/day). Halting Google loop.\n";
-            break;
-        }
-    }
-
-    // Rate pacing (300ms)
-    usleep(300000);
-}
-
+// STEP B: Google Indexing API is intentionally halted to protect domain trust.
+// Google organically crawls full forms and articles via XML sitemap.
 echo "\n====================================================================\n";
 echo "SUMMARY:\n";
-echo "  - IndexNow (Bing/Yandex/Yahoo): Sent {$totalUrls} URLs\n";
-echo "  - Google Indexing API: Successfully Pinged {$gSuccess} URLs (Failed: {$gFail})\n";
-echo "Search engine crawlers have been officially dispatched to crawl and index.\n";
+echo "  - IndexNow (Bing/Yandex/Yahoo): Sent {$totalUrls} URLs (Complete)\n";
+echo "  - Google Indexing API: Halted (Protected for organic trust recovery)\n";
 echo "====================================================================\n";

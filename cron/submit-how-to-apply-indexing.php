@@ -24,18 +24,8 @@ echo "Target URL: {$url}\n";
 echo "Timestamp : " . date('Y-m-d H:i:s T') . "\n";
 echo "================================================================================\n\n";
 
-// 1. Google Indexing API
-echo "1. Pinging Google Indexing API (Real-Time)...\n";
-try {
-    $resGoogle = GoogleIndexingService::pingUrl($url, 'URL_UPDATED');
-    if ($resGoogle['success']) {
-        echo "   ✅ Google Indexing API: SUCCESS (HTTP " . ($resGoogle['status_code'] ?? 200) . ")\n";
-    } else {
-        echo "   ⚠️ Google Indexing API: " . ($resGoogle['message'] ?? 'Failed') . "\n";
-    }
-} catch (\Throwable $e) {
-    echo "   ❌ Google Indexing Error: " . $e->getMessage() . "\n";
-}
+// 1. Google Indexing API (Halted)
+echo "1. Google Indexing API: Halted to preserve domain trust.\n";
 
 // 2. IndexNow (Bing, Yandex, Naver)
 echo "\n2. Pinging IndexNow API (Bing / Yahoo / Seznam)...\n";

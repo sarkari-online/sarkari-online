@@ -73,79 +73,12 @@ class IndexingService {
      * Send URL notification to Google Indexing API via Service Account OAuth2 JWT
      */
     private static function pingGoogleIndexingApi(string $url, string $type = 'URL_UPDATED'): array {
-        $result = ['attempted' => true, 'success' => false, 'message' => ''];
-
-        try {
-            // Check daily quota limit
-            if (!self::checkAndIncrementQuota('google', self::MAX_GOOGLE_DAILY_QUOTA)) {
-                $result['message'] = 'Daily quota limit reached for Google Indexing API';
-                Logger::warning("IndexingService: Google daily quota reached (" . self::MAX_GOOGLE_DAILY_QUOTA . ")");
-                return $result;
-            }
-
-            // Locate Service Account JSON
-            $keyPath = Env::get('GOOGLE_INDEXING_KEY_PATH');
-            if (empty($keyPath) || !file_exists($keyPath)) {
-                $defaultPath = dirname(__DIR__, 2) . '/storage/keys/google-indexing-key.json';
-                if (file_exists($defaultPath)) {
-                    $keyPath = $defaultPath;
-                }
-            }
-
-            if (empty($keyPath) || !file_exists($keyPath)) {
-                $result['message'] = 'Google Service Account credentials not configured (storage/keys/google-indexing-key.json).';
-                Logger::info("IndexingService: Google Service Account key not found. Skipping Google ping.");
-                return $result;
-            }
-
-            $keyData = json_decode(file_get_contents($keyPath), true);
-            if (empty($keyData['client_email']) || empty($keyData['private_key'])) {
-                $result['message'] = 'Invalid Google Service Account JSON structure.';
-                return $result;
-            }
-
-            $accessToken = self::getGoogleAccessToken($keyData);
-            if (!$accessToken) {
-                $result['message'] = 'Failed to generate Google OAuth2 bearer token.';
-                return $result;
-            }
-
-            // POST to Google Indexing endpoint
-            $payload = json_encode([
-                'url'  => $url,
-                'type' => $type
-            ]);
-
-            $ch = curl_init(self::GOOGLE_INDEXING_ENDPOINT);
-            curl_setopt_array($ch, [
-                CURLOPT_POST           => true,
-                CURLOPT_POSTFIELDS     => $payload,
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_TIMEOUT        => 8,
-                CURLOPT_HTTPHEADER     => [
-                    'Content-Type: application/json',
-                    'Authorization: Bearer ' . $accessToken
-                ]
-            ]);
-
-            $response = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-            if ($httpCode >= 200 && $httpCode < 300) {
-                $result['success'] = true;
-                $result['message'] = "Successfully pinged Google Indexing API ({$type})";
-                Logger::info("IndexingService: Google Indexing API ping success for {$url} (HTTP {$httpCode})");
-            } else {
-                $result['message'] = "Google Indexing API returned HTTP {$httpCode}: {$response}";
-                Logger::warning("IndexingService: Google Indexing API returned HTTP {$httpCode} for {$url}");
-            }
-
-        } catch (Throwable $e) {
-            $result['message'] = 'Google Indexing API Exception: ' . $e->getMessage();
-            Logger::error("IndexingService: " . $result['message']);
-        }
-
-        return $result;
+        // Hard Kill-Switch: Permanently halted for domain trust recovery per Google Search Central policy.
+        return [
+            'attempted' => false,
+            'success' => false,
+            'message' => 'Google Indexing API is halted for algorithmic recovery. Rely on XML Sitemap and Search Console.'
+        ];
     }
 
     /**
