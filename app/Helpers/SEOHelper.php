@@ -259,13 +259,84 @@ class SEOHelper {
     }
 
     /**
-     * Generate Homepage BreadcrumbList Schema for Google Rich Results
+     * Smart Title Clamp adhering to Google SERP pixel width (< 58-60 chars)
      */
-    public static function homepageBreadcrumbSchema(): string {
-        $crumbs = [
-            ['label' => 'Home', 'url' => '']
-        ];
-        return self::breadcrumbSchema($crumbs);
+    public static function clampTitle(string $title, int $max = 58): string {
+        $title = trim($title);
+        if (empty($title)) {
+            return SITE_NAME . ' — ' . SITE_TAGLINE;
+        }
+
+        // If title already fits perfectly
+        if (mb_strlen($title) <= $max) {
+            return $title;
+        }
+
+        // Strip redundant brand suffixes if making title exceed limit
+        $clean = preg_replace('/\s*\|\s*' . preg_quote(SITE_NAME, '/') . '.*$/i', '', $title);
+        $clean = preg_replace('/\s*—\s*' . preg_quote(SITE_NAME, '/') . '.*$/i', '', $clean);
+        $clean = preg_replace('/\s*\|\s*Sarkari\.online.*$/i', '', $clean);
+        $clean = preg_replace('/\s*—\s*Sarkari\.online.*$/i', '', $clean);
+        $clean = trim($clean);
+
+        if (mb_strlen($clean) <= $max) {
+            return $clean;
+        }
+
+        // Truncate at natural delimiter or word boundary
+        $short = mb_substr($clean, 0, $max);
+        $colon = mb_strrpos($short, ':');
+        $dash = mb_strrpos($short, ' - ');
+
+        if ($colon !== false && $colon >= 30) {
+            $short = mb_substr($short, 0, $colon);
+        } elseif ($dash !== false && $dash >= 30) {
+            $short = mb_substr($short, 0, $dash);
+        } else {
+            $space = mb_strrpos($short, ' ');
+            if ($space !== false && $space >= 25) {
+                $short = mb_substr($short, 0, $space);
+            }
+        }
+
+        return rtrim($short, ' :,-\t\n\r');
+    }
+
+    /**
+     * Smart Meta Description Clamp (130 - 155 chars)
+     */
+    public static function clampDescription(string $desc, int $min = 100, int $max = 155): string {
+        $desc = trim(strip_tags($desc));
+        if (empty($desc)) {
+            return SITE_DESCRIPTION;
+        }
+
+        // If too long, truncate cleanly at word boundary
+        if (mb_strlen($desc) > $max) {
+            $short = mb_substr($desc, 0, $max);
+            $space = mb_strrpos($short, ' ');
+            if ($space !== false && $space >= 110) {
+                $short = mb_substr($short, 0, $space);
+            }
+            return rtrim($short, ' ,;:-') . '.';
+        }
+
+        // If too short (< 100 chars), enrich with authentic context
+        if (mb_strlen($desc) < $min) {
+            $enriched = rtrim($desc, '.') . '. Check verified eligibility, dates, and official statutory links at Sarkari.online.';
+            if (mb_strlen($enriched) > $max) {
+                $short = mb_substr($enriched, 0, $max);
+                $space = mb_strrpos($short, ' ');
+                if ($space !== false) {
+                    $short = mb_substr($short, 0, $space);
+                }
+                return rtrim($short, ' ,;:-') . '.';
+            }
+            return $enriched;
+        }
+
+        return $desc;
     }
 }
+
 

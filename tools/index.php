@@ -5,8 +5,9 @@
  */
 require_once dirname(__DIR__) . '/config.php';
 
-$pageTitle = 'Student Utilities & Exam Calculators 2026 — 7th Pay Salary & CGPA Converter';
-$pageDesc = 'Free interactive online utility calculators for Indian competitive exam aspirants and students. Calculate 7th Pay Commission in-hand salary, DA 50%, HRA, and convert CGPA to percentage.';
+$pageTitle = 'Student Utilities & Exam Calculators 2026 | ' . SITE_NAME;
+$pageDesc = 'Free interactive calculators for students and job seekers: calculate 7th Pay Commission salary, DA, HRA, CGPA percentage, and age eligibility.';
+
 $pageKeywords = 'sarkari tools, exam calculators, 7th pay commission calculator, cgpa to percentage converter, cbse percentage calculator, in hand salary calculator';
 $canonicalUrl = url('tools/');
 

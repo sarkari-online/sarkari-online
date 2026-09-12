@@ -5,20 +5,20 @@
  */
 use App\Helpers\SEOHelper;
 
-// Optimized Title Formatting (Google 55-60 Character Best Practice)
+// Optimized Title Formatting (Strict Google SERP 55-58 Character Best Practice)
 if (!empty($pageTitle)) {
-    if (str_contains($pageTitle, SITE_NAME)) {
-        $metaTitle = $pageTitle;
-    } elseif (mb_strlen($pageTitle) <= 42) {
-        $metaTitle = $pageTitle . ' | ' . SITE_NAME;
-    } else {
-        $metaTitle = $pageTitle;
+    $rawTitle = $pageTitle;
+    if (!str_contains($rawTitle, SITE_NAME) && mb_strlen($rawTitle) <= 40) {
+        $rawTitle .= ' | ' . SITE_NAME;
     }
+    $metaTitle = SEOHelper::clampTitle($rawTitle, 58);
 } else {
     $metaTitle = SITE_NAME . ' — ' . SITE_TAGLINE;
 }
 
-$metaDesc = !empty($pageDesc) ? $pageDesc : SITE_DESCRIPTION;
+$rawDesc = !empty($pageDesc) ? $pageDesc : SITE_DESCRIPTION;
+$metaDesc = SEOHelper::clampDescription($rawDesc, 110, 155);
+
 $metaCanonical = !empty($canonicalUrl) ? $canonicalUrl : SITE_URL . $_SERVER['REQUEST_URI'];
 $metaOgType = !empty($ogType) ? $ogType : 'website';
 $metaKeywords = !empty($pageKeywords) ? $pageKeywords : 'Sarkari result, Sarkari online, government jobs 2026, entrance exams 2026, admit cards, answer keys, admission cutoffs, scholarships in India';

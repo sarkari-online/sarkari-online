@@ -27,9 +27,12 @@ if (!$author) {
 $articles = AuthorService::getArticlesByAuthor($authorSlug, 24);
 
 // SEO Meta
-$pageTitle = $author['name'] . ' - ' . $author['title'] . ' | Sarkari.online';
-$metaDescription = $author['name'] . ' is the ' . $author['title'] . ' of Sarkari.online. Read verified examination analyses, statutory updates, and admission guides.';
+$pageTitle = ($author['name'] === 'Editorial Desk')
+    ? 'Editorial Desk: Verification Team | ' . SITE_NAME
+    : $author['name'] . ' - ' . $author['title'] . ' | ' . SITE_NAME;
+$pageDesc = $author['name'] . ' is the ' . $author['title'] . ' of Sarkari.online. Read verified examination analyses, statutory updates, and admission guides.';
 $canonicalUrl = url('author/' . $author['slug'] . '/');
+
 
 // Person & ProfilePage JSON-LD Schema
 $mainEntity = [

@@ -8,8 +8,9 @@ require_once dirname(__DIR__) . '/config.php';
 
 use App\Helpers\SEOHelper;
 
-$pageTitle = '7th Pay Commission Salary Calculator 2026: Calculate In-Hand Pay, DA 50%, HRA & Deductions';
-$pageDesc = 'Free 7th Pay Commission in-hand salary calculator for Central Govt, SSC, RRB, UPSC & Banking posts. Calculate exact basic pay (Level 1-10), 50% DA, HRA (X, Y, Z cities), TA, and NPS deductions.';
+$pageTitle = '7th Pay Commission Salary Calculator 2026 | ' . SITE_NAME;
+$pageDesc = 'Free 7th Pay Commission in-hand salary calculator for Central Govt, SSC, RRB & UPSC posts. Calculate basic pay (Level 1-10), 50% DA, HRA, and NPS.';
+
 $pageKeywords = '7th pay commission salary calculator, in hand salary calculator 2026, ssc cgl salary calculator, 7th cpc pay matrix level 7, da 50 percent salary calculation, central govt salary in hand, hra rates x y z cities';
 $canonicalUrl = url('tools/7th-pay-commission-salary-calculator/');
 

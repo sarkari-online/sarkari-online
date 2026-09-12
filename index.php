@@ -21,11 +21,16 @@ if (!empty($cleanPath) && $cleanPath !== 'index.php') {
         exit;
     }
 
-    // Historical 301 Redirect for legacy deleted CBSE test slug
+    // Historical 301 Redirect for legacy deleted CBSE test slug & deleted articles
     if (str_starts_with($cleanPath, 'article/cbse-class-10-and-12-board-exam-2027')) {
         header('Location: ' . url('category/exam-dates/'), true, 301);
         exit;
     }
+    if (str_starts_with($cleanPath, 'article/upsc-exam-schedule-result-updates-2026')) {
+        header('Location: ' . url('article/upsc-nda-2026-admit-card-download/'), true, 301);
+        exit;
+    }
+
 
     // Dynamic Tool Router: route any /tools/{slug} to its php file
     if (str_starts_with($cleanPath, 'tools/')) {
@@ -111,6 +116,26 @@ if (!empty($cleanPath) && $cleanPath !== 'index.php') {
         exit;
     }
 
+    // Institutional & Utility Static Page Routers
+    $staticPageRoutes = [
+        'about' => 'about.php',
+        'why-choose-us' => 'why-choose-us.php',
+        'contact' => 'contact.php',
+        'privacy-policy' => 'privacy-policy.php',
+        'terms' => 'terms.php',
+        'disclaimer' => 'disclaimer.php',
+        'ai-policy' => 'ai-policy.php',
+        'search' => 'search.php',
+        'tools' => 'tools/index.php',
+        'feed' => 'feed.php',
+        'pinterest-feed' => 'pinterest-feed.php',
+    ];
+    $normPath = rtrim($cleanPath, '/');
+    if (isset($staticPageRoutes[$normPath]) && file_exists(__DIR__ . '/' . $staticPageRoutes[$normPath])) {
+        require __DIR__ . '/' . $staticPageRoutes[$normPath];
+        exit;
+    }
+
     require __DIR__ . '/404.php';
     exit;
 }
@@ -120,8 +145,9 @@ use App\Services\CategoryService;
 use App\Services\TrendService;
 
 // SEO Meta Variables
-$pageTitle = 'Sarkari.online : Sarkari Result, Latest Govt Jobs & Admit Card 2026';
-$pageDesc = 'Sarkari.online provides verified real-time alerts for Sarkari Result, Latest Government Jobs 2026, Admit Cards, Exam Dates, Answer Keys, and Results across India.';
+$pageTitle = 'Sarkari Result, Latest Govt Jobs & Admit Card 2026';
+$pageDesc = 'Sarkari.online provides verified real-time alerts for Sarkari Result, Latest Government Jobs 2026, Admit Cards, Exam Dates, and Answer Keys across India.';
+
 $pageKeywords = 'sarkari.online, sarkari online, sarkari result, sarkari result 2026, latest govt jobs, sarkari naukri 2026, admit card, exam dates, answer key';
 $canonicalUrl = SITE_URL . '/';
 $ogType = 'website';

@@ -25,15 +25,20 @@ $article = $slug !== '' ? ArticleService::getBySlug($slug, $allowDraft) : null;
 // 301 SEO Fallback: If old or renamed slug requested, auto-redirect permanently
 if (!$article && $slug !== '') {
     $legacySlugRedirects = [
+        'upsc-exam-schedule-result-updates-2026' => 'upsc-nda-2026-admit-card-download',
         'upssc-junior-assistant-lekhpal-2026-admit-card' => 'upsssc-junior-assistant-lekhpal-2026-admit-card',
         'bpsc-combined-state-exam-2026-admit-card' => 'bpsc-72nd-cce-prelims-2026-admit-card',
         'ibps-po-2026-prelims-admit-card-download-active' => 'ibps-po-2026-prelims-exam-concluded',
         'punjab-pti-recruitment-2026-apply-now' => 'punjab-pti-recruitment-2026-cancelled-fee-refund',
+        'cbse-class-10-and-12-board-exam-2027-loc-registration-sample-papers-cbse-gov-in' => 'category/exam-dates',
     ];
     if (isset($legacySlugRedirects[$slug])) {
-        header("Location: " . url('article/' . $legacySlugRedirects[$slug] . '/'), true, 301);
+        $dest = $legacySlugRedirects[$slug];
+        $targetUrl = str_starts_with($dest, 'category/') ? url($dest . '/') : url('article/' . $dest . '/');
+        header("Location: " . $targetUrl, true, 301);
         exit;
     }
+
 
     $altSlug = str_contains($slug, '2026') ? str_replace('2026', '2027', $slug) : (str_contains($slug, '2027') ? str_replace('2027', '2026', $slug) : null);
     if ($altSlug) {

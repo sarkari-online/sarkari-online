@@ -16,8 +16,9 @@ $stats = JobDirectoryService::getDirectoryStats($allJobs);
 $allStates = StateJobService::getAllStates();
 
 // SEO Meta Variables
-$pageTitle = 'Latest Government Jobs 2026: Online Form, Notification & Last Dates | ' . SITE_NAME;
-$pageDesc = 'Explore latest government jobs 2026 across India. Verified recruitment alerts for SSC, Railway RRB, Banking, UPSC, Defence, and State PSCs with post counts and last dates.';
+$pageTitle = 'Latest Govt Jobs 2026: Online Forms & Notifications';
+$pageDesc = 'Explore latest government jobs 2026 across India. Verified recruitment alerts for SSC, Railway RRB, Banking, and State PSCs with post counts & last dates.';
+
 $pageKeywords = 'latest govt jobs 2026, sarkari result latest jobs, sarkari naukri 2026, central govt jobs, state govt jobs, rrb ntpc, ssc cgl, bpsc tre, bank of baroda recruitment';
 $canonicalUrl = url('latest-jobs/');
 $ogType = 'website';

@@ -8,8 +8,9 @@ require_once dirname(__DIR__) . '/config.php';
 
 use App\Helpers\SEOHelper;
 
-$pageTitle = 'Govt Job Age Calculator 2026: UPSC, SSC, Banking & Category Relaxation Checker';
-$pageDesc = 'Calculate exact age in years, months, and days as on notification cutoff date. Check age eligibility and category relaxation for UPSC, SSC CGL, CHSL, IBPS, Railways and State PSC forms.';
+$pageTitle = 'Govt Job Age Calculator 2026 | ' . SITE_NAME;
+$pageDesc = 'Calculate exact age in years, months, and days as of any cutoff date for SSC, UPSC, and State PSC govt job eligibility with verified category relaxations.';
+
 $pageKeywords = 'age calculator for govt jobs, ssc cgl age calculator, upsc age limit calculator, sarkari age calculator, age as on cutoff date calculator, obc sc st age relaxation calculator';
 $canonicalUrl = url('tools/age-calculator/');
 

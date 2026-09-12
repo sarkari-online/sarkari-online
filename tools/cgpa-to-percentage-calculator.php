@@ -8,8 +8,9 @@ require_once dirname(__DIR__) . '/config.php';
 
 use App\Helpers\SEOHelper;
 
-$pageTitle = 'CGPA to Percentage Calculator 2026: CBSE, B.Tech (AICTE), AKTU, VTU & MU Formula';
-$pageDesc = 'Convert CGPA to percentage and marks for CBSE 10th/12th, B.Tech/Engineering (AICTE), AKTU, VTU, Mumbai University, and 10-point scales. Get exact percentage for SSC, UPSC & Railway application forms.';
+$pageTitle = 'CGPA to Percentage Calculator (CBSE/Univ) | ' . SITE_NAME;
+$pageDesc = 'Convert CGPA to percentage easily for CBSE, AICTE, and university 10-point scales. Get exact percentages for SSC, UPSC & Railway job application forms.';
+
 $pageKeywords = 'cgpa to percentage calculator, cbse cgpa to percentage, aicte cgpa to percentage btech, vtu cgpa conversion, aktu percentage calculator, ssc form cgpa to percentage, 10 point scale cgpa converter';
 $canonicalUrl = url('tools/cgpa-to-percentage-calculator/');
 

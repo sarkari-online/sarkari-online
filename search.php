@@ -26,15 +26,16 @@ $total = $searchData['total'];
 $totalPages = $searchData['total_pages'];
 
 if (!headers_sent()) {
-    header('X-Robots-Tag: noindex, nofollow', true);
+    header('X-Robots-Tag: noindex, follow', true);
 }
 
-// SEO Setup: Prevent indexing of internal search results (Google Search Quality Guideline)
-$pageTitle = !empty($query) ? 'Search results for "' . $query . '"' : 'Search All Education Updates';
+// SEO Setup: Prevent indexing of internal search results while allowing link crawling
+$pageTitle = !empty($query) ? 'Search: ' . $query . ' | ' . SITE_NAME : 'Search Education Updates | ' . SITE_NAME;
 $pageDesc = 'Search across verified notifications for NEET, JEE, UPSC, SSC, state board results, admit cards, and scholarships.';
 $canonicalUrl = url('search/');
-$metaRobots = 'noindex, nofollow';
+$metaRobots = 'noindex, follow';
 $ogType = 'website';
+
 
 $crumbs = [
     ['label' => 'Home', 'url' => ''],

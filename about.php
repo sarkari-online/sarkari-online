@@ -4,8 +4,9 @@
  */
 require_once __DIR__ . '/config.php';
 
-$pageTitle = 'About Us — Editorial Mission, Leadership & Fact-Checking Standards';
-$pageDesc = 'Learn about Sarkari.online, our verified editorial leadership, research methodology, office bureau, and dedication to authentic Indian education intelligence.';
+$pageTitle = 'About Us: Editorial Mission & Standards | ' . SITE_NAME;
+$pageDesc = 'Learn about Sarkari.online, our verified editorial leadership, research methodology, and dedication to authentic public exam alerts across India.';
+
 $canonicalUrl = url('about/');
 $ogType = 'website';
 
