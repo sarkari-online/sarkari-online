@@ -50,36 +50,13 @@ foreach ($articles as $art) {
 }
 
 // -----------------------------------------------------------------------------
-// STEP 1: SUBMIT TO GOOGLE REAL-TIME INDEXING API
+// STEP 1: GOOGLE INDEXING API (HALTED FOR DOMAIN RECOVERY)
 // -----------------------------------------------------------------------------
 echo "--------------------------------------------------------------------------------\n";
-echo "📡 STEP 1: Submitting to Google Real-Time Indexing API\n";
+echo "🛑 STEP 1: Google Real-Time Indexing API [HALTED]\n";
+echo "   Google restricts Indexing API exclusively to JobPosting & BroadcastEvent.\n";
+echo "   General articles are indexed organically via XML Sitemap & Search Console.\n";
 echo "--------------------------------------------------------------------------------\n";
-
-$gSuccess = 0;
-$gFail = 0;
-
-if ($isGoogleConfigured) {
-    foreach ($urlsToPing as $idx => $targetUrl) {
-        $num = $idx + 1;
-        $totalPings = count($urlsToPing);
-        echo "[{$num}/{$totalPings}] Submitting to Google: {$targetUrl} ... ";
-
-        $res = GoogleIndexingService::pingUrl($targetUrl, 'URL_UPDATED');
-        if (!empty($res['success'])) {
-            echo "\033[32m✅ [HTTP 200 OK — Googlebot Notified]\033[0m\n";
-            $gSuccess++;
-        } else {
-            echo "\033[31m❌ [" . ($res['message'] ?? 'Failed') . "]\033[0m\n";
-            $gFail++;
-        }
-
-        // 0.3s delay between calls to respect quota
-        usleep(300000);
-    }
-} else {
-    echo "⚠️ Skipped Google Indexing API (Service account key not installed).\n";
-}
 
 // -----------------------------------------------------------------------------
 // STEP 2: SUBMIT BATCH TO INDEXNOW (Bing, Yahoo, Yandex, Naver)

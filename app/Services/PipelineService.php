@@ -670,16 +670,9 @@ class PipelineService {
 
         // 12. Real-Time Search Engine Indexing & High-Authority Backlink Syndication
         if ($finalStatus === 'published') {
-            try {
-                if (GoogleIndexingService::isConfigured()) {
-                    $gRes = GoogleIndexingService::pingArticle($articleId);
-                    Logger::info("PipelineService: Google Indexing API ping for Article #{$articleId}: " . ($gRes['message'] ?? 'Done'));
-                } else {
-                    Logger::info("PipelineService: Google Indexing API skipped (key file not present in storage/).");
-                }
-            } catch (Throwable $e) {
-                Logger::warning("PipelineService: Google Indexing API ping error: " . $e->getMessage());
-            }
+            // Google Indexing API is strictly halted for non-JobPosting articles
+            // per Google Search Central policy to prevent algorithmic suppression on fresh domains.
+            // Organic crawl is managed via XML sitemap (<lastmod>) and GSC.
 
             try {
                 if (IndexNowService::isConfigured()) {

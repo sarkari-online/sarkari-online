@@ -25,11 +25,15 @@ $articles = $searchData['items'];
 $total = $searchData['total'];
 $totalPages = $searchData['total_pages'];
 
+if (!headers_sent()) {
+    header('X-Robots-Tag: noindex, nofollow', true);
+}
+
 // SEO Setup: Prevent indexing of internal search results (Google Search Quality Guideline)
 $pageTitle = !empty($query) ? 'Search results for "' . $query . '"' : 'Search All Education Updates';
 $pageDesc = 'Search across verified notifications for NEET, JEE, UPSC, SSC, state board results, admit cards, and scholarships.';
 $canonicalUrl = url('search/');
-$metaRobots = 'noindex, follow';
+$metaRobots = 'noindex, nofollow';
 $ogType = 'website';
 
 $crumbs = [

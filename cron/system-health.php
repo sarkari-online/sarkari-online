@@ -441,11 +441,8 @@ try {
     $totalChecks++;
     echo "  • Search Engine Indexing   :\n";
     
-    // Google Indexing API Key
-    $gKeyFile = dirname(__DIR__) . '/storage/google-indexing-key.json';
-    $gKeyValid = file_exists($gKeyFile) && !empty(json_decode(file_get_contents($gKeyFile), true)['client_email']);
-    $gKeyBadge = $gKeyValid ? "{$green}🟢 Google Service Account Key Active{$reset}" : "{$yellow}⚠️ Key missing at storage/google-indexing-key.json{$reset}";
-    echo "     - Google Indexing API   : {$gKeyBadge}\n";
+    // Google Indexing API Policy
+    echo "     - Google Indexing API   : {$yellow}🟡 HALTED (Protected: API restricted to JobPosting only per Google policy){$reset}\n";
 
     // IndexNow Key File
     $idxNowKey = class_exists(IndexNowService::class) ? IndexNowService::INDEXNOW_KEY : 'd8f4b23a9e714652a831e509cbf27a14';

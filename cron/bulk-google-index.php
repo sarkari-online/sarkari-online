@@ -13,19 +13,14 @@ if (php_sapi_name() !== 'cli' && (!isset($_GET['secret']) || $_GET['secret'] !==
 }
 
 echo "========================================================\n";
-echo "   EduPulse - Bulk Google Indexing Batch Submitter\n";
+echo "   Sarkari.online - Google Indexing API Safety Guard\n";
 echo "========================================================\n\n";
 
-if (!GoogleIndexingService::isConfigured()) {
-    die("❌ Error: Google Indexing key file not installed at storage/google-indexing-key.json\n");
-}
-
-$articles = Database::fetchAll(
-    "SELECT id, title, slug, published_at FROM articles WHERE status = 'published' ORDER BY id ASC"
-);
-
-$total = count($articles);
-echo "Found {$total} published articles ready for Google Indexing.\n\n";
+echo "🛑 NOTICE: Google Indexing API is strictly restricted to JobPosting and BroadcastEvent schemas.\n";
+echo "Bulk submitting standard articles triggers Google algorithmic spam and index suppression.\n";
+echo "Organic indexation is managed via Google Search Console and XML Sitemap (https://sarkari.online/sitemap.xml).\n\n";
+echo "Execution aborted to protect domain trust.\n";
+exit(0);
 
 $successCount = 0;
 $failCount = 0;

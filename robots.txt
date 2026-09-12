@@ -28,12 +28,6 @@ Allow: /privacy-policy/
 Allow: /terms/
 Allow: /disclaimer/
 
-# Disallow Internal Search Result Pages (Google Search Essentials Standard)
-Disallow: /search/
-Disallow: /search.php
-Disallow: /*?q=*
-Disallow: /*?s=*
-
 # Disallow Internal & Protected Directories
 Disallow: /cdn-cgi/
 Disallow: /admin/
