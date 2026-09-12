@@ -32,17 +32,46 @@ $message = null;
 $messageType = 'success';
 $cliOutput = null;
 
-// Handle On-Demand Full 360° Live Diagnostic Run
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'run_audit') {
-    $scriptPath = dirname(__DIR__, 2) . '/cron/system-health.php';
-    if (file_exists($scriptPath)) {
-        ob_start();
-        passthru("php " . escapeshellarg($scriptPath) . " 2>&1");
-        $rawOutput = ob_get_clean();
-        // Strip ANSI terminal color codes for clean HTML display
-        $cliOutput = preg_replace('/\033\[[0-9;]*m/', '', $rawOutput);
-        $message = "⚡ Full 360° System Health & Audit Inspector executed successfully at " . date('h:i:s A') . " IST.";
+// Handle Actions (Audit, Clear Cooldown, Manual Slot Generate)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    if ($_POST['action'] === 'run_audit') {
+        $scriptPath = dirname(__DIR__, 2) . '/cron/system-health.php';
+        if (file_exists($scriptPath)) {
+            ob_start();
+            passthru("php " . escapeshellarg($scriptPath) . " 2>&1");
+            $rawOutput = ob_get_clean();
+            $cliOutput = preg_replace('/\033\[[0-9;]*m/', '', $rawOutput);
+            $message = "⚡ Full 360° System Health & Audit Inspector executed successfully at " . date('h:i:s A') . " IST.";
+            $messageType = 'success';
+        }
+    } elseif ($_POST['action'] === 'clear_cooldown') {
+        Database::execute("DELETE FROM settings WHERE `key` = 'gemini_circuit_breaker_until'");
+        $message = "✅ Gemini circuit breaker cooldown cleared! Autonomous slot generation is now active.";
         $messageType = 'success';
+    } elseif ($_POST['action'] === 'generate_slot_now') {
+        try {
+            // Unblock circuit breaker first
+            Database::execute("DELETE FROM settings WHERE `key` = 'gemini_circuit_breaker_until'");
+
+            @set_time_limit(300);
+            $pipeline = new \App\Services\PipelineService();
+            $results = $pipeline->processApprovedTrends(1);
+
+            if (!empty($results[0]['success']) && !empty($results[0]['article_id'])) {
+                $pSlot = AutoCronService::getNextPendingSlot() ?: 2;
+                AutoCronService::recordSlotCompleted($pSlot, (int)$results[0]['article_id']);
+                $artTitle = htmlspecialchars($results[0]['title'] ?? 'Article');
+                $message = "🎉 Successfully generated & published Article #{$results[0]['article_id']} ('{$artTitle}') for Slot {$pSlot}!";
+                $messageType = 'success';
+            } else {
+                $err = $results[0]['error'] ?? 'Unknown generation error. Please check approved queue.';
+                $message = "Publication failed: " . htmlspecialchars($err);
+                $messageType = 'danger';
+            }
+        } catch (\Throwable $e) {
+            $message = "Error executing generation: " . htmlspecialchars($e->getMessage());
+            $messageType = 'danger';
+        }
     }
 }
 
@@ -234,7 +263,25 @@ include dirname(__DIR__) . '/components/header.php';
             Real-time diagnostic telemetry across daily slots, AI integrity, external syndication, database, and SEO compliance.
         </p>
     </div>
-    <div style="display: flex; gap: 0.75rem; align-items: center;">
+    <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+        <?php if ($isCooldown): ?>
+            <form method="POST" style="margin: 0;">
+                <input type="hidden" name="action" value="clear_cooldown">
+                <button type="submit" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 5px; font-weight: 700; color: #dc2626; border-color: #fca5a5; font-size: 0.8125rem;">
+                    <?= icon('alert-triangle', 'icon-xs') ?> Clear Cooldown
+                </button>
+            </form>
+        <?php endif; ?>
+        <?php if (count($completedSlots) < 3 && $trendCounts['approved'] > 0): 
+            $pSlot = AutoCronService::getNextPendingSlot() ?: 2;
+        ?>
+            <form method="POST" style="margin: 0;" onsubmit="return confirm('Trigger generation and publication for Slot <?= $pSlot ?> now using top approved trend?');">
+                <input type="hidden" name="action" value="generate_slot_now">
+                <button type="submit" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 700; background: #059669; border-color: #059669; box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);">
+                    ⚡ Publish Slot <?= $pSlot ?> Now
+                </button>
+            </form>
+        <?php endif; ?>
         <form method="POST" style="margin: 0;">
             <input type="hidden" name="action" value="run_audit">
             <button type="submit" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 700; box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);">
