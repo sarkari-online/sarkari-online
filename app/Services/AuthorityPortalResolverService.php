@@ -70,6 +70,11 @@ class AuthorityPortalResolverService {
         }
 
         // 2. Discovery Path: Grounded search via Gemini Google Search Grounding
+        if (\App\AI\Gemini::isCircuitBreakerActive()) {
+            Logger::info("AuthorityPortalResolver: Circuit breaker active, skipping dynamic discovery for '{$cleanAcronym}'.");
+            return null;
+        }
+
         $fullName = !empty($fullNameHint) ? $fullNameHint : $cleanAcronym;
         Logger::info("AuthorityPortalResolver: Attempting dynamic search discovery for '{$cleanAcronym}' ({$fullName}).");
 

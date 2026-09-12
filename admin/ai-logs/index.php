@@ -10,10 +10,16 @@ use App\Helpers\Sanitizer;
 
 Auth::requireAuth();
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'clear_errors') {
-    Database::query("DELETE FROM ai_logs WHERE success = 0");
-    header('Location: ' . url('admin/ai-logs/'));
-    exit;
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    if ($_POST['action'] === 'clear_errors') {
+        Database::query("DELETE FROM ai_logs WHERE success = 0");
+        header('Location: ' . url('admin/ai-logs/'));
+        exit;
+    } elseif ($_POST['action'] === 'clear_all_logs') {
+        Database::query("TRUNCATE TABLE ai_logs");
+        header('Location: ' . url('admin/ai-logs/'));
+        exit;
+    }
 }
 
 $adminPageTitle = 'AI Operations & Audit Logs';
@@ -86,6 +92,12 @@ include dirname(__DIR__) . '/components/header.php';
         <form method="POST" style="display: inline; margin: 0;" onsubmit="return confirm('Clear all <?= $failedCalls ?> historical failed call logs?');">
             <input type="hidden" name="action" value="clear_errors">
             <button type="submit" class="btn btn-sm btn-outline" style="color: var(--text-muted); font-size: 0.75rem;">Clear Failed Logs</button>
+        </form>
+        <?php endif; ?>
+        <?php if ($totalCalls > 0): ?>
+        <form method="POST" style="display: inline; margin: 0;" onsubmit="return confirm('⚠️ Are you sure you want to reset ALL AI execution logs? This will reset all invocation counters to 0.');">
+            <input type="hidden" name="action" value="clear_all_logs">
+            <button type="submit" class="btn btn-sm btn-outline" style="color: #dc2626; border-color: #fca5a5; font-size: 0.75rem;">Reset All AI Logs (Zero Counter)</button>
         </form>
         <?php endif; ?>
     </div>

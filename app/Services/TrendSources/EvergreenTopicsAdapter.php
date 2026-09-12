@@ -394,23 +394,8 @@ class EvergreenTopicsAdapter implements TrendSourceInterface {
                 ];
             }
 
-            // 2. If catalog slots remain unfilled, attempt dynamic search-intent discovery via AI
-            if (count($results) < $limit) {
-                $needed = $limit - count($results);
-                $dynamicItems = $this->discoverDynamicDemandTopics($needed);
-
-                foreach ($dynamicItems as $dItem) {
-                    if (count($results) >= $limit) break;
-
-                    // Must pass qualification (English only, education relevant, deduplication, valid category)
-                    $qualification = TrendService::isQualified($dItem);
-                    if (!$qualification['qualified']) {
-                        continue;
-                    }
-
-                    $results[] = $dItem;
-                }
-            }
+            // 2. Strict Quota Protection: Do not invoke AI for synthetic topic discovery.
+            // Rely strictly on authentic curated catalog and real-time RSS/portal feeds.
 
         } catch (Throwable $e) {
             Logger::warning('EvergreenTopicsAdapter fetch error: ' . $e->getMessage());
