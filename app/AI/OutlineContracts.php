@@ -11,9 +11,10 @@ final class OutlineContracts
     {
         $tableRule = <<<RULE
 CRITICAL TABLE & PLACEHOLDER INSTRUCTION:
-- Insert the literal text <!--DATES_MILESTONE_TABLE--> immediately after the first <h2> Overview / Circular section.
+- Immediately after the first <h2> heading and opening paragraph, include the literal placeholder: <!--DATES_MILESTONE_TABLE-->
 - Do NOT generate a dates or statutory milestone table yourself — the system automatically inserts the verified dates table at that exact marker.
-- Any other domain table you generate (Exam Pattern Comparison, Subject Weightage, Shift Schedule, Vacancy Distribution, Fee Structure, Cutoffs, Regional Portals) MUST use standard semantic <table> tags and will be preserved untouched.
+- Any other domain table you generate (Vacancy Distribution, Exam Pattern Comparison, Subject Weightage, Shift Timings, Challenge Fee Structure, Cutoffs, Regional Portals) MUST use standard semantic <table> tags and will be preserved untouched.
+- NEVER generate two milestone or schedule dates tables back-to-back. Domain tables must contain distinct domain data (e.g. fees, vacancies, shifts), never duplicate milestone dates.
 
 RULE;
 
@@ -29,6 +30,7 @@ Required Structural Flow:
    - What was officially announced/released, for which exact notification code (e.g. CEN No.) and stage (e.g. CBT-2 for Undergraduate posts).
    - Direct link timeline and callout.
 2. <h2>[Exam Name]: City Intimation Slip vs e-Call Letter (Key Distinction)</h2>
+   - Insert <!--DATES_MILESTONE_TABLE--> immediately after the opening paragraph of this section.
    - Clear explanatory callout box: Detail why the City Intimation Slip is NOT the admit card (it only shows exam city, state, date, and shift to facilitate travel/train bookings).
    - When the actual e-Call Letter / Admit Card will be released (usually 4 days before the candidate's exam date).
 3. <h2>[Exam Name]: Official CBT Schedule, Reporting Hours & Shift Timings</h2>
@@ -59,6 +61,7 @@ Required Structural Flow:
 1. Direct Announcement Hook:
    - What result was declared, which exam stage (e.g. Tier-1, Prelims, CBT-1), total qualified candidates, and scorecard availability.
 2. <h2>[Exam Name]: Result Highlights, Direct Scorecard Link & Merit List PDF</h2>
+   - Insert <!--DATES_MILESTONE_TABLE--> immediately after the opening paragraph of this section.
    - Direct download links for Cutoff Notice PDF, Merit List Roll Numbers PDF, and Candidate Scorecard Login URL.
 3. <h2>[Exam Name]: Category-Wise Cutoff Marks & Qualifying Percentiles</h2>
    - MANDATORY HTML <table>: Rows for General/UR, EWS, OBC-NCL, SC, ST, ESM, and PwBD categories.
@@ -69,7 +72,7 @@ Required Structural Flow:
    - What comes next: Next Exam Phase (CBT-2 / Mains / Descriptive / Typing / Physical Test / Document Verification).
    - Schedule or expected timeline for the next stage.
 6. <h2>How to Check [Exam Name] Result & Download Scorecard Online</h2>
-   - Step-by-step instructions: Application No / Roll No + DOB login.
+   - Step-by-Step instructions: Application No / Roll No + DOB login.
 7. <h2>Frequently Asked Questions (FAQs) About [Exam Name] Result & Cutoff</h2>
    - 5 to 6 genuine FAQs addressing re-evaluation/re-checking rules, scorecard download expiry, and next stage preparation.
 8. <h2>Official Authority Verification & Direct Gazetted Links for [Exam Name]</h2>
@@ -84,9 +87,9 @@ Every <h2> heading MUST contain the specific Recruitment entity name.
 Required Structural Flow:
 1. Inspiring Narrative Hook & Notification Overview:
    - Total vacancies, department/cadre names, pay matrix level (7th CPC), and why this recruitment cycle is significant.
-2. <h2>[Recruitment Name]: Notification Highlights, Vacancy Distribution & Key Dates</h2>
-   - MANDATORY HTML <table>: Key Dates (Notification release, Online registration start date, Last date to apply, Fee payment deadline, Correction window, Exam date).
-   - Vacancy Distribution Table: Post names, Pay scale, and category-wise vacancies (UR, OBC, SC, ST, EWS).
+2. <h2>[Recruitment Name]: Notification Highlights & Vacancy Distribution</h2>
+   - Insert <!--DATES_MILESTONE_TABLE--> immediately after the opening paragraph of this section.
+   - MANDATORY HTML <table>: Vacancy Distribution Table (Post names, Pay scale / 7th CPC Matrix, and category-wise vacancies: UR, OBC, SC, ST, EWS, Total). Do NOT generate a separate dates table as the dates table is automatically placed at the placeholder marker.
 3. <h2>Eligibility Criteria, Age Limits & Educational Qualifications for [Recruitment Name]</h2>
    - Minimum and maximum age limit with the exact cutoff date (e.g. as on 01/08/2026).
    - Category-wise age relaxations (SC/ST: 5 years, OBC: 3 years, PwBD: 10 years).
@@ -113,9 +116,10 @@ Required Structural Flow:
 1. Direct Answer Hook:
    - Whether Provisional or Final Answer Key is released, exam dates for which key is available, and deadline to submit challenges.
 2. <h2>[Exam Name]: Answer Key Highlights & Direct PDF / Login Links</h2>
+   - Insert <!--DATES_MILESTONE_TABLE--> immediately after the opening paragraph of this section.
    - Direct link to candidate response sheet, master question paper, and objection portal.
-3. <h2>[Exam Name]: Objection Window Schedule & Challenge Fee Structure</h2>
-   - MANDATORY HTML <table>: Objection Start Date & Time, Final Deadline, Processing Fee per question challenged (e.g. ₹50 or ₹100), and refund rules for valid challenges.
+3. <h2>[Exam Name]: Challenge Fee Structure & Representation Guidelines</h2>
+   - MANDATORY HTML <table>: Fee & Policy Structure (Component, Official Rule / Amount: Processing Fee per question challenged, Payment Modes, Refund Terms for upheld challenges, Non-refundable grounds). Do NOT duplicate dates here; the key dates are already established in the milestone table above.
 4. <h2>Step-by-Step Process to Raise Objections Against [Exam Name] Answer Key</h2>
    - Numbered steps on logging in, selecting Question ID, uploading documentary proof / reference book citation, and fee payment.
 5. <h2>Calculation of Estimated Marks & Negative Marking Scheme for [Exam Name]</h2>
@@ -135,7 +139,8 @@ Required Structural Flow:
 1. Direct Status Hook:
    - Which round is active (e.g. Round 1, Round 2, Mop-Up, Spot Round, CAP Round 3), seat allotment date, and immediate candidate action.
 2. <h2>[Counselling Name]: Complete Round Schedule & Critical Cutoff Deadlines</h2>
-   - MANDATORY HTML <table>: Choice Filling / Option Entry, Provisional Allotment Date, Seat Acceptance Window, Physical Reporting at Allotted Institute.
+   - Insert <!--DATES_MILESTONE_TABLE--> immediately after the opening paragraph of this section.
+   - Critical cutoff instructions and reporting timeframe.
 3. <h2>Understanding Seat Acceptance: Freeze, Float & Slide Options Explained</h2>
    - Clear breakdown of candidate choices:
      * Freeze: Accept seat and exit counselling.

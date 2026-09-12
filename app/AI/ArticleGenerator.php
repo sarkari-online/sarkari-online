@@ -111,8 +111,10 @@ MANDATORY STRUCTURAL GUIDELINE:
 Follow the OUTLINE CONTRACT for {$intent->value} in the system prompt exactly.
 - Direct Answer Box first (40-60 words), answering the single question that brought the reader to the page.
 - Every <h2> heading MUST contain the specific Examination/Recruitment entity name.
+- Immediately after the first <h2> heading and its opening paragraph, you MUST insert the literal token: <!--DATES_MILESTONE_TABLE-->
 - CRITICAL: Do NOT generate sections forbidden by this intent contract.
-- CRITICAL: You do NOT generate date tables or fee tables in JSON — they are strictly constructed by the system. Refer to the confirmed dates above in your prose.
+- CRITICAL: You do NOT generate date tables or statutory milestone tables yourself — the system automatically inserts the verified dates table at that exact marker.
+- Domain tables (Vacancy Distribution, Exam Pattern, Subject Weightage, Shift Schedule, Challenge Fees, Cutoffs) MUST contain strictly domain data and NEVER duplicate statutory milestone dates.
 
 Return strictly as JSON with this exact schema (NO dates_table field):
 {
@@ -287,7 +289,7 @@ USER_PROMPT;
 
         if (str_contains($content, self::DATES_TABLE_PLACEHOLDER)) {
             $after = str_replace(self::DATES_TABLE_PLACEHOLDER, $datesTableHtml, $content);
-        } elseif (preg_match('/(?:<div[^>]*class=["\'][^"\']*table-responsive[^"\']*["\'][^>]*>\s*)?<table\b[^>]*>.*?Statutory Milestone.*?<\/table>(?:\s*<\/div>)?/is', $content, $existingMilestoneMatch)) {
+        } elseif (preg_match('/(?:<div[^>]*class=["\'][^"\']*table-responsive[^"\']*["\'][^>]*>\s*)?<table\b[^>]*>.*?(?:Statutory Milestone|Official Date|Important Dates|Key Dates).*?<\/table>(?:\s*<\/div>)?/is', $content, $existingMilestoneMatch)) {
             // An existing milestone table already exists in the content — replace it in-place instead of stacking a duplicate!
             $after = str_replace($existingMilestoneMatch[0], $datesTableHtml, $content);
         } else {
