@@ -47,7 +47,37 @@ if (!$trend) {
 }
 
 if (!$trend) {
-    echo "❌ No approved or detected trends found in database.\n";
+    echo "⚠️ Queue empty after reset. Running real-time statutory trend fetch...\n";
+    $service = new \App\Services\TrendService();
+    $recorded = $service->fetchAllSources(10);
+    echo "   -> Ingested " . count($recorded) . " real-time trends.\n";
+
+    $trend = Database::fetchOne(
+        "SELECT id, keyword, status, trend_score FROM trends 
+         WHERE status IN ('detected', 'approved') 
+         ORDER BY id DESC LIMIT 1"
+    );
+    if ($trend) {
+        Database::execute("UPDATE trends SET status = 'approved', trend_score = 98 WHERE id = :id", ['id' => $trend['id']]);
+        echo "   -> Promoted fresh trend #{$trend['id']} ('{$trend['keyword']}') to approved.\n";
+    }
+}
+
+if (!$trend) {
+    echo "⚠️ Checking recently reset clean-slate topics to resurrect for Slot 2...\n";
+    $trend = Database::fetchOne(
+        "SELECT id, keyword, status, trend_score FROM trends 
+         WHERE raw_payload LIKE '%Clean Slate Reset%' 
+         ORDER BY id DESC LIMIT 1"
+    );
+    if ($trend) {
+        Database::execute("UPDATE trends SET status = 'approved', trend_score = 98 WHERE id = :id", ['id' => $trend['id']]);
+        echo "   -> Resurrected clean-slate trend #{$trend['id']} ('{$trend['keyword']}') for Slot 2.\n";
+    }
+}
+
+if (!$trend) {
+    echo "❌ No trends found to generate.\n";
     exit(1);
 }
 
