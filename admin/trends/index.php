@@ -125,20 +125,29 @@ $total = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends {$whereClause}"
 $trends = Database::fetchAll("SELECT * FROM trends {$whereClause} ORDER BY id DESC LIMIT {$perPage} OFFSET {$offset}", $params);
 $totalPages = ceil($total / $perPage);
 
-// Stats
-$detectedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'detected'");
-$approvedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status IN ('approved', 'generating')");
-$analyzingCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'analyzing'");
-$generatingCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'generating'");
-$publishedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'published'");
-$rejectedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'rejected'");
+// Stats via single grouped query
+$statusCounts = [
+    'detected' => 0, 'approved' => 0, 'analyzing' => 0, 'generating' => 0, 'published' => 0, 'rejected' => 0
+];
+try {
+    $rows = Database::fetchAll("SELECT status, COUNT(*) as cnt FROM trends GROUP BY status");
+    foreach ($rows as $r) {
+        $statusCounts[$r['status']] = (int)$r['cnt'];
+    }
+} catch (\Throwable $e) {}
+
+$detectedCount = $statusCounts['detected'] ?? 0;
+$approvedCount = ($statusCounts['approved'] ?? 0) + ($statusCounts['generating'] ?? 0);
+$analyzingCount = $statusCounts['analyzing'] ?? 0;
+$generatingCount = $statusCounts['generating'] ?? 0;
+$publishedCount = $statusCounts['published'] ?? 0;
+$rejectedCount = $statusCounts['rejected'] ?? 0;
 
 $today = date('Y-m-d');
 // Only count AI-generated autonomous articles for quota display (manual articles are unlimited and exempt)
 $todayAutoPublishedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM articles WHERE DATE(published_at) = :today AND status = 'published' AND ai_generated = 1", ['today' => $today]);
 $todayManualPublishedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM articles WHERE DATE(published_at) = :today AND status = 'published' AND (ai_generated = 0 OR ai_generated IS NULL)", ['today' => $today]);
 $completedSlotsToday = \App\Services\AutoCronService::getCompletedSlotsTodayCount();
-$breakingCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM trends WHERE status = 'published' AND (trend_score >= 95 OR source LIKE '%statutory%' OR source LIKE '%nta%' OR source LIKE '%ssc%' OR source LIKE '%upsc%')");
 
 include dirname(__DIR__) . '/components/header.php';
 ?>

@@ -160,7 +160,7 @@ class PipelineService {
         $snippet = $rawPayload['snippet'] ?? ($trend['category_hint'] ?? '');
         $verifiedFacts = $factFetcher->fetchFactsForTopic($trend['keyword'], $categorySlug, $trend['url'] ?? '', $snippet);
 
-        $resolvedAuth = AuthorityFactFetcherService::resolveAuthority($trend['keyword'], $trend['url'] ?? '');
+        $resolvedAuth = AuthorityFactFetcherService::resolveAuthority($trend['keyword'], $trend['url'] ?? '', true);
 
         // ── Step 3A.5: ExamCycleContext ───────────────────────────────────────
         // Resolve (or create) the exam_cycle row for this keyword, then run

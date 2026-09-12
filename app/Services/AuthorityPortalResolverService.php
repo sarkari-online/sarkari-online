@@ -51,7 +51,7 @@ class AuthorityPortalResolverService {
      * @param string $fullNameHint e.g. "Odisha Public Service Commission"
      * @return array|null Authority record or null if unresolvable
      */
-    public function resolve(string $acronym, string $fullNameHint = ''): ?array {
+    public function resolve(string $acronym, string $fullNameHint = '', bool $allowDynamicDiscovery = false): ?array {
         $cleanAcronym = strtoupper(trim($acronym));
         if (empty($cleanAcronym)) {
             return null;
@@ -67,6 +67,11 @@ class AuthorityPortalResolverService {
                 'verification_status' => $existing['verification_status'],
                 'discovery_method'    => $existing['discovery_method']
             ];
+        }
+
+        // Strict Guard: NEVER perform live Gemini search or cURL during web requests or unless explicitly allowed in CLI!
+        if (!$allowDynamicDiscovery || php_sapi_name() !== 'cli') {
+            return null;
         }
 
         // 2. Discovery Path: Grounded search via Gemini Google Search Grounding

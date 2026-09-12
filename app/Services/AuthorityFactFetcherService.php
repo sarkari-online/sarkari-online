@@ -84,7 +84,7 @@ class AuthorityFactFetcherService {
     /**
      * Resolve the statutory authority from topic text or URL
      */
-    public static function resolveAuthority(string $topic, string $sourceUrl = ''): array {
+    public static function resolveAuthority(string $topic, string $sourceUrl = '', bool $allowDynamicDiscovery = false): array {
         // Media Domain Blocker: If sourceUrl is a news portal / media aggregator, NEVER treat it as statutory authority portal!
         $mediaDomains = [
             'timesofindia.indiatimes.com', 'indiatimes.com', 'hindustantimes.com', 'ndtv.com',
@@ -223,7 +223,7 @@ class AuthorityFactFetcherService {
         // 13. Dynamic Authority Portal Resolution via AuthorityPortalResolverService
         if (preg_match('/\b([A-Z]{3,8})\b/', $topic, $acr)) {
             $resolver = new AuthorityPortalResolverService();
-            $resolved = $resolver->resolve($acr[1], $topic);
+            $resolved = $resolver->resolve($acr[1], $topic, $allowDynamicDiscovery);
             if ($resolved) {
                 return [
                     'name'                => $resolved['name'],
