@@ -44,6 +44,13 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             $purged = TrendService::purgeDuplicateTrends();
             $message = "Successfully purged {$purged} duplicate trend records from database.";
             $messageType = 'success';
+        } elseif ($action === 'toggle_autonomous_slots') {
+            $cur = \App\Services\AutoCronService::isAutonomousSlotsEnabled();
+            \App\Services\AutoCronService::setAutonomousSlotsEnabled(!$cur);
+            $message = !$cur 
+                ? "▶️ Autonomous 3-Slot Publishing RESUMED! Slot engine (10 AM, 2 PM, 6 PM) is active." 
+                : "⏸️ Autonomous 3-Slot Publishing PAUSED (Google Indexing Stabilization Mode). Zero AI tokens will be spent autonomously. Manual publishing remains 100% active.";
+            $messageType = !$cur ? 'success' : 'warning';
         } elseif ($trendId > 0) {
             if ($action === 'publish_now' || $action === 'approve') {
                 try {
@@ -148,6 +155,7 @@ $today = date('Y-m-d');
 $todayAutoPublishedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM articles WHERE DATE(published_at) = :today AND status = 'published' AND ai_generated = 1", ['today' => $today]);
 $todayManualPublishedCount = (int)Database::fetchColumn("SELECT COUNT(*) FROM articles WHERE DATE(published_at) = :today AND status = 'published' AND (ai_generated = 0 OR ai_generated IS NULL)", ['today' => $today]);
 $completedSlotsToday = \App\Services\AutoCronService::getCompletedSlotsTodayCount();
+$isAutoSlotsEnabled = \App\Services\AutoCronService::isAutonomousSlotsEnabled();
 
 include dirname(__DIR__) . '/components/header.php';
 ?>
@@ -156,6 +164,29 @@ include dirname(__DIR__) . '/components/header.php';
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 @keyframes pulseGlow { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 </style>
+
+<?php if (!$isAutoSlotsEnabled): ?>
+    <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; box-shadow: 0 2px 6px rgba(245, 158, 11, 0.08);">
+        <div style="display: flex; align-items: center; gap: 0.85rem;">
+            <span style="font-size: 1.75rem; line-height: 1;">⏸️</span>
+            <div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.2rem;">
+                    <strong style="color: #92400e; font-size: 1rem;">Autonomous Slots PAUSED — Google Indexing Stabilization Mode Active</strong>
+                    <span class="badge" style="background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; font-size: 0.72rem; font-weight: 800;">0 AI Tokens Spent</span>
+                </div>
+                <p style="color: #b45309; font-size: 0.85rem; margin: 0; line-height: 1.4;">
+                    Scheduled slot publishing (10 AM, 2 PM, 6 PM) is temporarily resting so Googlebot can focus on indexing existing URLs. Live trend radar is scanning, and manual <strong>"Publish Now"</strong> remains 100% active.
+                </p>
+            </div>
+        </div>
+        <form method="POST" style="margin: 0;">
+            <?= CSRF::input() ?>
+            <button type="submit" name="action" value="toggle_autonomous_slots" class="btn btn-success" style="font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+                ▶️ Resume Auto Slots
+            </button>
+        </form>
+    </div>
+<?php endif; ?>
 
 <!-- Trends Engine Explainer & Guide Banner -->
 <div style="background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%); color: #ffffff; border-radius: 12px; padding: 1.5rem 1.75rem; margin-bottom: 1.75rem; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);">
@@ -168,9 +199,9 @@ include dirname(__DIR__) . '/components/header.php';
                 <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: #ffffff;">
                     Sarkari.online Editorial Radar &amp; Trend Intelligence Hub
                 </h2>
-                <div style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 0.8125rem; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399;">
-                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 10px #10b981;"></span>
-                    24/7 Smart Editorial Auto-Pilot Active
+                <div style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 0.8125rem; <?= $isAutoSlotsEnabled ? 'background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399;' : 'background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.5); color: #fbbf24;' ?>">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; <?= $isAutoSlotsEnabled ? 'background: #10b981; box-shadow: 0 0 10px #10b981;' : 'background: #f59e0b; box-shadow: 0 0 10px #f59e0b;' ?>"></span>
+                    <?= $isAutoSlotsEnabled ? '24/7 Smart Editorial Auto-Pilot Active' : '⏸️ Auto Slots Paused (GSC Stabilization)' ?>
                 </div>
             </div>
             <p style="font-size: 0.9rem; color: #cbd5e1; line-height: 1.6; margin: 0 0 0.85rem 0;">
@@ -243,6 +274,18 @@ include dirname(__DIR__) . '/components/header.php';
             <button type="submit" name="action" value="purge_duplicates" class="btn btn-sm btn-outline" style="color: #64748b; border-color: #cbd5e1; font-weight: 600;" title="Purge duplicate rejected entries to keep database clean" onclick="return confirm('Purge redundant duplicate trend records from database?');">
                 🧹 Purge Duplicates
             </button>
+        </form>
+        <form method="POST" style="display: inline-block; margin: 0;">
+            <?= CSRF::input() ?>
+            <?php if ($isAutoSlotsEnabled): ?>
+                <button type="submit" name="action" value="toggle_autonomous_slots" class="btn btn-sm btn-outline" style="color: #b45309; border-color: #fcd34d; background: #fffbeb; font-weight: 600;" title="Pause autonomous 3-slot publishing to stabilize Google Search Console indexing" onclick="return confirm('Pause autonomous 3-slot publishing to stabilize Google Search Console indexing?');">
+                    ⏸️ Pause Auto Slots
+                </button>
+            <?php else: ?>
+                <button type="submit" name="action" value="toggle_autonomous_slots" class="btn btn-sm btn-success" style="font-weight: 700;">
+                    ▶️ Resume Auto Slots
+                </button>
+            <?php endif; ?>
         </form>
     </div>
 </div>

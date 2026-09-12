@@ -393,6 +393,17 @@ class PublishingService {
             ];
         }
 
+        // 0. Pause Guard: Check if autonomous publishing is paused by admin (GSC Indexing Stabilization Mode)
+        if (!AutoCronService::isAutonomousSlotsEnabled()) {
+            Logger::info("Publish queue held: Autonomous slot publishing is PAUSED by admin (GSC Indexing Stabilization Mode). Manual publishing remains unlimited.");
+            return [
+                'success' => false,
+                'reason'  => 'autonomous_slots_paused',
+                'published_today' => $todayCount,
+                'items'   => []
+            ];
+        }
+
         // Strict IST Slot Guard: Slot 1 (10:00 AM), Slot 2 (02:00 PM), Slot 3 (06:00 PM)
         $pendingSlot = AutoCronService::getNextPendingSlot();
         if ($pendingSlot === null) {

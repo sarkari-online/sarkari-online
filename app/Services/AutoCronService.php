@@ -221,6 +221,14 @@ class AutoCronService {
     private static function runAnalyze(): void {
         Logger::info('AutoCron: Starting analyze-trends');
 
+        // 0. Pause Guard: Check if autonomous publishing / analysis is paused by admin (GSC Indexing Stabilization Mode)
+        if (!self::isAutonomousSlotsEnabled()) {
+            $msg = "AutoCron analyze: Autonomous slots are PAUSED (GSC Indexing Stabilization Mode). Skipping AI analysis to conserve quota.";
+            Logger::info($msg);
+            if (php_sapi_name() === 'cli') echo "[" . date('Y-m-d H:i:s') . "] ⏸️ {$msg}\n";
+            return;
+        }
+
         // Circuit Breaker pre-check: skip cycle if Gemini is in cooldown
         if (\App\AI\Gemini::isCircuitBreakerActive()) {
             Logger::info('AutoCron analyze: Gemini API circuit breaker is currently active. Skipping analysis cycle.');
@@ -535,6 +543,14 @@ class AutoCronService {
             echo "[" . date('Y-m-d H:i:s') . "] ⚡ AutoCron: Checking generation pipeline...\n";
         }
 
+        // 0. Pause Guard: Check if autonomous slots are paused by admin (GSC Indexing Stabilization Mode)
+        if (!self::isAutonomousSlotsEnabled()) {
+            $msg = "AutoCron generate: Autonomous slots are PAUSED (GSC Indexing Stabilization Mode). Manual publishing remains 100% active.";
+            Logger::info($msg);
+            if (php_sapi_name() === 'cli') echo "[" . date('Y-m-d H:i:s') . "] ⏸️ {$msg}\n";
+            return;
+        }
+
         // Circuit Breaker pre-check
         if (\App\AI\Gemini::isCircuitBreakerActive()) {
             Logger::info('AutoCron generate: Gemini API circuit breaker is currently active. Skipping generation cycle.');
@@ -597,6 +613,10 @@ class AutoCronService {
     }
 
     private static function runPublish(): void {
+        if (!self::isAutonomousSlotsEnabled()) {
+            return;
+        }
+
         $pendingSlot = self::getNextPendingSlot();
         if ($pendingSlot === null) {
             return;
@@ -613,5 +633,20 @@ class AutoCronService {
                 }
             }
         }
+    }
+
+    /**
+     * Check if autonomous slot publishing is enabled or paused by admin
+     */
+    public static function isAutonomousSlotsEnabled(): bool {
+        return SettingsService::get('slots_autonomous_enabled', '1') !== '0';
+    }
+
+    /**
+     * Toggle or set autonomous slots state
+     */
+    public static function setAutonomousSlotsEnabled(bool $enabled): void {
+        SettingsService::set('slots_autonomous_enabled', $enabled ? '1' : '0', 'integer', 'Autonomous 3-Slot Publishing Master Switch');
+        Logger::info("AutoCron: Autonomous slots master switch set to " . ($enabled ? 'ENABLED' : 'PAUSED'));
     }
 }

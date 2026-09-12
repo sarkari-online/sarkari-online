@@ -118,6 +118,11 @@ class PipelineService {
         // Guard 1: Fixed Slot Timing (10:00 AM, 02:00 PM, 06:00 PM IST)
         // Manual publishing by admin ($force = true) is 100% UNLIMITED and NEVER blocked.
         if (!$force) {
+            if (!AutoCronService::isAutonomousSlotsEnabled()) {
+                $pauseMsg = "Autonomous slot publishing is currently PAUSED by admin (GSC Indexing Stabilization Mode). Manual publishing remains unlimited.";
+                Logger::info("Trend #{$trendId} deferred: " . $pauseMsg);
+                return ['success' => false, 'trend_id' => $trendId, 'error' => $pauseMsg];
+            }
             $pendingSlot = AutoCronService::getNextPendingSlot();
             if ($pendingSlot === null) {
                 $schedule = AutoCronService::getISTSlotSchedule();
