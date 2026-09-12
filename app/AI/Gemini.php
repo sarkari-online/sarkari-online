@@ -106,9 +106,14 @@ class Gemini {
         if (self::isCircuitBreakerActive()) {
             $val = (int)Database::fetchValue("SELECT value FROM settings WHERE `key` = 'gemini_circuit_breaker_until' LIMIT 1");
             $rem = max(1, $val - time());
-            $err = "Gemini API circuit breaker is active (cooldown). Please wait {$rem}s before retrying.";
-            // Note: Do NOT log this local cooldown rejection to ai_logs to avoid false failure count inflation
-            throw new Exception($err);
+            if ($rem <= 15) {
+                Logger::info("Gemini circuit breaker waiting {$rem}s for short cooldown to expire...");
+                sleep($rem);
+            } else {
+                $err = "Gemini API circuit breaker is active (cooldown). Please wait {$rem}s before retrying.";
+                // Note: Do NOT log this local cooldown rejection to ai_logs to avoid false failure count inflation
+                throw new Exception($err);
+            }
         }
 
         $url = "https://generativelanguage.googleapis.com/v1beta/models/{$this->model}:generateContent?key=" . urlencode($this->apiKey);
@@ -149,19 +154,20 @@ class Gemini {
 
         // Active Google Gemini models in 2026: high-throughput flash-lite models first, followed by next-gen flash
         // Deprecated gemini-2.5-flash / gemini-2.5-flash-lite completely removed (they return 404 from Google)
-        $modelsToTry = array_unique(array_filter([
+        $modelsToTry = array_values(array_unique(array_filter([
             $this->model,
             'gemini-3.1-flash-lite',
             'gemini-3.5-flash-lite',
             'gemini-3.7-flash',
             'gemini-3.8-flash',
             'gemini-3.6-flash'
-        ]));
+        ])));
+        $lastModelKey = count($modelsToTry) - 1;
         $attempt = 0;
         $lastError = '';
         $tokensUsed = 0;
 
-        foreach ($modelsToTry as $currentModel) {
+        foreach ($modelsToTry as $mIdx => $currentModel) {
             $url = "https://generativelanguage.googleapis.com/v1beta/models/{$currentModel}:generateContent?key=" . urlencode($this->apiKey);
             
             for ($try = 1; $try <= 2; $try++) {
@@ -196,21 +202,49 @@ class Gemini {
                         break;
                     }
 
-                    // Handle rate limit (429) -> Try next model if available, else activate circuit breaker
+                    // Handle rate limit (429)
                     if ($httpCode === 429) {
-                        $retrySeconds = 30;
+                        $retrySeconds = 10;
                         if (preg_match('/retry in ([0-9.]+)s/i', $rawBody, $m)) {
-                            $retrySeconds = (int)ceil((float)$m[1]) + 5;
+                            $retrySeconds = (int)ceil((float)$m[1]) + 2;
                         } elseif (str_contains(strtolower($rawBody), 'day') || str_contains(strtolower($rawBody), 'free_tier_requests')) {
                             $retrySeconds = 600; // 10 mins for daily quota
                         }
 
+                        // If it is a short rate-limit cooldown (<= 15s), pause and retry in-line!
+                        if ($retrySeconds <= 15 && $try < 2) {
+                            Logger::warning("Gemini model {$currentModel} rate limited (429). Sleeping {$retrySeconds}s for quota replenishment...");
+                            sleep($retrySeconds);
+                            continue;
+                        }
+
                         // Check if there are other models to try
-                        $isLastModel = ($currentModel === end($modelsToTry));
+                        $isLastModel = ($mIdx === $lastModelKey);
                         if (!$isLastModel) {
                             Logger::warning("Gemini model {$currentModel} rate limited (429); falling back to next available model.");
                             break; // Try next model!
                         } else {
+                            if ($retrySeconds <= 15) {
+                                Logger::warning("All Gemini models temporarily rate limited. Sleeping {$retrySeconds}s before final attempt...");
+                                sleep($retrySeconds);
+                                try {
+                                    $resRetry = $this->executeCurl($url, $payload);
+                                    if ($resRetry['http_code'] === 200) {
+                                        $json = json_decode($resRetry['body'], true);
+                                        $text = $json['candidates'][0]['content']['parts'][0]['text'] ?? '';
+                                        $tokensUsed = $json['usageMetadata']['totalTokenCount'] ?? 0;
+                                        $groundingMetadata = $json['candidates'][0]['groundingMetadata'] ?? null;
+                                        $this->logOperation($stage, $articleId, $trendId, $prompt, $text, $tokensUsed, true, null);
+                                        return [
+                                            'text' => $text,
+                                            'tokens_used' => $tokensUsed,
+                                            'model' => $currentModel,
+                                            'status' => 'success',
+                                            'grounding_metadata' => $groundingMetadata
+                                        ];
+                                    }
+                                } catch (Throwable $retryEx) {}
+                            }
                             self::setCircuitBreaker($retrySeconds, "HTTP 429 Rate Limit across all models");
                             $lastError = "Gemini API HTTP 429: Rate limit cooldown active for {$retrySeconds}s.";
                             break 2;
@@ -431,7 +465,7 @@ class Gemini {
             ],
             CURLOPT_TIMEOUT        => $this->timeout,
             CURLOPT_CONNECTTIMEOUT => 10,
-            CURLOPT_SSL_VERIFYPEER => true
+            CURLOPT_SSL_VERIFYPEER => (Env::get('APP_ENV') === 'production' && !empty(ini_get('openssl.cafile')))
         ]);
 
         $body = curl_exec($ch);

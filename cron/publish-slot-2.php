@@ -90,31 +90,55 @@ echo "3. Generating Article via PipelineService...\n";
 ini_set('memory_limit', '512M');
 set_time_limit(300);
 
-try {
-    $pipeline = new PipelineService();
-    $res = $pipeline->generateFromTrend($trendId, true);
+$maxAttempts = 3;
+$published = false;
 
-    if (!empty($res['success']) && !empty($res['article_id'])) {
-        $artId = (int)$res['article_id'];
-        $art = Database::fetchOne("SELECT title, slug, quality_score FROM articles WHERE id = :id LIMIT 1", ['id' => $artId]);
+for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+    try {
+        Database::execute("DELETE FROM settings WHERE `key` = 'gemini_circuit_breaker_until'");
         
-        // Record Slot 2 as officially completed for today
-        AutoCronService::recordSlotCompleted(2, $artId);
+        $pipeline = new PipelineService();
+        $res = $pipeline->generateFromTrend($trendId, true);
 
-        $url = 'https://sarkari.online/article/' . ($art['slug'] ?? '') . '/';
-        echo "\n🎉 SUCCESS! Article #{$artId} PUBLISHED LIVE FOR SLOT 2!\n";
-        echo "   - Title : {$art['title']}\n";
-        echo "   - Score : {$art['quality_score']} / 100\n";
-        echo "   - URL   : {$url}\n\n";
-        echo "================================================================================\n";
-        echo "✅ Slot 2 is now officially marked PUBLISHED on the dashboard!\n";
-        echo "================================================================================\n";
-    } else {
-        $err = $res['error'] ?? 'Unknown generation failure';
-        echo "\n❌ Generation Failed: {$err}\n";
-        exit(1);
+        if (!empty($res['success']) && !empty($res['article_id'])) {
+            $artId = (int)$res['article_id'];
+            $art = Database::fetchOne("SELECT title, slug, quality_score FROM articles WHERE id = :id LIMIT 1", ['id' => $artId]);
+            
+            // Record Slot 2 as officially completed for today
+            AutoCronService::recordSlotCompleted(2, $artId);
+
+            $url = 'https://sarkari.online/article/' . ($art['slug'] ?? '') . '/';
+            echo "\n🎉 SUCCESS! Article #{$artId} PUBLISHED LIVE FOR SLOT 2!\n";
+            echo "   - Title : {$art['title']}\n";
+            echo "   - Score : {$art['quality_score']} / 100\n";
+            echo "   - URL   : {$url}\n\n";
+            echo "================================================================================\n";
+            echo "✅ Slot 2 is now officially marked PUBLISHED on the dashboard!\n";
+            echo "================================================================================\n";
+            $published = true;
+            break;
+        } else {
+            $err = $res['error'] ?? 'Unknown generation failure';
+            echo "\n⚠️ Generation Attempt {$attempt}/{$maxAttempts} failed: {$err}\n";
+            if ($attempt < $maxAttempts) {
+                echo "   Waiting 8s before retry...\n";
+                sleep(8);
+            }
+        }
+    } catch (\Throwable $e) {
+        $msg = $e->getMessage();
+        echo "\n⚠️ Attempt {$attempt}/{$maxAttempts} Exception: {$msg}\n";
+        if ($attempt < $maxAttempts) {
+            Database::execute("DELETE FROM settings WHERE `key` = 'gemini_circuit_breaker_until'");
+            echo "   Clearing cooldown and waiting 10s before retry attempt " . ($attempt + 1) . "...\n";
+            sleep(10);
+        } else {
+            echo "\n❌ Generation Failed after {$maxAttempts} attempts.\n";
+            exit(1);
+        }
     }
-} catch (\Throwable $e) {
-    echo "\n❌ Exception during generation: " . $e->getMessage() . "\n";
+}
+
+if (!$published) {
     exit(1);
 }
