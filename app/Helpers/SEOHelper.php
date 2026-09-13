@@ -337,6 +337,17 @@ class SEOHelper {
 
         return $desc;
     }
+
+    /**
+     * Generate Homepage BreadcrumbList Schema for Google Rich Results
+     */
+    public static function homepageBreadcrumbSchema(): string {
+        $crumbs = [
+            ['label' => 'Home', 'url' => '']
+        ];
+        return self::breadcrumbSchema($crumbs);
+    }
 }
+
 
 
