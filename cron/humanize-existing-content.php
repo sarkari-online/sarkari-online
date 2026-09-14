@@ -27,6 +27,7 @@ $isArticles = isset($options['articles']);
 $targetSlug = $options['slug'] ?? null;
 $limit = (int)($options['limit'] ?? 20);
 
+// If neither flag is passed, default to checking both if slug is provided
 if (!$isGlossary && !$isArticles && !$targetSlug) {
     echo "Usage:\n";
     echo "  php cron/humanize-existing-content.php --glossary\n";
@@ -75,7 +76,7 @@ PROMPT;
 // ─────────────────────────────────────────────────────────────────────────────
 // 1. HEAL GLOSSARY TERMS
 // ─────────────────────────────────────────────────────────────────────────────
-if ($isGlossary || $targetSlug) {
+if ($isGlossary || (!$isArticles && $targetSlug)) {
     echo "\n📚 Scanning Glossary Terms for AI Phrasing...\n";
     $sql = "SELECT id, acronym, slug, overview, full_form_en FROM glossary_terms WHERE 1=1";
     $params = [];
@@ -120,82 +121,134 @@ if ($isGlossary || $targetSlug) {
 // ─────────────────────────────────────────────────────────────────────────────
 // 2. HEAL ARTICLES
 // ─────────────────────────────────────────────────────────────────────────────
-if ($isArticles || $targetSlug) {
+if ($isArticles || (!$isGlossary && $targetSlug)) {
     echo "\n📰 Scanning Articles for Formulaic AI Phrasing...\n";
-    $sql = "SELECT id, title, slug, direct_answer, content FROM articles WHERE status = 'published'";
+    $sql = "SELECT id, title, slug, excerpt, content FROM articles WHERE status = 'published'";
     $params = [];
     if ($targetSlug) {
         $sql .= " AND slug = :slug";
         $params['slug'] = $targetSlug;
     } else {
         $sql .= " AND (content LIKE '%Following the %' 
-                    OR direct_answer LIKE '%Following the %'
+                    OR excerpt LIKE '%Following the %'
                     OR content LIKE '%candidates are awaiting the release%'
-                    OR direct_answer LIKE '%candidates are awaiting the release%'
-                    OR content LIKE '%These documents allow aspirants to verify%') LIMIT " . $limit;
+                    OR excerpt LIKE '%candidates are awaiting the release%'
+                    OR content LIKE '%These documents allow aspirants to verify%'
+                    OR content LIKE '%streamline the recruitment%'
+                    OR content LIKE '%digital governance%') LIMIT " . $limit;
     }
 
     $articles = Database::fetchAll($sql, $params);
     echo "Found " . count($articles) . " article(s) matching AI formulaic patterns.\n";
 
+    $aiTriggers = [
+        'Following the ',
+        'candidates are awaiting the release',
+        'These documents allow aspirants to verify',
+        'streamline the recruitment process',
+        'digital governance initiative',
+        'serves as a testament',
+        'centralized repository',
+        'crucial step for candidates',
+        'in today\'s digital era',
+        'fosters transparency'
+    ];
+
     foreach ($articles as $art) {
         echo "▶ Humanizing Article: {$art['title']} ({$art['slug']})...\n";
         
         $content = $art['content'];
-        $directAnswer = $art['direct_answer'] ?? '';
-
-        // Extract first paragraph under first h2 if it has "Following the "
+        $excerpt = $art['excerpt'] ?? '';
         $updatedContent = $content;
-        if (preg_match('/<p>(Following the [^<]+)<\/p>/i', $content, $matches)) {
-            $originalP = $matches[1];
-            echo "  Found opening paragraph to humanize...\n";
+        $updatedExcerpt = $excerpt;
+        $madeChanges = false;
 
-            $prompt = str_replace('{{TEXT}}', $originalP, $humanizerPrompt);
-            try {
-                $response = $gemini->generate($prompt, ['stage' => 'humanize_article', 'temperature' => 0.7]);
-                $rewrittenP = trim($response['text'] ?? '');
+        // Extract paragraphs
+        if (preg_match_all('/<p(?:\s+[^>]*)?>(.*?)<\/p>/is', $content, $pMatches, PREG_SET_ORDER)) {
+            $pReplaced = 0;
+            foreach ($pMatches as $idx => $pMatch) {
+                $fullTag = $pMatch[0];
+                $innerHtml = $pMatch[1];
+                $cleanText = trim(strip_tags($innerHtml));
 
-                if (!empty($rewrittenP) && mb_strlen($rewrittenP) >= 40) {
-                    $updatedContent = str_replace("<p>{$originalP}</p>", "<p>{$rewrittenP}</p>", $updatedContent);
-                    echo "  ✅ Replaced opening paragraph with humanized version.\n";
+                $shouldRewrite = false;
+                foreach ($aiTriggers as $trigger) {
+                    if (stripos($cleanText, $trigger) !== false) {
+                        $shouldRewrite = true;
+                        break;
+                    }
                 }
-            } catch (\Throwable $e) {
-                echo "  ❌ Content Error: " . $e->getMessage() . "\n";
+
+                // If target slug is explicitly given and first paragraph, rewrite it even if not explicitly triggered
+                if (!$shouldRewrite && $targetSlug && $idx === 0 && mb_strlen($cleanText) > 50) {
+                    $shouldRewrite = true;
+                }
+
+                if ($shouldRewrite && mb_strlen($cleanText) >= 30) {
+                    echo "  Found AI paragraph #{$idx} (" . mb_substr($cleanText, 0, 60) . "...)\n";
+                    $prompt = str_replace('{{TEXT}}', $cleanText, $humanizerPrompt);
+                    try {
+                        $response = $gemini->generate($prompt, ['stage' => 'humanize_article', 'temperature' => 0.7]);
+                        $rewrittenP = trim($response['text'] ?? '');
+
+                        if (!empty($rewrittenP) && mb_strlen($rewrittenP) >= 30) {
+                            $updatedContent = str_replace($fullTag, "<p>{$rewrittenP}</p>", $updatedContent);
+                            echo "  ✅ Replaced paragraph #{$idx} with humanized version.\n";
+                            $madeChanges = true;
+                            $pReplaced++;
+                        }
+                    } catch (\Throwable $e) {
+                        echo "  ❌ Paragraph Error: " . $e->getMessage() . "\n";
+                    }
+                    sleep(1);
+                    // Rewrite up to 2 major paragraphs per article to avoid over-altering factual tables/data
+                    if ($pReplaced >= 2) {
+                        break;
+                    }
+                }
             }
         }
 
-        // Also humanize direct_answer if present
-        $updatedDirectAnswer = $directAnswer;
-        if (!empty($directAnswer) && (str_contains($directAnswer, 'Following the ') || str_contains($directAnswer, 'candidates are awaiting'))) {
-            $prompt = str_replace('{{TEXT}}', $directAnswer, $humanizerPrompt);
-            try {
-                $response = $gemini->generate($prompt, ['stage' => 'humanize_direct_answer', 'temperature' => 0.7]);
-                $rewrittenDA = trim($response['text'] ?? '');
-                if (!empty($rewrittenDA) && mb_strlen($rewrittenDA) >= 25) {
-                    $updatedDirectAnswer = $rewrittenDA;
-                    echo "  ✅ Humanized direct_answer field.\n";
+        // Also humanize excerpt if it contains AI phrases
+        if (!empty($excerpt)) {
+            $excerptTriggered = false;
+            foreach ($aiTriggers as $trigger) {
+                if (stripos($excerpt, $trigger) !== false) {
+                    $excerptTriggered = true;
+                    break;
                 }
-            } catch (\Throwable $e) {
-                echo "  ❌ Direct Answer Error: " . $e->getMessage() . "\n";
+            }
+            if ($excerptTriggered) {
+                $prompt = str_replace('{{TEXT}}', $excerpt, $humanizerPrompt);
+                try {
+                    $response = $gemini->generate($prompt, ['stage' => 'humanize_excerpt', 'temperature' => 0.7]);
+                    $rewrittenEx = trim($response['text'] ?? '');
+                    if (!empty($rewrittenEx) && mb_strlen($rewrittenEx) >= 20) {
+                        $updatedExcerpt = $rewrittenEx;
+                        echo "  ✅ Humanized excerpt field.\n";
+                        $madeChanges = true;
+                    }
+                } catch (\Throwable $e) {
+                    echo "  ❌ Excerpt Error: " . $e->getMessage() . "\n";
+                }
+                sleep(1);
             }
         }
 
         // Update database if changed
-        if ($updatedContent !== $content || $updatedDirectAnswer !== $directAnswer) {
+        if ($madeChanges && ($updatedContent !== $content || $updatedExcerpt !== $excerpt)) {
             Database::execute(
-                "UPDATE articles SET content = :content, direct_answer = :da, updated_at = NOW() WHERE id = :id",
+                "UPDATE articles SET content = :content, excerpt = :excerpt, updated_at = NOW() WHERE id = :id",
                 [
                     'content' => $updatedContent,
-                    'da' => $updatedDirectAnswer,
-                    'id' => (int)$art['id']
+                    'excerpt' => $updatedExcerpt,
+                    'id'      => (int)$art['id']
                 ]
             );
             echo "  🎉 Article #{$art['id']} successfully updated in database!\n\n";
         } else {
             echo "  ℹ️ No changes needed or pattern not matched.\n\n";
         }
-
-        sleep(1);
     }
 }
 
