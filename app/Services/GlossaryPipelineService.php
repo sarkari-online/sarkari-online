@@ -210,16 +210,24 @@ You are the Chief Statutory Lexicographer for Sarkari.online, an authoritative p
 TARGET ACRONYM: "{$acronym}"{$hintText}
 
 Generate 100% FACTUAL, accurate data for this Indian government examination, public commission, administrative post, or PSU recruitment abbreviation.
-STRICT RULES:
+CRITICAL ANTI-AI DETECTOR HUMANIZER RULES (0% AI / 100% HUMAN ON QUILLBOT & GPTZERO):
+- Write with the authentic voice of a veteran Indian education journalist and senior competitive exam mentor.
+- HIGH BURSTINESS: Vary sentence lengths dynamically. Mix ultra-short punchy sentences (4-6 words) with natural medium and longer explanatory sentences.
+- MANDATORY CONTRACTIONS: Frequently use natural human contractions: you'll, don't, can't, it's, here's, won't, there's.
+- STRICT CLICHÉ BLACKLIST (ZERO TOLERANCE):
+  * NEVER use: "digital governance initiative", "streamline the recruitment process", "centralized repository", "eliminate redundancy", "reflecting the government's commitment to", "fosters transparency", "crucial step", "pivotal role", "serves as a testament to", "in today's digital era", "without further ado".
+- REAL ASPIRANT REALITIES: Acknowledge practical candidate friction: correction windows, 10th certificate name matching, server traffic, photograph background rules.
+
+STRICT FIELD SPECIFICATIONS:
 1. "full_form_en": The exact official expansion in English.
 2. "full_form_hi": The exact authentic Hindi translation and meaning (शुद्ध हिंदी अनुवाद).
 3. "category": EXACTLY ONE of: ["civil_services", "defence", "banking", "railway", "police", "teaching", "engineering", "medical", "entrance"].
 4. "conducting_body": The exact Ministry, Commission, or Exam Board (e.g. "Uttar Pradesh Police Recruitment and Promotion Board", "DRDO", "AIIMS", "SSC", "UPSC").
 5. "official_portal": Official .gov.in, .nic.in, or statutory agency website URL.
-6. "overview": 150-250 words describing constitutional/statutory mandate, history, importance, and primary role in Indian public administration.
-7. "eligibility_criteria": 80-120 words covering minimum educational qualification (10th/12th/Graduate/B.Tech/MBBS) and standard age limits (e.g. 18-25, 21-32 years with OBC/SC/ST relaxations).
-8. "selection_process": 70-120 words breaking down recruitment stages (Stage 1: CBT/Written Exam, Stage 2: Physical/Skill Test, Stage 3: Document Verification & Medical).
-9. "syllabus_snapshot": 60-100 words summarizing core subject areas (General Awareness, Reasoning, Quantitative Aptitude, English/Hindi, Technical subjects).
+6. "overview": 140-220 words in 100% HUMAN mentor voice. Explain what it is, why aspirants need it, how the system works in practice, and common candidate mistakes to avoid.
+7. "eligibility_criteria": 70-110 words covering educational qualification and standard age limits with OBC/SC/ST relaxations.
+8. "selection_process": 70-110 words breaking down recruitment stages (CBT/Written, Physical/Skill, Document Verification).
+9. "syllabus_snapshot": 60-90 words summarizing core subject areas.
 10. Salary Details (if a job post or cadre):
     - "pay_level_7cpc": Pay Matrix Level e.g. "Level 3 (7th CPC)" or "Level 7 (7th CPC)" (or null if statutory board)
     - "basic_pay_min": Integer e.g. 21700 (or null)
@@ -228,7 +236,7 @@ STRICT RULES:
     - "gross_salary_max": Integer e.g. 42000 (or null)
     - "allowances_summary": "DA (50%), HRA, Transport Allowance, Medical Allowance"
     - "career_growth_summary": 40-70 words on promotion trajectory.
-11. "faqs": Exactly 3 high-search candidate FAQs with concise, factual answers:
+11. "faqs": Exactly 3 high-search candidate FAQs with concise, conversational, factual answers:
     - FAQ 1: What is the full form of {$acronym} in Hindi?
     - FAQ 2: What is the minimum qualification and age limit for {$acronym}?
     - FAQ 3: What is the selection process and salary scale for {$acronym}?

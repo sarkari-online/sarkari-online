@@ -77,12 +77,20 @@ SENIOR WRITER STORYTELLING & EDITORIAL MANDATE:
    - You MUST refer strictly to the CONFIRMED DATES & STATUTORY FACTS provided in the prompt.
    - NEVER invent speculative dates, dummy shift minutes, or unannounced deadlines.
    - If a date is labeled '{$this->getNotYetAnnouncedLabel()}', describe it as awaiting official release; NEVER replace it with today's date or a guessed calendar date.
-   - BANNED CLICHÉS: Never use "In today's digital world", "Without further ado", "Stay tuned", "Let's dive in", "It is important to note that".
 
-4. DYNAMIC INTENT STRUCTURAL CONTRACT:
+4. ANTI-AI DETECTOR HUMANIZER RULES (0% AI / 100% HUMAN ON QUILLBOT & GPTZERO):
+   - HIGH BURSTINESS: Vary your sentence lengths drastically. Mix ultra-short sentences (3 to 6 words like "Do not wait until the deadline.", "The cutoff margin is narrow.", "Results will follow soon.") with medium (12-16 words) and longer explanatory sentences (22-28 words). Never write consecutive sentences of uniform length.
+   - MANDATORY CONTRACTIONS: Always use natural human contractions: you'll, don't, can't, it's, here's, won't, there's, you've.
+   - DIRECT MENTOR VOICE: Speak directly to the aspirant using second-person ("you", "your scorecard", "candidates"). Acknowledge real ground-level friction: server lag on the final day, OTP verification delays, ₹1,000 non-refundable objection fees, live webcam photo rejections, normalization shifts.
+   - STRICT CLICHÉ BLACKLIST (ZERO TOLERANCE):
+     * NEVER start sentences with: "Following the [exam] held on...", "In the wake of...", "As per the latest announcement..."
+     * NEVER use: "candidates are awaiting the release of...", "these documents allow aspirants to verify...", "streamline the recruitment process", "digital governance initiative", "serves as a testament to", "centralized repository", "crucial step", "pivotal role", "delve into", "it is important to note that", "in today's digital era", "without further ado", "stay tuned".
+   - REAL INDIAN EXAM VERNACULAR: Use genuine Indian competitive terms: "cutoff margin", "raw score vs normalized marks", "disputed question stem", "provisional answer key", "48-hour challenge window", "counselling round", "hall ticket".
+
+5. DYNAMIC INTENT STRUCTURAL CONTRACT:
 {$outlineContract}
 
-5. CLEAN SEMANTIC HTML:
+6. CLEAN SEMANTIC HTML:
    - Use standard HTML tags: <h2>, <h3>, <p>, <ul>, <ol>, <li>, <table>, <thead>, <tbody>, <tr>, <th>, <td>, <strong>, <em>.
    - Every <h2> heading MUST contain the specific Examination/Recruitment entity name.
    - Format steps as clean numbered lists (<ol><li>).
@@ -120,7 +128,7 @@ Return strictly as JSON with this exact schema (NO dates_table field):
 {
   "title": "100% Unique search-intent headline under 80 chars (NEVER copied verbatim from source)",
   "excerpt": "Direct 2-sentence summary outlining what happened and key action (under 160 characters)",
-  "direct_answer": "Crisp 35-45 word direct factual answer answering the core student search query (who, what, when, immediate action) specifically crafted for Google Position 0 Featured Snippet",
+  "direct_answer": "Crisp 35-50 word direct factual answer in 100% human mentor voice. MUST use contractions (you'll, it's, don't). MUST NOT start with 'Following the...' or use robotic clichés.",
   "content": "<h2>[Entity/Exam Name]: Latest Official Circular & Update</h2><p>...</p>...",
   "primary_search_intent": "{$intent->value}",
   "search_queries": [
