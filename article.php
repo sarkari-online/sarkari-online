@@ -178,6 +178,15 @@ include __DIR__ . '/components/header.php';
                         </div>
                     <?php endif; ?>
 
+                    <!-- Fact-Checked Authority Badge (E-E-A-T AdSense Compliant) -->
+                    <div class="fact-check-badge" style="font-size: 0.8125rem; font-weight: 500; background-color: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 9999px; margin-bottom: 0.75rem;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        <span>Fact-checked against official <strong><?= e($sourceName) ?></strong> notification &bull; Last verified <?= date('d M Y', !empty($article['updated_at']) ? strtotime($article['updated_at']) : time()) ?></span>
+                        <?php if (!empty($sourceUrl)): ?>
+                            <a href="<?= e($sourceUrl) ?>" target="_blank" rel="noopener noreferrer" style="text-decoration: underline; text-underline-offset: 2px; color: #15803d; font-weight: 700; margin-left: 4px;">View source &rarr;</a>
+                        <?php endif; ?>
+                    </div>
+
                     <!-- Author and Timestamp Byline -->
                     <div class="article-byline">
                         <div class="byline-author-info">
@@ -398,6 +407,12 @@ include __DIR__ . '/components/header.php';
                         </div>
                     </div>
                 </div>
+
+                <!-- Editorial Disclaimer & Correction Policy Link (E-E-A-T AdSense Compliant) -->
+                <p class="editorial-note small text-muted border-top pt-2 mt-4" style="font-size: 0.8rem; line-height: 1.5; color: #64748b; margin-top: 1.5rem; padding-top: 0.75rem; border-top: 1px solid #e2e8f0;">
+                    This article is continuously reviewed for factual accuracy against official statutory notifications and public gazettes. Spotted an error or outdated link? 
+                    <a href="<?= url('editorial-policy/') ?>" class="text-secondary text-decoration-underline" style="color: #1e3a8a; font-weight: 600;">See our full editorial and correction policy &rarr;</a>
+                </p>
 
             </article>
 
