@@ -34,6 +34,13 @@ while (true) {
     try {
         // checkAndRun() in CLI mode directly executes all due tasks in-process
         AutoCronService::checkAndRun();
+
+        // Autonomous 5-Slot Indian Government Full Forms Publisher
+        try {
+            (new \App\Services\GlossaryPipelineService())->runScheduledSlotIfDue();
+        } catch (\Throwable $ge) {
+            Logger::error("Worker cycle #{$cycle} glossary check error: " . $ge->getMessage());
+        }
     } catch (\Throwable $e) {
         Logger::error("Worker cycle #{$cycle} error: " . $e->getMessage());
         echo "[{$ts}] Error on cycle #{$cycle}: " . $e->getMessage() . "\n";

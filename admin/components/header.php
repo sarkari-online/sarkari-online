@@ -186,6 +186,9 @@ $adminPageTitle = $adminPageTitle ?? 'Admin Dashboard';
             <a href="<?= url('admin/trends/') ?>" class="admin-nav-item <?= ($adminPageKey ?? '') === 'trends' ? 'active' : '' ?>">
                 <?= icon('trending-up') ?> Trends Engine
             </a>
+            <a href="<?= url('admin/glossary/') ?>" class="admin-nav-item <?= ($adminPageKey ?? '') === 'glossary' ? 'active' : '' ?>">
+                <?= icon('book-open') ?> Full Forms Hub
+            </a>
             <a href="<?= url('admin/messages/') ?>" class="admin-nav-item <?= ($adminPageKey ?? '') === 'messages' ? 'active' : '' ?>">
                 <?= icon('mail') ?> Inquiries &amp; Leads
                 <?php 
