@@ -19,7 +19,8 @@ if (!$category) {
 }
 
 $currentPage = max(1, (int)($_GET['page'] ?? 1));
-$categoryData = ArticleService::getByCategory($slug, $currentPage, 6);
+$categoryData = ArticleService::getByCategory($slug, $currentPage, 16);
+
 
 $articles = $categoryData['items'];
 $totalPages = $categoryData['total_pages'];
