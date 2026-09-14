@@ -21,6 +21,15 @@ if (!empty($cleanPath) && $cleanPath !== 'index.php') {
         exit;
     }
 
+    // Google AdSense ads.txt Direct High-Priority Handler
+    if ($cleanPath === 'ads.txt') {
+        header('Content-Type: text/plain; charset=utf-8');
+        header('Cache-Control: public, max-age=86400');
+        echo "google.com, pub-7182678086129554, DIRECT, f08c47fec0942fa0\n";
+        exit;
+    }
+
+
     // Historical 301 Redirect for legacy deleted CBSE test slug & deleted articles
     if (str_starts_with($cleanPath, 'article/cbse-class-10-and-12-board-exam-2027')) {
         header('Location: ' . url('category/exam-dates/'), true, 301);
