@@ -69,6 +69,7 @@
                         <li><a href="<?= url('why-choose-us/') ?>" class="footer-link" title="Why Choose Sarkari.online">Why Choose Us</a></li>
                         <li><a href="<?= url('contact/') ?>" class="footer-link" title="Grievance Redressal &amp; Contact Us">Grievance Redressal</a></li>
                         <li><a href="<?= url('disclaimer/') ?>" class="footer-link" title="Statutory Non-Affiliation Disclaimer">Statutory Disclaimer</a></li>
+                        <li><a href="<?= url('sitemap/') ?>" class="footer-link" title="Sarkari.online HTML Sitemap &amp; Directory">HTML Sitemap</a></li>
                     </ul>
                 </div>
 
@@ -105,7 +106,9 @@
                     <span class="footer-sep">&middot;</span>
                     <a href="<?= url('disclaimer/') ?>" title="Statutory Disclaimer">Disclaimer</a>
                     <span class="footer-sep">&middot;</span>
-                    <a href="<?= url('sitemap.xml') ?>" target="_blank" title="XML Sitemap">Sitemap</a>
+                    <a href="<?= url('sitemap/') ?>" title="HTML Sitemap &amp; Directory">HTML Sitemap</a>
+                    <span class="footer-sep">&middot;</span>
+                    <a href="<?= url('sitemap.xml') ?>" target="_blank" title="XML Sitemap">XML Sitemap</a>
                 </div>
             </div>
         </div>

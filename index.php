@@ -134,6 +134,7 @@ if (!empty($cleanPath) && $cleanPath !== 'index.php') {
         'terms' => 'terms.php',
         'disclaimer' => 'disclaimer.php',
         'ai-policy' => 'ai-policy.php',
+        'sitemap' => 'html-sitemap.php',
         'search' => 'search.php',
         'tools' => 'tools/index.php',
         'feed' => 'feed.php',

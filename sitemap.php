@@ -44,6 +44,7 @@ $staticPages = [
     ['url' => 'fact-checking-policy/', 'file' => __DIR__ . '/fact-checking-policy.php'],
     ['url' => 'how-to-apply/', 'file' => __DIR__ . '/how-to-apply.php'],
     ['url' => 'tools/', 'file' => __DIR__ . '/tools/index.php'],
+    ['url' => 'sitemap/', 'file' => __DIR__ . '/html-sitemap.php'],
 
     ['url' => 'tools/7th-pay-commission-salary-calculator/', 'file' => __DIR__ . '/tools/7th-pay-commission-salary-calculator.php'],
     ['url' => 'tools/cgpa-to-percentage-calculator/', 'file' => __DIR__ . '/tools/cgpa-to-percentage-calculator.php'],
