@@ -50,6 +50,11 @@ try {
         } catch (\Throwable $e) {}
     }
 
+    // Ensure source_article_ids is nullable
+    try {
+        $db->exec("ALTER TABLE `glossary_candidate_terms` MODIFY COLUMN `source_article_ids` TEXT NULL");
+    } catch (\Throwable $e) {}
+
     echo "-> Table structure verified.\n";
 
     // 3. Seed High-Demand Indian Government / Exam Candidate Acronyms
@@ -117,6 +122,7 @@ try {
                 'category' => $c['category'],
                 'conducting_body' => $c['body'],
                 'priority_score' => $c['priority'],
+                'source_article_ids' => '[]',
                 'status' => 'pending',
                 'occurrence_count' => 5,
                 'first_seen_at' => date('Y-m-d H:i:s'),

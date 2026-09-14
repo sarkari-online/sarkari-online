@@ -316,6 +316,7 @@ PROMPT;
                 'proposed_full_form_en' => $hintFullForm,
                 'category' => $category,
                 'priority_score' => $priority,
+                'source_article_ids' => '[]',
                 'status' => 'pending',
                 'occurrence_count' => 1,
                 'first_seen_at' => date('Y-m-d H:i:s')
