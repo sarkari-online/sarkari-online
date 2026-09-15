@@ -83,6 +83,11 @@ if (!empty($termSlug)) {
             );
             if ($matched) {
                 $matchedArticle = $matched;
+            } else {
+                // Crawl Velocity Anchor: Link to latest published update to eliminate dead ends
+                $matchedArticle = Database::fetchOne(
+                    "SELECT slug, title FROM articles WHERE status = 'published' ORDER BY published_at DESC LIMIT 1"
+                );
             }
         } catch (\Throwable $e) {}
     }

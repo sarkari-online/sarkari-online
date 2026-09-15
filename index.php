@@ -153,6 +153,7 @@ if (!empty($cleanPath) && $cleanPath !== 'index.php') {
 use App\Services\ArticleService;
 use App\Services\CategoryService;
 use App\Services\TrendService;
+use App\Services\CrawlEfficiencyService;
 
 // SEO Meta Variables
 $pageTitle = 'Sarkari Result, Latest Govt Jobs & Admit Card 2026';
@@ -164,6 +165,13 @@ $ogType = 'website';
 
 // Fetch Live Articles from Database
 $dbArticles = ArticleService::getLatestPublished(12);
+
+// ── HTTP Crawl Efficiency & Cache Validation Headers (Googlebot 304 & ETag) ──
+$homepageModTime = !empty($dbArticles[0]['updated_at']) 
+    ? $dbArticles[0]['updated_at'] 
+    : (!empty($dbArticles[0]['published_at']) ? $dbArticles[0]['published_at'] : 'now');
+CrawlEfficiencyService::handleConditionalGet('home-index', $homepageModTime);
+
 if (!empty($dbArticles)) {
     $hotArticles = array_slice($dbArticles, 0, 8);
     $featured = $dbArticles[0];

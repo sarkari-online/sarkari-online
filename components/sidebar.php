@@ -5,8 +5,8 @@
  */
 use App\Services\ArticleService;
 
-$sidebarTrending = ArticleService::getLatestPublished(4);
-$sidebarLatest = ArticleService::getLatestPublished(4);
+$sidebarTrending = ArticleService::getLatestPublished(5);
+$sidebarLatest = ArticleService::getLatestPublished(5);
 ?>
 <aside class="article-sidebar" aria-label="Secondary Sidebar">
     
