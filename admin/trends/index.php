@@ -60,27 +60,23 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                     @ini_set('max_execution_time', '300');
                     @set_time_limit(300);
 
-                    $pipeline = new PipelineService();
-                    $res = $pipeline->generateFromTrend($trendId, true);
+                    // Prevent Cloudflare 504 Gateway Timeout (100s limit):
+                    // Release browser immediately, run heavy AI pipeline in the background!
+                    if (function_exists('fastcgi_finish_request')) {
+                        header("Location: " . url("admin/trends/?status=approved&publishing={$trendId}"));
+                        session_write_close();
+                        fastcgi_finish_request();
 
-                    if (!empty($res['success']) && !empty($res['article_id'])) {
-                        $artId = (int)$res['article_id'];
-                        $art = Database::fetchOne("SELECT title, slug FROM articles WHERE id = :id LIMIT 1", ['id' => $artId]);
-                        $slug = $art['slug'] ?? '';
-                        $artTitle = $art['title'] ?? ($res['title'] ?? 'Article');
-                        $artUrl = url('article/' . $slug . '/');
-                        $message = "Article #{$artId} successfully generated and published live: <a href='{$artUrl}' target='_blank' style='color: #fff; font-weight: bold; text-decoration: underline; margin-left: 6px;'>View Live Article &rarr;</a>";
-                        $messageType = 'success';
+                        $pipeline = new PipelineService();
+                        $pipeline->generateFromTrend($trendId, true);
+                        exit;
                     } else {
-                        $err = $res['error'] ?? 'Unknown generation error';
-                        TrendService::markStatus($trendId, 'failed', [
-                            'raw_payload' => [
-                                'last_publish_error' => $err,
-                                'failed_at' => date('Y-m-d H:i:s')
-                            ]
-                        ]);
-                        $message = "Publication failed for Trend #{$trendId}: {$err}";
-                        $messageType = 'danger';
+                        $cliScript = dirname(__DIR__, 2) . '/cron/publish-single.php';
+                        if (file_exists($cliScript)) {
+                            exec("php " . escapeshellarg($cliScript) . " " . (int)$trendId . " > /dev/null 2>&1 &");
+                        }
+                        header("Location: " . url("admin/trends/?status=approved&publishing={$trendId}"));
+                        exit;
                     }
                 } catch (\Throwable $e) {
                     TrendService::markStatus($trendId, 'failed', [
