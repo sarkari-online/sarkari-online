@@ -86,11 +86,11 @@ echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
         <link><?= htmlspecialchars($articleUrl, ENT_XML1, 'UTF-8') ?></link>
         <guid isPermaLink="true"><?= htmlspecialchars($articleUrl, ENT_XML1, 'UTF-8') ?></guid>
         <comments><?= htmlspecialchars($articleUrl . '#comments', ENT_XML1, 'UTF-8') ?></comments>
-        <dc:creator><![CDATA[<?= $author ?>]]></dc:creator>
+        <dc:creator><![CDATA[<?= str_replace(']]>', ']]&gt;', $author) ?>]]></dc:creator>
         <pubDate><?= $pubDate ?></pubDate>
-        <category><![CDATA[<?= $category ?>]]></category>
-        <description><![CDATA[<?= $excerpt ?>]]></description>
-        <content:encoded><![CDATA[<?= $fullBody ?>]]></content:encoded>
+        <category><![CDATA[<?= str_replace(']]>', ']]&gt;', $category) ?>]]></category>
+        <description><![CDATA[<?= str_replace(']]>', ']]&gt;', $excerpt) ?>]]></description>
+        <content:encoded><![CDATA[<?= str_replace(']]>', ']]&gt;', $cleanContent) ?>]]></content:encoded>
         <?php if (!empty($thumbUrl)): ?>
             <media:content url="<?= htmlspecialchars($thumbUrl, ENT_XML1, 'UTF-8') ?>" medium="image">
                 <media:title type="html"><?= htmlspecialchars($art['title'], ENT_XML1, 'UTF-8') ?></media:title>
