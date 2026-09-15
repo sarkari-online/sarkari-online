@@ -40,3 +40,4 @@ Disallow: /tests/
 
 # Sitemap Location
 Sitemap: https://sarkari.online/sitemap.xml
+Sitemap: https://sarkari.online/news-sitemap.xml

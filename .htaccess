@@ -23,6 +23,7 @@
 
     # Clean URLs for Public Pages
     RewriteRule ^sitemap\.xml$ sitemap.php [L,QSA]
+    RewriteRule ^news-sitemap\.xml$ news-sitemap.php [L,QSA]
     RewriteRule ^sitemap/?$ html-sitemap.php [L,QSA]
     RewriteRule ^feed/?$ feed.php [L,QSA]
     RewriteRule ^feed\.xml$ feed.php [L,QSA]
