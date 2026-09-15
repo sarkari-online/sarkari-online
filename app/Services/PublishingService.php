@@ -18,6 +18,7 @@ use App\Services\TelegraphSyndicationService;
 use App\Services\GithubSyndicationService;
 use App\Services\ThumbnailService;
 use App\Services\TrendService;
+use App\Services\WebSubService;
 use Exception;
 use Throwable;
 
@@ -355,6 +356,13 @@ class PublishingService {
 
         // 9. Real-Time GitHub (DA 96) Knowledge Hub Syndication
         GithubSyndicationService::syndicateArticle($article);
+
+        // 10. Real-Time WebSub / PubSubHubbub Push to Google Hub (Instant RSS Discovery)
+        try {
+            WebSubService::pingHubs();
+        } catch (Throwable $e) {
+            Logger::warning("WebSub ping failed during publish for Article #{$articleId}: " . $e->getMessage());
+        }
 
         return [
             'success' => true,

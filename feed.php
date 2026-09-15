@@ -36,6 +36,8 @@ echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
 <channel>
     <title><?= htmlspecialchars(SITE_NAME . ' — Latest Exam Results, Admit Cards & Jobs Alerts', ENT_XML1, 'UTF-8') ?></title>
     <atom:link href="<?= htmlspecialchars(url('feed/'), ENT_XML1, 'UTF-8') ?>" rel="self" type="application/rss+xml" />
+    <atom:link href="https://pubsubhubbub.appspot.com/" rel="hub" />
+    <atom:link href="https://pubsubhubbub.superfeedr.com/" rel="hub" />
     <link><?= htmlspecialchars(SITE_URL . '/', ENT_XML1, 'UTF-8') ?></link>
     <description><?= htmlspecialchars(SITE_DESCRIPTION, ENT_XML1, 'UTF-8') ?></description>
     <lastBuildDate><?= $lastBuildDate ?></lastBuildDate>

@@ -89,6 +89,11 @@ if (!$isAdminSession):
     <!-- Multi-Language & Regional Alternate Directives (Hreflang) -->
     <link rel="alternate" hreflang="en-IN" href="<?= e($metaCanonical) ?>">
     <link rel="alternate" hreflang="x-default" href="<?= e($metaCanonical) ?>">
+
+    <!-- RSS Syndication & WebSub Real-Time Discovery Hubs -->
+    <link rel="alternate" type="application/rss+xml" title="<?= e(SITE_NAME) ?> RSS Feed" href="<?= e(url('feed/')) ?>">
+    <link rel="hub" href="https://pubsubhubbub.appspot.com/">
+    <link rel="hub" href="https://pubsubhubbub.superfeedr.com/">
     <!-- Google Search Console Ownership Verification -->
     <meta name="google-site-verification" content="tbEauc4I8_zvPJ8zJOf_YA3-40UtKAZNRxgo881ZLiY">
 
