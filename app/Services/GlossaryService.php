@@ -10,6 +10,7 @@ namespace App\Services;
 use App\Database\Database;
 use App\Helpers\Logger;
 use App\Helpers\Sanitizer;
+use App\Services\HumanizerService;
 use Throwable;
 
 class GlossaryService {
@@ -458,13 +459,33 @@ class GlossaryService {
     }
 
     /**
+     * Sanitize glossary term content with HumanizerService
+     */
+    public static function sanitizeTerm(array $term): array {
+        if (!empty($term['overview'])) {
+            $term['overview'] = HumanizerService::enforceContractions(HumanizerService::scrubClichés($term['overview']));
+        }
+        if (!empty($term['eligibility_criteria'])) {
+            $term['eligibility_criteria'] = HumanizerService::enforceContractions(HumanizerService::scrubClichés($term['eligibility_criteria']));
+        }
+        if (!empty($term['selection_process'])) {
+            $term['selection_process'] = HumanizerService::enforceContractions(HumanizerService::scrubClichés($term['selection_process']));
+        }
+        if (!empty($term['syllabus_snapshot'])) {
+            $term['syllabus_snapshot'] = HumanizerService::enforceContractions(HumanizerService::scrubClichés($term['syllabus_snapshot']));
+        }
+        return $term;
+    }
+
+    /**
      * Get single term by slug
      */
     public static function getBySlug(string $slug): ?array {
         self::initTable();
         $cleanSlug = strtolower(trim($slug, '/'));
         try {
-            return Database::fetchOne("SELECT * FROM glossary_terms WHERE slug = :slug LIMIT 1", ['slug' => $cleanSlug]);
+            $term = Database::fetchOne("SELECT * FROM glossary_terms WHERE slug = :slug LIMIT 1", ['slug' => $cleanSlug]);
+            return $term ? self::sanitizeTerm($term) : null;
         } catch (Throwable $e) {
             Logger::error("GlossaryService::getBySlug error: " . $e->getMessage());
             return null;
