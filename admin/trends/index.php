@@ -99,9 +99,25 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     }
 }
 
-// Auto-heal any stale analyzing trends older than 3 minutes
+// 1. Auto-heal: Ensure any trend with an already published article is marked 'published'
 try {
-    Database::query("UPDATE trends SET status = 'detected' WHERE status = 'analyzing' AND analyzed_at < DATE_SUB(NOW(), INTERVAL 3 MINUTE)");
+    Database::execute("
+        UPDATE trends t
+        JOIN articles a ON a.trend_id = t.id
+        SET t.status = 'published', t.processed_at = IFNULL(t.processed_at, a.published_at)
+        WHERE a.status = 'published' AND t.status != 'published'
+    ");
+} catch (\Throwable $e) {}
+
+// 2. Auto-heal any stale analyzing trends older than 3 minutes (excluding any that have published articles)
+try {
+    Database::query("
+        UPDATE trends 
+        SET status = 'detected' 
+        WHERE status = 'analyzing' 
+          AND analyzed_at < DATE_SUB(NOW(), INTERVAL 3 MINUTE)
+          AND id NOT IN (SELECT trend_id FROM articles WHERE trend_id IS NOT NULL AND status = 'published')
+    ");
 } catch (Throwable $e) {}
 
 // Fetch Trends with Pagination & Filter
@@ -317,6 +333,10 @@ include dirname(__DIR__) . '/components/header.php';
                 <?php else: ?>
                     <?php foreach ($trends as $t): 
                         $isBreaking = TrendService::isOfficialBreaking($t);
+                        $pubArticle = \App\Database\Database::fetchOne("SELECT slug FROM articles WHERE trend_id = :tid AND status = 'published' LIMIT 1", ['tid' => $t['id']]);
+                        if ($pubArticle && $t['status'] !== 'published') {
+                            $t['status'] = 'published';
+                        }
                     ?>
                         <tr style="border-bottom: 1px solid #e2e8f0;">
                             <td style="padding: 0.85rem 1rem; vertical-align: middle;">
@@ -410,10 +430,7 @@ include dirname(__DIR__) . '/components/header.php';
                                         Writing Article &amp; Thumbnail...
                                     </span>
                                 <?php elseif ($t['status'] === 'published'): ?>
-                                    <?php 
-                                    $pubArticle = \App\Database\Database::fetchOne("SELECT slug FROM articles WHERE trend_id = :tid LIMIT 1", ['tid' => $t['id']]);
-                                    ?>
-                                    <?php if ($pubArticle): ?>
+                                    <?php if (!empty($pubArticle)): ?>
                                         <a href="<?= e(url('article/' . $pubArticle['slug'] . '/')) ?>" target="_blank" class="btn btn-xs btn-outline" style="color: #0284c7; border-color: #0284c7; font-weight: 700; display: inline-flex; align-items: center; gap: 3px;">
                                             <?= icon('external-link', 'icon-xs') ?> View Live
                                         </a>
