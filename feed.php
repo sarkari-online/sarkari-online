@@ -47,8 +47,8 @@ echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
         <url><?= htmlspecialchars(asset('sarkari-logo-transparent.png'), ENT_XML1, 'UTF-8') ?></url>
         <title><?= htmlspecialchars(SITE_NAME, ENT_XML1, 'UTF-8') ?></title>
         <link><?= htmlspecialchars(SITE_URL . '/', ENT_XML1, 'UTF-8') ?></link>
-        <width>185</width>
-        <height>48</height>
+        <width>144</width>
+        <height>37</height>
     </image>
 
     <?php foreach ($articles as $art): 
