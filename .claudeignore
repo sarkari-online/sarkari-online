@@ -1,0 +1,12 @@
+# Sensitive environment & credentials
+.env
+.env.*
+*.env
+config.php
+credentials/
+storage/logs/
+*.log
+*.sql
+*.pem
+*.key
+*.bak
