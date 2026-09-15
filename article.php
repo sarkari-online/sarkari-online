@@ -31,10 +31,22 @@ if (!$article && $slug !== '') {
         'ibps-po-2026-prelims-admit-card-download-active' => 'ibps-po-2026-prelims-exam-concluded',
         'punjab-pti-recruitment-2026-apply-now' => 'punjab-pti-recruitment-2026-cancelled-fee-refund',
         'cbse-class-10-and-12-board-exam-2027-loc-registration-sample-papers-cbse-gov-in' => 'category/exam-dates',
+        'aiims-norcet-7-result-merit-list-download' => 'full-forms/norcet',
+        'rrb-ntpc-2026-recruitment-notification-exam-dates' => 'full-forms/ntpc',
+        'gate-2027-official-syllabus-iit-roorkee-released' => 'full-forms/gate',
+        'cat-2026-registration-step-by-step-form-filling-guide' => 'full-forms/cat',
+        'clat-2027-application-form-syllabus-nlu-consortium' => 'full-forms/clat',
+        'drdo-ceptam-11-technician-senior-technical-assistant' => 'full-forms/drdo',
+        'sbi-clerk-junior-associates-2026-notification' => 'full-forms/sbi',
+        'ssc-chsl-tier-1-2026-final-answer-key-released' => 'full-forms/chsl',
+        'ctet-july-2026-result-marksheet-digilocker-download' => 'full-forms/ctet',
+        'nta-ugc-net-june-2026-re-exam-dates-admit-card' => 'full-forms/nta',
     ];
     if (isset($legacySlugRedirects[$slug])) {
         $dest = $legacySlugRedirects[$slug];
-        $targetUrl = str_starts_with($dest, 'category/') ? url($dest . '/') : url('article/' . $dest . '/');
+        $targetUrl = (str_starts_with($dest, 'category/') || str_starts_with($dest, 'full-forms/')) 
+            ? url($dest . '/') 
+            : url('article/' . $dest . '/');
         header("Location: " . $targetUrl, true, 301);
         exit;
     }
@@ -48,6 +60,23 @@ if (!$article && $slug !== '') {
             exit;
         }
     }
+
+    // Smart Fallback: If missing article matches a known full form / acronym, redirect gracefully
+    try {
+        $cleanSlugParts = explode('-', $slug);
+        foreach ($cleanSlugParts as $part) {
+            if (strlen($part) >= 3 && !is_numeric($part)) {
+                $term = \App\Database\Database::fetchOne(
+                    "SELECT slug FROM glossary_terms WHERE LOWER(acronym) = :acr OR slug = :s LIMIT 1", 
+                    ['acr' => strtolower($part), 's' => strtolower($part)]
+                );
+                if ($term) {
+                    header("Location: " . url('full-forms/' . $term['slug'] . '/'), true, 301);
+                    exit;
+                }
+            }
+        }
+    } catch (\Throwable $e) {}
 }
 
 if (!$article) {

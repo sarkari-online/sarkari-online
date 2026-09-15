@@ -1065,6 +1065,21 @@ $terms = json_decode(<<<'JSON'
         "related_article_slug": "neet-ug-2026-counselling-schedule-released-mcc-nic-in"
     },
     {
+        "acronym": "NORCET",
+        "slug": "norcet",
+        "letter": "N",
+        "full_form_en": "Nursing Officer Recruitment Common Eligibility Test",
+        "full_form_hi": "नर्सिंग ऑफिसर भर्ती सामान्य पात्रता परीक्षा",
+        "category": "medical",
+        "conducting_body": "All India Institute of Medical Sciences (AIIMS), New Delhi",
+        "official_portal": "https://aiimsexams.ac.in",
+        "overview": "The Nursing Officer Recruitment Common Eligibility Test (NORCET) is an apex national competitive examination conducted biannually by AIIMS New Delhi for direct recruitment of Nursing Officers (Group B) across 20+ functional AIIMS institutions and participating Central Government Hospitals nationwide under Pay Level 7 of the 7th CPC.",
+        "eligibility_criteria": "B.Sc (Hons) Nursing / B.Sc Nursing from an INC recognized institute; or Post Basic B.Sc Nursing; or Diploma in General Nursing Midwifery (GNM) with minimum 2 years experience in 50-bed hospital. Registration as Nurse & Midwife with State/INC required. Age limit: 18 to 30 years (with central relaxations for reserved categories).",
+        "selection_process": "Stage 1: NORCET Preliminary Examination (Screening test of 100 MCQs, 90 mins). Stage 2: NORCET Mains Examination (100 MCQs focused on clinical patient care and practical skills). Negative marking of 1/3rd mark. Centralized seat allocation through AIIMS portal.",
+        "syllabus_snapshot": "General Nursing and Midwifery curriculum (Anatomy, Pharmacology, Medical-Surgical Nursing, Obstetrics, Pediatrics, Community Health, Infection Control) plus General Awareness and Basic Aptitude.",
+        "related_article_slug": null
+    },
+    {
         "acronym": "ONGC",
         "slug": "ongc",
         "letter": "O",
