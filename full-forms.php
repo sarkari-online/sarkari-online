@@ -9,6 +9,7 @@ require_once __DIR__ . '/config.php';
 use App\Services\GlossaryService;
 use App\Services\SalaryTableRenderer;
 use App\Services\FaqSchemaRenderer;
+use App\Services\CrawlEfficiencyService;
 use App\Database\Database;
 use App\Helpers\Sanitizer;
 use App\Helpers\SEOHelper;
@@ -39,6 +40,12 @@ if (!empty($termSlug)) {
     $canonicalUrl = url("full-forms/{$term['slug']}/");
     $hubUrl = url('full-forms/');
     $ogType = 'article';
+
+    // ── HTTP Crawl Efficiency & Cache Validation Headers (Googlebot 304 & ETag) ──
+    $termModTime = !empty($facts['last_verified_at'])
+        ? $facts['last_verified_at']
+        : (!empty($term['updated_at']) ? $term['updated_at'] : (!empty($term['last_reviewed_at']) ? $term['last_reviewed_at'] : 'now'));
+    CrawlEfficiencyService::handleConditionalGet('ff-' . $term['slug'], $termModTime);
 
     $crumbs = [
         ['label' => 'Home', 'url' => url()],
@@ -253,6 +260,10 @@ $allTerms = GlossaryService::getTerms(null, null, null, 350, 0);
 $alphabetCounts = GlossaryService::getAlphabetCounts();
 $categoryCounts = GlossaryService::getCategoryCounts();
 $totalCount = GlossaryService::getTotalCount();
+
+// ── HTTP Crawl Efficiency & Cache Validation Headers (Googlebot 304 & ETag) ──
+$hubModTime = Database::fetchValue("SELECT MAX(updated_at) FROM glossary_terms") ?: 'now';
+CrawlEfficiencyService::handleConditionalGet('ff-hub-' . ($reqLetter ?: 'all'), $hubModTime);
 
 $pageTitle = "A to Z Govt & Exam Full Forms Directory | " . SITE_NAME;
 $pageDesc = "Complete A-to-Z directory of Indian government exams, defence, banking, civil services, and technical full forms with eligibility on Sarkari.online.";

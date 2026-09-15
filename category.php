@@ -6,6 +6,7 @@
 require_once __DIR__ . '/config.php';
 use App\Services\CategoryService;
 use App\Services\ArticleService;
+use App\Services\CrawlEfficiencyService;
 
 $slug = $_GET['slug'] ?? 'exam-results';
 $slug = trim($slug, '/');
@@ -21,9 +22,14 @@ if (!$category) {
 $currentPage = max(1, (int)($_GET['page'] ?? 1));
 $categoryData = ArticleService::getByCategory($slug, $currentPage, 16);
 
-
 $articles = $categoryData['items'];
 $totalPages = $categoryData['total_pages'];
+
+// ── HTTP Crawl Efficiency & Cache Validation Headers (Googlebot 304 & ETag) ──
+$latestArticleMod = !empty($articles[0]['updated_at']) 
+    ? $articles[0]['updated_at'] 
+    : (!empty($articles[0]['published_at']) ? $articles[0]['published_at'] : 'now');
+CrawlEfficiencyService::handleConditionalGet('cat-' . $slug . '-p' . $currentPage, $latestArticleMod);
 
 // SEO Setup
 $pageTitle = $category['name'] . ' Updates, Notifications & Direct Links';

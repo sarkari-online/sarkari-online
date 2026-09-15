@@ -9,6 +9,7 @@ use App\Services\ArticleService;
 use App\Services\AuthorService;
 use App\Services\SchemaService;
 use App\Services\FeaturedSnippetService;
+use App\Services\CrawlEfficiencyService;
 use App\Helpers\Auth;
 use App\Helpers\SEOHelper;
 
@@ -84,6 +85,13 @@ if (!$article) {
     include __DIR__ . '/404.php';
     exit;
 }
+
+// ── HTTP Crawl Efficiency & Cache Validation Headers (Googlebot 304 & ETag) ──
+CrawlEfficiencyService::handleConditionalGet(
+    $article['slug'],
+    $article['updated_at'] ?? $article['published_at'] ?? 'now',
+    $isPreview
+);
 
 // Normalize author format via verified AuthorService
 $authorData = AuthorService::getAuthorForArticle($article);
