@@ -112,6 +112,29 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         goto render_page;
     }
 
+    // Reject common automated SEO indexing scams & B2B data cold marketing bots silently
+    $spamKeywords = [
+        'search index',
+        'google index',
+        'freeb2bdata',
+        'b2b data',
+        'guest post',
+        'buy backlink',
+        'backlinks service',
+        'seo ranking',
+        'search engine submission',
+        'casino',
+        'crypto',
+        'lead list'
+    ];
+    $lowerMsg = strtolower($senderMessage . ' ' . $senderEmail);
+    foreach ($spamKeywords as $kw) {
+        if (str_contains($lowerMsg, $kw)) {
+            $messageSent = true; // Silently drop spam bot without saving to DB
+            goto render_page;
+        }
+    }
+
     if (!empty($senderName) && !empty($senderEmail) && !empty($senderMessage) && filter_var($senderEmail, FILTER_VALIDATE_EMAIL)) {
         // 1. Save to Database for Admin Inquiries & Leads Panel
         try {
