@@ -297,22 +297,10 @@ include __DIR__ . '/components/header.php';
                 <div style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 1rem;">
                     <h3 style="margin-bottom: 0.25rem;">Official Editorial Bureau &amp; Grievance Office</h3>
                     
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; margin-top: 0.5rem;">
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.25rem;">
-                            <strong style="color: #0f172a; display: block; margin-bottom: 0.35rem;">Registered Bureau Office:</strong>
-                            <p style="font-size: 0.875rem; color: #475569; line-height: 1.5;">
-                                <?= e(SITE_NAME) ?> Media Bureau<br>
-                                Barakhamba Road, Connaught Place<br>
-                                New Delhi, Delhi 110001, India
-                            </p>
-                            <p style="font-size: 0.775rem; color: #64748b; margin-top: 0.5rem;">
-                                Operating Hours: Mon &ndash; Fri, 9:30 AM &ndash; 6:30 PM IST
-                            </p>
-                        </div>
-
+                    <div style="margin-top: 0.5rem;">
                         <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.25rem;">
                             <strong style="color: #0f172a; display: block; margin-bottom: 0.35rem;">Direct Digital Desks:</strong>
-                            <p style="font-size: 0.875rem; color: #475569; line-height: 1.6;">
+                            <p style="font-size: 0.875rem; color: #475569; line-height: 1.6; margin: 0;">
                                 <strong>Editorial Desk:</strong> <!--email_off--><a href="mailto:official.sarkarionline@gmail.com" style="color: var(--color-primary);">official.sarkarionline@gmail.com</a><!--/email_off--><br>
                                 <strong>Grievance Officer:</strong> <!--email_off--><a href="mailto:official.sarkarionline@gmail.com" style="color: var(--color-primary);">official.sarkarionline@gmail.com</a><!--/email_off--><br>
                                 <strong>Response Commitment:</strong> Formally acknowledged within 24 hours.
