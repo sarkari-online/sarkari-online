@@ -20,6 +20,7 @@ use App\AI\Gemini;
 use App\Database\Database;
 use App\Helpers\Logger;
 use App\Helpers\Sanitizer;
+use App\Services\HumanizerService;
 
 $options = getopt('', ['glossary', 'articles', 'limit::', 'slug::', 'all']);
 $isGlossary = isset($options['glossary']);
@@ -104,6 +105,7 @@ if ($isGlossary || (!$isArticles && $targetSlug)) {
             $rewritten = trim($response['text'] ?? '');
 
             if (!empty($rewritten) && mb_strlen($rewritten) >= 60) {
+                $rewritten = HumanizerService::enforceContractions(HumanizerService::scrubClichés($rewritten));
                 Database::execute(
                     "UPDATE glossary_terms SET overview = :ov, updated_at = NOW() WHERE id = :id",
                     ['ov' => $rewritten, 'id' => (int)$t['id']]
@@ -237,6 +239,10 @@ if ($isArticles || (!$isGlossary && $targetSlug)) {
 
         // Update database if changed
         if ($madeChanges && ($updatedContent !== $content || $updatedExcerpt !== $excerpt)) {
+            $updatedContent = HumanizerService::humanize($updatedContent, $art['title'], '', 'recruitment');
+            if (!empty($updatedExcerpt)) {
+                $updatedExcerpt = HumanizerService::enforceContractions(HumanizerService::scrubClichés($updatedExcerpt));
+            }
             Database::execute(
                 "UPDATE articles SET content = :content, excerpt = :excerpt, updated_at = NOW() WHERE id = :id",
                 [

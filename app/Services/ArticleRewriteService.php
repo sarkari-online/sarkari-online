@@ -10,6 +10,7 @@ use App\Services\IntentClassifierService;
 use App\Services\IntentStructureMap;
 use App\Services\SelectionFlowchartRenderer;
 use App\Services\SalaryTableRenderer;
+use App\Services\HumanizerService;
 use Throwable;
 
 /**
@@ -45,6 +46,16 @@ class ArticleRewriteService
         'intermittent connectivity errors',
         'substantiate why a specific question',
         'The wait for',
+        'delve into',
+        'delve',
+        'testament to',
+        'pivotal',
+        'paramount',
+        'multifaceted',
+        'furthermore',
+        'moreover',
+        'utilize',
+        'comprehensive guide',
         'The All India Management Association has released',
         'The National Board of Examinations in Medical Sciences has released'
     ];
@@ -174,40 +185,7 @@ class ArticleRewriteService
      */
     public function sanitizeOpeningHook(string $prose, string $examTitle, string $sourceUrl, string $intent): string
     {
-        $cleanHost = !empty($sourceUrl) ? preg_replace('/^www\./i', '', parse_url($sourceUrl, PHP_URL_HOST) ?? '') : 'the official portal';
-        if (empty($cleanHost)) {
-            $cleanHost = 'the official portal';
-        }
-
-        // Simplify exam title for clean readability in opener
-        $cleanTitle = trim(preg_replace('/\s*:\s*.*$/', '', $examTitle));
-
-        $replacementHook = match ($intent) {
-            'ADMIT_CARD'      => "If you registered for {$cleanTitle}, head over to {$cleanHost} right now—your admit card is officially out. ",
-            'ANSWER_KEY'      => "Got doubts about a question in your {$cleanTitle} paper? Check {$cleanHost} right away—the provisional answer key is officially live. ",
-            'RESULT_CUTOFF'   => "If you appeared for {$cleanTitle}, head over to {$cleanHost} right now—the official scorecard and merit list are live. ",
-            'RECRUITMENT'     => "If you're planning to apply for {$cleanTitle}, the official notification is now available on {$cleanHost}. ",
-            'SYLLABUS_CHANGE' => "If you're preparing for {$cleanTitle}, review {$cleanHost} immediately—the revised syllabus and pattern are officially released. ",
-            default           => "If you're tracking updates for {$cleanTitle}, check {$cleanHost} right away—the latest official bulletin is out. "
-        };
-
-        // Pattern matching any robotic AI openers
-        $aiOpenerPatterns = [
-            '/^(?:<p>)?(?:The wait for [^—–-—\.\n]+(?:is finally over|has concluded|is over)[—–-—\.\s]*)/i',
-            '/^(?:<p>)?(?:The [A-Z][A-Za-z\s]+ has (?:released|announced|declared|published|issued)[^\.\n]+\.\s*)/i',
-            '/^(?:<p>)?(?:\bFollowing the [^\.\n]+\.\s*)/i',
-            '/^(?:<p>)?(?:\bAs per the latest [^\.\n]+\.\s*)/i',
-            '/^(?:<p>)?(?:\bIn a major update[^\.\n]+\.\s*)/i'
-        ];
-
-        foreach ($aiOpenerPatterns as $pattern) {
-            if (preg_match($pattern, $prose)) {
-                $prose = preg_replace($pattern, $replacementHook, $prose, 1);
-                break;
-            }
-        }
-
-        return $prose;
+        return HumanizerService::sanitizeOpeningHook($prose, $examTitle, $sourceUrl, $intent);
     }
 
     /**
@@ -215,42 +193,7 @@ class ArticleRewriteService
      */
     public function enforceContractions(string $text): string
     {
-        $map = [
-            '/\bDo not\b/'     => "Don't",
-            '/\bdo not\b/'     => "don't",
-            '/\bCannot\b/'     => "Can't",
-            '/\bcannot\b/'     => "can't",
-            '/\bCan not\b/'    => "Can't",
-            '/\bcan not\b/'    => "can't",
-            '/\bYou will\b/'   => "You'll",
-            '/\byou will\b/'   => "you'll",
-            '/\bIt is\b/'      => "It's",
-            '/\bit is\b/'      => "it's",
-            '/\bThere is\b/'   => "There's",
-            '/\bthere is\b/'   => "there's",
-            '/\bAre not\b/'    => "Aren't",
-            '/\bare not\b/'    => "aren't",
-            '/\bWill not\b/'   => "Won't",
-            '/\bwill not\b/'   => "won't",
-            '/\bHave not\b/'   => "Haven't",
-            '/\bhave not\b/'   => "haven't",
-            '/\bWe have\b/'    => "We've",
-            '/\bwe have\b/'    => "we've",
-            '/\bYou have\b/'   => "You've",
-            '/\byou have\b/'   => "you've",
-            '/\bIs not\b/'     => "Isn't",
-            '/\bis not\b/'     => "isn't",
-            '/\bWas not\b/'    => "Wasn't",
-            '/\bwas not\b/'    => "wasn't",
-            '/\bWere not\b/'   => "Weren't",
-            '/\bwere not\b/'   => "weren't",
-            '/\bDid not\b/'    => "Didn't",
-            '/\bdid not\b/'    => "didn't",
-            '/\bDoes not\b/'   => "Doesn't",
-            '/\bdoes not\b/'   => "doesn't",
-        ];
-
-        return (string)preg_replace(array_keys($map), array_values($map), $text);
+        return HumanizerService::enforceContractions($text);
     }
 
     /**
@@ -258,22 +201,7 @@ class ArticleRewriteService
      */
     public function scrubClichés(string $text): string
     {
-        $map = [
-            '/intermittent connectivity errors/i'                                => 'server traffic slowdowns',
-            '/financial commitment required/i'                                   => 'non-refundable fee',
-            '/substantiate why a specific question is flawed/i'                  => 'prove why an answer is wrong',
-            '/discrepancies in personal information can lead to complications/i' => 'any mismatch at the gate will cause serious trouble',
-            '/ensure you have your supporting evidence ready/i'                  => 'keep your textbook proof ready',
-            '/digital governance initiative/i'                                  => 'online application portal',
-            '/streamline the recruitment process/i'                              => 'speed up hiring',
-            '/serves as a testament to/i'                                        => 'highlights the importance of',
-            '/pivotal role in ensuring/i'                                        => 'key role in',
-            '/crucial step for candidates/i'                                     => 'essential step',
-            '/in today\'s digital era/i'                                         => 'today',
-            '/in today\'s competitive era/i'                                     => 'in this competitive exam',
-        ];
-
-        return (string)preg_replace(array_keys($map), array_values($map), $text);
+        return HumanizerService::scrubClichés($text);
     }
 
     /**
