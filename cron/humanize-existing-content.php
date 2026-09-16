@@ -121,10 +121,23 @@ if ($isArticles || $targetSlug) {
                 }
             }
         } else {
-            // Orphaned article fallback: Deduplicate identical <tr> rows in existing tables
+            // Orphaned article fallback: Deduplicate identical <tr> rows in existing tables & fix corrupted historical years
             $dedupCount = 0;
             $contentAfterSanitizer = preg_replace_callback('/<table\b[^>]*>(.*?)<\/table>/is', function($tblMatches) use (&$dedupCount) {
                 $tbody = $tblMatches[1];
+
+                // Fix historical year corruption (e.g. three consecutive rows labeled "2026 Exam Cycle")
+                if (substr_count($tbody, '2026 Exam Cycle') >= 2) {
+                    $yearCount = 0;
+                    $historicalYears = ['2024 Exam Cycle', '2025 Exam Cycle', '2026 Exam Cycle'];
+                    $tbody = preg_replace_callback('/<td>2026 Exam Cycle<\/td>/i', function($m) use (&$yearCount, $historicalYears) {
+                        $repl = $historicalYears[$yearCount] ?? '2026 Exam Cycle';
+                        $yearCount++;
+                        return "<td>{$repl}</td>";
+                    }, $tbody);
+                    $dedupCount++;
+                }
+
                 if (preg_match_all('/<tr\b[^>]*>.*?<\/tr>/is', $tbody, $trMatches)) {
                     $seenRows = [];
                     foreach ($trMatches[0] as $trHtml) {
@@ -141,8 +154,8 @@ if ($isArticles || $targetSlug) {
             }, $contentAfterSanitizer);
 
             if ($dedupCount > 0) {
-                $tableRebuildStatus = "Deduplicated {$dedupCount} identical table rows (orphaned fallback)";
-                echo "   [3] Milestone Table: ⚠️ Orphaned article fallback — deduplicated {$dedupCount} duplicate rows\n";
+                $tableRebuildStatus = "Repaired {$dedupCount} corrupted/duplicate table rows (orphaned fallback)";
+                echo "   [3] Milestone Table: ⚠️ Repaired {$dedupCount} corrupted/duplicate table row(s)\n";
             } else {
                 echo "   [3] Milestone Table: ✅ Table integrity verified\n";
             }
