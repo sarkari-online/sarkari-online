@@ -178,6 +178,135 @@ class HumanizerService
     }
 
     /**
+     * Heal dangling colon sentences where an intro sentence ends with ":" but has no following list.
+     * Tier 1: Targeted Gemini call with facts to complete the list.
+     * Tier 2: If Gemini says "REMOVE" or facts empty, remove the dangling sentence entirely.
+     * Tier 3: Defensive regex fallback: convert trailing ":" to "."
+     */
+    public static function healDanglingColons(string $html, ?array $facts = null, ?\App\AI\Gemini $gemini = null): array
+    {
+        $stats = ['llm_healed' => 0, 'removed' => 0, 'regex_fallback' => 0];
+        
+        // Match paragraphs that end with a colon, not followed by <ul>, <ol>, or <table>
+        $pattern = '/(<p(?:\s+[^>]*)?>)(.*?)(:\s*<\/p>)(?!\s*<(?:ul|ol|table))/is';
+
+        $html = preg_replace_callback($pattern, function($matches) use ($facts, $gemini, &$stats) {
+            $openTag = $matches[1];
+            $body = trim($matches[2]);
+            
+            // Extract the sentence that has the colon
+            $lastPeriodPos = max(strrpos($body, '.'), strrpos($body, '?'), strrpos($body, '!'));
+            if ($lastPeriodPos !== false && $lastPeriodPos < strlen($body) - 1) {
+                $prefix = substr($body, 0, $lastPeriodPos + 1);
+                $colonSentence = trim(substr($body, $lastPeriodPos + 1));
+            } else {
+                $prefix = '';
+                $colonSentence = $body;
+            }
+
+            // Tier 1: Try Gemini if available and facts present
+            if ($gemini !== null && !empty($facts)) {
+                $factsJson = json_encode($facts, JSON_UNESCAPED_UNICODE);
+                $prompt = "Context: Verified facts about this exam:\n{$factsJson}\n\n"
+                    . "Introductory sentence: \"{$colonSentence}:\"\n\n"
+                    . "Instructions:\n"
+                    . "1. Complete this list with 3 to 4 factual bullet points in clean HTML <ul><li>...</li></ul> based ONLY on the verified facts above.\n"
+                    . "2. If the verified facts do not contain list-worthy information for this sentence, reply ONLY with the word 'REMOVE'.\n"
+                    . "Return ONLY the HTML <ul>...</ul> or 'REMOVE'.";
+                try {
+                    $res = $gemini->generate($prompt, ['stage' => 'heal_dangling_colon', 'temperature' => 0.2]);
+                    $text = trim($res['text'] ?? '');
+                    if (!empty($text) && str_starts_with($text, '<ul>') && str_ends_with($text, '</ul>')) {
+                        $stats['llm_healed']++;
+                        $pContent = $prefix ? "{$prefix} {$colonSentence}:" : "{$colonSentence}:";
+                        return "{$openTag}{$pContent}</p>\n{$text}";
+                    } elseif (str_contains(strtoupper($text), 'REMOVE')) {
+                        $stats['removed']++;
+                        if (!empty($prefix)) {
+                            return "{$openTag}{$prefix}</p>";
+                        }
+                        return '';
+                    }
+                } catch (\Throwable $e) {
+                    // Fallback to Tier 2/3
+                }
+            }
+
+            // Tier 2: If facts are empty or sentence is purely generic intro, remove it cleanly
+            $genericColonPatterns = [
+                '/here\'?s what (?:you should|you need|to keep|you\'?ll)/i',
+                '/here\'?s how (?:you|to)/i',
+                '/here\'?s the reality/i',
+                '/here\'?s what you should keep in mind/i',
+                '/keep these handy/i',
+                '/here\'?s your checklist/i',
+            ];
+            foreach ($genericColonPatterns as $gPat) {
+                if (preg_match($gPat, $colonSentence)) {
+                    $stats['removed']++;
+                    if (!empty($prefix)) {
+                        return "{$openTag}{$prefix}</p>";
+                    }
+                    return ''; // Strip entire empty paragraph
+                }
+            }
+
+            // Tier 3: Defensive regex fallback -> convert trailing colon to period
+            $stats['regex_fallback']++;
+            $healedSentence = rtrim($colonSentence, " :\t\n\r\0\x0B") . '.';
+            $pContent = $prefix ? "{$prefix} {$healedSentence}" : $healedSentence;
+            return "{$openTag}{$pContent}</p>";
+        }, $html);
+
+        return [
+            'html'  => $html,
+            'stats' => $stats
+        ];
+    }
+
+    /**
+     * Deduplicate paragraphs with > 70% textual similarity within the same article.
+     */
+    public static function deduplicateParagraphs(string $html, float $threshold = 0.70): array
+    {
+        $duplicatesRemoved = 0;
+        if (!preg_match_all('/<p(?:\s+[^>]*)?>(.*?)<\/p>/is', $html, $matches, PREG_SET_ORDER)) {
+            return ['html' => $html, 'duplicates_removed' => 0];
+        }
+
+        $seenParagraphs = [];
+
+        foreach ($matches as $match) {
+            $fullTag = $match[0];
+            $text = trim(strip_tags($match[1]));
+            if (mb_strlen($text) < 40) {
+                continue;
+            }
+
+            $isDuplicate = false;
+            foreach ($seenParagraphs as $seenText) {
+                similar_text(strtolower($text), strtolower($seenText), $percent);
+                if ($percent / 100.0 >= $threshold) {
+                    $isDuplicate = true;
+                    break;
+                }
+            }
+
+            if ($isDuplicate) {
+                $html = str_replace($fullTag, '', $html);
+                $duplicatesRemoved++;
+            } else {
+                $seenParagraphs[] = $text;
+            }
+        }
+
+        return [
+            'html'               => $html,
+            'duplicates_removed' => $duplicatesRemoved
+        ];
+    }
+
+    /**
      * Master Humanization Pipeline: Applies all anti-AI layers deterministically.
      */
     public static function humanize(string $content, string $examTitle, string $sourceUrl = '', string $intent = 'recruitment'): string
@@ -198,3 +327,4 @@ class HumanizerService
         return $content;
     }
 }
+

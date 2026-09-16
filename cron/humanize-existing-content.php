@@ -1,13 +1,13 @@
 <?php
 /**
- * Sarkari.online - Content Humanizer & Anti-AI Detector Healing Script
- * Rewrites AI-detected passages into authentic, conversational human journalism.
- * Uses Claude-Engineered Anti-AI rules (High burstiness, contractions, direct mentor tone).
+ * Sarkari.online - Master Quality & AdSense Healer Script
+ * Cleans dangling colons, strips intent-misaligned sections via IntentSanitizer,
+ * rebuilds corrupted milestone tables from exam_cycles, and deduplicates boilerplate.
  * 
  * Usage:
- *   php cron/humanize-existing-content.php --glossary
- *   php cron/humanize-existing-content.php --articles --limit=10
- *   php cron/humanize-existing-content.php --slug=neet-pg-2026-answer-key-response-sheet
+ *   php cron/humanize-existing-content.php --slug=cbse-datesheet-2027-class-10-12 --dry-run=true
+ *   php cron/humanize-existing-content.php --slug=neet-pg-2026-answer-key-response-sheet --dry-run=true
+ *   php cron/humanize-existing-content.php --articles --batch=10 --dry-run=true
  */
 
 if (php_sapi_name() !== 'cli') {
@@ -19,243 +19,214 @@ require_once dirname(__DIR__) . '/config.php';
 use App\AI\Gemini;
 use App\Database\Database;
 use App\Helpers\Logger;
-use App\Helpers\Sanitizer;
 use App\Services\HumanizerService;
+use App\Services\IntentClassifierService;
+use App\Services\IntentSanitizer;
+use App\Services\MilestoneTableRenderer;
 
-$options = getopt('', ['glossary', 'articles', 'limit::', 'slug::', 'all']);
+$options = getopt('', ['glossary', 'articles', 'limit::', 'batch::', 'slug::', 'dry-run::', 'all']);
 $isGlossary = isset($options['glossary']);
 $isArticles = isset($options['articles']);
 $targetSlug = $options['slug'] ?? null;
-$limit = (int)($options['limit'] ?? 20);
+$limit = (int)($options['batch'] ?? ($options['limit'] ?? 10));
+$dryRun = !isset($options['dry-run']) || in_array(strtolower((string)$options['dry-run']), ['1', 'true', 'yes'], true);
 
-// If neither flag is passed, default to checking both if slug is provided
 if (!$isGlossary && !$isArticles && !$targetSlug) {
     echo "Usage:\n";
-    echo "  php cron/humanize-existing-content.php --glossary\n";
-    echo "  php cron/humanize-existing-content.php --articles --limit=10\n";
-    echo "  php cron/humanize-existing-content.php --slug=neet-pg-2026-answer-key-response-sheet\n";
+    echo "  php cron/humanize-existing-content.php --slug=<slug> [--dry-run=true|false]\n";
+    echo "  php cron/humanize-existing-content.php --articles --batch=10 [--dry-run=true|false]\n";
+    echo "  php cron/humanize-existing-content.php --glossary [--dry-run=true|false]\n";
     exit(0);
 }
 
 $gemini = new Gemini();
+$classifier = new IntentClassifierService($gemini);
+$intentSanitizer = new IntentSanitizer();
+$tableRenderer = new MilestoneTableRenderer();
 
-$humanizerPrompt = <<<PROMPT
-You are a veteran Indian education journalist and competitive exam mentor with 20+ years of experience guiding aspirants for UPSC, SSC, NEET, and State PSCs.
+echo "======================================================================\n";
+echo "🛡️ SARKARI.ONLINE MASTER QUALITY & ADSENSE HEALER\n";
+echo "Mode: " . ($dryRun ? "🔍 DRY RUN (Zero database writes)" : "⚡ LIVE RUN (Database will be updated)") . "\n";
+echo "======================================================================\n\n";
 
-YOUR MISSION:
-Rewrite the provided text so that it reads 100% like authentic human journalism. It must pass all AI detectors (QuillBot, GPTZero, Turnitin, CopyLeaks) with a score of 0% AI / 100% Human.
-
-STRICT LINGUISTIC RULES (CLAUDE-ENGINEERED ANTI-AI PROTOCOL):
-1. HIGH BURSTINESS (ASYMMETRIC SENTENCE LENGTHS):
-   - Never write three sentences of uniform length in a row.
-   - Mix ultra-short punchy sentences (3 to 6 words like "Do not wait until the last day.", "Results will follow soon.", "The cutoff margin is steep.") with natural medium (12-16 words) and longer explanatory sentences (22-28 words).
-2. MANDATORY HUMAN CONTRACTIONS:
-   - Use natural contractions throughout: you'll, don't, can't, it's, here's, won't, there's. (AI detectors heavily penalize lack of contractions).
-3. ACTIVE VOICE & DIRECT MENTOR TONE:
-   - Speak directly to the aspirant as a coach sitting across the table. Use second person ("you", "your scorecard", "candidates").
-   - Acknowledge real ground-level friction: server lag on the final day, OTP verification delays, ₹1,000 non-refundable objection fees, live webcam photo rejections, normalization shifts.
-4. COMPLETE BLACKLIST (ZERO TOLERANCE FOR AI CLICHÉS):
-   Never use these machine phrases:
-   - "Following the [exam] held on..."
-   - "Candidates are awaiting the release of..."
-   - "These documents allow aspirants to verify..."
-   - "Streamline the recruitment process"
-   - "Digital governance initiative"
-   - "Serves as a testament to / centralized repository"
-   - "Crucial step / pivotal role / delve into"
-   - "It is important to note that / in today's digital era"
-   - "Without further ado / stay tuned"
-5. REAL INDIAN EXAMINATION VERNACULAR:
-   Naturally use genuine Indian exam terms: "cutoff margin", "raw score vs normalized marks", "disputed question stem", "provisional answer key", "48-hour challenge window", "counselling round", "hall ticket".
-
-TEXT TO REWRITE:
-{{TEXT}}
-
-Return ONLY the rewritten text as plain text. Do not wrap in quotes. Do not add introductory or concluding remarks.
-PROMPT;
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 1. HEAL GLOSSARY TERMS
-// ─────────────────────────────────────────────────────────────────────────────
-if ($isGlossary || (!$isArticles && $targetSlug)) {
-    echo "\n📚 Scanning Glossary Terms for AI Phrasing...\n";
-    $sql = "SELECT id, acronym, slug, overview, full_form_en FROM glossary_terms WHERE 1=1";
+if ($isArticles || $targetSlug) {
+    $sql = "SELECT a.id, a.title, a.slug, a.excerpt, a.content, a.source_url,
+                   ec.id as cycle_id, ec.current_phase, ec.facts_json
+            FROM articles a
+            LEFT JOIN exam_cycle_articles eca ON eca.article_id = a.id
+            LEFT JOIN exam_cycles ec ON ec.id = eca.exam_cycle_id
+            WHERE a.status = 'published'";
     $params = [];
     if ($targetSlug) {
-        $sql .= " AND slug = :slug";
+        $sql .= " AND a.slug = :slug";
         $params['slug'] = $targetSlug;
     } else {
-        $sql .= " AND (overview LIKE '%digital governance initiative%' 
-                    OR overview LIKE '%streamline the recruitment process%' 
-                    OR overview LIKE '%centralized repository%' 
-                    OR overview LIKE '%eliminate the redundancy%'
-                    OR overview LIKE '%fosters transparency%') LIMIT " . $limit;
-    }
-
-    $terms = Database::fetchAll($sql, $params);
-    echo "Found " . count($terms) . " glossary term(s) needing humanization.\n";
-
-    foreach ($terms as $t) {
-        echo "▶ Humanizing Glossary Term: {$t['acronym']} ({$t['slug']})...\n";
-        $currentOverview = $t['overview'];
-
-        $prompt = str_replace('{{TEXT}}', $currentOverview, $humanizerPrompt);
-        try {
-            $response = $gemini->generate($prompt, ['stage' => 'humanize_glossary', 'temperature' => 0.7]);
-            $rewritten = trim($response['text'] ?? '');
-
-            if (!empty($rewritten) && mb_strlen($rewritten) >= 60) {
-                $rewritten = HumanizerService::enforceContractions(HumanizerService::scrubClichés($rewritten));
-                Database::execute(
-                    "UPDATE glossary_terms SET overview = :ov, updated_at = NOW() WHERE id = :id",
-                    ['ov' => $rewritten, 'id' => (int)$t['id']]
-                );
-                echo "  ✅ Updated successfully! Preview:\n";
-                echo "  " . mb_substr($rewritten, 0, 120) . "...\n\n";
-            }
-        } catch (\Throwable $e) {
-            echo "  ❌ Error: " . $e->getMessage() . "\n";
-        }
-        sleep(1);
-    }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 2. HEAL ARTICLES
-// ─────────────────────────────────────────────────────────────────────────────
-if ($isArticles || (!$isGlossary && $targetSlug)) {
-    echo "\n📰 Scanning Articles for Formulaic AI Phrasing...\n";
-    $sql = "SELECT id, title, slug, excerpt, content FROM articles WHERE status = 'published'";
-    $params = [];
-    if ($targetSlug) {
-        $sql .= " AND slug = :slug";
-        $params['slug'] = $targetSlug;
-    } else {
-        $sql .= " AND (content LIKE '%Following the %' 
-                    OR excerpt LIKE '%Following the %'
-                    OR content LIKE '%candidates are awaiting the release%'
-                    OR excerpt LIKE '%candidates are awaiting the release%'
-                    OR content LIKE '%These documents allow aspirants to verify%'
-                    OR content LIKE '%streamline the recruitment%'
-                    OR content LIKE '%digital governance%') LIMIT " . $limit;
+        $sql .= " ORDER BY a.id DESC LIMIT " . $limit;
     }
 
     $articles = Database::fetchAll($sql, $params);
-    echo "Found " . count($articles) . " article(s) matching AI formulaic patterns.\n";
+    echo "Found " . count($articles) . " article(s) to inspect.\n\n";
 
-    $aiTriggers = [
-        'Following the ',
-        'candidates are awaiting the release',
-        'These documents allow aspirants to verify',
-        'streamline the recruitment process',
-        'digital governance initiative',
-        'serves as a testament',
-        'centralized repository',
-        'crucial step for candidates',
-        'in today\'s digital era',
-        'fosters transparency'
-    ];
+    $report = [];
 
     foreach ($articles as $art) {
-        echo "▶ Humanizing Article: {$art['title']} ({$art['slug']})...\n";
-        
+        $artId = (int)$art['id'];
+        $title = $art['title'];
+        $slug  = $art['slug'];
         $content = $art['content'];
-        $excerpt = $art['excerpt'] ?? '';
-        $updatedContent = $content;
-        $updatedExcerpt = $excerpt;
-        $madeChanges = false;
+        $originalLength = mb_strlen($content);
 
-        // Extract paragraphs
-        if (preg_match_all('/<p(?:\s+[^>]*)?>(.*?)<\/p>/is', $content, $pMatches, PREG_SET_ORDER)) {
-            $pReplaced = 0;
-            foreach ($pMatches as $idx => $pMatch) {
-                $fullTag = $pMatch[0];
-                $innerHtml = $pMatch[1];
-                $cleanText = trim(strip_tags($innerHtml));
+        echo "----------------------------------------------------------------------\n";
+        echo "📄 PROCESSING ARTICLE #{$artId}: {$title}\n";
+        echo "   Slug: /article/{$slug}/\n";
 
-                $shouldRewrite = false;
-                foreach ($aiTriggers as $trigger) {
-                    if (stripos($cleanText, $trigger) !== false) {
-                        $shouldRewrite = true;
-                        break;
-                    }
-                }
+        // Step 1: Detect Article Intent
+        $intentEnum = $classifier->classify($title, $art['excerpt'] ?? '');
+        $intentStr  = $intentEnum->value;
+        echo "   [1] Detected Intent: " . strtoupper($intentStr) . "\n";
 
-                // If target slug is explicitly given and first paragraph, rewrite it even if not explicitly triggered
-                if (!$shouldRewrite && $targetSlug && $idx === 0 && mb_strlen($cleanText) > 50) {
-                    $shouldRewrite = true;
-                }
-
-                if ($shouldRewrite && mb_strlen($cleanText) >= 30) {
-                    echo "  Found AI paragraph #{$idx} (" . mb_substr($cleanText, 0, 60) . "...)\n";
-                    $prompt = str_replace('{{TEXT}}', $cleanText, $humanizerPrompt);
-                    try {
-                        $response = $gemini->generate($prompt, ['stage' => 'humanize_article', 'temperature' => 0.7]);
-                        $rewrittenP = trim($response['text'] ?? '');
-
-                        if (!empty($rewrittenP) && mb_strlen($rewrittenP) >= 30) {
-                            $updatedContent = str_replace($fullTag, "<p>{$rewrittenP}</p>", $updatedContent);
-                            echo "  ✅ Replaced paragraph #{$idx} with humanized version.\n";
-                            $madeChanges = true;
-                            $pReplaced++;
-                        }
-                    } catch (\Throwable $e) {
-                        echo "  ❌ Paragraph Error: " . $e->getMessage() . "\n";
-                    }
-                    sleep(1);
-                    // Rewrite up to 2 major paragraphs per article to avoid over-altering factual tables/data
-                    if ($pReplaced >= 2) {
-                        break;
-                    }
-                }
+        // Step 2: IntentSanitizer (Strip unallowed H2 sections)
+        $sanitizedResult = $intentSanitizer->sanitize($intentStr, $content);
+        $contentAfterSanitizer = $sanitizedResult['html'];
+        $removedSections = $sanitizedResult['removed_sections'];
+        echo "   [2] IntentSanitizer:\n";
+        if (!empty($removedSections)) {
+            foreach ($removedSections as $rSec) {
+                echo "       ✂️ STRIPPED: {$rSec}\n";
             }
-        }
-
-        // Also humanize excerpt if it contains AI phrases
-        if (!empty($excerpt)) {
-            $excerptTriggered = false;
-            foreach ($aiTriggers as $trigger) {
-                if (stripos($excerpt, $trigger) !== false) {
-                    $excerptTriggered = true;
-                    break;
-                }
-            }
-            if ($excerptTriggered) {
-                $prompt = str_replace('{{TEXT}}', $excerpt, $humanizerPrompt);
-                try {
-                    $response = $gemini->generate($prompt, ['stage' => 'humanize_excerpt', 'temperature' => 0.7]);
-                    $rewrittenEx = trim($response['text'] ?? '');
-                    if (!empty($rewrittenEx) && mb_strlen($rewrittenEx) >= 20) {
-                        $updatedExcerpt = $rewrittenEx;
-                        echo "  ✅ Humanized excerpt field.\n";
-                        $madeChanges = true;
-                    }
-                } catch (\Throwable $e) {
-                    echo "  ❌ Excerpt Error: " . $e->getMessage() . "\n";
-                }
-                sleep(1);
-            }
-        }
-
-        // Update database if changed
-        if ($madeChanges && ($updatedContent !== $content || $updatedExcerpt !== $excerpt)) {
-            $updatedContent = HumanizerService::humanize($updatedContent, $art['title'], '', 'recruitment');
-            if (!empty($updatedExcerpt)) {
-                $updatedExcerpt = HumanizerService::enforceContractions(HumanizerService::scrubClichés($updatedExcerpt));
-            }
-            Database::execute(
-                "UPDATE articles SET content = :content, excerpt = :excerpt, updated_at = NOW() WHERE id = :id",
-                [
-                    'content' => $updatedContent,
-                    'excerpt' => $updatedExcerpt,
-                    'id'      => (int)$art['id']
-                ]
-            );
-            echo "  🎉 Article #{$art['id']} successfully updated in database!\n\n";
         } else {
-            echo "  ℹ️ No changes needed or pattern not matched.\n\n";
+            echo "       ✅ All sections aligned with IntentStructureMap.\n";
+        }
+
+        // Step 3: Milestone Table Rebuilding (Zero Patching)
+        $facts = [];
+        if (!empty($art['facts_json'])) {
+            $facts = json_decode($art['facts_json'], true) ?: [];
+        }
+        $tableRebuildStatus = "No table updated";
+
+        if (!empty($art['cycle_id']) && !empty($facts)) {
+            $cycle = [
+                'id'            => $art['cycle_id'],
+                'current_phase' => $art['current_phase'],
+                'facts_json'    => $art['facts_json']
+            ];
+            $newTableHtml = $tableRenderer->render($cycle, $intentStr);
+            if (!empty($newTableHtml)) {
+                // Replace the first milestone table in content
+                if (preg_match('/<div class=["\']table-responsive["\']>\s*<table\b[^>]*>.*?<\/table>\s*<\/div>|<table\b[^>]*>.*?<\/table>/is', $contentAfterSanitizer, $tblMatch)) {
+                    $contentAfterSanitizer = substr_replace($contentAfterSanitizer, $newTableHtml, strpos($contentAfterSanitizer, $tblMatch[0]), strlen($tblMatch[0]));
+                    $tableRebuildStatus = "Rebuilt from exam_cycle #{$art['cycle_id']} facts_json";
+                    echo "   [3] Milestone Table: ✅ REBUILT from linked exam_cycle #{$art['cycle_id']}\n";
+                }
+            }
+        } else {
+            // Orphaned article fallback: Deduplicate identical <tr> rows in existing tables
+            $dedupCount = 0;
+            $contentAfterSanitizer = preg_replace_callback('/<table\b[^>]*>(.*?)<\/table>/is', function($tblMatches) use (&$dedupCount) {
+                $tbody = $tblMatches[1];
+                if (preg_match_all('/<tr\b[^>]*>.*?<\/tr>/is', $tbody, $trMatches)) {
+                    $seenRows = [];
+                    foreach ($trMatches[0] as $trHtml) {
+                        $cleanRowText = trim(preg_replace('/\s+/', ' ', strip_tags($trHtml)));
+                        if (isset($seenRows[$cleanRowText])) {
+                            $tbody = str_replace($trHtml, '', $tbody);
+                            $dedupCount++;
+                        } else {
+                            $seenRows[$cleanRowText] = true;
+                        }
+                    }
+                }
+                return "<table" . substr($tblMatches[0], 6, strpos($tblMatches[0], '>') - 6) . ">{$tbody}</table>";
+            }, $contentAfterSanitizer);
+
+            if ($dedupCount > 0) {
+                $tableRebuildStatus = "Deduplicated {$dedupCount} identical table rows (orphaned fallback)";
+                echo "   [3] Milestone Table: ⚠️ Orphaned article fallback — deduplicated {$dedupCount} duplicate rows\n";
+            } else {
+                echo "   [3] Milestone Table: ✅ Table integrity verified\n";
+            }
+        }
+
+        // Step 4: Dangling Colon Healing (LLM primary, defensive regex fallback)
+        $colonResult = HumanizerService::healDanglingColons($contentAfterSanitizer, $facts, $gemini);
+        $contentAfterColons = $colonResult['html'];
+        $colonStats = $colonResult['stats'];
+        echo "   [4] Dangling Colon Healing:\n";
+        echo "       - LLM Healed with Lists: {$colonStats['llm_healed']}\n";
+        echo "       - Removed Incomplete Intro Sentences: {$colonStats['removed']}\n";
+        echo "       - Regex Fallback (. instead of :): {$colonStats['regex_fallback']}\n";
+
+        // Step 5: Deduplicate Twin Paragraphs (> 70% textual similarity)
+        $dedupResult = HumanizerService::deduplicateParagraphs($contentAfterColons, 0.70);
+        $contentAfterDedup = $dedupResult['html'];
+        $dupRemovedCount = $dedupResult['duplicates_removed'];
+        echo "   [5] Paragraph Deduplication: Removed {$dupRemovedCount} repeated/twin paragraph(s)\n";
+
+        // Step 6: Master Humanizer Polish (contractions, opening hook, anti-AI tone)
+        $finalContent = HumanizerService::humanize($contentAfterDedup, $title, $art['source_url'] ?? '', $intentStr);
+        $finalLength = mb_strlen($finalContent);
+        echo "   [6] Final Polish: Original {$originalLength} chars -> Cleaned {$finalLength} chars\n";
+
+        // Record Article Summary
+        $report[] = [
+            'id'               => $artId,
+            'title'            => $title,
+            'slug'             => $slug,
+            'intent'           => $intentStr,
+            'removed_sections' => $removedSections,
+            'table_status'     => $tableRebuildStatus,
+            'colon_stats'      => $colonStats,
+            'dups_removed'     => $dupRemovedCount,
+            'original_content' => $content,
+            'cleaned_content'  => $finalContent,
+        ];
+
+        // Step 7: Apply to DB if live run
+        if (!$dryRun) {
+            Database::execute(
+                "UPDATE articles SET content = :content, updated_at = NOW() WHERE id = :id",
+                ['content' => $finalContent, 'id' => $artId]
+            );
+            echo "   💾 SAVED: Article #{$artId} updated in database.\n";
+        } else {
+            echo "   🔍 DRY-RUN: Database unchanged.\n";
+        }
+        echo "\n";
+    }
+
+    // Print Consolidated Output Summary
+    echo "======================================================================\n";
+    echo "📊 CONSOLIDATED EXECUTION DELIVERABLES\n";
+    echo "======================================================================\n";
+    foreach ($report as $idx => $r) {
+        echo "\n--- DELIVERABLE FOR [{$r['slug']}] ---\n";
+        echo "1. IntentSanitizer Stripped Sections (" . count($r['removed_sections']) . "):\n";
+        if (empty($r['removed_sections'])) {
+            echo "   None (clean structure)\n";
+        } else {
+            foreach ($r['removed_sections'] as $s) {
+                echo "   - {$s}\n";
+            }
+        }
+        echo "2. Table Rebuild: {$r['table_status']}\n";
+        echo "3. Dangling Colon Stats:\n";
+        echo "   - LLM List Healed: {$r['colon_stats']['llm_healed']}\n";
+        echo "   - Incomplete Sentences Removed: {$r['colon_stats']['removed']}\n";
+        echo "   - Regex Fallbacks (.): {$r['colon_stats']['regex_fallback']}\n";
+        echo "4. Twin Paragraphs Stripped: {$r['dups_removed']}\n";
+
+        // Show Before / After Snippet Diff
+        echo "5. Before/After Headings Structure:\n";
+        preg_match_all('/<h2\b[^>]*>(.*?)<\/h2>/is', $r['original_content'], $origH2);
+        preg_match_all('/<h2\b[^>]*>(.*?)<\/h2>/is', $r['cleaned_content'], $cleanH2);
+        echo "   [Original Headings (" . count($origH2[1]) . ")]:\n";
+        foreach ($origH2[1] as $h) {
+            echo "     * " . trim(strip_tags($h)) . "\n";
+        }
+        echo "   [Cleaned Headings (" . count($cleanH2[1]) . ")]:\n";
+        foreach ($cleanH2[1] as $h) {
+            echo "     * " . trim(strip_tags($h)) . "\n";
         }
     }
 }
-
-echo "✨ Humanization batch complete!\n";
