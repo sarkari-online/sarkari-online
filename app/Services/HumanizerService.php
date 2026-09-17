@@ -157,6 +157,7 @@ class HumanizerService
 
         // Match common robotic AI openings (captures optional leading <p> tag to preserve valid HTML)
         $aiOpenerPatterns = [
+            '/^(<p>)?(?:If you(?:\'ve| have) been waiting for [^\.\n]+,?\s*the wait is (?:finally )?over[—–-—\.\s]*)/i',
             '/^(<p>)?(?:The wait for [^—–-—\.\n]+(?:is finally over|has concluded|is over)[—–-—\.\s]*)/i',
             '/^(<p>)?(?:The [A-Z][A-Za-z\s]+ has (?:released|announced|declared|published|issued)[^\.\n]+\.\s*)/i',
             '/^(<p>)?(?:\bFollowing the [^\.\n]+\.\s*)/i',
@@ -364,6 +365,29 @@ class HumanizerService
         '/\bhere\'?s what you should keep in mind to stay ahead:\s*/iu',
         '/\bhere\'?s the ground reality:\s*the servers will crawl\.\s*/iu',
         '/\byou don\'?t want to leave this until the final hour[^.!?]*[.!?]/iu',
+
+        // 5. Board Exam & Academic Article Filler (Article #727 tropes)
+        '/\bthe wait is (?:finally )?over[.!]?/iu',
+        '/\bIt\'?s time to shift your focus toward[^.!?]*[.!?]/iu',
+        '/\bfor comparative insights[^.!?]*[.!?]/iu',
+        '/\bfor a comprehensive (?:analysis|understanding|overview)[^.!?]*[.!?]/iu',
+        '/\bUnderstanding [^.!?]+ is a critical skill for (?:any )?(?:student|aspirant)[^.!?]*[.!?]/iu',
+        '/\bis a critical skill for (?:any )?(?:student|aspirant|candidate)[^.!?]*[.!?]/iu',
+        '/\bpreparing for high-stakes (?:assessments|examinations|exams)[^.!?]*[.!?]/iu',
+        '/\bYou must ensure you\'?re well-rested and prepared for[^.!?]*[.!?]/iu',
+        '/\bto avoid any confusion during your study sessions[^.!?]*[.!?]/iu',
+        '/\bLook for the [\'"]?(?:Notifications|Examination|Latest Announcements)[\'"]? tab on the homepage[^.!?]*[.!?]/iu',
+        '/\bThe PDF will open in a new tab;?\s*check [^.!?]+[.!?]/iu',
+        '/\bDownload and save the file for (?:your )?(?:future )?reference[^.!?]*[.!?]/iu',
+        '/\bAs you prepare, remember that board exams require strict adherence to protocols[^.!?]*[.!?]/iu',
+        '/\brequire strict adherence to protocols[^.!?]*[.!?]/iu',
+        '/\bEnsure your stationery is kept in a transparent pouch[^.!?]*[.!?]/iu',
+        '/\bto avoid any issues during the security check[^.!?]*[.!?]/iu',
+        '/\bDon\'?t bring any electronic gadgets, including smartwatches or mobile phones, as these are strictly prohibited inside the examination hall[^.!?]*[.!?]/iu',
+        '/\bHow do I handle exam stress\?[^.!?]*[.!?]\s*Focus on your revision notes and maintain a consistent sleep schedule[^.!?]*[.!?]/iu',
+        '/\bmaintain a consistent sleep schedule leading up to[^.!?]*[.!?]/iu',
+        '/\bAll information provided is based on the official circulars released by[^.!?]*[.!?]/iu',
+        '/\bYou should cross-check any updates directly at https?:\/\/[^\s]+ to ensure you\'?re acting on the latest verified data[^.!?]*[.!?]/iu',
     ];
 
     /**

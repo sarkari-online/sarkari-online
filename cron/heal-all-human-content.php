@@ -127,20 +127,35 @@ function aiHeuristicScore(string $text): int
         'to summarize',
         'in summary',
         'it should be noted that',
-        'it can be concluded',
-        'furthermore',
-        'moreover',
-        'in addition to the above',
-        'notwithstanding',
-        'pertaining to',
-        'therein lies',
-        'henceforth',
-        'inasmuch as',
-        'pursuant to',
+        'the wait is over',
+        'the wait is finally over',
+        'shift your focus',
+        'comparative insights',
+        'critical skill for any student',
+        'critical skill',
+        'high-stakes assessments',
+        'high-stakes',
+        'study sessions',
+        'strict adherence to protocols',
+        'transparent pouch',
+        'exam stress',
+        'step-by-step guide to download',
+        'the pdf will open in a new tab',
+        'download and save the file',
+        'the clock starts ticking',
+        'clock is ticking',
+        'servers will crawl',
+        'hit the portal at once',
+        'clear your browser cache',
+        'try incognito',
+        'red flag',
+        'haunting your results',
+        'you\'ve worked too hard',
+        'stay sharp',
     ];
     foreach ($hardCliches as $c) {
         if (str_contains($plain, $c)) {
-            $score += 15;
+            $score += 25;
         }
     }
 
@@ -463,13 +478,6 @@ if ($healArticles) {
                 echo "   ⚠️  Detected " . count($flaggedParagraphs) . " robotic uniform-cadence paragraph(s) (StdDev < 3.0).\n";
 
                 foreach (array_slice($flaggedParagraphs, 0, 3) as $fp) {
-                    // Also run heuristic — only rewrite if both cadence AND AI score agree
-                    $paraScore = aiHeuristicScore($fp['text']);
-                    if (!$forceLlm && $paraScore < 15) {
-                        echo "      ℹ️  Para #{$fp['paragraph_index']} cadence flagged but AI score low ({$paraScore}), skipping LLM.\n";
-                        continue;
-                    }
-
                     $prompt = buildArticleParagraphPrompt($title, $fp['text']);
                     try {
                         $res = $gemini->generate($prompt, [
