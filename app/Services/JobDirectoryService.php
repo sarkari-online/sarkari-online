@@ -86,8 +86,8 @@ class JobDirectoryService {
         $content = $row['content'] ?? '';
         $slug = $row['slug'] ?? '';
 
-        // Filter out non-job noise (grievance portals, admit cards, answer keys, results, fellowships)
-        if (preg_match('/\b(?:Grievance|Helpdesk|Complaint|Court|Stay Order|Admit Card Out|Hall Ticket Out|Answer Key|Scorecard Link|Result Declared|Fellowship|Scholarship)\b/i', $title)) {
+        // Filter out non-job noise (college admissions, university counselling, admit cards, answer keys, results, fellowships)
+        if (preg_match('/\b(?:Admission|Admissions|Counselling|Counseling|Seat Allotment|Allotment|CAP Round|Option Entry|Grievance|Helpdesk|Complaint|Court|Stay Order|Admit Card Out|Hall Ticket Out|Answer Key|Scorecard Link|Result Declared|Fellowship|Scholarship)\b/i', $title)) {
             return null;
         }
 
