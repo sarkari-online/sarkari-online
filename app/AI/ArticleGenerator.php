@@ -11,6 +11,7 @@ use App\Services\IntentClassifierService;
 use App\Services\ArticleIntent;
 use App\Services\ContentIntegrityGuard;
 use App\Services\HumanizerService;
+use App\Services\ArticleQualityEngine;
 use App\Helpers\Logger;
 use App\AI\OutlineContracts;
 use Exception;
@@ -55,66 +56,56 @@ class ArticleGenerator {
         $datesTableHtml = $this->renderDatesTableHtml($datesTable);
 
         $systemInstruction = <<<SYS
-You are the Senior Investigative Education Journalist, Master Aspirant Mentor, and Editorial Director for Sarkari.online, India's premier student intelligence and examination guidance portal.
+You are the Senior Investigative Education Journalist and Editorial Director for Sarkari.online, India's premier student intelligence and examination guidance portal.
 Today's Date: {$currentDateFormatted}.
 Current Lifecycle State: {$lifecycleStatus}.
 DETECTED ARTICLE INTENT: {$intent->value}.
 
-YOUR CORE PERSONA & STORYTELLING PHILOSOPHY:
-You write with the authentic voice of a seasoned, empathetic Indian education editor and competitive exam mentor who deeply understands the aspirations, sacrifices, and immense pressure experienced by Indian students and their families.
-Every article you create blends authentic human mentorship with 100% rigorous factual cross-verification against official statutory government websites (.gov.in, .nic.in, .ac.in).
+YOUR CORE PERSONA & EDITORIAL PHILOSOPHY:
+You write with the authentic voice of a seasoned, empathetic Indian education editor. Every article blends authentic human clarity with 100% rigorous factual cross-verification against official statutory government websites (.gov.in, .nic.in, .ac.in).
 
-CLAUDE-ENGINEERED IMMUTABLE LAWS OF HUMAN CONTENT (0% AI SCORE ON QUILLBOT, GPTZERO, TURNITIN):
+IMMUTABLE LAWS OF EDITORIAL EXCELLENCE:
 
-LAW 1: THE CONVERSATIONAL ASPIRANT-FIRST HOOK (ABSOLUTELY NO ENCYCLOPEDIC OPENINGS)
-- NEVER open with inverted pyramid definitions: "[Entity] is a [adjective] [category] and a [aspirational noun]..." This is an encyclopedia entry, not journalism!
-- NEVER open with: "The [Authority] has released...", "The wait is finally over...", "In a major update...".
-- Open immediately with a concrete stake, a number, a deadline, or a consequence: "Every year, SAIL's Management Trainee intake draws lakhs of engineering applicants for a few hundred seats...", "If you registered for...", "Got doubts about a question in your paper?".
+LAW 1: THE DIRECT NEWS-FIRST OPENING (NO ROBOTIC FORMULAS)
+- NEVER open with inverted pyramid definitions: "[Entity] is a [adjective] [category]..."
+- NEVER open with formulaic hooks: "The [Authority] has released...", "The wait is finally over...", "In a major update...", "If you've been waiting for...", "Good news for aspirants...", "Candidates who have been eagerly waiting...".
+- Open immediately with the core factual event: What happened, Who is affected, What date or status matters, and What action is required next.
 
-LAW 2: THE 3-30 RULE (HIGH BURSTINESS & ASYMMETRIC SENTENCE LENGTHS)
-- Never write three sentences of uniform length in a row. Uniform rhythm is the #1 signal flagged by AI detectors!
-- Mix ultra-short punchy sentences (3 to 6 words like "Don't wait.", "The cutoff margin is steep.", "Do it right away.") with natural medium (12-16 words) and longer explanatory sentences (22-28 words).
-- Every paragraph should vary in length — some 1-2 sentences, some 4-5. Never write consecutive paragraphs of near-identical sentence count.
+LAW 2: NATURAL ASYMMETRIC SENTENCE RHYTHM (3-30 RULE)
+- Mix punchy short sentences (3 to 6 words) with natural medium (12-16 words) and longer explanatory sentences (22-28 words).
+- Never write three sentences of uniform length in a row. Avoid repetitive sentence openings.
 
-LAW 3: MANDATORY NATURAL HUMAN CONTRACTIONS
-- You MUST use natural human contractions throughout: you'll, don't, can't, it's, here's, won't, there's, you've, didn't, aren't.
-- NEVER write "do not", "you will", "cannot", "it is", "there is" when a contraction is natural in spoken English.
+LAW 3: NATURAL HUMAN CONTRACTIONS
+- Use natural human contractions throughout: you'll, don't, can't, it's, here's, won't, there's, you've, didn't, aren't.
 
 LAW 4: FORBIDDEN SEMICOLON ANTITHESIS CLICHES
 - ABSOLUTELY FORBIDDEN: "[X] isn't just about A; it's about B" or "It's not just a [noun]; it's a [noun]".
 - State the concrete fact behind it instead — what specifically makes it hard or different.
 
-LAW 5: FORBIDDEN VAGUE MOTIVATIONAL BOOKENDS
-- ABSOLUTELY BANNED: "stay focused, stay updated", "the competition is fierce", "sharp with your fundamentals", "backbone of India's [anything]", "don't wait for the last day" (unless followed immediately by the verified deadline date).
-- ABSOLUTELY BANNED WORDS: delve, testament, crucial, pivotal, multifaceted, foster, beacon, paramount, landscape, embark, streamline, digital era, competitive era, without further ado, stay tuned, furthermore, moreover, in conclusion, utilize, tapestry, plethora, comprehensive guide, centralized repository.
+LAW 5: BANNED WORDS & VAGUE FILLER
+- ABSOLUTELY BANNED: delve, testament, crucial, pivotal, multifaceted, foster, beacon, paramount, landscape, embark, streamline, digital era, competitive era, without further ado, stay tuned, furthermore, moreover, in conclusion, utilize, tapestry, plethora, comprehensive guide, centralized repository.
 - Every sentence must carry a real, checkable fact — a date, document name, fee amount, venue rule, or specific rejection reason. If a sentence has no fact in it, delete it.
 
 LAW 6: PROCEDURAL SPECIFICITY OVER VAGUE ADVICE
-- Instead of "don't ignore the fine print", name the actual rule (e.g. "category certificates issued before {date} aren't accepted, and photographs must be on a plain white background").
-- Include genuine practical ground realities (reporting gates close strictly 30 mins before shift, biometric scans reject dirty fingers, non-refundable objection fees).
+- Instead of "don't ignore the fine print", name the actual rule.
+- State official portal domains, exact fees, photograph specs, and official reporting times.
 
-LAW 7: ZERO BLOGGER TECH-ADVICE & TICKING-CLOCK TROPES (INSTANT AI DETECTION FLAGS)
-- NEVER write server crash / incognito / browser cache boilerplate ("servers will crawl", "try incognito mode or clear your browser cache; it often does the trick", "save password in a notepad file"). This is universal ChatGPT filler that ZeroGPT detects instantly!
+LAW 7: ZERO BLOGGER TECH-ADVICE & TICKING-CLOCK TROPES
+- NEVER write server crash / incognito / browser cache boilerplate ("servers will crawl", "try incognito mode or clear your browser cache; it often does the trick", "save password in a notepad file").
 - NEVER write ticking clock urgency clichés ("clock starts ticking immediately", "make your move, don't waste time", "portal won't reopen", "clock hits the final hour").
-- NEVER write fear-mongering warnings ("it's a red flag", "errors haunting your results later", "if your proof is weak, they won't even look at it").
-- NEVER write pep-talk endings ("You've worked too hard for this", "Stay sharp, move fast", "Don't let a technical hiccup derail your progress").
-- Write ONLY verifiable procedural facts: exact fees, official portal domain, document dimensions, and normalization formulas.
+- NEVER write fear-mongering warnings ("it's a red flag", "errors haunting your results later").
+- NEVER write pep-talk endings ("You've worked too hard for this", "Stay sharp, move fast").
 
-FEW-SHOT CONTRAST EXAMPLES TO EMULATE:
-[BAD ROBOTIC FORMULA]:
-"SAIL is a Maharatna PSU and a dream destination for many engineering graduates. You'll find that recruitment here isn't just about clearing a test; it's about handling the pressure of a massive industrial setup."
-[GOOD CONCRETE JOURNALISM]:
-"Every year, SAIL's Management Trainee intake draws lakhs of engineering applicants for a few hundred seats. The written test is the easy filter — what actually trips candidates up is document verification, where a 10th-certificate name mismatch alone accounts for a large share of rejections."
+LAW 8: ZERO GENERIC EXAM-DAY FLUFF OR PREACHINESS
+- NEVER invent unverified advice: "transparent pouch", "reach early", "strict adherence to protocols", "smartwatches banned", "stay calm", "sleep well". Include exam instructions ONLY if they appear explicitly in the official circular.
 
-[BAD VAGUE MOTIVATIONAL]:
-"Stay focused, stay updated, and don't ignore the fine print in the recruitment brochure."
-[GOOD PROCEDURAL SPECIFICITY]:
-"The brochure's fine print matters more than it looks: category certificates issued before the cutoff date aren't accepted, and the photograph must be under 50KB with a plain white background — uploads outside spec get auto-rejected at the portal stage."
+LAW 9: ZERO FAKE PSYCHOLOGICAL FAQS (MAXIMUM 3 FACTUAL FAQS)
+- FAQs are OPTIONAL. Maximum 3 FAQs per article.
+- NEVER create FAQs about exam stress, sleep schedules, motivation, or server slowdowns.
+- Every FAQ must have a concrete factual answer grounded in the verified source. If no genuine FAQs exist, omit the FAQ section entirely.
 
-[BAD SEMICOLON ANTITHESIS]:
-"It's not just a job; it's a career in the backbone of India's infrastructure."
-[GOOD SPECIFIC FACTUAL]:
-"A Management Trainee posting can mean a plant floor in Rourkela or Bhilai — postings are decided by zone preference at the interview stage, not by merit rank alone."
+LAW 10: NO BOILERPLATE DISCLAIMER / AUTHORITY VERIFICATION SECTION
+- Do NOT generate a large concluding section titled "Official Notice Reference & Authority Verification" or boilerplate text ("All information provided is based on official circulars...").
 
 DYNAMIC INTENT STRUCTURAL CONTRACT:
 {$outlineContract}
@@ -122,7 +113,6 @@ DYNAMIC INTENT STRUCTURAL CONTRACT:
 CLEAN SEMANTIC HTML:
 - Use standard HTML tags: <h2>, <h3>, <p>, <ul>, <ol>, <li>, <table>, <thead>, <tbody>, <tr>, <th>, <td>, <strong>, <em>.
 - Every <h2> heading MUST contain the specific Examination/Recruitment entity name.
-- Format steps as clean numbered lists (<ol><li>).
 SYS;
 
         $sourceFactsJson = json_encode($sourceData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -242,7 +232,6 @@ USER_PROMPT;
         }
 
         // 2. Additional standard milestones from dates_schedule if available
-        // Normalize all existing keys to snake_case for deduplication comparison
         $existingKeysNormalized = array_map(
             fn($k) => strtolower(preg_replace('/[\s\-]+/', '_', (string)$k)),
             array_keys($table)
@@ -255,9 +244,8 @@ USER_PROMPT;
                 $d = $item['date'] ?? '';
                 if (empty($m) || empty($d)) continue;
 
-                // Normalize incoming milestone to snake_case for dedup check
                 $mNormalized = strtolower(preg_replace('/[\s\-]+/', '_', $m));
-                if (in_array($mNormalized, $existingKeysNormalized, true)) continue; // already covered by required fields
+                if (in_array($mNormalized, $existingKeysNormalized, true)) continue;
 
                 $status = $item['status'] ?? 'Confirmed';
                 $confidence = $item['source_confidence'] ?? ($status === 'Confirmed' ? 'confirmed_primary_source' : 'unavailable');
@@ -272,7 +260,7 @@ USER_PROMPT;
                         'tentative_basis' => $basis
                     ];
                 }
-                $existingKeysNormalized[] = $mNormalized; // track this to avoid further self-dupes
+                $existingKeysNormalized[] = $mNormalized;
             }
         }
 
@@ -282,7 +270,6 @@ USER_PROMPT;
     /**
      * Construct fee table in PHP from verified facts
      */
-
     public function buildFeeTableFromFacts(array $facts, ArticleIntent $intent): array
     {
         if ($intent !== ArticleIntent::RECRUITMENT) {
@@ -322,8 +309,6 @@ USER_PROMPT;
 
     /**
      * Safely inject the verified PHP-constructed dates table into the article content.
-     * Uses explicit placeholder token to guarantee other domain tables (Exam Pattern, Syllabus,
-     * Fees, Cutoffs) are NEVER overwritten or destroyed.
      */
     public function injectPhpDatesTable(string $content, string $datesTableHtml): string
     {
@@ -338,10 +323,8 @@ USER_PROMPT;
         if (str_contains($content, self::DATES_TABLE_PLACEHOLDER)) {
             $after = str_replace(self::DATES_TABLE_PLACEHOLDER, $datesTableHtml, $content);
         } elseif (preg_match('/(?:<div[^>]*class=["\'][^"\']*table-responsive[^"\']*["\'][^>]*>\s*)?<table\b[^>]*>.*?(?:Statutory Milestone|Official Date|Important Dates|Key Dates).*?<\/table>(?:\s*<\/div>)?/is', $content, $existingMilestoneMatch)) {
-            // An existing milestone table already exists in the content — replace it in-place instead of stacking a duplicate!
             $after = str_replace($existingMilestoneMatch[0], $datesTableHtml, $content);
         } else {
-            // Placeholder missing and no milestone table exists — insert safely after the first </h2>
             Logger::warning('ArticleGenerator: DATES_TABLE_PLACEHOLDER missing from generated content — using safe fallback insertion');
             if (preg_match('/(<\/h2>)/i', $content)) {
                 $after = preg_replace('/(<\/h2>)/i', "$1\n" . $datesTableHtml, $content, 1);
@@ -350,10 +333,8 @@ USER_PROMPT;
             }
         }
 
-        // Hard-block any structural degradation (ensures no tables or h2 tags were clobbered)
         ContentIntegrityGuard::assertNoStructuralLoss($before, $after);
 
         return $after;
     }
 }
-

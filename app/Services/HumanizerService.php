@@ -3,14 +3,12 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Services\ArticleQualityEngine;
+
 /**
  * HumanizerService
  * Deterministic PHP-level Anti-AI Sanitization Engine.
- * Programmatically guarantees human-grade content across all generated and rewritten articles by:
- * 1. Enforcing verified conversational opening hooks (stripping robotic inverted pyramid / authority statements)
- * 2. Programmatically applying human contractions (eliminating #1 AI detection flag)
- * 3. Scrubbing hyper-formal academic jargon and AI cliches into direct mentor voice
- * 4. Cleaning banned transition markers and passive voice constructs
+ * Programmatically guarantees human-grade content across all generated and rewritten articles.
  */
 class HumanizerService
 {
@@ -66,7 +64,7 @@ class HumanizerService
         '/\bcomprehensive guide\b/i'                                         => 'complete walkthrough',
         '/\bembark on\b/i'                                                   => 'start',
         '/\bembarks on\b/i'                                                  => 'starts',
-        '/\bcandidates are advised to\b/i'                                   => 'make sure you',
+        '/\bcandidates are advised to\b/i'                                   => 'make sure to',
         '/\bcandidates are requested to\b/i'                                 => 'you need to',
         '/\bit is imperative that\b/i'                                       => 'you must',
         '/\bit is mandatory for candidates to\b/i'                           => 'you must',
@@ -179,93 +177,6 @@ class HumanizerService
     }
 
     /**
-     * Heal dangling colon sentences where an intro sentence ends with ":" but has no following list.
-     * Tier 1: Targeted Gemini call with facts to complete the list.
-     * Tier 2: If Gemini says "REMOVE" or facts empty, remove the dangling sentence entirely.
-     * Tier 3: Defensive regex fallback: convert trailing ":" to "."
-     */
-    public static function healDanglingColons(string $html, ?array $facts = null, ?\App\AI\Gemini $gemini = null): array
-    {
-        $stats = ['llm_healed' => 0, 'removed' => 0, 'regex_fallback' => 0];
-        
-        // Match paragraphs that end with a colon, not followed by <ul>, <ol>, or <table>
-        $pattern = '/(<p(?:\s+[^>]*)?>)(.*?)(:\s*<\/p>)(?!\s*<(?:ul|ol|table))/is';
-
-        $html = preg_replace_callback($pattern, function($matches) use ($facts, $gemini, &$stats) {
-            $openTag = $matches[1];
-            $body = trim($matches[2]);
-            
-            // Extract the sentence that has the colon
-            $lastPeriodPos = max(strrpos($body, '.'), strrpos($body, '?'), strrpos($body, '!'));
-            if ($lastPeriodPos !== false && $lastPeriodPos < strlen($body) - 1) {
-                $prefix = substr($body, 0, $lastPeriodPos + 1);
-                $colonSentence = trim(substr($body, $lastPeriodPos + 1));
-            } else {
-                $prefix = '';
-                $colonSentence = $body;
-            }
-
-            // Tier 1: Try Gemini if available and facts present
-            if ($gemini !== null && !empty($facts)) {
-                $factsJson = json_encode($facts, JSON_UNESCAPED_UNICODE);
-                $prompt = "Context: Verified facts about this exam:\n{$factsJson}\n\n"
-                    . "Introductory sentence: \"{$colonSentence}:\"\n\n"
-                    . "Instructions:\n"
-                    . "1. Complete this list with 3 to 4 factual bullet points in clean HTML <ul><li>...</li></ul> based ONLY on the verified facts above.\n"
-                    . "2. If the verified facts do not contain list-worthy information for this sentence, reply ONLY with the word 'REMOVE'.\n"
-                    . "Return ONLY the HTML <ul>...</ul> or 'REMOVE'.";
-                try {
-                    $res = $gemini->generate($prompt, ['stage' => 'heal_dangling_colon', 'temperature' => 0.2]);
-                    $text = trim($res['text'] ?? '');
-                    if (!empty($text) && str_starts_with($text, '<ul>') && str_ends_with($text, '</ul>')) {
-                        $stats['llm_healed']++;
-                        $pContent = $prefix ? "{$prefix} {$colonSentence}:" : "{$colonSentence}:";
-                        return "{$openTag}{$pContent}</p>\n{$text}";
-                    } elseif (str_contains(strtoupper($text), 'REMOVE')) {
-                        $stats['removed']++;
-                        if (!empty($prefix)) {
-                            return "{$openTag}{$prefix}</p>";
-                        }
-                        return '';
-                    }
-                } catch (\Throwable $e) {
-                    // Fallback to Tier 2/3
-                }
-            }
-
-            // Tier 2: If facts are empty or sentence is purely generic intro, remove it cleanly
-            $genericColonPatterns = [
-                '/here\'?s what (?:you should|you need|to keep|you\'?ll)/i',
-                '/here\'?s how (?:you|to)/i',
-                '/here\'?s the reality/i',
-                '/here\'?s what you should keep in mind/i',
-                '/keep these handy/i',
-                '/here\'?s your checklist/i',
-            ];
-            foreach ($genericColonPatterns as $gPat) {
-                if (preg_match($gPat, $colonSentence)) {
-                    $stats['removed']++;
-                    if (!empty($prefix)) {
-                        return "{$openTag}{$prefix}</p>";
-                    }
-                    return ''; // Strip entire empty paragraph
-                }
-            }
-
-            // Tier 3: Defensive regex fallback -> convert trailing colon to period
-            $stats['regex_fallback']++;
-            $healedSentence = rtrim($colonSentence, " :\t\n\r\0\x0B") . '.';
-            $pContent = $prefix ? "{$prefix} {$healedSentence}" : $healedSentence;
-            return "{$openTag}{$pContent}</p>";
-        }, $html);
-
-        return [
-            'html'  => $html,
-            'stats' => $stats
-        ];
-    }
-
-    /**
      * Deduplicate paragraphs with > 70% textual similarity within the same article.
      */
     public static function deduplicateParagraphs(string $html, float $threshold = 0.70): array
@@ -307,9 +218,6 @@ class HumanizerService
         ];
     }
 
-    // ─────────────────────────────────────────────────────────
-    // CLAUDE-ENGINEERED DETERMINISTIC ANTI-CLICHÉ SCRUBBERS
-    // ─────────────────────────────────────────────────────────
     private const ENCYCLOPEDIC_OPENER_PATTERN =
         '/<p>\s*([A-Z][A-Za-z0-9\s\-]{1,60})\s+is\s+an?\s+[^.]{1,80}?\s+and\s+an?\s+[^.]{1,80}?\.\s*/u';
 
@@ -328,8 +236,6 @@ class HumanizerService
         '/\bbackbone\s+of\s+india\'?s\s+[\w\s]{1,30}[.!?]/iu',
         '/\bdon\'?t\s+ignore\s+the\s+fine\s+print\b(?![^.!?]*\d)[^.!?]*[.!?]/iu',
         '/\bkeep\s+an?\s+eye\s+on\s+the\s+official\s+portal\b(?![^.!?]*\d)[^.!?]*[.!?]/iu',
-        // Systematic AI Blogger Tropes (flagged by ZeroGPT / QuillBot across articles)
-        // 1. Urgency & Ticking Clock
         '/(?:once the|when the)[^.!?]+objection window[^.!?]+(?:clock starts ticking|clock is ticking)[^.!?]*[.!?]/iu',
         '/\byou(?:\'ve| have) only got \d+ hours to make your move[^.!?]*[.!?]/iu',
         '/\bdon\'?t wait until the (?:clock hits the )?final hour[^.!?]*[.!?]/iu',
@@ -337,8 +243,6 @@ class HumanizerService
         '/\bif you miss that \d+-hour challenge window[^.!?]*[.!?]/iu',
         '/\bit\'?s a hard deadline, and the board doesn\'?t accept excuses[^.!?]*[.!?]/iu',
         '/\bthe portal won\'?t reopen[^.!?]*[.!?]/iu',
-
-        // 2. Server Crash, Incognito & Cache Advice (Universal ChatGPT exam filler)
         '/\b(?:when thousands of aspirants hit the portal|the servers will crawl|site traffic gets crazy)[^.!?]*[.!?]/iu',
         '/\bif the page hangs, try an incognito window or clear your browser cache[^.!?]*[.!?]/iu',
         '/\btry incognito or private browsing mode[^.!?]*[.!?]/iu',
@@ -348,8 +252,6 @@ class HumanizerService
         '/\bserver down\?\s*try incognito[^.!?]*[.!?]/iu',
         '/\bdon\'?t panic if the page hangs;\s*just refresh and try again[^.!?]*[.!?]/iu',
         '/\bserver loads spike during these windows[^.!?]*[.!?]/iu',
-
-        // 3. Stern Warnings, "Red Flags" & Fear-Mongering
         '/\bif your proof is weak, they won\'?t even look at it[^.!?]*[.!?]/iu',
         '/\bit\'?s a red flag[.!]?/iu',
         '/\bdo it now, not when the heat is on[^.!?]*[.!?]/iu',
@@ -357,16 +259,12 @@ class HumanizerService
         '/\bkeep your evidence ready before you start[^.!?]*[.!?]/iu',
         '/\bensure your document scans are small enough to upload quickly[^.!?]*[.!?]/iu',
         '/\bkeep your documents ready before you even log in to avoid upload failures[^.!?]*[.!?]/iu',
-
-        // 4. Blogger Pep-Talk Endings
         '/\byou(?:\'ve| have) worked too hard for this[^.!?]*[.!?]/iu',
         '/\bdon\'?t let a technical hiccup or a minor typo derail your progress[^.!?]*[.!?]/iu',
         '/\bstay sharp, move fast, and get your objections in[^.!?]*[.!?]/iu',
         '/\bhere\'?s what you should keep in mind to stay ahead:\s*/iu',
         '/\bhere\'?s the ground reality:\s*the servers will crawl\.\s*/iu',
         '/\byou don\'?t want to leave this until the final hour[^.!?]*[.!?]/iu',
-
-        // 5. Board Exam & Academic Article Filler (Article #727 tropes)
         '/\bthe wait is (?:finally )?over[.!]?/iu',
         '/\bIt\'?s time to shift your focus toward[^.!?]*[.!?]/iu',
         '/\bfor comparative insights[^.!?]*[.!?]/iu',
@@ -434,13 +332,12 @@ class HumanizerService
     public static function detectUniformCadenceParagraphs(string $html): array
     {
         $flagged = [];
-        $dom = new \DOMDocument();
-        libxml_use_internal_errors(true);
-        $dom->loadHTML('<?xml encoding="utf-8" ?>' . $html);
-        libxml_clear_errors();
+        if (!preg_match_all('/<p(?:\s+[^>]*)?>(.*?)<\/p>/is', $html, $matches)) {
+            return [];
+        }
 
-        foreach ($dom->getElementsByTagName('p') as $index => $p) {
-            $text = trim($p->textContent);
+        foreach ($matches[1] as $index => $body) {
+            $text = trim(strip_tags($body));
             if ($text === '') {
                 continue;
             }
@@ -495,19 +392,16 @@ PROMPT;
 
     /**
      * Converts dense, repetitive qualifications and selection paragraphs into structured, candidate-friendly bullet points.
-     * Detectors flag essay-style eligibility prose as AI. Converting them to bullet lists eliminates predictable cadence.
      */
     public static function structureDenseProseLists(string $html): string
     {
         // Pattern 1: Convert paragraphs containing Degree/Qualifications + Age Limit into clean <ul><li> lists
         $html = preg_replace_callback('/<p>(?=.*?(?:Bachelor\'?s\s+degree|B\.E\.|B\.Tech|graduation|diploma|10\+2|matriculation))(?=.*?(?:age\s+limit|years\s+old|minimum\s+age|maximum\s+age))(.*?)<\/p>/is', function($m) {
             $text = trim($m[1]);
-            // If already contains list tags, skip
             if (str_contains($text, '<ul>') || str_contains($text, '<ol>') || str_contains($text, '<table>')) {
                 return $m[0];
             }
 
-            // Split into sentences
             $sentences = preg_split('/(?<=[.!?])\s+(?=[A-Z0-9])/u', $text);
             $sentences = array_filter(array_map('trim', $sentences), fn($s) => !empty($s));
             if (count($sentences) < 2) {
@@ -516,7 +410,6 @@ PROMPT;
 
             $listItems = '';
             foreach ($sentences as $s) {
-                // Remove trailing punctuation for neat list formatting
                 $cleanSentence = rtrim($s, '.');
                 $listItems .= "<li>{$cleanSentence}.</li>\n";
             }
@@ -550,58 +443,8 @@ PROMPT;
     }
 
     /**
-     * Systematically eliminates ChatGPT-style structural padding blocks across all articles:
-     * 1. Generic 5-step download guides ("Visit website... Click notifications... Download and save")
-     * 2. Preachy student advice ("critical skill for high-stakes assessments", "well-rested")
-     * 3. Exam protocol fluff ("transparent pouch", "strict adherence to protocols")
-     * 4. Fake psychological FAQs ("How do I handle exam stress? Maintain a sleep schedule...")
-     * 5. Boilerplate disclaimer footers ("All information provided is based on...")
-     */
-    public static function stripAiPaddingSections(string $html, string $sourceUrl = ''): string
-    {
-        // 1. Remove generic 5-step download guides (replaces with clean 1-line direct download notice)
-        $html = preg_replace(
-            '/<h[2-4][^>]*>[^<]*(?:Step-by-Step Guide to Download|How to Download|Steps to Download|How to Access)[^<]*<\/h[2-4]>\s*(?:<(?:ol|ul)[^>]*>.*?<\/(?:ol|ul)>|<p[^>]*>.*?<\/p>)+/is',
-            '',
-            $html
-        );
-
-        // 2. Strip preachy advisory paragraphs & protocol boilerplate
-        $preachyPatterns = [
-            '/<p[^>]*>[^<]*(?:is a critical skill for any student|high-stakes assessments|well-rested and prepared|strict adherence to protocols|transparent pouch|electronic gadgets, including smartwatches|avoid any confusion during your study sessions)[^<]*<\/p>/iu',
-            '/<p[^>]*>[^<]*(?:servers will crawl|incognito window or clear your browser cache|try incognito|clock starts ticking|you\'ve worked too hard|stay sharp, move fast|derail your progress)[^<]*<\/p>/iu',
-            '/<p[^>]*>[^<]*(?:All information provided is based on the official circulars|You should cross-check any updates directly at)[^<]*<\/p>/iu',
-        ];
-        foreach ($preachyPatterns as $pattern) {
-            $html = preg_replace($pattern, '', $html);
-        }
-
-        // 3. Remove fake stress FAQs
-        $html = preg_replace(
-            '/<h[3-4][^>]*>[^<]*(?:exam stress|sleep schedule|handling pressure)[^<]*<\/h[3-4]>\s*<p[^>]*>.*?<\/p>/iu',
-            '',
-            $html
-        );
-        $html = preg_replace(
-            '/<p[^>]*>[^<]*How do I handle exam stress\?[^<]*<\/p>/iu',
-            '',
-            $html
-        );
-
-        // 4. Clean up opening fluff sentences within paragraphs
-        $html = preg_replace('/\b(?:If you(?:\'ve| have) been waiting for [^,\.]+,?\s*)?the wait is (?:finally )?over\.\s*/iu', '', $html);
-        $html = preg_replace('/\bIt\'?s time to shift your focus toward[^.!?]*[.!?]\s*/iu', '', $html);
-        $html = preg_replace('/\bIf you are also tracking national-level board updates[^.!?]*for comparative insights\.\s*/iu', '', $html);
-
-        // 5. Clean up any leftover empty HTML tags or double spaces
-        $html = preg_replace('/<p>\s*<\/p>/u', '', $html);
-        $html = preg_replace('/<div[^>]*>\s*<\/div>/u', '', $html);
-
-        return trim($html);
-    }
-
-    /**
-     * Master Humanization Pipeline: Applies all anti-AI layers deterministically.
+     * Master Humanization Pipeline: delegates to ArticleQualityEngine for structural cleanliness,
+     * then applies rhythm, contractions, and list structuring.
      */
     public static function humanize(string $content, string $examTitle, string $sourceUrl = '', string $intent = 'recruitment'): string
     {
@@ -609,26 +452,13 @@ PROMPT;
             return $content;
         }
 
-        // 1. Strip Structural AI Padding (Download guides, preachiness, transparent pouches, stress FAQs)
-        $content = self::stripAiPaddingSections($content, $sourceUrl);
+        // 1. Unified ArticleQualityEngine structural refactoring
+        $qualityResult = ArticleQualityEngine::refactorContent($content, $examTitle, $sourceUrl, $intent);
+        $content = $qualityResult['content'];
 
-        // 2. Sanitize Opening Hook
-        $content = self::sanitizeOpeningHook($content, $examTitle, $sourceUrl, $intent);
-
-        // 3. Enforce Contractions
-        $content = self::enforceContractions($content);
-
-        // 4. Scrub Banned Clichés
-        $content = self::scrubClichés($content);
-
-        // 5. Scrub Claude-Engineered Pattern Clichés (Encyclopedic openers, antithesis, bookends)
-        $scrubbed = self::scrubClichePatterns($content);
-        $content = $scrubbed['html'];
-
-        // 6. Structure Dense Prose Lists (Eliminates AI detector predictable cadence on eligibility/selection)
+        // 2. Structure Dense Prose Lists
         $content = self::structureDenseProseLists($content);
 
         return $content;
     }
 }
-

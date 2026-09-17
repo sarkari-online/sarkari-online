@@ -5,37 +5,37 @@ namespace App\Services;
 
 /**
  * IntentStructureMap
- * Defines the fixed editorial section skeleton for each ArticleIntent.
- * Guarantees structural diversity at the PHP layer rather than leaving it to LLM memory.
+ * Defines the editorial section skeleton for each ArticleIntent.
+ * Eliminates generic mandatory boilerplate sections.
  */
 final class IntentStructureMap
 {
     public const SECTIONS = [
         'RECRUITMENT' => [
             'role_overview', 'vacancy_eligibility_snapshot', 'salary_and_perks',
-            'selection_process_flowchart', 'document_checklist', 'editorial_verdict',
+            'selection_process_flowchart', 'application_procedure', 'faq',
         ],
         'ADMIT_CARD' => [
-            'urgency_brief', 'download_steps', 'exam_day_logistics',
-            'common_errors_and_correction', 'whats_next',
+            'admit_release_overview', 'city_intimation_distinction', 'exam_schedule_shifts',
+            'regional_portals', 'faq',
         ],
         'RESULT_CUTOFF' => [
-            'result_overview', 'how_to_check', 'cutoff_analysis',
-            'next_stage_explainer', 'faq',
+            'result_overview', 'scorecard_links', 'cutoff_analysis',
+            'tie_breaking_criteria', 'next_stage_explainer', 'faq',
         ],
         'ANSWER_KEY' => [
-            'objection_window_brief', 'how_to_challenge', 'normalization_note',
-            'consequences_of_missing_window', 'whats_next',
+            'objection_window_brief', 'response_sheet_links', 'challenge_fee_structure',
+            'objection_procedure', 'estimated_score_formula', 'faq',
         ],
         'SYLLABUS_CHANGE' => [
-            'whats_changed', 'topic_breakdown', 'prep_strategy_impact', 'faq',
+            'whats_changed', 'pattern_comparison_table', 'topic_breakdown', 'faq',
         ],
         'COUNSELLING' => [
-            'preference_locking', 'document_verification_checklist',
-            'seat_allotment_rounds', 'withdrawal_process',
+            'preference_locking', 'seat_allotment_rounds', 'seat_acceptance_rules',
+            'document_verification_checklist', 'faq',
         ],
         'CORRIGENDUM' => [
-            'whats_changed_diff', 'why_it_matters', 'revised_values_table', 'action_needed',
+            'corrigendum_overview', 'revised_schedule_matrix', 'revision_reason', 'action_needed', 'faq',
         ],
     ];
 
@@ -49,49 +49,51 @@ final class IntentStructureMap
     {
         $titles = [
             // RECRUITMENT
-            'role_overview'                   => 'Recruitment Overview & Role Mandate',
+            'role_overview'                   => 'Recruitment Overview & Notification Details',
             'vacancy_eligibility_snapshot'    => 'Vacancy Details & Eligibility Snapshot',
-            'salary_and_perks'                => '7th Pay Commission Salary & Pay Level',
+            'salary_and_perks'                => '7th Pay Commission Pay Matrix & Salary',
             'selection_process_flowchart'     => 'Selection Process & Examination Stages',
-            'document_checklist'              => 'Mandatory Documents Checklist',
-            'editorial_verdict'               => 'Editorial Analysis & Preparation Advice',
+            'application_procedure'           => 'Online Application & Registration Procedure',
 
             // ADMIT_CARD
-            'urgency_brief'                   => 'Hall Ticket Release Overview',
-            'download_steps'                  => 'Step-by-Step Guide to Download Admit Card',
-            'exam_day_logistics'              => 'Exam Day Instructions & Entry Timings',
-            'common_errors_and_correction'    => 'Discrepancy Correction & Helpline Support',
-            'whats_next'                      => 'Upcoming Timeline & Post-Admit Card Milestones',
+            'admit_release_overview'          => 'Admit Card Availability & Status',
+            'city_intimation_distinction'     => 'City Intimation Slip vs e-Call Letter',
+            'exam_schedule_shifts'            => 'Exam Schedule & Shift Timings',
+            'regional_portals'                => 'Regional Official Portals',
 
             // RESULT_CUTOFF
-            'result_overview'                 => 'Examination Result & Merit List Release',
-            'how_to_check'                    => 'How to Check Scorecard & Download Merit PDF',
-            'cutoff_analysis'                 => 'Qualifying Cutoff Marks & Score Trends',
-            'next_stage_explainer'            => 'Next Stage: Document Verification & Selection',
-            'faq'                             => 'Frequently Asked Questions',
+            'result_overview'                 => 'Result Declaration & Scorecard Availability',
+            'scorecard_links'                 => 'Direct Scorecard & Merit List Links',
+            'cutoff_analysis'                 => 'Category-Wise Qualifying Cutoff Marks',
+            'tie_breaking_criteria'           => 'Tie-Breaking & Normalization Criteria',
+            'next_stage_explainer'            => 'Next Stage Roadmap for Qualified Candidates',
 
             // ANSWER_KEY
-            'objection_window_brief'          => 'Provisional Answer Key Release & Overview',
-            'how_to_challenge'                => 'How to Submit Challenges & Pay Objection Fees',
-            'normalization_note'              => 'Score Calculation & Marking Scheme Rules',
-            'consequences_of_missing_window'  => 'Critical Objection Deadlines & Ground Rules',
+            'objection_window_brief'          => 'Provisional Answer Key Release & Challenge Window',
+            'response_sheet_links'            => 'Direct Response Sheet & Question Paper Links',
+            'challenge_fee_structure'         => 'Challenge Fee Structure & Representation Guidelines',
+            'objection_procedure'             => 'Procedure to Submit Objections Online',
+            'estimated_score_formula'         => 'Score Calculation & Marking Scheme Rules',
 
             // SYLLABUS_CHANGE
             'whats_changed'                   => 'Summary of Revised Examination Pattern',
+            'pattern_comparison_table'        => 'Old vs New Examination Pattern Comparison',
             'topic_breakdown'                 => 'Subject-Wise Detailed Syllabus Breakdown',
-            'prep_strategy_impact'            => 'Impact on Preparation Strategy & Time Allocation',
 
             // COUNSELLING
-            'preference_locking'              => 'Choice Filling & Option Locking Procedures',
-            'document_verification_checklist' => 'Document Verification (DV) Protocols & Certificates',
-            'seat_allotment_rounds'           => 'Seat Allotment Rounds & Reporting Schedule',
-            'withdrawal_process'              => 'Seat Acceptance, Float/Freeze & Exit Rules',
+            'preference_locking'              => 'Counselling Schedule & Choice Filling',
+            'seat_allotment_rounds'           => 'Seat Allotment Rounds & Cutoff Ranks',
+            'seat_acceptance_rules'           => 'Seat Acceptance: Freeze, Float & Slide Options',
+            'document_verification_checklist' => 'Mandatory Verification Documents Checklist',
 
             // CORRIGENDUM
-            'whats_changed_diff'              => 'Official Corrigendum & Key Modifications',
-            'why_it_matters'                  => 'Impact of Amendments on Applicants',
-            'revised_values_table'            => 'Comparison of Old vs Revised Terms',
+            'corrigendum_overview'            => 'Official Corrigendum & Key Amendments',
+            'revised_schedule_matrix'         => 'Original vs Revised Schedule Comparison',
+            'revision_reason'                 => 'Reason for Revision & Scope of Affected Candidates',
             'action_needed'                   => 'Immediate Action Required from Candidates',
+
+            // COMMON
+            'faq'                             => 'Frequently Asked Questions',
         ];
 
         return $titles[$sectionKey] ?? ucwords(str_replace('_', ' ', $sectionKey));

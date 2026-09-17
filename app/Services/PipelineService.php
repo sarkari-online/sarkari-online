@@ -18,6 +18,7 @@ use App\Helpers\Env;
 use App\Helpers\Logger;
 use App\Helpers\Sanitizer;
 use App\Services\WebVitalsService;
+use App\Services\ArticleQualityEngine;
 use App\Services\AuthorityFactFetcherService;
 use App\Services\SEOManagerService;
 use App\Services\ArticleUpdateService;
@@ -971,19 +972,11 @@ class PipelineService {
             }
         }
 
-        // 2. Banned generic clichés
-        $bannedPhrases = [
-            "in today's digital world",
-            "in this article, we will discuss",
-            "without further ado",
-            "stay tuned",
-            "it is important to note that",
-            "as we all know",
-            "comprehensive guide"
-        ];
-        foreach ($bannedPhrases as $bp) {
-            if (str_contains($lower, $bp)) {
-                $violations[] = "Banned cliché found: '{$bp}'";
+        // 2. Comprehensive ArticleQualityEngine checks across ALL intents
+        $qualityAudit = ArticleQualityEngine::analyzeQuality($html, $articleData['title'] ?? '', $intent);
+        if (!empty($qualityAudit['issues'])) {
+            foreach ($qualityAudit['issues'] as $issueKey => $issueMsg) {
+                $violations[] = "Editorial Quality Violation ({$issueKey}): {$issueMsg}";
             }
         }
 
@@ -1013,26 +1006,17 @@ class PipelineService {
     }
 
     /**
-     * Mechanical cleaner for forbidden sections and clichés
+     * Mechanical cleaner for forbidden sections and clichés using ArticleQualityEngine
      */
-    public static function autoCleanLintIssues(string $html, string $intent): string {
+    public static function autoCleanLintIssues(string $html, string $intent, string $sourceUrl = '', string $title = ''): string {
         // Strip forbidden sections for admit card / results
         if ($intent === 'admit_card' || $intent === 'result_cutoff') {
             $html = preg_replace('/<h2[^>]*>.*?(how to apply|step-by-step online application|detailed eligibility criteria|age limits & qualifications).*?<\/h2>[\s\S]*?(?=<h2|$)/i', '', $html);
         }
 
-        // Strip banned clichés
-        $bannedMap = [
-            '/in today\'s digital world,?\s*/i' => '',
-            '/without further ado,?\s*/i' => '',
-            '/stay tuned for further updates\.?\s*/i' => 'Refer to the official portal for subsequent updates.',
-            '/it is important to note that\s*/i' => 'Note that ',
-            '/as we all know,?\s*/i' => '',
-            '/in this comprehensive guide,?\s*/i' => 'In this official briefing, '
-        ];
-        foreach ($bannedMap as $pat => $rep) {
-            $html = preg_replace($pat, $rep, $html);
-        }
+        // Apply ArticleQualityEngine refactoring
+        $refactored = ArticleQualityEngine::refactorContent($html, $title, $sourceUrl, $intent);
+        $html = $refactored['content'];
 
         return trim($html);
     }

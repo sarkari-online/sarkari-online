@@ -36,22 +36,23 @@ Current Lifecycle State: {$lifecycleStatus}.
 
 MASTER EDITORIAL EDITING RULES:
 1. PRESERVE EVERY FACT: Do not modify numbers, dates, percentile cutoffs, authority names, or reference codes.
-2. PRESERVE HUMAN CONTEXT & STORYTELLING: Keep the human narrative hook, aspirant mentorship voice, and real-world significance intact.
-   - STRIP ONLY artificial robotic clichés ("In today's competitive world...", "Education is paramount...", "Whether you are a student...", "Let's dive into...", "Fast-paced digital era"). Ensure the opening smoothly blends the human context with the core factual event (What happened, Who is affected, When, What action is required).
+2. PRESERVE HUMAN CONTEXT: Keep the human tone and real-world significance intact.
+   - STRIP robotic clichés ("In today's competitive world...", "Education is paramount...", "Whether you are a student...", "Let's dive into...", "Fast-paced digital era"). Ensure the opening directly highlights the core factual event (What happened, Who is affected, When, What action is required).
 3. STRIP AI CLICHES & SENSATIONALISM:
    - Remove words like "comprehensive", "crucial", "massive", "shocking", "stay tuned", "without further ado".
    - Strip unsupported phrases like "Experts say..." or fake statistics ("90% of candidates...").
 4. DESCRIPTIVE SCAN-FRIENDLY HEADINGS:
-   - Convert vague headings (like "Important Details", "Other Information") into clear, intent-driven headings (e.g., "How to Check SSC CGL Result 2026", "Step-by-Step Application Guide").
+   - Convert vague headings (like "Important Details", "Other Information") into clear, intent-driven headings (e.g., "SSC CGL Result 2026 Scorecard Links", "Category-Wise Cutoff Marks").
+   - NEVER create generic "Step-by-Step Guide to Download" or "Exam Day Instructions" headings.
 5. MOBILE READABILITY & STRUCTURE:
    - Keep paragraphs concise (2 to 4 sentences maximum).
-   - Format steps as clean numbered lists (<ol><li>), requirements as bullet lists (<ul><li>), and multi-point dates as clean HTML tables.
+   - Format factual requirements as bullet lists (<ul><li>) and multi-point dates as clean HTML tables.
+   - Do NOT convert prose into manufactured 5-step numbered procedures.
 6. 100% FLUENT INDIAN ENGLISH:
    - Ensure clear, direct, professional Indian English. No Devanagari/Hindi script.
 7. SEARCH SATISFACTION OVER ARTIFICIAL SEO:
-   - Optimize primarily for solving the student's core question clearly and rapidly.
-   - Eliminate repetitive focus keyword stuffing or artificial keyword density.
-   - Ensure natural readability that builds student trust.
+   - Optimize primarily for answering the student's core question clearly and rapidly.
+   - Eliminate repetitive focus keyword stuffing.
 8. ORIGINAL HIGH-CTR HEADLINE (NO SOURCE DUPLICATION):
    - The `edited_title` MUST be completely unique, highly engaging, and student search-focused (under 75 characters).
    - NEVER copy the source news wire headline verbatim. Include the exact exam name, year (2026/2027), and primary actionable search terms (e.g. "Option Entry Begins", "Scorecard Link", "Shift Timings", "Eligibility & Steps").
@@ -62,6 +63,8 @@ MASTER EDITORIAL EDITING RULES:
 11. LIFECYCLE & CTA POLISH:
    - Current lifecycle state is '{$lifecycleStatus}'.
    - If lifecycle is 'closed': Strip active application CTAs ("Apply Online", "Apply Now", "Registration Open") and replace with "Application Closed" or "Application Concluded on [Date]".
+12. FAQ DISCIPLINE:
+   - Keep only factual, high-utility FAQs (maximum 3). Strip any FAQ discussing exam stress, sleep, or generic server issues.
 PROMPT;
 
         $userPrompt = <<<USER_PROMPT
@@ -80,7 +83,7 @@ Return your response strictly as a JSON object with this exact schema:
   "edited_content": "Full enhanced HTML content with clean markup",
   "readability_score": 92,
   "improvements_made": [
-    "Converted registration steps into an ordered list",
+    "Cleaned repetitive phrasing",
     "Streamlined paragraph flow for mobile readers"
   ]
 }

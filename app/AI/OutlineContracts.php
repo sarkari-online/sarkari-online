@@ -21,180 +21,175 @@ RULE;
         $contract = match ($intent) {
             ArticleIntent::ADMIT_CARD => <<<PROMPT
 MANDATORY OUTLINE CONTRACT — Admit Card / Exam City Intimation Slip Article:
-CRITICAL NEGATIVE CONSTRAINT: Do NOT include any "How to Apply Online", "Application Fee", or "Age Limit / Eligibility Criteria" section! The candidates have ALREADY completed the application process months ago.
+CRITICAL NEGATIVE CONSTRAINTS:
+- Do NOT include any "How to Apply Online", "Application Fee", or "Eligibility Criteria" section!
+- Do NOT generate generic 5-step download guides ("Visit website... click tab... download PDF"). Instead, provide direct portal URLs and specific login credential requirements (e.g., Registration Number and DOB).
+- Do NOT generate generic exam-day advice ("transparent pouch", "reach early", "sleep well", "smartwatches banned") unless specifically supported by official instructions from the circular.
+- Do NOT generate boilerplate disclaimers or repetitive authority verification sections.
+- FAQs are OPTIONAL: maximum 3, strictly factual (e.g., city slip vs admit card distinction, login retrieval, reporting time policy). NEVER add exam stress, sleep, or generic server FAQs.
 
 Every <h2> heading MUST contain the specific Examination/Recruitment entity name (e.g. "RRB NTPC CBT-2: ...").
 
 Required Structural Flow:
-1. Compelling Direct Mentor Introduction:
-   - What was officially announced/released, for which exact notification code (e.g. CEN No.) and stage (e.g. CBT-2 for Undergraduate posts).
-   - Direct link timeline and callout.
+1. Direct News & Availability Hook:
+   - State clearly that admit cards or city intimation slips are live, exact notification code (e.g., CEN No.), stage, and dates.
 2. <h2>[Exam Name]: City Intimation Slip vs e-Call Letter (Key Distinction)</h2>
    - Insert <!--DATES_MILESTONE_TABLE--> immediately after the opening paragraph of this section.
-   - Clear explanatory callout box: Detail why the City Intimation Slip is NOT the admit card (it only shows exam city, state, date, and shift to facilitate travel/train bookings).
-   - When the actual e-Call Letter / Admit Card will be released (usually 4 days before the candidate's exam date).
+   - Clarify whether this release is the City Slip (travel booking) or final Admit Card (reporting slip released ~4 days prior).
 3. <h2>[Exam Name]: Official CBT Schedule, Reporting Hours & Shift Timings</h2>
    - MANDATORY HTML <table>: Columns for Shift Name, Reporting Time, Gate Closure Cutoff, Exam Commencement, and Duration.
-   - Strict Gate Closure Policy: Emphasize zero-tolerance entry ban once gates close.
-4. <h2>[Exam Name]: Regional Download Portals & Direct Official Links</h2>
-   - MANDATORY HTML <table>: Regional Boards/Zones (e.g. RRB Allahabad, Mumbai, Bhopal, Kolkata, Chennai, etc. or SSC NR, CR, ER) with direct portal URLs.
-5. <h2>Step-by-Step Guide to Download [Exam Name] Admit Card & City Slip</h2>
-   - Exact login credentials required (Registration Number + Date of Birth in DD/MM/YYYY).
-   - Instructions on downloading and saving the PDF.
-6. <h2>Exam Day Instructions & Mandatory Documents Checklist for [Exam Name]</h2>
-   - Original Govt Photo ID Proofs (Aadhaar Card, PAN, Voter ID, Driving License, Passport).
-   - Coloured printed admit card with recent passport-size photograph.
-   - Biometric verification rules (Aadhaar-based biometric authentication).
-   - Barred electronic items (Smartwatches, Bluetooth devices, earphones, mobile phones).
-7. <h2>Frequently Asked Questions (FAQs) About [Exam Name] Hall Ticket</h2>
-   - 5 to 6 genuine, highly searched candidate queries regarding login password recovery, shift timing, city change requests (not permitted), and biometric screening.
-8. <h2>Official Notice Reference & Authority Verification for [Exam Name]</h2>
+   - Gate Closure Rule: State official cutoff time after which entry is prohibited.
+4. <h2>[Exam Name]: Regional Download Portals & Official Access Links</h2>
+   - MANDATORY HTML <table>: Regional Boards/Zones with direct official portal URLs and required login parameters.
+5. <h2>Frequently Asked Questions About [Exam Name] Admit Card</h2> (Optional — Max 3 factual FAQs only)
 PROMPT,
 
             ArticleIntent::RESULT_CUTOFF => <<<PROMPT
 MANDATORY OUTLINE CONTRACT — Exam Result, Cutoff Marks & Scorecard Article:
-CRITICAL NEGATIVE CONSTRAINT: Do NOT include "How to Apply", "Application Fee", or "Eligibility" sections!
+CRITICAL NEGATIVE CONSTRAINTS:
+- Do NOT include "How to Apply", "Application Fee", or "Eligibility" sections!
+- Do NOT generate generic 5-step download guides. State the direct scorecard login link and roll number lookup method concisely.
+- Do NOT invent fake psychological or stress advice.
+- FAQs are OPTIONAL: maximum 3, addressing re-evaluation rules, tie-breaking criteria, or next phase schedule.
 
 Every <h2> heading MUST contain the specific Examination/Recruitment entity name.
 
 Required Structural Flow:
 1. Direct Announcement Hook:
-   - What result was declared, which exam stage (e.g. Tier-1, Prelims, CBT-1), total qualified candidates, and scorecard availability.
+   - What result was declared, exam stage, total qualified candidates, and scorecard availability.
 2. <h2>[Exam Name]: Result Highlights, Direct Scorecard Link & Merit List PDF</h2>
    - Insert <!--DATES_MILESTONE_TABLE--> immediately after the opening paragraph of this section.
-   - Direct download links for Cutoff Notice PDF, Merit List Roll Numbers PDF, and Candidate Scorecard Login URL.
+   - Direct links for Cutoff Notice PDF, Merit List Roll Numbers PDF, and Candidate Scorecard Login URL.
 3. <h2>[Exam Name]: Category-Wise Cutoff Marks & Qualifying Percentiles</h2>
    - MANDATORY HTML <table>: Rows for General/UR, EWS, OBC-NCL, SC, ST, ESM, and PwBD categories.
    - Normalized marks vs raw marks explanation if normalization was applied.
 4. <h2>Tie-Breaking Criteria & Normalization Formula for [Exam Name]</h2>
-   - Explicit criteria used by the commission (Date of birth / older candidates prioritized, marks in specific subject sections, alphabetical order).
-5. <h2>Next Stage Roadmap & Action Plan for Qualified Candidates in [Exam Name]</h2>
-   - What comes next: Next Exam Phase (CBT-2 / Mains / Descriptive / Typing / Physical Test / Document Verification).
-   - Schedule or expected timeline for the next stage.
-6. <h2>How to Check [Exam Name] Result & Download Scorecard Online</h2>
-   - Step-by-Step instructions: Application No / Roll No + DOB login.
-7. <h2>Frequently Asked Questions (FAQs) About [Exam Name] Result & Cutoff</h2>
-   - 5 to 6 genuine FAQs addressing re-evaluation/re-checking rules, scorecard download expiry, and next stage preparation.
-8. <h2>Official Authority Verification & Direct Gazetted Links for [Exam Name]</h2>
+   - Official criteria used by the commission (Date of birth, subject section marks, or normalized score formula).
+5. <h2>Next Stage Roadmap for Qualified Candidates in [Exam Name]</h2>
+   - What comes next: Next Exam Phase (CBT-2 / Mains / Skill Test / Document Verification) and expected timeline.
+6. <h2>Frequently Asked Questions About [Exam Name] Result & Cutoff</h2> (Optional — Max 3 factual FAQs only)
 PROMPT,
 
             ArticleIntent::RECRUITMENT => <<<PROMPT
 MANDATORY OUTLINE CONTRACT — New Recruitment / Job Notification & Application Guide:
-This is the ONLY intent that should carry full Eligibility, Vacancies breakdown, and How-to-Apply guidance.
+This is the ONLY intent that should carry full Eligibility, Vacancies breakdown, and Application guidance.
+CRITICAL NEGATIVE CONSTRAINTS:
+- Do NOT generate generic 5-step download guides.
+- Do NOT generate boilerplate disclaimers at the end.
+- FAQs are OPTIONAL: maximum 3, strictly factual (final year eligibility, domicile rules, exam centres).
 
 Every <h2> heading MUST contain the specific Recruitment entity name.
 
 Required Structural Flow:
 1. Inspiring Narrative Hook & Notification Overview:
-   - Total vacancies, department/cadre names, pay matrix level (7th CPC), and why this recruitment cycle is significant.
+   - Total vacancies, department/cadre names, pay matrix level (7th CPC), and recruitment cycle details.
 2. <h2>[Recruitment Name]: Notification Highlights & Vacancy Distribution</h2>
    - Insert <!--DATES_MILESTONE_TABLE--> immediately after the opening paragraph of this section.
-   - MANDATORY HTML <table>: Vacancy Distribution Table (Post names, Pay scale / 7th CPC Matrix, and category-wise vacancies: UR, OBC, SC, ST, EWS, Total). Do NOT generate a separate dates table as the dates table is automatically placed at the placeholder marker.
+   - MANDATORY HTML <table>: Vacancy Distribution Table (Post names, Pay scale / 7th CPC Matrix, and category-wise vacancies: UR, OBC, SC, ST, EWS, Total).
 3. <h2>Eligibility Criteria, Age Limits & Educational Qualifications for [Recruitment Name]</h2>
-   - CRITICAL FORMAT RULE: Absolutely NO long essay paragraphs! Present eligibility strictly as formatted HTML bullet points (<ul><li>...</li></ul>):
+   - Format strictly as structured HTML bullet points (<ul><li>...</li></ul>):
      * <li><strong>Educational Qualification:</strong> Exact degree / diploma / minimum percentage required per discipline.</li>
-     * <li><strong>Age Limit & Cut-off Date:</strong> Minimum and maximum age with the exact cut-off date (e.g. as on circular date).</li>
+     * <li><strong>Age Limit & Cut-off Date:</strong> Minimum and maximum age with the exact cut-off date.</li>
      * <li><strong>Category-Wise Age Relaxations:</strong> Clear breakdown (+3 yrs OBC-NCL, +5 yrs SC/ST, +10 yrs PwBD).</li>
      * <li><strong>Final Year Status:</strong> Explicit eligibility rule for awaiting final semester results.</li>
 4. <h2>Application Fee, Payment Modes & Fee Exemptions for [Recruitment Name]</h2>
-   - MANDATORY HTML <table>: Category-wise application fee breakdown (General/OBC, SC/ST/Women/Ex-SM) and payment gateway rules.
-5. <h2>Step-by-Step Online Application & OTR Registration Guide for [Recruitment Name]</h2>
-   - Formatted strictly as clean numbered steps (<ol><li>...</li></ol>): OTR registration, application filling, photo/signature specs, fee receipt printout.
+   - MANDATORY HTML <table>: Category-wise application fee breakdown and payment gateway rules.
+5. <h2>Online Application & Registration Procedure for [Recruitment Name]</h2>
+   - Concise direct instruction and required document specifications (photo dimensions, signature size, portal link).
 6. <h2>Selection Process, Exam Pattern & Marking Scheme for [Recruitment Name]</h2>
-   - CRITICAL FORMAT RULE: Absolutely NO long essay paragraphs! Break stages into structured bullet points (<ul><li>...</li></ul>):
+   - Format as structured bullet points (<ul><li>...</li></ul>):
      * <li><strong>Stage 1 (Online CBT):</strong> Subjects, question count, maximum marks, and duration.</li>
      * <li><strong>Stage 2 (Skill / Trade / Interview):</strong> Requirements per stream.</li>
      * <li><strong>Negative Marking:</strong> Penalty per wrong answer (e.g. 0.25 marks deducted).</li>
-     * <li><strong>Final Merit Formulation:</strong> Weightage ratio between written score and interview/skill test.</li>
-7. <h2>Frequently Asked Questions (FAQs) About [Recruitment Name]</h2>
-   - 5 to 6 genuine candidate queries regarding final year eligibility, domicile certificates, and exam centers.
-8. <h2>Official Notification Circular & Direct Application Links for [Recruitment Name]</h2>
+7. <h2>Frequently Asked Questions About [Recruitment Name]</h2> (Optional — Max 3 factual FAQs only)
 PROMPT,
 
             ArticleIntent::ANSWER_KEY => <<<PROMPT
 MANDATORY OUTLINE CONTRACT — Answer Key, Response Sheet & Objection Window:
-CRITICAL NEGATIVE CONSTRAINT: Do NOT include application forms or eligibility sections.
+CRITICAL NEGATIVE CONSTRAINTS:
+- Do NOT include application forms or eligibility sections.
+- Do NOT generate generic 5-step download guides.
+- FAQs are OPTIONAL: maximum 3, strictly on challenge fee refund rules, question IDs, and final key timeline.
 
 Every <h2> heading MUST contain the specific Examination entity name.
 
 Required Structural Flow:
 1. Direct Answer Hook:
-   - Whether Provisional or Final Answer Key is released, exam dates for which key is available, and deadline to submit challenges.
-2. <h2>[Exam Name]: Answer Key Highlights & Direct PDF / Login Links</h2>
+   - Provisional vs Final Answer Key status, exam dates covered, and deadline to submit challenges.
+2. <h2>[Exam Name]: Answer Key Highlights & Direct Response Sheet Links</h2>
    - Insert <!--DATES_MILESTONE_TABLE--> immediately after the opening paragraph of this section.
    - Direct link to candidate response sheet, master question paper, and objection portal.
 3. <h2>[Exam Name]: Challenge Fee Structure & Representation Guidelines</h2>
-   - MANDATORY HTML <table>: Fee & Policy Structure (Component, Official Rule / Amount: Processing Fee per question challenged, Payment Modes, Refund Terms for upheld challenges, Non-refundable grounds). Do NOT duplicate dates here; the key dates are already established in the milestone table above.
-4. <h2>Step-by-Step Process to Raise Objections Against [Exam Name] Answer Key</h2>
-   - Numbered steps on logging in, selecting Question ID, uploading documentary proof / reference book citation, and fee payment.
+   - MANDATORY HTML <table>: Component, Official Rule / Amount: Processing Fee per question challenged, Payment Modes, Refund Terms for upheld challenges.
+4. <h2>Procedure to Submit Objections Against [Exam Name] Answer Key</h2>
+   - Clear concise points: Login with credentials, select Question ID, upload citation/proof, pay prescribed fee.
 5. <h2>Calculation of Estimated Marks & Negative Marking Scheme for [Exam Name]</h2>
-   - How to compute tentative raw score: Correct marks awarded minus negative penalty.
-6. <h2>Frequently Asked Questions (FAQs) About [Exam Name] Answer Key</h2>
-   - 5 to 6 genuine candidate queries on challenge validity, final answer key timeline, and score calculation.
-7. <h2>Official Portal Verification for [Exam Name]</h2>
+   - Raw score formula based on correct answers and penalty per incorrect response.
+6. <h2>Frequently Asked Questions About [Exam Name] Answer Key</h2> (Optional — Max 3 factual FAQs only)
 PROMPT,
 
             ArticleIntent::COUNSELLING => <<<PROMPT
 MANDATORY OUTLINE CONTRACT — College Counselling, Seat Allotment & Cutoffs:
-CRITICAL NEGATIVE CONSTRAINT: Do NOT include exam application forms or syllabus.
+CRITICAL NEGATIVE CONSTRAINTS:
+- Do NOT include exam application forms or syllabus.
+- Do NOT generate generic 5-step download guides.
+- FAQs are OPTIONAL: maximum 3, strictly on seat upgrade, reporting deadlines, or fee refund.
 
 Every <h2> heading MUST contain the specific Counselling/Admission entity name.
 
 Required Structural Flow:
 1. Direct Status Hook:
-   - Which round is active (e.g. Round 1, Round 2, Mop-Up, Spot Round, CAP Round 3), seat allotment date, and immediate candidate action.
+   - Which round is active, seat allotment date, and immediate candidate action.
 2. <h2>[Counselling Name]: Complete Round Schedule & Critical Cutoff Deadlines</h2>
    - Insert <!--DATES_MILESTONE_TABLE--> immediately after the opening paragraph of this section.
    - Critical cutoff instructions and reporting timeframe.
 3. <h2>Understanding Seat Acceptance: Freeze, Float & Slide Options Explained</h2>
-   - Clear breakdown of candidate choices:
-     * Freeze: Accept seat and exit counselling.
-     * Float: Accept seat with option to upgrade in higher preference in subsequent rounds.
-     * Slide: Accept seat in same institute with branch upgrade option.
+   - Clear breakdown: Freeze (accept & exit), Float (accept with upgrade option), Slide (same institute branch upgrade).
 4. <h2>Category-Wise Opening & Closing Ranks / Cutoff Analysis for [Counselling Name]</h2>
-   - Cutoff matrix for top institutions/branches by category (General, OBC, SC, ST, EWS).
+   - Cutoff matrix for top institutions/branches by category.
 5. <h2>Mandatory Documents Required for Institute Physical Reporting & Verification</h2>
-   - Allotment letter, Rank card, Admit card, Class 10/12 marksheets, Category/Caste certificate, Domicile certificate, Medical fitness, Anti-ragging affidavit.
-6. <h2>Fee Payment, Seat Confirmation & UGC Refund Policy Rules</h2>
-   - Seat acceptance fee amount and UGC fee refund timeline policies.
-7. <h2>Frequently Asked Questions (FAQs) About [Counselling Name]</h2>
-   - 5 to 6 genuine FAQs on what happens if a candidate doesn't report, spot round eligibility, and document discrepancies.
-8. <h2>Official Counselling Portal & Direct Allotment Result Links</h2>
+   - Allotment letter, Rank card, Admit card, Class 10/12 marksheets, Category/Caste certificate, Domicile certificate.
+6. <h2>Frequently Asked Questions About [Counselling Name]</h2> (Optional — Max 3 factual FAQs only)
 PROMPT,
 
             ArticleIntent::SYLLABUS_CHANGE => <<<PROMPT
 MANDATORY OUTLINE CONTRACT — Revised Syllabus, Exam Pattern & Scheme Change:
+CRITICAL NEGATIVE CONSTRAINTS:
+- Do NOT generate generic 5-step download guides.
+- Do NOT generate generic preparation tips ("study 8 hours a day", "sleep well"). Keep instructions strictly anchored in the pattern change.
+- FAQs are OPTIONAL: maximum 3.
+
 Every <h2> heading MUST contain the specific Examination entity name.
 
 Required Structural Flow:
 1. Direct News Hook:
-   - What major structural modifications were introduced by the commission and effective from which academic/recruitment cycle.
+   - Major structural modifications introduced by the commission and effective academic/recruitment cycle.
 2. <h2>[Exam Name]: Old vs New Exam Pattern Comparison (Side-by-Side Analysis)</h2>
-   - MANDATORY HTML <table>: Side-by-side comparison of Previous Scheme vs Revised Scheme (Number of questions, total marks, time duration, negative marking).
+   - MANDATORY HTML <table>: Side-by-side comparison of Previous Scheme vs Revised Scheme (Questions, marks, duration, negative marking).
 3. <h2>Detailed Subject-Wise Syllabus & Topic Weightage Breakdown for [Exam Name]</h2>
    - Granular breakdown of newly added topics, deleted chapters, and high-weightage sections.
-4. <h2>Strategic Preparation Roadmap & Recommended Study Approach for Revised Pattern</h2>
-   - Actionable preparation tips adapting to the new question format.
-5. <h2>Frequently Asked Questions (FAQs) About [Exam Name] New Syllabus</h2>
-6. <h2>Official Gazette / Syllabus Notification PDF Download Links</h2>
+4. <h2>Frequently Asked Questions About [Exam Name] New Syllabus</h2> (Optional — Max 3 factual FAQs only)
 PROMPT,
 
             ArticleIntent::CORRIGENDUM => <<<PROMPT
 MANDATORY OUTLINE CONTRACT — Official Corrigendum, Date Extension & Postponement:
+CRITICAL NEGATIVE CONSTRAINTS:
+- Do NOT generate generic 5-step download guides.
+- Keep the article focused strictly on what changed, why, and what affected candidates must do.
+- FAQs are OPTIONAL: maximum 3.
+
 Every <h2> heading MUST contain the specific Examination/Recruitment entity name.
 
 Required Structural Flow:
 1. Direct Announcement Hook:
-   - What exact date or provision was amended by the statutory authority, the official notice reference number, and immediate impact.
+   - Exact date or provision amended by the statutory authority, official notice reference number, and immediate impact.
 2. <h2>[Entity Name]: Original Schedule vs Revised Schedule (Before & After Matrix)</h2>
    - MANDATORY HTML <table>: Event Milestone, Earlier Gazetted Date, Revised / Extended New Date, Status.
 3. <h2>Official Reason for Revision & Scope of Affected Candidates</h2>
-   - Technical server maintenance, court directives, administrative logistics, or cyclone/weather postponement reasons stated by the authority.
-   - Clarify whether all candidates or specific regional centres/categories are affected.
+   - Administrative, logistical, or official reasons stated by the authority, and whether all or specific candidates are affected.
 4. <h2>Action Required by Registered Candidates & Next Steps</h2>
    - Clarify whether candidates need to re-apply or if existing applications remain valid.
-5. <h2>Frequently Asked Questions (FAQs) About [Entity Name] Revised Schedule</h2>
-6. <h2>Official Notice Reference & Gazetted Circular Links</h2>
+5. <h2>Frequently Asked Questions About [Entity Name] Revised Schedule</h2> (Optional — Max 3 factual FAQs only)
 PROMPT,
         };
 
