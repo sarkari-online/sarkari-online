@@ -110,8 +110,11 @@ class ArticleQualityEngine
         }
 
         // 3. Exam day / preachy advice
-        if (preg_match('/<h[2-4][^>]*>[^<]*(?:Exam Day Instructions|Mandatory Guidelines for)[^<]*<\/h[2-4]>/i', $content)) {
-            $issues['exam_day_section'] = 'Generic exam-day instructions section detected';
+        if (preg_match('/<h[2-4][^>]*>[^<]*(?:Exam Day Instructions|Mandatory Guidelines for)[^<]*<\/h[2-4]>(.*?)(?=<h[2-4]|$)/is', $content, $secMatch)) {
+            $secBody = $secMatch[1] ?? '';
+            if (!str_contains($secBody, '<table')) {
+                $issues['exam_day_section'] = 'Generic exam-day instructions section detected';
+            }
         }
         if (str_contains($lower, 'transparent pouch') || str_contains($lower, 'strict adherence to protocols')) {
             $issues['preachy_advice'] = 'Preachy protocol fluff (transparent pouch / strict adherence) detected';
@@ -202,16 +205,12 @@ class ArticleQualityEngine
             $changes[] = 'Converted generic 5-step download guide to direct portal link';
         }
 
-        // 1b. Remove Exam Day Instructions ONLY if it contains ungrounded fluff AND does not contain <table>
+        // 1b. Remove Exam Day Instructions ONLY if it does not contain <table> (never delete tables!)
         $examDayPattern = '/<h[2-4][^>]*>[^<]*(?:Exam Day Instructions & Mandatory Guidelines|Exam Day Instructions & Mandatory Documents Checklist|Exam Day Instructions|Mandatory Guidelines for)[^<]*<\/h[2-4]>(.*?)(?=<h[2-4]|$)/is';
         if (preg_match($examDayPattern, $content, $m)) {
             $sectionBody = $m[1] ?? '';
             // Only remove if it does NOT contain a table (never delete tables!)
-            if (!str_contains($sectionBody, '<table') &&
-                (stripos($sectionBody, 'transparent pouch') !== false ||
-                 stripos($sectionBody, 'strict adherence to protocols') !== false ||
-                 stripos($sectionBody, 'smartwatches') !== false ||
-                 stripos($sectionBody, 'electronic gadgets') !== false)) {
+            if (!str_contains($sectionBody, '<table')) {
                 $content = preg_replace($examDayPattern, '', $content, 1);
                 $changes[] = 'Removed generic exam-day advice section';
             }
@@ -231,9 +230,9 @@ class ArticleQualityEngine
         }
 
         // 1d. FAQ Quality Refactoring (Purge stress/server FAQs, cap list at 3 items)
-        // Purge individual stress/server/cache FAQ items globally without touching enclosing tables
-        $content = preg_replace('/<li[^>]*>[^<]*<strong[^>]*>[^<]*(?:exam stress|sleep schedule|handling pressure|website is down|servers will crawl|server crawls|incognito|clear cache)[^<]*<\/strong>.*?<\/li>/is', '', $content);
-        $content = preg_replace('/<h[3-5][^>]*>[^<]*(?:exam stress|sleep schedule|handling pressure|website is down|servers will crawl|server crawls|incognito|clear cache)[^<]*<\/h[3-5]>\s*<p[^>]*>.*?<\/p>/is', '', $content);
+        // Purge individual stress/server/cache list items globally
+        $content = preg_replace('/<li[^>]*>(?:(?!<\/li>).)*(?:servers?\s+(?:will\s+|may\s+)?crawls?|incognito|clear(?:ing)?\s+(?:your\s+)?(?:browser\s+)?cache|browser\s+cache|transparent pouch|strict adherence|exam stress|sleep schedule)(?:(?!<\/li>).)*<\/li>\s*/is', '', $content);
+        $content = preg_replace('/<h[3-5][^>]*>[^<]*(?:exam stress|sleep schedule|handling pressure|website is down|servers?\s+(?:will\s+|may\s+)?crawls?|incognito|clear(?:ing)?\s+(?:your\s+)?(?:browser\s+)?cache|browser\s+cache)[^<]*<\/h[3-5]>\s*<p[^>]*>.*?<\/p>\s*/is', '', $content);
 
         // Cap FAQ lists with > 3 questions to top 3 items without truncating any following tables or content
         $content = preg_replace_callback('/(<h[2-4][^>]*>[^<]*(?:Frequently Asked Questions|FAQs)[^<]*<\/h[2-4]>\s*)(<(?:ul|ol)[^>]*>)(.*?)(<\/(?:ul|ol)>)/is', function($m) use (&$changes) {
@@ -297,6 +296,21 @@ class ArticleQualityEngine
             if (preg_match($pat, $content)) {
                 $content = preg_replace($pat, '', $content);
                 $changes[] = 'Stripped preachy / ungrounded student advice';
+            }
+        }
+
+        // Comprehensive sentence-level purge for server crawl, incognito, clear cache, transparent pouch, sleep/stress
+        $sentencePurgePatterns = [
+            '/(?<=^|>|\.|\!|\?)\s*[^<\.!?]*?\b(?:servers?\s+(?:will\s+|may\s+)?crawls?|incognito|clear(?:ing)?\s+(?:your\s+)?(?:browser\s+)?cache|browser\s+cache|server down)\b[^<\.!?]*[\.!?]\s*/iu',
+            '/(?<=^|>|\.|\!|\?)\s*[^<\.!?]*?\b(?:transparent pouch|strict adherence to protocols|stationery is kept in a transparent pouch)\b[^<\.!?]*[\.!?]\s*/iu',
+            '/(?<=^|>|\.|\!|\?)\s*[^<\.!?]*?\b(?:maintain a consistent sleep schedule|exam stress|avoid unnecessary stress|well-rested and prepared)\b[^<\.!?]*[\.!?]\s*/iu',
+        ];
+        foreach ($sentencePurgePatterns as $pat) {
+            for ($i = 0; $i < 3; $i++) {
+                if (preg_match($pat, $content)) {
+                    $content = preg_replace($pat, '', $content);
+                    $changes[] = 'Purged ungrounded server / incognito / stress advice sentence';
+                }
             }
         }
 

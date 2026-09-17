@@ -184,6 +184,24 @@ foreach (ArticleIntent::cases() as $intentCase) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// 10. SERVER CRASH & INCOGNITO ADVICE COMPLETE PURGE
+// ─────────────────────────────────────────────────────────────
+echo "\nGroup 10: Server Crash & Incognito Advice Complete Purge\n";
+
+$serverAdviceHtml = '<p>Admit cards are available on https://upsc.gov.in.</p><p>Due to heavy traffic, the server crawls during peak hours. Candidates can try incognito mode or clear your browser cache.</p><ul><li>Use incognito window if link does not open.</li><li>Carry printed hall ticket.</li></ul>';
+$analysis = ArticleQualityEngine::analyzeQuality($serverAdviceHtml);
+assertTest("Detect server advice in paragraph and list", isset($analysis['issues']['server_advice']));
+
+$refactored = ArticleQualityEngine::refactorContent($serverAdviceHtml, "UPSC 2026", "https://upsc.gov.in", "admit_card");
+assertTest("Purge server crawl and incognito sentences from paragraphs", !str_contains($refactored['content'], "server crawls") && !str_contains($refactored['content'], "browser cache"));
+assertTest("Purge incognito list items completely", !str_contains($refactored['content'], "incognito window"));
+assertTest("Preserve factual admit card link and checklist item", str_contains($refactored['content'], "https://upsc.gov.in") && str_contains($refactored['content'], "Carry printed hall ticket"));
+
+$postAnalysis = ArticleQualityEngine::analyzeQuality($refactored['content'], "UPSC 2026");
+assertTest("Post-refactor quality score reaches 100/100", $postAnalysis['score'] === 100 && $postAnalysis['is_clean']);
+
+
+// ─────────────────────────────────────────────────────────────
 // SUMMARY
 // ─────────────────────────────────────────────────────────────
 echo "\n======================================================================\n";
