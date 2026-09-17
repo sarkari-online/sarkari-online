@@ -261,24 +261,52 @@ if (!empty($termSlug)) {
 $reqLetter = $_GET['letter'] ?? null;
 $reqLetter = (!empty($reqLetter) && strtoupper($reqLetter) !== 'ALL') ? strtoupper(substr($reqLetter, 0, 1)) : null;
 
-$allTerms = GlossaryService::getTerms(null, null, null, 350, 0);
+$reqCategory = $_GET['category'] ?? null;
+$reqCategory = (!empty($reqCategory) && strtolower($reqCategory) !== 'all') ? strtolower(trim($reqCategory)) : null;
+
+$reqSearch = $_GET['q'] ?? null;
+$reqSearch = !empty($reqSearch) ? trim($reqSearch) : null;
+
+// Pagination configuration (18 terms per page — clean 3x6 or 2x9 grid)
+$perPage = 18;
+$currentPage = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$offset = ($currentPage - 1) * $perPage;
+
+$totalFilteredCount = GlossaryService::getTermsCount($reqLetter, $reqCategory, $reqSearch);
+$totalPages = (int)ceil($totalFilteredCount / $perPage);
+if ($currentPage > $totalPages && $totalPages > 0) {
+    $currentPage = $totalPages;
+    $offset = ($currentPage - 1) * $perPage;
+}
+
+$allTerms = GlossaryService::getTerms($reqLetter, $reqCategory, $reqSearch, $perPage, $offset);
 $alphabetCounts = GlossaryService::getAlphabetCounts();
 $categoryCounts = GlossaryService::getCategoryCounts();
 $totalCount = GlossaryService::getTotalCount();
 
 // ── HTTP Crawl Efficiency & Cache Validation Headers (Googlebot 304 & ETag) ──
 $hubModTime = Database::fetchValue("SELECT MAX(updated_at) FROM glossary_terms") ?: 'now';
-CrawlEfficiencyService::handleConditionalGet('ff-hub-' . ($reqLetter ?: 'all'), $hubModTime);
+CrawlEfficiencyService::handleConditionalGet('ff-hub-' . ($reqLetter ?: 'all') . '-p' . $currentPage, $hubModTime);
 
-$pageTitle = "A to Z Govt & Exam Full Forms Directory | " . SITE_NAME;
-$pageDesc = "Complete A-to-Z directory of Indian government exams, defence, banking, civil services, and technical full forms with eligibility on Sarkari.online.";
-$canonicalUrl = url('full-forms/');
+$pageSuffix = ($currentPage > 1) ? " (Page {$currentPage})" : "";
+$letterSuffix = !empty($reqLetter) ? " - Letter {$reqLetter}" : "";
+$pageTitle = "A to Z Govt & Exam Full Forms Directory{$letterSuffix}{$pageSuffix} | " . SITE_NAME;
+$pageDesc = "Complete A-to-Z directory of Indian government exams, defence, banking, civil services, and technical full forms with eligibility on Sarkari.online.{$pageSuffix}";
+
+$canonicalParams = [];
+if (!empty($reqLetter)) $canonicalParams['letter'] = $reqLetter;
+if (!empty($reqCategory)) $canonicalParams['category'] = $reqCategory;
+if ($currentPage > 1) $canonicalParams['page'] = $currentPage;
+$canonicalUrl = url('full-forms/' . (!empty($canonicalParams) ? '?' . http_build_query($canonicalParams) : ''));
 $ogType = 'website';
 
 $crumbs = [
     ['label' => 'Home', 'url' => url()],
-    ['label' => 'Full Forms (A-Z)', 'url' => $canonicalUrl]
+    ['label' => 'Full Forms (A-Z)', 'url' => url('full-forms/')]
 ];
+if (!empty($reqLetter)) {
+    $crumbs[] = ['label' => "Letter {$reqLetter}", 'url' => null];
+}
 
 // DefinedTermSet Schema for Directory with individual DefinedTerm items
 $customHeadHtml = GlossaryService::generateHubSchema($allTerms, $canonicalUrl);
@@ -323,52 +351,54 @@ include __DIR__ . '/components/header.php';
         <!-- Category Filter Pills Bar -->
         <div style="margin-bottom: 1rem; overflow-x: auto; white-space: nowrap; padding-bottom: 0.25rem;">
             <div style="display: inline-flex; gap: 8px;">
-                <button type="button" class="cat-btn active" data-category="ALL" onclick="selectCategory('ALL')" style="padding: 5px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; border: 1px solid #1e3a8a; background: #1e3a8a; color: #ffffff; cursor: pointer; transition: all 0.15s ease;">
-                    All Categories
-                </button>
-                <button type="button" class="cat-btn" data-category="civil_services" onclick="selectCategory('civil_services')" style="padding: 5px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; border: 1px solid #e2e8f0; background: #ffffff; color: #334155; cursor: pointer; transition: all 0.15s ease;">
-                    Civil Services
-                </button>
-                <button type="button" class="cat-btn" data-category="defence" onclick="selectCategory('defence')" style="padding: 5px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; border: 1px solid #e2e8f0; background: #ffffff; color: #334155; cursor: pointer; transition: all 0.15s ease;">
-                    Defence
-                </button>
-                <button type="button" class="cat-btn" data-category="banking" onclick="selectCategory('banking')" style="padding: 5px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; border: 1px solid #e2e8f0; background: #ffffff; color: #334155; cursor: pointer; transition: all 0.15s ease;">
-                    Banking
-                </button>
-                <button type="button" class="cat-btn" data-category="railway" onclick="selectCategory('railway')" style="padding: 5px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; border: 1px solid #e2e8f0; background: #ffffff; color: #334155; cursor: pointer; transition: all 0.15s ease;">
-                    Railways
-                </button>
-                <button type="button" class="cat-btn" data-category="police" onclick="selectCategory('police')" style="padding: 5px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; border: 1px solid #e2e8f0; background: #ffffff; color: #334155; cursor: pointer; transition: all 0.15s ease;">
-                    Police &amp; Security
-                </button>
-                <button type="button" class="cat-btn" data-category="teaching" onclick="selectCategory('teaching')" style="padding: 5px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; border: 1px solid #e2e8f0; background: #ffffff; color: #334155; cursor: pointer; transition: all 0.15s ease;">
-                    Teaching &amp; Academic
-                </button>
-                <button type="button" class="cat-btn" data-category="engineering" onclick="selectCategory('engineering')" style="padding: 5px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; border: 1px solid #e2e8f0; background: #ffffff; color: #334155; cursor: pointer; transition: all 0.15s ease;">
-                    Engineering &amp; PSUs
-                </button>
-                <button type="button" class="cat-btn" data-category="medical" onclick="selectCategory('medical')" style="padding: 5px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; border: 1px solid #e2e8f0; background: #ffffff; color: #334155; cursor: pointer; transition: all 0.15s ease;">
-                    Medical &amp; Health
-                </button>
-                <button type="button" class="cat-btn" data-category="entrance" onclick="selectCategory('entrance')" style="padding: 5px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; border: 1px solid #e2e8f0; background: #ffffff; color: #334155; cursor: pointer; transition: all 0.15s ease;">
-                    Entrance &amp; Law
-                </button>
+                <?php
+                $catList = [
+                    'ALL' => 'All Categories',
+                    'civil_services' => 'Civil Services',
+                    'defence' => 'Defence',
+                    'banking' => 'Banking',
+                    'railway' => 'Railways',
+                    'police' => 'Police & Security',
+                    'teaching' => 'Teaching & Academic',
+                    'engineering' => 'Engineering & PSUs',
+                    'medical' => 'Medical & Health',
+                    'entrance' => 'Entrance & Law'
+                ];
+                foreach ($catList as $catKey => $catLabel):
+                    $isCatActive = ($catKey === 'ALL' && empty($reqCategory)) || ($reqCategory === $catKey);
+                    $catParams = [];
+                    if (!empty($reqLetter)) $catParams['letter'] = $reqLetter;
+                    if ($catKey !== 'ALL') $catParams['category'] = $catKey;
+                    $catUrl = url('full-forms/' . (!empty($catParams) ? '?' . http_build_query($catParams) : ''));
+                ?>
+                    <a href="<?= $catUrl ?>" class="cat-btn <?= $isCatActive ? 'active' : '' ?>" style="padding: 5px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: <?= $isCatActive ? '700' : '600' ?>; border: 1px solid <?= $isCatActive ? '#1e3a8a' : '#e2e8f0' ?>; background: <?= $isCatActive ? '#1e3a8a' : '#ffffff' ?>; color: <?= $isCatActive ? '#ffffff' : '#334155' ?>; text-decoration: none; display: inline-block; transition: all 0.15s ease;">
+                        <?= e($catLabel) ?>
+                    </a>
+                <?php endforeach; ?>
             </div>
         </div>
 
-        <!-- Crawlable Alphabet Jump Bar (A to Z) with clean click interception -->
+        <!-- Crawlable Alphabet Jump Bar (A to Z) with Clean Server-Side Pagination Links -->
         <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.75rem 1rem; margin-bottom: 2rem; overflow-x: auto; white-space: nowrap; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);">
             <div style="display: inline-flex; align-items: center; gap: 6px;">
-                <a href="<?= url('full-forms/') ?>" class="alpha-btn <?= empty($reqLetter) ? 'active' : '' ?>" data-letter="ALL" onclick="selectAlphabet('ALL', event)" style="padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; border: 1px solid #1e3a8a; background: <?= empty($reqLetter) ? '#1e3a8a' : '#ffffff' ?>; color: <?= empty($reqLetter) ? '#ffffff' : '#0f172a' ?>; text-decoration: none; display: inline-block; transition: all 0.15s ease;">
+                <?php
+                $allAlphaParams = [];
+                if (!empty($reqCategory)) $allAlphaParams['category'] = $reqCategory;
+                $allAlphaUrl = url('full-forms/' . (!empty($allAlphaParams) ? '?' . http_build_query($allAlphaParams) : ''));
+                ?>
+                <a href="<?= $allAlphaUrl ?>" class="alpha-btn <?= empty($reqLetter) ? 'active' : '' ?>" data-letter="ALL" style="padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; border: 1px solid #1e3a8a; background: <?= empty($reqLetter) ? '#1e3a8a' : '#ffffff' ?>; color: <?= empty($reqLetter) ? '#ffffff' : '#0f172a' ?>; text-decoration: none; display: inline-block; transition: all 0.15s ease;">
                     ALL (<?= $totalCount ?>)
                 </a>
                 <?php for ($i = 65; $i <= 90; $i++): 
                     $char = chr($i);
                     $hasTerms = !empty($alphabetCounts[$char]);
                     $isSel = ($reqLetter === $char);
+                    $charParams = ['letter' => $char];
+                    if (!empty($reqCategory)) $charParams['category'] = $reqCategory;
+                    $charUrl = url('full-forms/?' . http_build_query($charParams));
                 ?>
                     <?php if ($hasTerms): ?>
-                        <a href="<?= url('full-forms/?letter=' . $char) ?>" class="alpha-btn <?= $isSel ? 'active' : '' ?>" data-letter="<?= $char ?>" onclick="selectAlphabet('<?= $char ?>', event)" style="padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; border: 1px solid <?= $isSel ? '#1e3a8a' : '#cbd5e1' ?>; background: <?= $isSel ? '#1e3a8a' : '#ffffff' ?>; color: <?= $isSel ? '#ffffff' : '#0f172a' ?>; text-decoration: none; display: inline-block; transition: all 0.15s ease;">
+                        <a href="<?= $charUrl ?>" class="alpha-btn <?= $isSel ? 'active' : '' ?>" data-letter="<?= $char ?>" style="padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; border: 1px solid <?= $isSel ? '#1e3a8a' : '#cbd5e1' ?>; background: <?= $isSel ? '#1e3a8a' : '#ffffff' ?>; color: <?= $isSel ? '#ffffff' : '#0f172a' ?>; text-decoration: none; display: inline-block; transition: all 0.15s ease;">
                             <?= $char ?> <span style="font-size: 0.7rem; color: <?= $isSel ? '#bfdbfe' : '#64748b' ?>;">(<?= $alphabetCounts[$char] ?>)</span>
                         </a>
                     <?php else: ?>
@@ -430,6 +460,65 @@ include __DIR__ . '/components/header.php';
             <p style="font-size: 1.1rem; font-weight: 700; color: #334155; margin-bottom: 0.5rem;">No matching full forms found</p>
             <p style="font-size: 0.875rem; color: #64748b; margin: 0;">Try searching for another acronym or click 'ALL' to reset the filters.</p>
         </div>
+
+        <!-- Server-Side Crawlable Pagination Bar -->
+        <?php if ($totalPages > 1): 
+            $paginationBaseParams = [];
+            if (!empty($reqLetter)) $paginationBaseParams['letter'] = $reqLetter;
+            if (!empty($reqCategory)) $paginationBaseParams['category'] = $reqCategory;
+            if (!empty($reqSearch)) $paginationBaseParams['q'] = $reqSearch;
+
+            $buildPageUrl = function(int $pageNum) use ($paginationBaseParams): string {
+                $params = $paginationBaseParams;
+                if ($pageNum > 1) {
+                    $params['page'] = $pageNum;
+                }
+                $qs = !empty($params) ? '?' . http_build_query($params) : '';
+                return url('full-forms/' . $qs);
+            };
+        ?>
+            <nav class="pagination-wrapper" aria-label="Full Forms Directory Pagination" style="margin-top: 3rem; display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <?php if ($currentPage > 1): ?>
+                    <a href="<?= $buildPageUrl($currentPage - 1) ?>" class="page-btn" style="padding: 8px 14px; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #0f172a; font-weight: 600; text-decoration: none; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 4px;">
+                        &larr; Prev
+                    </a>
+                <?php endif; ?>
+
+                <?php 
+                $startPage = max(1, $currentPage - 2);
+                $endPage = min($totalPages, $currentPage + 2);
+                if ($startPage > 1): ?>
+                    <a href="<?= $buildPageUrl(1) ?>" class="page-btn" style="padding: 8px 14px; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #0f172a; font-weight: 600; text-decoration: none; font-size: 0.875rem;">1</a>
+                    <?php if ($startPage > 2): ?>
+                        <span style="color: #94a3b8; padding: 0 4px;">&hellip;</span>
+                    <?php endif; ?>
+                <?php endif; ?>
+
+                <?php for ($i = $startPage; $i <= $endPage; $i++): 
+                    $isActive = ($i === $currentPage);
+                ?>
+                    <a href="<?= $buildPageUrl($i) ?>" class="page-btn <?= $isActive ? 'active' : '' ?>" style="padding: 8px 14px; border-radius: 6px; border: 1px solid <?= $isActive ? '#1e3a8a' : '#cbd5e1' ?>; background: <?= $isActive ? '#1e3a8a' : '#ffffff' ?>; color: <?= $isActive ? '#ffffff' : '#0f172a' ?>; font-weight: <?= $isActive ? '700' : '600' ?>; text-decoration: none; font-size: 0.875rem;">
+                        <?= $i ?>
+                    </a>
+                <?php endfor; ?>
+
+                <?php if ($endPage < $totalPages): ?>
+                    <?php if ($endPage < $totalPages - 1): ?>
+                        <span style="color: #94a3b8; padding: 0 4px;">&hellip;</span>
+                    <?php endif; ?>
+                    <a href="<?= $buildPageUrl($totalPages) ?>" class="page-btn" style="padding: 8px 14px; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #0f172a; font-weight: 600; text-decoration: none; font-size: 0.875rem;"><?= $totalPages ?></a>
+                <?php endif; ?>
+
+                <?php if ($currentPage < $totalPages): ?>
+                    <a href="<?= $buildPageUrl($currentPage + 1) ?>" class="page-btn" style="padding: 8px 14px; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #0f172a; font-weight: 600; text-decoration: none; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 4px;">
+                        Next &rarr;
+                    </a>
+                <?php endif; ?>
+            </nav>
+            <div style="text-align: center; margin-top: 0.75rem; font-size: 0.8rem; color: #64748b;">
+                Showing page <strong><?= $currentPage ?></strong> of <strong><?= $totalPages ?></strong> (<?= $totalFilteredCount ?> total acronyms)
+            </div>
+        <?php endif; ?>
 
     </div>
 </main>

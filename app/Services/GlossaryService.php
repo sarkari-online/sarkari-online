@@ -459,6 +459,44 @@ class GlossaryService {
     }
 
     /**
+     * Get filtered terms count for pagination
+     */
+    public static function getTermsCount(?string $letter = null, ?string $category = null, ?string $query = null): int {
+        self::initTable();
+        $conditions = [];
+        $params = [];
+
+        if (!empty($letter) && strtoupper($letter) !== 'ALL') {
+            $conditions[] = "letter = :letter";
+            $params['letter'] = strtoupper(substr($letter, 0, 1));
+        }
+
+        if (!empty($category) && strtolower($category) !== 'all') {
+            $conditions[] = "category = :category";
+            $params['category'] = strtolower(trim($category));
+        }
+
+        if (!empty($query)) {
+            $cleanQ = trim($query);
+            $conditions[] = "(acronym LIKE :q1 OR full_form_en LIKE :q2 OR full_form_hi LIKE :q3 OR conducting_body LIKE :q4)";
+            $params['q1'] = "%{$cleanQ}%";
+            $params['q2'] = "%{$cleanQ}%";
+            $params['q3'] = "%{$cleanQ}%";
+            $params['q4'] = "%{$cleanQ}%";
+        }
+
+        $whereClause = !empty($conditions) ? "WHERE " . implode(" AND ", $conditions) : "";
+        $sql = "SELECT COUNT(*) FROM glossary_terms {$whereClause}";
+
+        try {
+            return (int)Database::fetchValue($sql, $params);
+        } catch (Throwable $e) {
+            Logger::error("GlossaryService::getTermsCount error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    /**
      * Sanitize glossary term content with HumanizerService
      */
     public static function sanitizeTerm(array $term): array {
