@@ -45,15 +45,15 @@ $violationKeywords = [
 // Word-boundary sensitive — flag only if NOT in educational/govt context
 $conditionalKeywords = [
     // 'kill' false-positives in: skill, skillset, skill-based
-    '\bkill\b(?! .{0,30}skill)'  => 'kill (not in skill context)',
+    '~\bkill\b(?!.{0,30}skill)~i' => 'kill (not in skill context)',
     // 'sex' false-positives in: gender/sex form fields
-    '\bsex\b(?! ?[:/\-])'        => 'sex (not in form field context)',
+    '~\bsex\b(?! ?[:/\-])~i'       => 'sex (not in form field context)',
     // 'weapon' — only flag truly violent context, not educational metaphors
-    '\bweapon(?:s|ize|ized)?\b(?!.{0,60}(?:knowledge|rank|best|secret|phishing|cyber))'
-                                 => 'weapon (violent context)',
+    '~\bweapon(?:s|ize|ized)?\b(?!.{0,60}(?:knowledge|rank|best|secret|phishing|cyber))~i'
+                                  => 'weapon (violent context)',
     // 'hack' — only flag malicious context
-    '\bhack(?:er|ing|ed)?\b(?!.{0,40}(?:to |life |quick |trick))' 
-                                 => 'hack (malicious context)',
+    '~\bhack(?:er|ing|ed)?\b(?!.{0,40}(?:to |life |quick |trick))~i' 
+                                  => 'hack (malicious context)',
 ];
 
 $articles = Database::fetchAll("SELECT id, title, slug, content FROM articles WHERE status='published' ORDER BY id ASC");
@@ -73,7 +73,7 @@ foreach ($articles as $art) {
 
     // Word-boundary / context-aware regex check
     foreach ($conditionalKeywords as $pattern => $label) {
-        if (preg_match('/' . $pattern . '/i', $contentLower) || preg_match('/' . $pattern . '/i', $titleLower)) {
+        if (preg_match($pattern, $contentLower) || preg_match($pattern, $titleLower)) {
             $found[] = $label;
         }
     }
