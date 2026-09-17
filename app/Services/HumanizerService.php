@@ -550,6 +550,57 @@ PROMPT;
     }
 
     /**
+     * Systematically eliminates ChatGPT-style structural padding blocks across all articles:
+     * 1. Generic 5-step download guides ("Visit website... Click notifications... Download and save")
+     * 2. Preachy student advice ("critical skill for high-stakes assessments", "well-rested")
+     * 3. Exam protocol fluff ("transparent pouch", "strict adherence to protocols")
+     * 4. Fake psychological FAQs ("How do I handle exam stress? Maintain a sleep schedule...")
+     * 5. Boilerplate disclaimer footers ("All information provided is based on...")
+     */
+    public static function stripAiPaddingSections(string $html, string $sourceUrl = ''): string
+    {
+        // 1. Remove generic 5-step download guides (replaces with clean 1-line direct download notice)
+        $html = preg_replace(
+            '/<h[2-4][^>]*>[^<]*(?:Step-by-Step Guide to Download|How to Download|Steps to Download|How to Access)[^<]*<\/h[2-4]>\s*(?:<(?:ol|ul)[^>]*>.*?<\/(?:ol|ul)>|<p[^>]*>.*?<\/p>)+/is',
+            '',
+            $html
+        );
+
+        // 2. Strip preachy advisory paragraphs & protocol boilerplate
+        $preachyPatterns = [
+            '/<p[^>]*>[^<]*(?:is a critical skill for any student|high-stakes assessments|well-rested and prepared|strict adherence to protocols|transparent pouch|electronic gadgets, including smartwatches|avoid any confusion during your study sessions)[^<]*<\/p>/iu',
+            '/<p[^>]*>[^<]*(?:servers will crawl|incognito window or clear your browser cache|try incognito|clock starts ticking|you\'ve worked too hard|stay sharp, move fast|derail your progress)[^<]*<\/p>/iu',
+            '/<p[^>]*>[^<]*(?:All information provided is based on the official circulars|You should cross-check any updates directly at)[^<]*<\/p>/iu',
+        ];
+        foreach ($preachyPatterns as $pattern) {
+            $html = preg_replace($pattern, '', $html);
+        }
+
+        // 3. Remove fake stress FAQs
+        $html = preg_replace(
+            '/<h[3-4][^>]*>[^<]*(?:exam stress|sleep schedule|handling pressure)[^<]*<\/h[3-4]>\s*<p[^>]*>.*?<\/p>/iu',
+            '',
+            $html
+        );
+        $html = preg_replace(
+            '/<p[^>]*>[^<]*How do I handle exam stress\?[^<]*<\/p>/iu',
+            '',
+            $html
+        );
+
+        // 4. Clean up opening fluff sentences within paragraphs
+        $html = preg_replace('/\b(?:If you(?:\'ve| have) been waiting for [^,\.]+,?\s*)?the wait is (?:finally )?over\.\s*/iu', '', $html);
+        $html = preg_replace('/\bIt\'?s time to shift your focus toward[^.!?]*[.!?]\s*/iu', '', $html);
+        $html = preg_replace('/\bIf you are also tracking national-level board updates[^.!?]*for comparative insights\.\s*/iu', '', $html);
+
+        // 5. Clean up any leftover empty HTML tags or double spaces
+        $html = preg_replace('/<p>\s*<\/p>/u', '', $html);
+        $html = preg_replace('/<div[^>]*>\s*<\/div>/u', '', $html);
+
+        return trim($html);
+    }
+
+    /**
      * Master Humanization Pipeline: Applies all anti-AI layers deterministically.
      */
     public static function humanize(string $content, string $examTitle, string $sourceUrl = '', string $intent = 'recruitment'): string
@@ -558,20 +609,23 @@ PROMPT;
             return $content;
         }
 
-        // 1. Sanitize Opening Hook
+        // 1. Strip Structural AI Padding (Download guides, preachiness, transparent pouches, stress FAQs)
+        $content = self::stripAiPaddingSections($content, $sourceUrl);
+
+        // 2. Sanitize Opening Hook
         $content = self::sanitizeOpeningHook($content, $examTitle, $sourceUrl, $intent);
 
-        // 2. Enforce Contractions
+        // 3. Enforce Contractions
         $content = self::enforceContractions($content);
 
-        // 3. Scrub Banned Clichés
+        // 4. Scrub Banned Clichés
         $content = self::scrubClichés($content);
 
-        // 4. Scrub Claude-Engineered Pattern Clichés (Encyclopedic openers, antithesis, bookends)
+        // 5. Scrub Claude-Engineered Pattern Clichés (Encyclopedic openers, antithesis, bookends)
         $scrubbed = self::scrubClichePatterns($content);
         $content = $scrubbed['html'];
 
-        // 5. Structure Dense Prose Lists (Eliminates AI detector predictable cadence on eligibility/selection)
+        // 6. Structure Dense Prose Lists (Eliminates AI detector predictable cadence on eligibility/selection)
         $content = self::structureDenseProseLists($content);
 
         return $content;
