@@ -109,7 +109,10 @@ class ArticleQualityEngine
             }
         }
 
-        // 3. Exam day / preachy advice (Only flag when genuine generic advice is present)
+        // 3. Exam day / preachy advice
+        if (preg_match('/<h[2-4][^>]*>[^<]*(?:Exam Day Instructions|Mandatory Guidelines for)[^<]*<\/h[2-4]>/i', $content)) {
+            $issues['exam_day_section'] = 'Generic exam-day instructions section detected';
+        }
         if (str_contains($lower, 'transparent pouch') || str_contains($lower, 'strict adherence to protocols')) {
             $issues['preachy_advice'] = 'Preachy protocol fluff (transparent pouch / strict adherence) detected';
         }
