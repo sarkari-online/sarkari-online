@@ -299,7 +299,7 @@ if ($healGlossary) {
 
                 // ── Heuristic score ──
                 $score = aiHeuristicScore($cleaned);
-                $needsLlm = $forceLlm || $score >= 40;
+                $needsLlm = $forceLlm || $score >= 15;
 
                 echo "   [{$field}] AI Score: {$score}/100" . ($needsLlm ? " → LLM rewrite triggered" : " → clean") . "\n";
 
@@ -424,7 +424,7 @@ if ($healArticles) {
                 foreach (array_slice($flaggedParagraphs, 0, 3) as $fp) {
                     // Also run heuristic — only rewrite if both cadence AND AI score agree
                     $paraScore = aiHeuristicScore($fp['text']);
-                    if (!$forceLlm && $paraScore < 30) {
+                    if (!$forceLlm && $paraScore < 15) {
                         echo "      ℹ️  Para #{$fp['paragraph_index']} cadence flagged but AI score low ({$paraScore}), skipping LLM.\n";
                         continue;
                     }
