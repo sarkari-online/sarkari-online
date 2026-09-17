@@ -316,6 +316,8 @@ class HumanizerService
         '/\b[\w\s]{1,50}?\bisn\'?t\s+just\s+(?:about\s+)?[^;]{1,80};\s*it\'?s\s+(?:about\s+)?[^.!?]{1,80}[.!?]/iu',
         '/\bit\'?s\s+not\s+just\s+an?\s+[\w\s]{1,40};\s*it\'?s\s+an?\s+[\w\s]{1,60}[.!?]/iu',
         '/\bnot\s+just\s+[\w\s]{1,40};\s*(?:it\'?s|it\s+is)\s+[\w\s]{1,60}[.!?]/iu',
+        '/\bit\'?s\s+a\s+(?:straightforward|simple)\s+but\s+rigorous\s+process[^.!?]*[.!?]/iu',
+        '/\btests?\s+both\s+your\s+technical\s+brain\s+and\s+your\s+attention\s+to\s+detail[^.!?]*[.!?]/iu',
     ];
 
     private const MOTIVATIONAL_CLICHE_PATTERNS = [
@@ -325,6 +327,8 @@ class HumanizerService
         '/\bbackbone\s+of\s+india\'?s\s+[\w\s]{1,30}[.!?]/iu',
         '/\bdon\'?t\s+ignore\s+the\s+fine\s+print\b(?![^.!?]*\d)[^.!?]*[.!?]/iu',
         '/\bkeep\s+an?\s+eye\s+on\s+the\s+official\s+portal\b(?![^.!?]*\d)[^.!?]*[.!?]/iu',
+        '/\bit\'?s\s+a\s+long\s+road,?\s+but\s+the\s+stability\s+makes\s+it\s+worth\s+the\s+grind[^.!?]*[.!?]/iu',
+        '/\bfocuses\s+heavily\s+on\s+your\s+core\s+engineering\s+branch[^.!?]*[.!?]/iu',
     ];
 
     /**

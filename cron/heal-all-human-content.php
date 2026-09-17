@@ -195,7 +195,7 @@ if ($healGlossary) {
     if (!$tableExists) {
         echo "⚠️ Table 'glossary_terms' does not exist yet. Run database/seed_glossary.php first.\n";
     } else {
-        $terms = Database::fetchAll("SELECT id, acronym, slug, overview, eligibility_criteria, selection_process FROM glossary_terms ORDER BY id ASC");
+        $terms = Database::fetchAll("SELECT id, acronym, slug, overview, eligibility_criteria, selection_process, syllabus_snapshot FROM glossary_terms ORDER BY id ASC");
         echo "Found " . count($terms) . " glossary term(s) to inspect.\n\n";
 
         $healedTermsCount = 0;
@@ -203,31 +203,51 @@ if ($healGlossary) {
         foreach ($terms as $term) {
             $tId = (int)$term['id'];
             $acronym = $term['acronym'];
-            $overview = $term['overview'];
-            $origOverview = $overview;
+            $fieldsToClean = ['overview', 'eligibility_criteria', 'selection_process', 'syllabus_snapshot'];
+            $updates = [];
+            $hasChange = false;
 
-            // 1. Scrub encyclopedic opener if it has repetitive "is a premier..." patterns
-            $scrubbed = HumanizerService::scrubClichePatterns("<p>" . $overview . "</p>");
-            $cleanOverview = strip_tags($scrubbed['html']);
+            foreach ($fieldsToClean as $f) {
+                $val = $term[$f] ?? '';
+                if (empty($val)) continue;
 
-            // 2. Scrub clichés and apply human contractions
-            $cleanOverview = HumanizerService::scrubClichés($cleanOverview);
-            $cleanOverview = HumanizerService::enforceContractions($cleanOverview);
+                $clean = $val;
+                // 1. Scrub clichés & patterns
+                $scrubbed = HumanizerService::scrubClichePatterns("<p>" . $clean . "</p>");
+                $clean = strip_tags($scrubbed['html']);
+                // 2. Scrub dictionary clichés & enforce natural contractions
+                $clean = HumanizerService::scrubClichés($clean);
+                $clean = HumanizerService::enforceContractions($clean);
 
-            if ($cleanOverview !== $origOverview) {
+                // 3. Humanize standard repetitive qualifications phrasing
+                $clean = preg_replace('/\bFor\s+([A-Za-z\s]+)\s+posts?,\s*you\s+need\s+a\s+full-time\b/i', 'Candidates applying for $1 need a', $clean);
+                $clean = preg_replace('/\bAlways\s+check\s+the\s+specific\s+notification[^.!?]*as\s+age\s+cut-off\s+dates\s+change[^.!?]*[.!?]/i', 'Cut-off dates get finalized in the official circular.', $clean);
+                $clean = preg_replace('/\bThe\s+process\s+usually\s+starts\s+with\s+a\s+written\s+exam[^.!?]*[.!?]/i', 'Selection begins with a Computer-Based Test testing technical domain subjects.', $clean);
+
+                if ($clean !== $val) {
+                    $updates[$f] = $clean;
+                    $hasChange = true;
+                }
+            }
+
+            if ($hasChange) {
                 $healedTermsCount++;
-                echo "📚 [Glossary #{$tId}] {$acronym}: Polished overview prose.\n";
+                echo "📚 [Glossary #{$tId}] {$acronym}: Polished all sections (Eligibility, Selection, Syllabus, Overview).\n";
 
                 if (!$dryRun) {
-                    Database::execute(
-                        "UPDATE glossary_terms SET overview = :ov, updated_at = NOW() WHERE id = :id",
-                        ['ov' => $cleanOverview, 'id' => $tId]
-                    );
+                    $setClauses = [];
+                    $params = ['id' => $tId];
+                    foreach ($updates as $k => $v) {
+                        $setClauses[] = "`{$k}` = :{$k}";
+                        $params[$k] = $v;
+                    }
+                    $setSql = implode(', ', $setClauses);
+                    Database::execute("UPDATE glossary_terms SET {$setSql}, updated_at = NOW() WHERE id = :id", $params);
                 }
             }
         }
 
-        echo "\nGlossary Summary: {$healedTermsCount} terms polished for human tone.\n\n";
+        echo "\nGlossary Summary: {$healedTermsCount} terms thoroughly polished across all sections.\n\n";
     }
 }
 
