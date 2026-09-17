@@ -199,27 +199,37 @@ function buildGlossaryFieldPrompt(string $acronym, string $fieldName, string $cu
     };
 
     return <<<PROMPT
-You are a real human writer — a senior government job aspirant who has personally cleared {$acronym} selection rounds and now mentors juniors on a coaching forum.
+Convert the following "{$fieldLabel}" info about {$acronym} into a clean, scannable DATA FORMAT — no prose sentences, only facts.
 
-Rewrite the following "{$fieldLabel}" info about {$acronym} in YOUR OWN WORDS the way you'd type it in a WhatsApp group or a coaching forum reply — informal, warm, practical. The output must defeat QuillBot and Copyleaks AI detection completely.
+OUTPUT FORMAT RULES (mandatory):
+- For eligibility: use this EXACT format:
+  Degree: [branch names]
+  Marks: [percentage]
+  Age: [numbers with category breakdown]
+  College: [recognition requirement]
 
-MANDATORY WRITING STYLE (violating any rule = failure):
-1. START with a one-line personal comment or a direct question to the reader. Example: "Honestly, this part trips up most people." or "Here's what you actually need to know."
-2. Mix sentence lengths AGGRESSIVELY: some as short as 3–5 words, some up to 20 words. Never write 3 sentences of similar length in a row.
-3. Use contractions everywhere: "you'll", "it's", "don't", "there's", "isn't", "won't", "can't", "that's", "I've seen".
-4. Use informal connectors: "Look,", "Basically,", "Here's the thing —", "Oh and", "Also worth knowing:", "Quick heads-up:".
-5. For eligibility: write each criterion as a plain dash-bullet (–) with informal phrasing. Example: "– B.E./B.Tech in Mech, Electrical, or Metallurgy with 65%+ marks" NOT "Candidates need a full-time Bachelor's degree".
-6. For selection stages: write as "Step 1 → Step 2 → Step 3" with a SHORT sentence of context after each arrow.
-7. NEVER use these words/phrases: "furthermore", "moreover", "it is worth noting", "candidates are advised", "it is important to note", "one must note", "as per", "in today's competitive", "plays a crucial role", "in conclusion", "it is imperative", "pertaining to", "with respect to", "notwithstanding", "comprehensive".
-8. Use natural informal phrasing but DO NOT literally use: "You've got this", "Good luck", "Hit me up", "Focus your energy on", "no surprises here", "this is where candidates slip up", "keep your basics rock solid", "stay consistent with your prep". These are AI-detectable filler.
-9. Preserve ALL facts exactly: percentages, age numbers, branch names, stage names, year numbers — unchanged.
-10. Keep length within 20% of original.
-11. Return ONLY the rewritten text. Zero preamble. No headers. No markdown.
+- For selection process: use this EXACT format:
+  Step 1 → [stage name]: [one short fact, max 6 words]
+  Step 2 → [stage name]: [one short fact, max 6 words]
+  (etc.)
 
-ORIGINAL TEXT TO REWRITE:
+- For syllabus: use this EXACT format:
+  Core: [topic1], [topic2], [topic3]
+  Non-tech: [topic1], [topic2]
+  Tip: [one factual observation, no motivational filler]
+
+- For overview: 2 sentences MAX. First: what the org does (one line). Second: why aspirants apply (one line with a number or fact).
+
+ABSOLUTE RULES:
+1. NO informal phrases: no "Quick heads-up", "Here's the deal", "I've seen", "Basically", "Look,", "Honestly,", "You've got this", "Good luck", "don't overthink", "stay calm", "balancing act".
+2. NO sentences with subject-verb-object structure unless it's the overview field.
+3. Preserve ALL numbers exactly: percentages, years, stage counts.
+4. Return ONLY the formatted data. No preamble. No headers. No markdown symbols except dashes and arrows.
+
+SOURCE DATA TO CONVERT:
 {$currentText}
 
-YOUR REWRITE (informal, human, mentor voice):
+CLEAN DATA OUTPUT:
 PROMPT;
 }
 
