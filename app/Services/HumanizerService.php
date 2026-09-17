@@ -306,6 +306,130 @@ class HumanizerService
         ];
     }
 
+    // ─────────────────────────────────────────────────────────
+    // CLAUDE-ENGINEERED DETERMINISTIC ANTI-CLICHÉ SCRUBBERS
+    // ─────────────────────────────────────────────────────────
+    private const ENCYCLOPEDIC_OPENER_PATTERN =
+        '/<p>\s*([A-Z][A-Za-z0-9\s\-]{1,60})\s+is\s+an?\s+[^.]{1,80}?\s+and\s+an?\s+[^.]{1,80}?\.\s*/u';
+
+    private const ANTITHESIS_PATTERNS = [
+        '/\b[\w\s]{1,50}?\bisn\'?t\s+just\s+(?:about\s+)?[^;]{1,80};\s*it\'?s\s+(?:about\s+)?[^.!?]{1,80}[.!?]/iu',
+        '/\bit\'?s\s+not\s+just\s+an?\s+[\w\s]{1,40};\s*it\'?s\s+an?\s+[\w\s]{1,60}[.!?]/iu',
+        '/\bnot\s+just\s+[\w\s]{1,40};\s*(?:it\'?s|it\s+is)\s+[\w\s]{1,60}[.!?]/iu',
+    ];
+
+    private const MOTIVATIONAL_CLICHE_PATTERNS = [
+        '/\bstay\s+focused,?\s+stay\s+updated\b[^.!?]*[.!?]/iu',
+        '/\bthe\s+competition\s+is\s+fierce\b[^.!?]*[.!?]/iu',
+        '/\b(?:be\s+)?sharp\s+with\s+your\s+(?:technical\s+)?fundamentals\b[^.!?]*[.!?]/iu',
+        '/\bbackbone\s+of\s+india\'?s\s+[\w\s]{1,30}[.!?]/iu',
+        '/\bdon\'?t\s+ignore\s+the\s+fine\s+print\b(?![^.!?]*\d)[^.!?]*[.!?]/iu',
+        '/\bkeep\s+an?\s+eye\s+on\s+the\s+official\s+portal\b(?![^.!?]*\d)[^.!?]*[.!?]/iu',
+    ];
+
+    /**
+     * Scrub encyclopedic openers, antithesis formulas, and motivational clichés deterministically.
+     */
+    public static function scrubClichePatterns(string $html): array
+    {
+        $removedSentences = [];
+        $cleaned = $html;
+
+        // Pattern A: strip the encyclopedic opener, leave the rest of the paragraph intact
+        $cleaned = preg_replace_callback(self::ENCYCLOPEDIC_OPENER_PATTERN, function ($m) use (&$removedSentences) {
+            $removedSentences[] = ['type' => 'encyclopedic_opener', 'text' => trim($m[0])];
+            return '<p>';
+        }, $cleaned);
+
+        // Pattern B: strip antithesis clauses entirely
+        foreach (self::ANTITHESIS_PATTERNS as $pattern) {
+            $cleaned = preg_replace_callback($pattern, function ($m) use (&$removedSentences) {
+                $removedSentences[] = ['type' => 'antithesis_cliche', 'text' => trim($m[0])];
+                return '';
+            }, $cleaned);
+        }
+
+        // Pattern C: strip motivational bookends
+        foreach (self::MOTIVATIONAL_CLICHE_PATTERNS as $pattern) {
+            $cleaned = preg_replace_callback($pattern, function ($m) use (&$removedSentences) {
+                $removedSentences[] = ['type' => 'motivational_cliche', 'text' => trim($m[0])];
+                return '';
+            }, $cleaned);
+        }
+
+        // Cleanup: collapse resulting empty <p></p>, double spaces, orphaned punctuation
+        $cleaned = preg_replace('/<p>\s*<\/p>/u', '', $cleaned);
+        $cleaned = preg_replace('/\s{2,}/u', ' ', $cleaned);
+        $cleaned = preg_replace('/<p>\s*([.!?,;:])/u', '<p>', $cleaned);
+
+        return ['html' => trim($cleaned), 'removed' => $removedSentences];
+    }
+
+    /**
+     * Measure sentence length variance (Std Dev < 3.0) to detect uniform robotic cadence.
+     */
+    public static function detectUniformCadenceParagraphs(string $html): array
+    {
+        $flagged = [];
+        $dom = new \DOMDocument();
+        libxml_use_internal_errors(true);
+        $dom->loadHTML('<?xml encoding="utf-8" ?>' . $html);
+        libxml_clear_errors();
+
+        foreach ($dom->getElementsByTagName('p') as $index => $p) {
+            $text = trim($p->textContent);
+            if ($text === '') {
+                continue;
+            }
+
+            $sentences = preg_split('/(?<=[.!?])\s+(?=[A-Z])/u', $text);
+            $sentences = array_filter($sentences, fn ($s) => trim($s) !== '');
+            if (count($sentences) < 4) {
+                continue;
+            }
+
+            $lengths = array_map(fn ($s) => str_word_count($s), $sentences);
+            $mean = array_sum($lengths) / count($lengths);
+            $variance = array_sum(array_map(fn ($l) => ($l - $mean) ** 2, $lengths)) / count($lengths);
+            $stdDev = sqrt($variance);
+
+            if ($stdDev < 3.0) {
+                $flagged[] = [
+                    'paragraph_index' => $index,
+                    'sentence_count' => count($sentences),
+                    'lengths' => $lengths,
+                    'std_dev' => round($stdDev, 2),
+                    'text' => $text,
+                ];
+            }
+        }
+
+        return $flagged;
+    }
+
+    /**
+     * Build small targeted prompt for rhythm rewrite (preserving all facts).
+     */
+    public static function buildRhythmRewritePrompt(array $flaggedParagraph, array $verifiedFacts): string
+    {
+        $originalText = $flaggedParagraph['text'];
+        $factsBlock = json_encode($verifiedFacts, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+
+        return <<<PROMPT
+Rewrite this paragraph to vary sentence length naturally — mix short, punchy sentences (3-8 words) with longer explanatory ones (15-25 words). 
+Do not add, remove, or alter any fact. Do not add new claims not present in the original text or in these verified facts: {$factsBlock}
+
+Original paragraph:
+{$originalText}
+
+Rules:
+- Keep every factual detail exactly as stated (dates, numbers, names, URLs).
+- Do not use semicolon-antithesis constructions ("not just X; it's Y").
+- Do not add generic motivational filler ("stay focused, stay updated").
+- Return ONLY the rewritten paragraph text, no preamble.
+PROMPT;
+    }
+
     /**
      * Master Humanization Pipeline: Applies all anti-AI layers deterministically.
      */
@@ -323,6 +447,10 @@ class HumanizerService
 
         // 3. Scrub Banned Clichés
         $content = self::scrubClichés($content);
+
+        // 4. Scrub Claude-Engineered Pattern Clichés (Encyclopedic openers, antithesis, bookends)
+        $scrubbed = self::scrubClichePatterns($content);
+        $content = $scrubbed['html'];
 
         return $content;
     }
