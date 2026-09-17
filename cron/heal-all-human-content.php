@@ -186,50 +186,66 @@ function aiHeuristicScore(string $text): int
 }
 
 // ─────────────────────────────────────────────────────────────
-// HELPER: Build Gemini prompt to rewrite one glossary field
+// HELPER: Build Gemini prompt to rewrite ONE specific glossary field
+// Strictly field-isolated: only rewrites the requested field.
+// Eliminates both robotic academic jargon AND fake conversational AI clichés.
 // ─────────────────────────────────────────────────────────────
 function buildGlossaryFieldPrompt(string $acronym, string $fieldName, string $currentText): string
 {
-    $fieldLabel = match ($fieldName) {
-        'overview'            => 'Overview (what the exam/organization is)',
-        'eligibility_criteria'=> 'Eligibility Criteria (age, qualification, marks)',
-        'selection_process'   => 'Selection Process (stages: exam, interview, doc verification)',
-        'syllabus_snapshot'   => 'Syllabus Snapshot (key topics covered)',
-        default               => $fieldName,
+    $fieldRules = match ($fieldName) {
+        'overview' => <<<EOR
+Write exactly 2 clear, factual sentences about {$acronym}.
+Sentence 1: What {$acronym} is, its statutory/administrative status, and which ministry or state department governs it.
+Sentence 2: What major recruitments or examinations it conducts and for what roles.
+Do NOT include eligibility, selection stages, or syllabus here.
+EOR,
+        'eligibility_criteria' => <<<EOR
+State the essential eligibility requirements for {$acronym} recruitment in 2 or 3 clean sentences:
+- Academic qualification required (degrees, acceptable disciplines, and minimum percentage).
+- Age limits for general category along with statutory relaxations (OBC, SC/ST).
+Do NOT include overview, selection stages, or syllabus here.
+EOR,
+        'selection_process' => <<<EOR
+State the official selection stages for {$acronym} in chronological order using this format:
+Stage 1: [Name of first stage, e.g. Computer Based Test] evaluating [subject scope].
+Stage 2: [Name of second stage, e.g. Interview or Skill Test] for candidates qualifying Stage 1 merit.
+Stage 3: Document verification and medical examination at designated centers.
+Do NOT include overview, eligibility qualifications, or syllabus here.
+EOR,
+        'syllabus_snapshot' => <<<EOR
+State the examination syllabus breakdown for {$acronym} in 2 clear sentences:
+Sentence 1 (Technical/Domain): Core subjects covered from relevant engineering or professional streams.
+Sentence 2 (General Aptitude): Non-technical topics (Reasoning, Quantitative Aptitude, English, and General Awareness).
+Do NOT include overview, eligibility qualifications, or selection stages here.
+EOR,
+        default => "Rewrite this {$fieldName} for {$acronym} clearly and concisely.",
     };
 
     return <<<PROMPT
-Convert the following "{$fieldLabel}" info about {$acronym} into a clean, scannable DATA FORMAT — no prose sentences, only facts.
+You are a senior education editor for an Indian government jobs portal (like The Hindu Education or ClearIAS).
 
-OUTPUT FORMAT RULES (mandatory):
-- For eligibility: use this EXACT format:
-  Degree: [branch names]
-  Marks: [percentage]
-  Age: [numbers with category breakdown]
-  College: [recognition requirement]
+Task: Rewrite the "{$fieldName}" section for "{$acronym}" based on the source text below.
 
-- For selection process: use this EXACT format:
-  Step 1 → [stage name]: [one short fact, max 6 words]
-  Step 2 → [stage name]: [one short fact, max 6 words]
-  (etc.)
+FIELD REQUIREMENTS:
+{$fieldRules}
 
-- For syllabus: use this EXACT format:
-  Core: [topic1], [topic2], [topic3]
-  Non-tech: [topic1], [topic2]
-  Tip: [one factual observation, no motivational filler]
+EDITORIAL RULES (STRICT):
+1. Write in objective, authoritative, candidate-friendly Indian English — NOT robotic, NOT casual blog banter.
+2. ABSOLUTELY FORBIDDEN CONVERSATIONAL FILLER (these trigger AI detectors instantly):
+   - "Honestly", "Look,", "Basically,", "Here's the deal", "Quick heads-up", "Quick note", "Also worth knowing"
+   - "Don't overthink it", "You've got this", "Good luck", "Hit me up", "trip up", "grill you", "balancing act"
+   - "No surprises here", "They're strict about this", "I've seen", "stress way too much", "folks", "gotta"
+3. ABSOLUTELY FORBIDDEN ACADEMIC AI CLICHÉS:
+   - "pivotal role", "crucial step", "serves as a testament", "beacon of hope", "in today's competitive era"
+   - "without further ado", "delve into", "it is worth noting", "it is important to note", "furthermore", "moreover"
+   - "it is imperative that", "candidates are advised to", "in conclusion", "to summarize"
+4. Keep all factual details exact: degree names, percentage cutoffs, age figures, category relaxations.
+5. Return ONLY the rewritten text for this single field. No section headers, no preamble, no markdown asterisks.
 
-- For overview: 2 sentences MAX. First: what the org does (one line). Second: why aspirants apply (one line with a number or fact).
-
-ABSOLUTE RULES:
-1. NO informal phrases: no "Quick heads-up", "Here's the deal", "I've seen", "Basically", "Look,", "Honestly,", "You've got this", "Good luck", "don't overthink", "stay calm", "balancing act".
-2. NO sentences with subject-verb-object structure unless it's the overview field.
-3. Preserve ALL numbers exactly: percentages, years, stage counts.
-4. Return ONLY the formatted data. No preamble. No headers. No markdown symbols except dashes and arrows.
-
-SOURCE DATA TO CONVERT:
+SOURCE TEXT:
 {$currentText}
 
-CLEAN DATA OUTPUT:
+REWRITTEN {$fieldName}:
 PROMPT;
 }
 
@@ -239,26 +255,26 @@ PROMPT;
 function buildArticleParagraphPrompt(string $articleTitle, string $paragraphText): string
 {
     return <<<PROMPT
-You are a real human writer — a senior coaching mentor in India who has helped hundreds of students clear government exams. You're writing this paragraph for your coaching blog, not for an AI portal.
+You are a senior journalist writing for an Indian government employment publication.
 
-Rewrite this paragraph from "{$articleTitle}" the way you'd naturally type it — like you're explaining it to a batch of students in a coaching session. Your goal: make it impossible for QuillBot AI Detector to flag this as AI.
+Rewrite the following paragraph from the article "{$articleTitle}" into clean, direct, informative Indian English.
 
-MANDATORY RULES (break any = failure):
-1. START the rewrite with either a very short punchy sentence (3–6 words) OR a direct question.
-2. VARY sentence length aggressively — short (3–7 words), medium (10–14 words), long (16–22 words) — mix them, never two of same length back-to-back.
-3. Use contractions: "you'll", "it's", "don't", "there's", "can't", "won't", "they're", "I've seen".
-4. Use at least 2 informal connectors from: "Look,", "Honestly,", "Basically,", "Here's the thing —", "No surprises here —", "Quick note:", "Oh, and", "Worth knowing:".
-5. NEVER use: "furthermore", "moreover", "it is worth noting", "candidates are advised", "it is important to note", "plays a crucial role", "it is imperative", "with respect to", "as per the official", "in conclusion", "to summarize", "in today's competitive", "needless to say", "at the end of the day".
-6. DO NOT literally use these AI-detectable phrases: "You've got this", "Good luck", "Hit me up", "Focus your energy on", "no surprises here", "this is where candidates slip up", "keep your basics rock solid", "stay consistent with your prep", "You're going to nail this", "master the basics", "rock solid".
-7. Preserve EVERY fact exactly: all numbers, dates, percentages, exam names, URLs, seat counts — word-for-word unchanged.
-8. Do NOT add facts not in the original.
-9. Keep length within 25% of original.
-10. Return ONLY the rewritten paragraph. No preamble, no label, no explanation.
+STRICT EDITORIAL RULES:
+1. Write objectively and clearly. State the facts directly.
+2. Vary sentence length naturally: combine a short direct statement (5-8 words) with a detailed explanatory sentence (15-20 words).
+3. ABSOLUTELY BANNED CONVERSATIONAL PHRASES (zero tolerance):
+   - "Honestly", "Look,", "Basically,", "Here's the thing", "Here's the deal", "Quick heads-up", "Quick note"
+   - "Don't overthink", "You've got this", "Good luck", "Hit me up", "balancing act", "trip up", "folks", "gotta"
+4. ABSOLUTELY BANNED AI CLICHÉS (zero tolerance):
+   - "pivotal role", "crucial step", "serves as a testament", "in today's competitive era", "without further ado"
+   - "delve into", "it is worth noting", "furthermore", "moreover", "it is imperative that", "candidates are advised"
+5. Retain every single fact: dates, numbers, exam names, URLs, application fees, cutoffs.
+6. Return ONLY the rewritten paragraph text. No preamble, no quotes, no labels.
 
-ORIGINAL PARAGRAPH:
+ORIGINAL:
 {$paragraphText}
 
-YOUR REWRITE (natural coaching mentor voice):
+REWRITTEN:
 PROMPT;
 }
 
