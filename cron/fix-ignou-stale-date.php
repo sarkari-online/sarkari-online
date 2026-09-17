@@ -39,11 +39,11 @@ $fixes = [
     // "You have until September 15" type urgency phrases
     '/you now have until September 15,?\s*2026[,.]?\s*to get your application/i'
         => 'the deadline was September 15, 2026. The application window is now closed.',
-    '/you[\'']ve got a second chance/i'                       => 'the extended deadline has now passed',
+    '/you[\'"]ve got a second chance/i'                       => 'the extended deadline has now passed',
     
     // Current status box — already says "Application Window Closed" so likely fine
     // but update any "Don't let this slip" urgency
-    '/Don[\'']t let this slip by again\./i'                   => 'The admission window has now closed.',
+    '/Don[\'"]t let this slip by again\./i'                   => 'The admission window has now closed.',
     '/get your application sorted/i'                          => 'watch for the next admission cycle',
     
     // Future-tense "apply" references near the date
