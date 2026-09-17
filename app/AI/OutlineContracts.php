@@ -91,18 +91,23 @@ Required Structural Flow:
    - Insert <!--DATES_MILESTONE_TABLE--> immediately after the opening paragraph of this section.
    - MANDATORY HTML <table>: Vacancy Distribution Table (Post names, Pay scale / 7th CPC Matrix, and category-wise vacancies: UR, OBC, SC, ST, EWS, Total). Do NOT generate a separate dates table as the dates table is automatically placed at the placeholder marker.
 3. <h2>Eligibility Criteria, Age Limits & Educational Qualifications for [Recruitment Name]</h2>
-   - Minimum and maximum age limit with the exact cutoff date (e.g. as on 01/08/2026).
-   - Category-wise age relaxations (SC/ST: 5 years, OBC: 3 years, PwBD: 10 years).
-   - Required educational degree, diploma, or certifications per post.
+   - CRITICAL FORMAT RULE: Absolutely NO long essay paragraphs! Present eligibility strictly as formatted HTML bullet points (<ul><li>...</li></ul>):
+     * <li><strong>Educational Qualification:</strong> Exact degree / diploma / minimum percentage required per discipline.</li>
+     * <li><strong>Age Limit & Cut-off Date:</strong> Minimum and maximum age with the exact cut-off date (e.g. as on circular date).</li>
+     * <li><strong>Category-Wise Age Relaxations:</strong> Clear breakdown (+3 yrs OBC-NCL, +5 yrs SC/ST, +10 yrs PwBD).</li>
+     * <li><strong>Final Year Status:</strong> Explicit eligibility rule for awaiting final semester results.</li>
 4. <h2>Application Fee, Payment Modes & Fee Exemptions for [Recruitment Name]</h2>
-   - Category-wise application fee table (General/OBC, SC/ST/Women/Ex-SM).
+   - MANDATORY HTML <table>: Category-wise application fee breakdown (General/OBC, SC/ST/Women/Ex-SM) and payment gateway rules.
 5. <h2>Step-by-Step Online Application & OTR Registration Guide for [Recruitment Name]</h2>
-   - One-Time Registration (OTR) steps, document upload dimensions (photo, signature), avoiding server payment timeouts.
+   - Formatted strictly as clean numbered steps (<ol><li>...</li></ol>): OTR registration, application filling, photo/signature specs, fee receipt printout.
 6. <h2>Selection Process, Exam Pattern & Marking Scheme for [Recruitment Name]</h2>
-   - Stages: Tier-1 / CBT, Tier-2, Skill Test / Typing, Physical Standards (if applicable), Document Verification, Medical Examination.
-   - Negative marking penalty per incorrect answer.
+   - CRITICAL FORMAT RULE: Absolutely NO long essay paragraphs! Break stages into structured bullet points (<ul><li>...</li></ul>):
+     * <li><strong>Stage 1 (Online CBT):</strong> Subjects, question count, maximum marks, and duration.</li>
+     * <li><strong>Stage 2 (Skill / Trade / Interview):</strong> Requirements per stream.</li>
+     * <li><strong>Negative Marking:</strong> Penalty per wrong answer (e.g. 0.25 marks deducted).</li>
+     * <li><strong>Final Merit Formulation:</strong> Weightage ratio between written score and interview/skill test.</li>
 7. <h2>Frequently Asked Questions (FAQs) About [Recruitment Name]</h2>
-   - 5 to 6 genuine questions regarding final year students eligibility, domicile certificates, other state eligibility.
+   - 5 to 6 genuine candidate queries regarding final year eligibility, domicile certificates, and exam centers.
 8. <h2>Official Notification Circular & Direct Application Links for [Recruitment Name]</h2>
 PROMPT,
 

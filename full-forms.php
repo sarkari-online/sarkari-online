@@ -151,27 +151,21 @@ if (!empty($termSlug)) {
                         <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 2rem 0 0.5rem 0;">
                             2. Eligibility Criteria, Qualifications &amp; Age Limits
                         </h2>
-                        <p style="margin: 0 0 1.25rem 0;">
-                            <?= nl2br(e($term['eligibility_criteria'])) ?>
-                        </p>
+                        <?= GlossaryService::renderSectionBulletList($term['eligibility_criteria']) ?>
                     <?php endif; ?>
 
                     <?php if (!empty($term['selection_process'])): ?>
                         <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 2rem 0 0.5rem 0;">
                             3. Examination Scheme &amp; Selection Procedure
                         </h2>
-                        <p style="margin: 0 0 1.25rem 0;">
-                            <?= nl2br(e($term['selection_process'])) ?>
-                        </p>
+                        <?= GlossaryService::renderSectionBulletList($term['selection_process']) ?>
                     <?php endif; ?>
 
                     <?php if (!empty($term['syllabus_snapshot'])): ?>
                         <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 2rem 0 0.5rem 0;">
                             4. Core Syllabus &amp; Key Subjects
                         </h2>
-                        <p style="margin: 0 0 1.25rem 0;">
-                            <?= nl2br(e($term['syllabus_snapshot'])) ?>
-                        </p>
+                        <?= GlossaryService::renderSectionBulletList($term['syllabus_snapshot']) ?>
                     <?php endif; ?>
 
                     <!-- Section 5: Salary & Pay Scale (Only rendered when verified facts are present) -->

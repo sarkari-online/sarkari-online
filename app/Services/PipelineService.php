@@ -457,6 +457,30 @@ class PipelineService {
             Logger::info("PipelineService: Neutralized over-confident title to: '{$polished['edited_title']}'");
         }
 
+        // 5f. Pre-Publish Human Tone, Rhythm & Anti-AI Burstiness Gate
+        try {
+            $linking['linked_content'] = HumanizerService::humanize(
+                $linking['linked_content'],
+                $polished['edited_title'],
+                $officialPortal,
+                $detectedIntent
+            );
+            $flaggedCadence = HumanizerService::detectUniformCadenceParagraphs($linking['linked_content']);
+            if (!empty($flaggedCadence)) {
+                Logger::info("PipelineService: Detected " . count($flaggedCadence) . " uniform cadence paragraphs in Trend #{$trendId}. Varying rhythm with Humanizer...");
+                foreach (array_slice($flaggedCadence, 0, 3) as $fc) {
+                    $rewritePrompt = HumanizerService::buildRhythmRewritePrompt($fc, $extractedFacts);
+                    $rhythmResp = $this->gemini->generate($rewritePrompt, ['stage' => 'rhythm_rewrite', 'temperature' => 0.6]);
+                    $rewrittenText = trim($rhythmResp['text'] ?? '');
+                    if (!empty($rewrittenText) && mb_strlen($rewrittenText) > 20 && !str_contains($rewrittenText, '<html')) {
+                        $linking['linked_content'] = str_replace($fc['text'], $rewrittenText, $linking['linked_content']);
+                    }
+                }
+            }
+        } catch (Throwable $e) {
+            Logger::warning("PipelineService: Step 5f Human Tone Gate warning: " . $e->getMessage());
+        }
+
         // 6. Calculate 8-Dimension Quality Score (Total 100 points)
         $quality = $this->calculateQualityScore([
             'fact_check' => $factAudit,

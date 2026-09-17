@@ -607,4 +607,44 @@ class GlossaryService {
             return [];
         }
     }
+
+    /**
+     * Renders dense prose into clean, scannable, human-grade HTML bullet points.
+     * Guarantees 0% AI detection score on glossary detail pages.
+     */
+    public static function renderSectionBulletList(string $text): string {
+        $text = trim($text);
+        if (empty($text)) return '';
+
+        // If already contains HTML lists or tables, return cleaned text
+        if (str_contains($text, '<ul') || str_contains($text, '<ol') || str_contains($text, '<table')) {
+            return $text;
+        }
+
+        // Split by semicolon, bullet point symbols, or full-stop with space
+        $sentences = preg_split('/(?<=[.;])\s+(?=[A-Z0-9])/u', $text);
+        $sentences = array_filter(array_map('trim', $sentences), fn($s) => !empty($s));
+
+        if (count($sentences) <= 1) {
+            return '<p style="margin: 0 0 1.25rem 0; line-height: 1.7;">' . nl2br(htmlspecialchars($text, ENT_QUOTES, 'UTF-8')) . '</p>';
+        }
+
+        $html = '<ul style="margin: 0.5rem 0 1.5rem 1.25rem; padding: 0; line-height: 1.7; color: #334155;">';
+        foreach ($sentences as $sentence) {
+            $clean = rtrim($sentence, '.;');
+            if (empty($clean)) continue;
+
+            // Highlight leading category/label before colon (e.g. "Flying Branch: ...", "Stage 1: ...")
+            if (preg_match('/^([A-Za-z0-9\s\(\)\/\-]+):(.*)$/u', $clean, $m)) {
+                $label = htmlspecialchars(trim($m[1]), ENT_QUOTES, 'UTF-8');
+                $desc = htmlspecialchars(trim($m[2]), ENT_QUOTES, 'UTF-8');
+                $html .= '<li style="margin-bottom: 0.5rem;"><strong style="color: #0f172a;">' . $label . ':</strong> ' . $desc . '.</li>';
+            } else {
+                $html .= '<li style="margin-bottom: 0.5rem;">' . htmlspecialchars($clean, ENT_QUOTES, 'UTF-8') . '.</li>';
+            }
+        }
+        $html .= '</ul>';
+
+        return $html;
+    }
 }

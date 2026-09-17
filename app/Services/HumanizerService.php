@@ -435,6 +435,62 @@ PROMPT;
     }
 
     /**
+     * Converts dense, repetitive qualifications and selection paragraphs into structured, candidate-friendly bullet points.
+     * Detectors flag essay-style eligibility prose as AI. Converting them to bullet lists eliminates predictable cadence.
+     */
+    public static function structureDenseProseLists(string $html): string
+    {
+        // Pattern 1: Convert paragraphs containing Degree/Qualifications + Age Limit into clean <ul><li> lists
+        $html = preg_replace_callback('/<p>(?=.*?(?:Bachelor\'?s\s+degree|B\.E\.|B\.Tech|graduation|diploma|10\+2|matriculation))(?=.*?(?:age\s+limit|years\s+old|minimum\s+age|maximum\s+age))(.*?)<\/p>/is', function($m) {
+            $text = trim($m[1]);
+            // If already contains list tags, skip
+            if (str_contains($text, '<ul>') || str_contains($text, '<ol>') || str_contains($text, '<table>')) {
+                return $m[0];
+            }
+
+            // Split into sentences
+            $sentences = preg_split('/(?<=[.!?])\s+(?=[A-Z0-9])/u', $text);
+            $sentences = array_filter(array_map('trim', $sentences), fn($s) => !empty($s));
+            if (count($sentences) < 2) {
+                return $m[0];
+            }
+
+            $listItems = '';
+            foreach ($sentences as $s) {
+                // Remove trailing punctuation for neat list formatting
+                $cleanSentence = rtrim($s, '.');
+                $listItems .= "<li>{$cleanSentence}.</li>\n";
+            }
+
+            return "<ul class=\"eligibility-breakdown\" style=\"margin: 1rem 0 1.25rem 1.25rem; line-height: 1.7;\">\n{$listItems}</ul>";
+        }, $html);
+
+        // Pattern 2: Convert paragraphs explaining selection stages into clean bullet points
+        $html = preg_replace_callback('/<p>(?=.*?(?:Computer-Based\s+Test|written\s+exam|Tier-1|CBT|Prelims))(?=.*?(?:interview|skill\s+test|document\s+verification|physical\s+test))(.*?)<\/p>/is', function($m) {
+            $text = trim($m[1]);
+            if (str_contains($text, '<ul>') || str_contains($text, '<ol>') || str_contains($text, '<table>')) {
+                return $m[0];
+            }
+
+            $sentences = preg_split('/(?<=[.!?])\s+(?=[A-Z0-9])/u', $text);
+            $sentences = array_filter(array_map('trim', $sentences), fn($s) => !empty($s));
+            if (count($sentences) < 2) {
+                return $m[0];
+            }
+
+            $listItems = '';
+            foreach ($sentences as $s) {
+                $cleanSentence = rtrim($s, '.');
+                $listItems .= "<li>{$cleanSentence}.</li>\n";
+            }
+
+            return "<ul class=\"selection-stage-breakdown\" style=\"margin: 1rem 0 1.25rem 1.25rem; line-height: 1.7;\">\n{$listItems}</ul>";
+        }, $html);
+
+        return $html;
+    }
+
+    /**
      * Master Humanization Pipeline: Applies all anti-AI layers deterministically.
      */
     public static function humanize(string $content, string $examTitle, string $sourceUrl = '', string $intent = 'recruitment'): string
@@ -455,6 +511,9 @@ PROMPT;
         // 4. Scrub Claude-Engineered Pattern Clichés (Encyclopedic openers, antithesis, bookends)
         $scrubbed = self::scrubClichePatterns($content);
         $content = $scrubbed['html'];
+
+        // 5. Structure Dense Prose Lists (Eliminates AI detector predictable cadence on eligibility/selection)
+        $content = self::structureDenseProseLists($content);
 
         return $content;
     }
