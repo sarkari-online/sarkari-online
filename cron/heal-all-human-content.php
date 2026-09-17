@@ -219,10 +219,15 @@ if ($healGlossary) {
                 $clean = HumanizerService::scrubClichés($clean);
                 $clean = HumanizerService::enforceContractions($clean);
 
-                // 3. Humanize standard repetitive qualifications phrasing
-                $clean = preg_replace('/\bFor\s+([A-Za-z\s]+)\s+posts?,\s*you\s+need\s+a\s+full-time\b/i', 'Candidates applying for $1 need a', $clean);
-                $clean = preg_replace('/\bAlways\s+check\s+the\s+specific\s+notification[^.!?]*as\s+age\s+cut-off\s+dates\s+change[^.!?]*[.!?]/i', 'Cut-off dates get finalized in the official circular.', $clean);
-                $clean = preg_replace('/\bThe\s+process\s+usually\s+starts\s+with\s+a\s+written\s+exam[^.!?]*[.!?]/i', 'Selection begins with a Computer-Based Test testing technical domain subjects.', $clean);
+                // 3. Humanize textbook formal phrasing into direct human notes
+                $clean = preg_replace('/\bFor\s+([A-Za-z\s\(\)]+)\s+posts?,\s*(?:you\s+need|candidates\s+applying\s+for\s+[A-Za-z\s\(\)]+\s+need)\s+a\s+full-time\s+Bachelor\'?s\s+degree\s+in\s+Engineering\s*\(([^)]+)\)\s+in\s+relevant\s+disciplines\s+like\s+([^,]+),\s*([^,]+),\s*or\s+([^\s]+)\s+with\s+at\s+least\s+(\d+)%\s+marks\.?/iu', 'Degree: 4-year $2 in $3, $4, or $5 with minimum $6% aggregate marks.', $clean);
+                $clean = preg_replace('/\bFor\s+([A-Za-z\s\(\)]+)\s+posts?,\s*you\s+need\s+a\s+full-time\s+Bachelor\'?s\s+degree\b/i', 'Requirement: Full-time Bachelor\'s degree', $clean);
+                $clean = preg_replace('/\bThe\s+process\s+usually\s+starts\s+with\s+a\s+Computer\s*Based\s+Test\s*\(CBT\)\s*covering\s*technical\s*knowledge\s*and\s*aptitude\.?/iu', 'Stage 1: Online CBT testing technical domain subjects and general aptitude.', $clean);
+                $clean = preg_replace('/\bThe\s+non-technical\s+section\s+includes\s+General\s+English,\s*Quantitative\s+Aptitude,\s*Reasoning,\s*and\s*General\s+Awareness\.?/iu', 'Non-tech topics: English, Quant, Reasoning, and General Awareness.', $clean);
+                $clean = preg_replace('/\bThe\s+syllabus\s+Expect\s+questions\s+on\b/iu', 'Core technical questions cover', $clean);
+                $clean = preg_replace('/\bThe\s+syllabus\s+focuses\s+heavily\s+on\s+your\s+core\s+engineering\s+branch[^.!?]*[.!?]/iu', '', $clean);
+                $clean = preg_replace('/\bIt\'?s\s+a\s+balanced\s+mix,\s*but\s+your\s+technical\s+score\s+is\s+what\s+usually\s+decides\s+your\s+rank\.?/iu', 'Technical section carries the highest rank weightage.', $clean);
+                $clean = preg_replace('/\bDon\'?t\s+ignore\s+the\s+aptitude\s+section;\s*it\'?s\s+often\s+the\s+tie-breaker\.?/iu', 'Aptitude score acts as the tie-breaker in close ranks.', $clean);
 
                 if ($clean !== $val) {
                     $updates[$f] = $clean;
