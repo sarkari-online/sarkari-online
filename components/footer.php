@@ -86,17 +86,42 @@
 
     <!-- Bottom Copyright Strip -->
     <?php
-    $siteLastUpdated = \App\Database\Database::fetchValue("SELECT published_at FROM articles WHERE status = 'published' ORDER BY published_at DESC LIMIT 1");
-    $siteLastUpdatedStr = !empty($siteLastUpdated) ? date('d M Y, h:i A', strtotime($siteLastUpdated)) . ' IST' : date('d M Y, h:i A') . ' IST';
+    $latestArticleTime = \App\Database\Database::fetchValue("SELECT GREATEST(COALESCE(MAX(updated_at), '1970-01-01'), COALESCE(MAX(published_at), '1970-01-01')) FROM articles WHERE status = 'published'");
+    $latestGlossaryTime = null;
+    $glossaryCount = 0;
+    $publishedArticlesCount = 0;
+
+    try {
+        $latestGlossaryTime = \App\Database\Database::fetchValue("SELECT GREATEST(COALESCE(MAX(updated_at), '1970-01-01'), COALESCE(MAX(created_at), '1970-01-01')) FROM glossary_terms");
+        $glossaryCount = (int)\App\Database\Database::fetchValue("SELECT COUNT(*) FROM glossary_terms");
+    } catch (\Throwable $e) {}
+
+    try {
+        $publishedArticlesCount = (int)\App\Database\Database::fetchValue("SELECT COUNT(*) FROM articles WHERE status = 'published'");
+    } catch (\Throwable $e) {}
+
+    $timestamps = array_filter([$latestArticleTime, $latestGlossaryTime], function($t) {
+        return !empty($t) && $t !== '1970-01-01';
+    });
+    $siteLastUpdated = !empty($timestamps) ? max($timestamps) : date('Y-m-d H:i:s');
+    $siteLastUpdatedStr = date('d M Y, h:i A', strtotime($siteLastUpdated)) . ' IST';
     ?>
     <div class="footer-bottom-bar">
         <div class="container">
             <div class="footer-bottom-flex">
                 <div class="footer-copy-left">
                     <div>&copy; <?= date('Y') ?> <?= e(SITE_NAME) ?> &middot; Independent Educational Information Network.</div>
-                    <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.35rem; display: flex; align-items: center; gap: 5px;">
+                    <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.35rem; display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                         <span>Portal Last Updated: <strong style="color: #cbd5e1;"><?= e($siteLastUpdatedStr) ?></strong></span>
+                        <?php if ($publishedArticlesCount > 0): ?>
+                            <span class="footer-sep">&middot;</span>
+                            <span style="color: #94a3b8;"><strong style="color: #cbd5e1;"><?= $publishedArticlesCount ?></strong> Active Guides</span>
+                        <?php endif; ?>
+                        <?php if ($glossaryCount > 0): ?>
+                            <span class="footer-sep">&middot;</span>
+                            <a href="<?= url('full-forms/') ?>" style="color: #38bdf8; text-decoration: none;" title="A-Z Government &amp; Exam Full Forms Directory"><strong style="color: #38bdf8;"><?= $glossaryCount ?></strong> Full Forms (A-Z)</a>
+                        <?php endif; ?>
                     </div>
                 </div>
                 <div class="footer-legal-inline-links">
