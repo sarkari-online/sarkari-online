@@ -479,6 +479,10 @@ if ($healArticles) {
                         $rewritten = trim($res['text'] ?? '');
 
                         if (!empty($rewritten) && mb_strlen($rewritten) > 30 && !str_contains($rewritten, '<html')) {
+                            $postScrub = HumanizerService::scrubClichePatterns("<p>" . $rewritten . "</p>");
+                            $rewritten = strip_tags($postScrub['html']);
+                            $rewritten = HumanizerService::scrubClichés($rewritten);
+                            $rewritten = HumanizerService::enforceContractions($rewritten);
                             if (str_contains($currentContent, $fp['text'])) {
                                 $currentContent = str_replace($fp['text'], $rewritten, $currentContent);
                                 $llmParagraphRewrites++;
