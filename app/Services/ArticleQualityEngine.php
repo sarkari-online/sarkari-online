@@ -109,10 +109,7 @@ class ArticleQualityEngine
             }
         }
 
-        // 3. Exam day / preachy advice
-        if (preg_match('/<h[2-4][^>]*>[^<]*(?:Exam Day Instructions|Mandatory Guidelines|Mandatory Documents Checklist)[^<]*<\/h[2-4]>/i', $content)) {
-            $issues['exam_day_section'] = 'Generic exam day instructions section detected';
-        }
+        // 3. Exam day / preachy advice (Only flag when genuine generic advice is present)
         if (str_contains($lower, 'transparent pouch') || str_contains($lower, 'strict adherence to protocols')) {
             $issues['preachy_advice'] = 'Preachy protocol fluff (transparent pouch / strict adherence) detected';
         }
@@ -184,7 +181,7 @@ class ArticleQualityEngine
         $changes = [];
 
         // ─────────────────────────────────────────────────────────────
-        // STAGE 1: HTML-Aware Section Stripping
+        // STAGE 1: HTML-Aware Section Stripping (Table-Preserving)
         // ─────────────────────────────────────────────────────────────
 
         // 1a. Remove / replace generic 5-step download guides
@@ -202,79 +199,61 @@ class ArticleQualityEngine
             $changes[] = 'Converted generic 5-step download guide to direct portal link';
         }
 
-        // 1b. Remove Exam Day Instructions unless officially sourced with facts
+        // 1b. Remove Exam Day Instructions ONLY if it contains ungrounded fluff AND does not contain <table>
         $examDayPattern = '/<h[2-4][^>]*>[^<]*(?:Exam Day Instructions & Mandatory Guidelines|Exam Day Instructions & Mandatory Documents Checklist|Exam Day Instructions|Mandatory Guidelines for)[^<]*<\/h[2-4]>(.*?)(?=<h[2-4]|$)/is';
         if (preg_match($examDayPattern, $content, $m)) {
             $sectionBody = $m[1] ?? '';
-            if (stripos($sectionBody, 'transparent pouch') !== false ||
-                stripos($sectionBody, 'strict adherence to protocols') !== false ||
-                stripos($sectionBody, 'smartwatches') !== false ||
-                stripos($sectionBody, 'electronic gadgets') !== false) {
+            // Only remove if it does NOT contain a table (never delete tables!)
+            if (!str_contains($sectionBody, '<table') &&
+                (stripos($sectionBody, 'transparent pouch') !== false ||
+                 stripos($sectionBody, 'strict adherence to protocols') !== false ||
+                 stripos($sectionBody, 'smartwatches') !== false ||
+                 stripos($sectionBody, 'electronic gadgets') !== false)) {
                 $content = preg_replace($examDayPattern, '', $content, 1);
                 $changes[] = 'Removed generic exam-day advice section';
             }
         }
 
-        // 1c. Remove Boilerplate "Official Notice Reference & Authority Verification"
+        // 1c. Remove Boilerplate "Official Notice Reference & Authority Verification" (never delete if it contains <table>)
         $authoritySectionPattern = '/<h[2-4][^>]*>[^<]*(?:Official Notice Reference & Authority Verification|Official Authority Verification & Direct Gazetted Links|Official Notification Circular & Direct Application Links|Official Portal Verification|Official Notice Reference)[^<]*<\/h[2-4]>(.*?)(?=<h[2-4]|$)/is';
         if (preg_match($authoritySectionPattern, $content, $m)) {
             $secBody = $m[1] ?? '';
-            if (stripos($secBody, 'All information provided is based on') !== false ||
-                stripos($secBody, 'cross-check any updates directly') !== false ||
-                mb_strlen(strip_tags($secBody)) < 300) {
+            if (!str_contains($secBody, '<table') &&
+                (stripos($secBody, 'All information provided is based on') !== false ||
+                 stripos($secBody, 'cross-check any updates directly') !== false ||
+                 mb_strlen(strip_tags($secBody)) < 300)) {
                 $content = preg_replace($authoritySectionPattern, '', $content, 1);
                 $changes[] = 'Removed boilerplate authority verification disclaimer section';
             }
         }
 
-        // 1d. FAQ Quality Refactoring (Cap at 3, remove stress / server / sleep FAQs)
-        $faqSectionPattern = '/(<h[2-4][^>]*>[^<]*(?:Frequently Asked Questions|FAQs)[^<]*<\/h[2-4]>)(.*?)(?=<h[2-4]|$)/is';
-        if (preg_match($faqSectionPattern, $content, $m)) {
-            $faqHeader = $m[1];
-            $faqBody = $m[2];
+        // 1d. FAQ Quality Refactoring (Purge stress/server FAQs, cap list at 3 items)
+        // Purge individual stress/server/cache FAQ items globally without touching enclosing tables
+        $content = preg_replace('/<li[^>]*>[^<]*<strong[^>]*>[^<]*(?:exam stress|sleep schedule|handling pressure|website is down|servers will crawl|server crawls|incognito|clear cache)[^<]*<\/strong>.*?<\/li>/is', '', $content);
+        $content = preg_replace('/<h[3-5][^>]*>[^<]*(?:exam stress|sleep schedule|handling pressure|website is down|servers will crawl|server crawls|incognito|clear cache)[^<]*<\/h[3-5]>\s*<p[^>]*>.*?<\/p>/is', '', $content);
 
-            // Remove stress / sleep / server items inside FAQ
-            $cleanFaqBody = preg_replace('/<li[^>]*>[^<]*<strong[^>]*>[^<]*(?:exam stress|sleep schedule|handling pressure|website is down|servers will crawl|server crawls|incognito|clear cache)[^<]*<\/strong>.*?<\/li>/is', '', $faqBody);
-            $cleanFaqBody = preg_replace('/<h[3-5][^>]*>[^<]*(?:exam stress|sleep schedule|handling pressure|website is down|servers will crawl|server crawls|incognito|clear cache)[^<]*<\/h[3-5]>\s*<p[^>]*>.*?<\/p>/is', '', $cleanFaqBody);
-            $cleanFaqBody = preg_replace('/<p[^>]*>[^<]*(?:How do I handle exam stress|maintain a consistent sleep schedule)[^<]*<\/p>/is', '', $cleanFaqBody);
+        // Cap FAQ lists with > 3 questions to top 3 items without truncating any following tables or content
+        $content = preg_replace_callback('/(<h[2-4][^>]*>[^<]*(?:Frequently Asked Questions|FAQs)[^<]*<\/h[2-4]>\s*)(<(?:ul|ol)[^>]*>)(.*?)(<\/(?:ul|ol)>)/is', function($m) use (&$changes) {
+            $heading = $m[1];
+            $openTag = $m[2];
+            $listContent = $m[3];
+            $closeTag = $m[4];
 
-            // Cap items at 3
-            if (preg_match('/<(ul|ol)[^>]*>(.*?)<\/\1>/is', $cleanFaqBody, $listMatch)) {
-                $tag = $listMatch[1];
-                if (preg_match_all('/<li[^>]*>.*?<\/li>/is', $listMatch[2], $liMatches)) {
-                    $items = array_slice($liMatches[0], 0, 3);
-                    if (empty($items)) {
-                        $content = str_replace($m[0], '', $content);
-                        $changes[] = 'Removed empty / non-factual FAQ section entirely';
-                    } else {
-                        $newFaqBlock = "{$faqHeader}\n<{$tag}>\n" . implode("\n", $items) . "\n</{$tag}>";
-                        $content = str_replace($m[0], $newFaqBlock, $content);
-                        if (count($liMatches[0]) > 3) {
-                            $changes[] = 'Capped FAQ section to top 3 relevant questions';
-                        }
-                    }
-                } else {
-                    // List had zero matching <li> elements (all were removed)
-                    $content = str_replace($m[0], '', $content);
-                    $changes[] = 'Removed empty / non-factual FAQ section entirely';
-                }
-            } elseif (preg_match_all('/(<h[3-5][^>]*>.*?<\/h[3-5]>\s*<p[^>]*>.*?<\/p>)/is', $cleanFaqBody, $pairMatches)) {
-                $pairs = array_slice($pairMatches[0], 0, 3);
-                if (empty($pairs)) {
-                    $content = str_replace($m[0], '', $content);
-                    $changes[] = 'Removed empty / non-factual FAQ section entirely';
-                } else {
-                    $newFaqBlock = "{$faqHeader}\n" . implode("\n", $pairs);
-                    $content = str_replace($m[0], $newFaqBlock, $content);
-                }
-            } else {
-                // If the cleaned body has no list or Q/A pairs left, remove section
-                if (trim(strip_tags($cleanFaqBody)) === '') {
-                    $content = str_replace($m[0], '', $content);
-                    $changes[] = 'Removed empty / non-factual FAQ section entirely';
-                }
+            preg_match_all('/<li[^>]*>.*?<\/li>/is', $listContent, $liMatches);
+            $items = $liMatches[0] ?? [];
+
+            if (empty($items)) {
+                $changes[] = 'Removed empty / non-factual FAQ section entirely';
+                return ''; // No questions left -> remove heading & list
             }
-        }
+
+            if (count($items) > 3) {
+                $items = array_slice($items, 0, 3);
+                $changes[] = 'Capped FAQ section to top 3 relevant questions';
+            }
+
+            return $heading . $openTag . "\n" . implode("\n", $items) . "\n" . $closeTag;
+        }, $content);
 
         // ─────────────────────────────────────────────────────────────
         // STAGE 2: Prose & Sentence-Level Sanitization
