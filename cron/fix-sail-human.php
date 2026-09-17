@@ -22,7 +22,7 @@ $sailData = [
     
     'selection_process' => "First round is an online CBT with sections on core branch subjects and aptitude. If you clear the cut-off, you're called for a Personal Interview. For some technician roles, there's a Skill Test after the written exam. Document verification is the final hurdle. They're extremely strict about your educational certificates and category proofs. Any spelling error between your matric certificate and application form ends your candidature on the spot.",
     
-    'syllabus_snapshot' => "Questions pull straight from GATE topics like Thermodynamics, Fluid Mechanics, and Circuit Theory. Scoring well in basic English, Quant, and Reasoning keeps you ahead when technical marks tie. Technical section carries the highest rank weightage. Aptitude score acts as the tie-breaker in close ranks."
+    'syllabus_snapshot' => "The written test focuses on your core branch papers—Thermodynamics, Fluid Mechanics, or Circuit Theory depending on your engineering stream. Scoring well in basic English, Quant, and Reasoning keeps you ahead when technical marks tie. Technical section carries the highest rank weightage. Aptitude score acts as the tie-breaker in close ranks."
 ];
 
 $term = Database::fetchOne("SELECT id, acronym, slug FROM glossary_terms WHERE slug = 'sail' LIMIT 1");
