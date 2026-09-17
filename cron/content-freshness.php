@@ -103,6 +103,33 @@ foreach ($articles as $article) {
         }
     }
 
+    // --------------------------------------------------------------------
+    // 3. Absolute Calendar Date Expiry Engine
+    // Extracts exact dates like "Apply by Sept 15", "Last Date: 12 August 2026"
+    // and checks if date has passed relative to today.
+    // --------------------------------------------------------------------
+    // A. Check Title for "Apply by [Month] [Day]" or "Apply by [Day] [Month]"
+    if (preg_match('/(?:Apply by|Last Date[:\s]+)\s*([0-9]{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|October|Nov|Dec)[a-z]*|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|October|Nov|Dec)[a-z]*\s+[0-9]{1,2})(?:[,\s]+(202[0-9]))?/i', $title, $dm)) {
+        $extractedDateStr = trim($dm[1]);
+        $extractedYear = !empty($dm[2]) ? $dm[2] : date('Y');
+        $fullParsedDate = strtotime($extractedDateStr . ' ' . $extractedYear);
+
+        if ($fullParsedDate !== false && $fullParsedDate < strtotime('today')) {
+            // Date is in the past! Transition title
+            $title = preg_replace('/:\s*Apply by\s+.*$/i', ' (Application Window Closed)', $title);
+            $title = preg_replace('/Apply by\s+[0-9a-zA-Z,\s]+/i', 'Application Window Closed', $title);
+            $articleUpdated = true;
+
+            // Prepend Closed Warning Banner to content if not already present
+            if (strpos($content, 'status-closed') === false) {
+                $closedBanner = '<div class="alert-box status-closed" style="background:#fef2f2;border-left:4px solid #dc2626;padding:12px 16px;margin-bottom:16px;border-radius:4px;">
+<strong>⚠️ Notice:</strong> The registration / application deadline for this notification has ended. Please check the official portal for subsequent phases or upcoming exam cycle updates.
+</div>';
+                $content = preg_replace('/(<(?:p|h2)[^>]*>)/i', $closedBanner . '$1', $content, 1);
+            }
+        }
+    }
+
     if ($articleUpdated) {
         Database::update('articles', [
             'title'      => $title,
