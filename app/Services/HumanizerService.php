@@ -329,6 +329,23 @@ class HumanizerService
         '/\bkeep\s+an?\s+eye\s+on\s+the\s+official\s+portal\b(?![^.!?]*\d)[^.!?]*[.!?]/iu',
         '/\bit\'?s\s+a\s+long\s+road,?\s+but\s+the\s+stability\s+makes\s+it\s+worth\s+the\s+grind[^.!?]*[.!?]/iu',
         '/\bfocuses\s+heavily\s+on\s+your\s+core\s+engineering\s+branch[^.!?]*[.!?]/iu',
+        // New: Gemini-generated AI phrases caught by detectors
+        '/\bYou\'?ve\s+got\s+this\s*[.!]/iu',
+        '/\bGood\s+luck[.!,]/iu',
+        '/\bHit\s+me\s+up\s+if\s+you\'?re\s+stuck[^.!?]*[.!?]/iu',
+        '/\bFocus\s+your\s+energy\s+on\b[^.!?]*[.!?]/iu',
+        '/\bKeep\s+at\s+it\b[^.!?]*[.!?]/iu',
+        '/\bYou\'?re\s+going\s+to\s+nail\s+this\b[^.!?]*[.!?]/iu',
+        '/\bThis\s+is\s+where\s+many\s+candidates\s+slip\s+up[^.!?]*[.!?]/iu',
+        '/\bThis\s+is\s+where\s+(?:most|many)\s+(?:people|students|aspirants)\s+(?:trip|slip|go\s+wrong)[^.!?]*[.!?]/iu',
+        '/\bBasically,\s+keep\s+your\s+basics?\s+rock\s+solid[^.!?]*[.!?]/iu',
+        '/\bIt\'?s\s+pretty\s+straightforward\s+if\s+you\s+stay\s+consistent[^.!?]*[.!?]/iu',
+        '/\bstay\s+consistent\s+with\s+your\s+prep\b[^.!?]*[.!?]/iu',
+        '/\bmaster\s+(?:the|your)\s+basics\b[^.!?]*[.!?]/iu',
+        '/\bno\s+surprises\s+here[^.!?]*[.!?]/iu',
+        '/\bHonestly,\s+don\'?t\s+let\s+(?:the|this)\s+\w+\s+overwhelm\s+you[^.!?]*[.!?]/iu',
+        '/\bkeep\s+your\s+basics\s+rock\s+solid\b[^.!?]*[.!?]/iu',
+        '/\bEnglish,\s+Quant,\s+Reasoning[^.!?]*ultimate\s+tie-breakers?[^.!?]*[.!?]/iu',
     ];
 
     /**

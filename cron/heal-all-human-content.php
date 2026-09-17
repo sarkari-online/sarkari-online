@@ -211,7 +211,7 @@ MANDATORY WRITING STYLE (violating any rule = failure):
 5. For eligibility: write each criterion as a plain dash-bullet (–) with informal phrasing. Example: "– B.E./B.Tech in Mech, Electrical, or Metallurgy with 65%+ marks" NOT "Candidates need a full-time Bachelor's degree".
 6. For selection stages: write as "Step 1 → Step 2 → Step 3" with a SHORT sentence of context after each arrow.
 7. NEVER use these words/phrases: "furthermore", "moreover", "it is worth noting", "candidates are advised", "it is important to note", "one must note", "as per", "in today's competitive", "plays a crucial role", "in conclusion", "it is imperative", "pertaining to", "with respect to", "notwithstanding", "comprehensive".
-8. Inject at least one minor colloquial phrase naturally: "pretty straightforward", "don't overthink it", "no surprises here", "they're strict about this", "this is where many candidates slip up".
+8. Use natural informal phrasing but DO NOT literally use: "You've got this", "Good luck", "Hit me up", "Focus your energy on", "no surprises here", "this is where candidates slip up", "keep your basics rock solid", "stay consistent with your prep". These are AI-detectable filler.
 9. Preserve ALL facts exactly: percentages, age numbers, branch names, stage names, year numbers — unchanged.
 10. Keep length within 20% of original.
 11. Return ONLY the rewritten text. Zero preamble. No headers. No markdown.
@@ -239,7 +239,7 @@ MANDATORY RULES (break any = failure):
 3. Use contractions: "you'll", "it's", "don't", "there's", "can't", "won't", "they're", "I've seen".
 4. Use at least 2 informal connectors from: "Look,", "Honestly,", "Basically,", "Here's the thing —", "No surprises here —", "Quick note:", "Oh, and", "Worth knowing:".
 5. NEVER use: "furthermore", "moreover", "it is worth noting", "candidates are advised", "it is important to note", "plays a crucial role", "it is imperative", "with respect to", "as per the official", "in conclusion", "to summarize", "in today's competitive", "needless to say", "at the end of the day".
-6. Use at least one of these colloquial phrases where natural: "pretty much", "basically", "this is where many people trip up", "don't overthink it", "just make sure", "they're very strict about this", "no guessing needed here".
+6. DO NOT literally use these AI-detectable phrases: "You've got this", "Good luck", "Hit me up", "Focus your energy on", "no surprises here", "this is where candidates slip up", "keep your basics rock solid", "stay consistent with your prep", "You're going to nail this", "master the basics", "rock solid".
 7. Preserve EVERY fact exactly: all numbers, dates, percentages, exam names, URLs, seat counts — word-for-word unchanged.
 8. Do NOT add facts not in the original.
 9. Keep length within 25% of original.
@@ -321,6 +321,13 @@ if ($healGlossary) {
                         ]);
                         $rewritten = trim($res['text'] ?? '');
                         if (!empty($rewritten) && mb_strlen($rewritten) > 30) {
+                            // ── Post-LLM scrubbing: strip AI filler Gemini added ──
+                            $postScrub = HumanizerService::scrubClichePatterns("<p>" . $rewritten . "</p>");
+                            $rewritten = strip_tags($postScrub['html']);
+                            $rewritten = HumanizerService::scrubClichés($rewritten);
+                            if (!empty($postScrub['removed'])) {
+                                echo "      🧹 Post-LLM scrubber removed " . count($postScrub['removed']) . " AI filler phrase(s) Gemini added.\n";
+                            }
                             $cleaned = $rewritten;
                             $llmRewrites++;
                             echo "      ✨ Gemini rewrote {$field} successfully.\n";
