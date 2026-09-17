@@ -137,12 +137,25 @@ class ArticleQualityEngine
 
         // 7. Excessive / Generic FAQs (> 3 FAQs or generic FAQs)
         $faqCount = 0;
-        if (preg_match('/<h[2-4][^>]*>[^<]*(?:Frequently Asked Questions|FAQs)[^<]*<\/h[2-4]>(.*?)(?=<h[1-2]|\z)/is', $content, $faqMatch)) {
-            $faqBlock = $faqMatch[1];
-            $h3Count = preg_match_all('/<h[3-5][^>]*>/i', $faqBlock);
-            $strongLiCount = preg_match_all('/<li[^>]*>\s*<strong[^>]*>.*?<\/strong>/i', $faqBlock);
-            $allLiCount = preg_match_all('/<li[^>]*>.*?<\/li>/i', $faqBlock);
-            $faqCount = max($h3Count, $strongLiCount, $allLiCount);
+        $headingPattern = '/<h[2-4][^>]*>[^<]*(?:Frequently Asked Questions|FAQs)[^<]*<\/h[2-4]>/i';
+        if (preg_match($headingPattern, $content, $hm, PREG_OFFSET_CAPTURE)) {
+            $faqOffset = $hm[0][1] + strlen($hm[0][0]);
+            $afterFaq = substr($content, $faqOffset);
+
+            // Scope strictly to this FAQ section (before next h1 or h2)
+            $sectionOnly = $afterFaq;
+            if (preg_match('/^(.*?)(?=<h[1-2]|\z)/is', $afterFaq, $sm)) {
+                $sectionOnly = $sm[1];
+            }
+
+            // 1. If there is a <ul> or <ol> list directly under the FAQ heading (with optional intro text)
+            if (preg_match('/^(?:(?!<h[1-4]).)*?<(?:ul|ol)[^>]*>(.*?)<\/(?:ul|ol)>/is', $sectionOnly, $listMatch)) {
+                $faqCount = preg_match_all('/<li[^>]*>.*?<\/li>/is', $listMatch[1]);
+            } elseif (preg_match_all('/<h[3-5][^>]*>.*?<\/h[3-5]>\s*<p[^>]*>.*?<\/p>/is', $sectionOnly, $pairMatches)) {
+                // 2. Or <h3>/<h4>/<h5> question + <p> answer pairs
+                $faqCount = count($pairMatches[0]);
+            }
+
             if ($faqCount > 3) {
                 $issues['excessive_faqs'] = "FAQ section contains {$faqCount} questions (maximum allowed is 3)";
             }
