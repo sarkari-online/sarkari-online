@@ -22,7 +22,7 @@ class JobDirectoryService {
      */
     public static function getActiveJobs(int $limit = 60, ?string $stateFilter = null): array {
         try {
-            // Fetch published recruitment and examination articles
+            // Fetch strictly government recruitment / job notification articles
             $sql = "
                 SELECT a.id, a.title, a.slug, a.content, a.excerpt, a.published_at, a.updated_at,
                        a.source_name, a.source_url,
@@ -30,12 +30,7 @@ class JobDirectoryService {
                 FROM articles a
                 LEFT JOIN categories c ON a.category_id = c.id
                 WHERE a.status = 'published'
-                  AND (c.slug IN ('government-jobs', 'career-guides', 'exam-dates', 'admit-cards')
-                       OR a.title LIKE '%Recruitment%'
-                       OR a.title LIKE '%Vacancy%'
-                       OR a.title LIKE '%Online Form%'
-                       OR a.title LIKE '%Posts%'
-                       OR a.title LIKE '%Bharti%')
+                  AND c.slug = 'government-jobs'
                 ORDER BY a.published_at DESC
                 LIMIT 100
             ";
@@ -86,8 +81,8 @@ class JobDirectoryService {
         $content = $row['content'] ?? '';
         $slug = $row['slug'] ?? '';
 
-        // Filter out non-job noise (college admissions, university counselling, admit cards, answer keys, results, fellowships)
-        if (preg_match('/\b(?:Admission|Admissions|Counselling|Counseling|Seat Allotment|Allotment|CAP Round|Option Entry|Grievance|Helpdesk|Complaint|Court|Stay Order|Admit Card Out|Hall Ticket Out|Answer Key|Scorecard Link|Result Declared|Fellowship|Scholarship)\b/i', $title)) {
+        // Filter out non-job noise (admit cards, hall tickets, exam pattern/syllabus guides, college admissions, answer keys, results)
+        if (preg_match('/\b(?:Admit Card|Hall Ticket|Exam Pattern|Syllabus|Preparation Guide|Preparation Roadmap|Study Plan|Admission|Admissions|Counselling|Counseling|Seat Allotment|Allotment|CAP Round|Option Entry|Grievance|Helpdesk|Complaint|Court|Stay Order|Answer Key|Scorecard|Result Declared|Fellowship|Scholarship)\b/i', $title)) {
             return null;
         }
 
