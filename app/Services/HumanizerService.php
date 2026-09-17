@@ -327,25 +327,43 @@ class HumanizerService
         '/\bbackbone\s+of\s+india\'?s\s+[\w\s]{1,30}[.!?]/iu',
         '/\bdon\'?t\s+ignore\s+the\s+fine\s+print\b(?![^.!?]*\d)[^.!?]*[.!?]/iu',
         '/\bkeep\s+an?\s+eye\s+on\s+the\s+official\s+portal\b(?![^.!?]*\d)[^.!?]*[.!?]/iu',
-        '/\bit\'?s\s+a\s+long\s+road,?\s+but\s+the\s+stability\s+makes\s+it\s+worth\s+the\s+grind[^.!?]*[.!?]/iu',
-        '/\bfocuses\s+heavily\s+on\s+your\s+core\s+engineering\s+branch[^.!?]*[.!?]/iu',
-        // New: Gemini-generated AI phrases caught by detectors
-        '/\bYou\'?ve\s+got\s+this\s*[.!]/iu',
-        '/\bGood\s+luck[.!,]/iu',
-        '/\bHit\s+me\s+up\s+if\s+you\'?re\s+stuck[^.!?]*[.!?]/iu',
-        '/\bFocus\s+your\s+energy\s+on\b[^.!?]*[.!?]/iu',
-        '/\bKeep\s+at\s+it\b[^.!?]*[.!?]/iu',
-        '/\bYou\'?re\s+going\s+to\s+nail\s+this\b[^.!?]*[.!?]/iu',
-        '/\bThis\s+is\s+where\s+many\s+candidates\s+slip\s+up[^.!?]*[.!?]/iu',
-        '/\bThis\s+is\s+where\s+(?:most|many)\s+(?:people|students|aspirants)\s+(?:trip|slip|go\s+wrong)[^.!?]*[.!?]/iu',
-        '/\bBasically,\s+keep\s+your\s+basics?\s+rock\s+solid[^.!?]*[.!?]/iu',
-        '/\bIt\'?s\s+pretty\s+straightforward\s+if\s+you\s+stay\s+consistent[^.!?]*[.!?]/iu',
-        '/\bstay\s+consistent\s+with\s+your\s+prep\b[^.!?]*[.!?]/iu',
-        '/\bmaster\s+(?:the|your)\s+basics\b[^.!?]*[.!?]/iu',
-        '/\bno\s+surprises\s+here[^.!?]*[.!?]/iu',
-        '/\bHonestly,\s+don\'?t\s+let\s+(?:the|this)\s+\w+\s+overwhelm\s+you[^.!?]*[.!?]/iu',
-        '/\bkeep\s+your\s+basics\s+rock\s+solid\b[^.!?]*[.!?]/iu',
-        '/\bEnglish,\s+Quant,\s+Reasoning[^.!?]*ultimate\s+tie-breakers?[^.!?]*[.!?]/iu',
+        // Systematic AI Blogger Tropes (flagged by ZeroGPT / QuillBot across articles)
+        // 1. Urgency & Ticking Clock
+        '/(?:once the|when the)[^.!?]+objection window[^.!?]+(?:clock starts ticking|clock is ticking)[^.!?]*[.!?]/iu',
+        '/\byou(?:\'ve| have) only got \d+ hours to make your move[^.!?]*[.!?]/iu',
+        '/\bdon\'?t wait until the (?:clock hits the )?final hour[^.!?]*[.!?]/iu',
+        '/\bthe clock starts ticking immediately[^.!?]*[.!?]/iu',
+        '/\bif you miss that \d+-hour challenge window[^.!?]*[.!?]/iu',
+        '/\bit\'?s a hard deadline, and the board doesn\'?t accept excuses[^.!?]*[.!?]/iu',
+        '/\bthe portal won\'?t reopen[^.!?]*[.!?]/iu',
+
+        // 2. Server Crash, Incognito & Cache Advice (Universal ChatGPT exam filler)
+        '/\b(?:when thousands of aspirants hit the portal|the servers will crawl|site traffic gets crazy)[^.!?]*[.!?]/iu',
+        '/\bif the page hangs, try an incognito window or clear your browser cache[^.!?]*[.!?]/iu',
+        '/\btry incognito or private browsing mode[^.!?]*[.!?]/iu',
+        '/\bit\'?s a quick fix that often clears those annoying session timeouts[^.!?]*[.!?]/iu',
+        '/\bhave your application number and date of birth saved in a notepad file[^.!?]*[.!?]/iu',
+        '/\btechnical glitches happen when thousands of aspirants log in at once[^.!?]*[.!?]/iu',
+        '/\bserver down\?\s*try incognito[^.!?]*[.!?]/iu',
+        '/\bdon\'?t panic if the page hangs;\s*just refresh and try again[^.!?]*[.!?]/iu',
+        '/\bserver loads spike during these windows[^.!?]*[.!?]/iu',
+
+        // 3. Stern Warnings, "Red Flags" & Fear-Mongering
+        '/\bif your proof is weak, they won\'?t even look at it[^.!?]*[.!?]/iu',
+        '/\bit\'?s a red flag[.!]?/iu',
+        '/\bdo it now, not when the heat is on[^.!?]*[.!?]/iu',
+        '/\byou don\'?t want these administrative errors haunting your results later[^.!?]*[.!?]/iu',
+        '/\bkeep your evidence ready before you start[^.!?]*[.!?]/iu',
+        '/\bensure your document scans are small enough to upload quickly[^.!?]*[.!?]/iu',
+        '/\bkeep your documents ready before you even log in to avoid upload failures[^.!?]*[.!?]/iu',
+
+        // 4. Blogger Pep-Talk Endings
+        '/\byou(?:\'ve| have) worked too hard for this[^.!?]*[.!?]/iu',
+        '/\bdon\'?t let a technical hiccup or a minor typo derail your progress[^.!?]*[.!?]/iu',
+        '/\bstay sharp, move fast, and get your objections in[^.!?]*[.!?]/iu',
+        '/\bhere\'?s what you should keep in mind to stay ahead:\s*/iu',
+        '/\bhere\'?s the ground reality:\s*the servers will crawl\.\s*/iu',
+        '/\byou don\'?t want to leave this until the final hour[^.!?]*[.!?]/iu',
     ];
 
     /**
