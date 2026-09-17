@@ -137,11 +137,12 @@ class ArticleQualityEngine
 
         // 7. Excessive / Generic FAQs (> 3 FAQs or generic FAQs)
         $faqCount = 0;
-        if (preg_match('/<h[2-4][^>]*>[^<]*(?:Frequently Asked Questions|FAQs)[^<]*<\/h[2-4]>(.*?)(?=<h[2-4]|$)/is', $content, $faqMatch)) {
+        if (preg_match('/<h[2-4][^>]*>[^<]*(?:Frequently Asked Questions|FAQs)[^<]*<\/h[2-4]>(.*?)(?=<h[1-2]|\z)/is', $content, $faqMatch)) {
             $faqBlock = $faqMatch[1];
             $h3Count = preg_match_all('/<h[3-5][^>]*>/i', $faqBlock);
             $strongLiCount = preg_match_all('/<li[^>]*>\s*<strong[^>]*>.*?<\/strong>/i', $faqBlock);
-            $faqCount = max($h3Count, $strongLiCount);
+            $allLiCount = preg_match_all('/<li[^>]*>.*?<\/li>/i', $faqBlock);
+            $faqCount = max($h3Count, $strongLiCount, $allLiCount);
             if ($faqCount > 3) {
                 $issues['excessive_faqs'] = "FAQ section contains {$faqCount} questions (maximum allowed is 3)";
             }
@@ -235,7 +236,7 @@ class ArticleQualityEngine
         $content = preg_replace('/<h[3-5][^>]*>[^<]*(?:exam stress|sleep schedule|handling pressure|website is down|servers?\s+(?:will\s+|may\s+)?crawls?|incognito|clear(?:ing)?\s+(?:your\s+)?(?:browser\s+)?cache|browser\s+cache)[^<]*<\/h[3-5]>\s*<p[^>]*>.*?<\/p>\s*/is', '', $content);
 
         // Cap FAQ lists with > 3 questions to top 3 items without truncating any following tables or content
-        $content = preg_replace_callback('/(<h[2-4][^>]*>[^<]*(?:Frequently Asked Questions|FAQs)[^<]*<\/h[2-4]>\s*)(<(?:ul|ol)[^>]*>)(.*?)(<\/(?:ul|ol)>)/is', function($m) use (&$changes) {
+        $content = preg_replace_callback('/(<h[2-4][^>]*>[^<]*(?:Frequently Asked Questions|FAQs)[^<]*<\/h[2-4]>(?:(?!<h[1-2]).)*?)(<(?:ul|ol)[^>]*>)(.*?)(<\/(?:ul|ol)>)/is', function($m) use (&$changes) {
             $heading = $m[1];
             $openTag = $m[2];
             $listContent = $m[3];
@@ -256,6 +257,25 @@ class ArticleQualityEngine
 
             return $heading . $openTag . "\n" . implode("\n", $items) . "\n" . $closeTag;
         }, $content);
+
+        // Also cap FAQ sections formatted as <h3>/<h4>/<h5> question + <p> answer pairs to top 3
+        $faqHeaderPattern = '/(<h[2-4][^>]*>[^<]*(?:Frequently Asked Questions|FAQs)[^<]*<\/h[2-4]>)(.*?)(?=<h[1-2]|\z)/is';
+        if (preg_match($faqHeaderPattern, $content, $fm)) {
+            $heading = $fm[1];
+            $sectionBody = $fm[2];
+            if (preg_match_all('/(<h[3-5][^>]*>.*?<\/h[3-5]>\s*<p[^>]*>.*?<\/p>)/is', $sectionBody, $pairMatches)) {
+                $pairs = $pairMatches[0];
+                if (count($pairs) > 3) {
+                    $excessPairs = array_slice($pairs, 3);
+                    $cleanSectionBody = $sectionBody;
+                    foreach ($excessPairs as $excess) {
+                        $cleanSectionBody = str_replace($excess, '', $cleanSectionBody);
+                    }
+                    $content = str_replace($fm[0], $heading . $cleanSectionBody, $content);
+                    $changes[] = 'Capped FAQ Q&A pairs to top 3 questions';
+                }
+            }
+        }
 
         // ─────────────────────────────────────────────────────────────
         // STAGE 2: Prose & Sentence-Level Sanitization

@@ -136,6 +136,22 @@ $bogusFaqHtml = '<h2>Frequently Asked Questions (FAQs)</h2><ul><li><strong>How d
 $refactoredBogus = ArticleQualityEngine::refactorContent($bogusFaqHtml, "Exam 2026", "https://exam.gov.in", "recruitment");
 assertTest("Remove FAQ section completely when no factual FAQs exist", !str_contains($refactoredBogus['content'], "Frequently Asked Questions"));
 
+// Test h3/p pair capping
+$h3FaqHtml = '<h2>Frequently Asked Questions (FAQs)</h2>' .
+    '<h3>Q1: When is WBJEE 2027?</h3><p>Expected in May 2027.</p>' .
+    '<h3>Q2: What is eligibility?</h3><p>Passed 12th with PCM.</p>' .
+    '<h3>Q3: Negative marking?</h3><p>0.25 marks penalty.</p>' .
+    '<h3>Q4: Can OBC apply?</h3><p>Yes, category relaxation.</p>' .
+    '<h3>Q5: Application fee?</h3><p>General is Rs 500.</p>';
+$analysisH3 = ArticleQualityEngine::analyzeQuality($h3FaqHtml);
+assertTest("Detect excessive FAQs in h3/p pairs (> 3 questions)", isset($analysisH3['issues']['excessive_faqs']));
+$refactoredH3 = ArticleQualityEngine::refactorContent($h3FaqHtml, "WBJEE 2027", "https://wbjeeb.nic.in", "recruitment");
+$h3Count = substr_count($refactoredH3['content'], '<h3>');
+assertTest("Cap h3/p FAQ pairs at maximum 3 items", $h3Count === 3, "Resulting H3 count: {$h3Count}");
+$postAnalysisH3 = ArticleQualityEngine::analyzeQuality($refactoredH3['content'], "WBJEE 2027");
+assertTest("Post-refactor h3/p FAQ reaches 100/100", $postAnalysisH3['score'] === 100 && $postAnalysisH3['is_clean']);
+
+
 // ─────────────────────────────────────────────────────────────
 // 6. SINGLE-LINE HTML VS MULTILINE HTML HANDLING
 // ─────────────────────────────────────────────────────────────
