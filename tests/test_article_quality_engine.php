@@ -216,6 +216,22 @@ assertTest("Preserve factual admit card link and checklist item", str_contains($
 $postAnalysis = ArticleQualityEngine::analyzeQuality($refactored['content'], "UPSC 2026");
 assertTest("Post-refactor quality score reaches 100/100", $postAnalysis['score'] === 100 && $postAnalysis['is_clean']);
 
+// ─────────────────────────────────────────────────────────────
+// 11. FAKE-MENTOR COACHING PERSONA PURGE
+// ─────────────────────────────────────────────────────────────
+echo "\nGroup 11: Fake-Mentor Coaching Persona Purge\n";
+
+$mentorHtml = '<p>HPCL has notified recruitment. Every engineering graduate dreams of joining this Maharatna. I\'ve seen many candidates get rejected because their 10th-grade certificate name didn\'t match. It\'s a classic mistake. When the notification drops, the server traffic is insane. Don\'t underestimate the document verification stage.</p><p>Official documents must be verified in person on 15 October 2026.</p>';
+$refactoredMentor = ArticleQualityEngine::refactorContent($mentorHtml, "HPCL Recruitment", "https://hindustanpetroleum.com", "recruitment");
+
+assertTest("Purge 'dreams of joining' fluff", !str_contains($refactoredMentor['content'], "dreams of joining"));
+assertTest("Purge 'I\'ve seen many candidates' coaching claim", !str_contains($refactoredMentor['content'], "I've seen many candidates"));
+assertTest("Purge 'classic mistake' filler", !str_contains($refactoredMentor['content'], "classic mistake"));
+assertTest("Purge 'server traffic is insane' filler", !str_contains($refactoredMentor['content'], "server traffic is insane"));
+assertTest("Purge 'don\'t underestimate' filler", !str_contains($refactoredMentor['content'], "don't underestimate"));
+assertTest("Preserve core factual date and requirement", str_contains($refactoredMentor['content'], "15 October 2026"));
+
+
 
 // ─────────────────────────────────────────────────────────────
 // SUMMARY

@@ -209,34 +209,40 @@ You are the Chief Statutory Lexicographer for Sarkari.online, an authoritative p
 
 TARGET ACRONYM: "{$acronym}"{$hintText}
 
-Generate 100% FACTUAL, accurate data for this Indian government examination, public commission, administrative post, or PSU recruitment abbreviation.
-CRITICAL ANTI-AI DETECTOR HUMANIZER RULES (0% AI / 100% HUMAN ON QUILLBOT & GPTZERO):
-- Write with the authentic voice of a veteran Indian education journalist and senior competitive exam mentor.
-- HIGH BURSTINESS: Vary sentence lengths dynamically. Mix ultra-short punchy sentences (4-6 words) with natural medium and longer explanatory sentences.
-- MANDATORY CONTRACTIONS: Frequently use natural human contractions: you'll, don't, can't, it's, here's, won't, there's.
-- STRICT CLICHÉ BLACKLIST (ZERO TOLERANCE):
-  * NEVER use: "digital governance initiative", "streamline the recruitment process", "centralized repository", "eliminate redundancy", "reflecting the government's commitment to", "fosters transparency", "crucial step", "pivotal role", "serves as a testament to", "in today's digital era", "without further ado".
-- REAL ASPIRANT REALITIES: Acknowledge practical candidate friction: correction windows, 10th certificate name matching, server traffic, photograph background rules.
+Generate 100% FACTUAL, accurate, gazette-style data for this Indian government examination, public commission, administrative post, or PSU abbreviation.
+
+STRICT HUMAN-EDITORIAL CONSTRAINTS:
+1. OBJECTIVE 3RD-PERSON JOURNALISTIC TONE:
+   - Write strictly in neutral, authoritative 3rd-person voice (like The Hindu, Indian Express, or Jagran Josh).
+   - NEVER use first-person coaching claims: "I've seen many candidates get rejected", "In my experience", "Don't underestimate", "It's a classic mistake", "The interview panel isn't looking for bookish knowledge", "Don't take the Group Task lightly", "Every graduate dreams of joining".
+   - State official criteria directly and factually. No dramatic warnings or motivational fluff.
+
+2. HIGH BURSTINESS & NATURAL CADENCE:
+   - Mix concise sentences with informative factual sentences.
+   - Use natural contractions where appropriate (don't, it's, haven't).
+
+3. STRICT CLICHÉ BLACKLIST (ZERO TOLERANCE):
+   - NEVER use: "digital governance initiative", "streamline the recruitment process", "centralized repository", "eliminate redundancy", "reflecting the government's commitment to", "fosters transparency", "crucial step", "pivotal role", "serves as a testament to", "in today's digital era", "without further ado", "traffic is insane", "server traffic".
 
 STRICT FIELD SPECIFICATIONS:
 1. "full_form_en": The exact official expansion in English.
 2. "full_form_hi": The exact authentic Hindi translation and meaning (शुद्ध हिंदी अनुवाद).
 3. "category": EXACTLY ONE of: ["civil_services", "defence", "banking", "railway", "police", "teaching", "engineering", "medical", "entrance"].
-4. "conducting_body": The exact Ministry, Commission, or Exam Board (e.g. "Uttar Pradesh Police Recruitment and Promotion Board", "DRDO", "AIIMS", "SSC", "UPSC").
+4. "conducting_body": The exact Ministry, Commission, or Exam Board (e.g. "Ministry of Petroleum and Natural Gas", "UPSC", "SSC", "NTA", "RRB").
 5. "official_portal": Official .gov.in, .nic.in, or statutory agency website URL.
-6. "overview": 140-220 words in 100% HUMAN mentor voice. Explain what it is, why aspirants need it, how the system works in practice, and common candidate mistakes to avoid.
-7. "eligibility_criteria": 70-110 words covering educational qualification and standard age limits with OBC/SC/ST relaxations.
-8. "selection_process": 70-110 words breaking down recruitment stages (CBT/Written, Physical/Skill, Document Verification).
-9. "syllabus_snapshot": 60-90 words summarizing core subject areas.
+6. "overview": 100-140 words in authoritative, neutral gazette voice. Detail the organisation/post's establishment, headquarters, parent ministry, statutory mandate, and operational role. NO personal coaching advice.
+7. "eligibility_criteria": 60-90 words stating official educational qualifications (degree/discipline), minimum marks (General vs reserved categories), and official age limits with standard statutory relaxations. Strictly factual.
+8. "selection_process": 60-90 words detailing the official gazetted recruitment stages (e.g. CBT/GATE shortlisting, Group Discussion/Interview, Document Verification, and Medical Examination). Strictly procedural.
+9. "syllabus_snapshot": 50-80 words listing the official examination subjects and key technical/general aptitude domains. Strictly factual.
 10. Salary Details (if a job post or cadre):
-    - "pay_level_7cpc": Pay Matrix Level e.g. "Level 3 (7th CPC)" or "Level 7 (7th CPC)" (or null if statutory board)
+    - "pay_level_7cpc": Pay Matrix Level e.g. "Level 3 (7th CPC)" or "Executive Scale E-2" (or null if statutory board)
     - "basic_pay_min": Integer e.g. 21700 (or null)
     - "basic_pay_max": Integer e.g. 69100 (or null)
     - "gross_salary_min": Integer e.g. 35000 (or null)
     - "gross_salary_max": Integer e.g. 42000 (or null)
-    - "allowances_summary": "DA (50%), HRA, Transport Allowance, Medical Allowance"
-    - "career_growth_summary": 40-70 words on promotion trajectory.
-11. "faqs": Exactly 3 high-search candidate FAQs with concise, conversational, factual answers:
+    - "allowances_summary": "DA, HRA, Transport Allowance, Medical Benefits"
+    - "career_growth_summary": 40-70 words on official promotion hierarchy.
+11. "faqs": Exactly 3 factual administrative FAQs with concise answers:
     - FAQ 1: What is the full form of {$acronym} in Hindi?
     - FAQ 2: What is the minimum qualification and age limit for {$acronym}?
     - FAQ 3: What is the selection process and salary scale for {$acronym}?

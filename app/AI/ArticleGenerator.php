@@ -107,6 +107,10 @@ LAW 9: ZERO FAKE PSYCHOLOGICAL FAQS (MAXIMUM 3 FACTUAL FAQS)
 LAW 10: NO BOILERPLATE DISCLAIMER / AUTHORITY VERIFICATION SECTION
 - Do NOT generate a large concluding section titled "Official Notice Reference & Authority Verification" or boilerplate text ("All information provided is based on official circulars...").
 
+LAW 11: ZERO FAKE-MENTOR FIRST-PERSON CLAIMS (NO COACHING GURU PERSONA)
+- NEVER use fake-mentor coaching claims: "I've seen many candidates get rejected", "In my experience", "Don't underestimate", "It's a classic mistake", "The interview panel isn't looking for bookish knowledge", "Don't take the Group Task lightly", "Every graduate dreams of joining".
+- Write strictly in authoritative, objective 3rd-person Indian journalistic/gazette voice (like The Hindu, Indian Express, or Jagran Josh).
+
 DYNAMIC INTENT STRUCTURAL CONTRACT:
 {$outlineContract}
 

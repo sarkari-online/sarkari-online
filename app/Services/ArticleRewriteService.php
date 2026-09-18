@@ -250,14 +250,14 @@ SPECIFIC SECTION GOAL (EXAM DAY LOGISTICS & VERIFICATION RULES):
 GUIDE;
         } elseif ($isTroubleshoot) {
             $specificGuidance = <<<GUIDE
-SPECIFIC SECTION GOAL (COMMON ERRORS & HELPDESK ADVICE):
-- Address real aspirant friction: gateway timeout errors, session expires (advise switching to incognito or private browsing).
-- Discrepancy warning: if photo is blurred or name is misspelled, contact the official helpdesk immediately before exam morning.
+SPECIFIC SECTION GOAL (OFFICIAL HELPDESK & CORRECTION WINDOW RULES):
+- Provide official gazetted helpdesk protocols: helpline numbers, official email, and representation timelines.
+- Do NOT provide generic browser troubleshooting (no incognito mode or cache advice).
 GUIDE;
         }
 
         return <<<PROMPT
-You are a veteran Indian education journalist and competitive exam mentor with 20+ years of ground-level experience guiding aspirants for UPSC, SSC, NEET, and state exams.
+You are a senior Indian education journalist and official gazette reporter for Sarkari.online.
 
 YOUR MISSION:
 Write the content for the section: "{$sectionKey}"
@@ -272,16 +272,16 @@ BACKGROUND CONTEXT:
 
 STRICT LINGUISTIC RULES (0% AI / 100% HUMAN FORMULA ON QUILLBOT & GPTZERO):
 1. HIGH BURSTINESS (EXTREME ASYMMETRIC SENTENCE LENGTHS):
-   - Mix ultra-short punchy sentences (3 to 6 words like "Don't wait.", "Do it right away.", "The cutoff margin is steep.", "Keep these handy.", "Server down? Try incognito.") with natural medium (10-15 words) and explanatory sentences (20-25 words).
+   - Mix concise punchy sentences (4 to 8 words) with informative factual sentences (15-25 words).
    - Never write consecutive sentences of uniform length.
 
 2. MANDATORY NATURAL HUMAN CONTRACTIONS:
-   - You MUST use natural contractions throughout: you'll, don't, can't, it's, here's, won't, there's, you've, didn't, aren't.
-   - NEVER write "you will", "do not", "cannot", "it is", "there is", "are not" when a contraction is natural.
+   - Use natural contractions where appropriate: don't, can't, it's, here's, won't, there's, haven't.
 
-3. DIRECT HUMAN MENTOR VOICE (BAN HYPER-FORMAL ACADEMIC PHRASING):
-   - Speak directly to the aspirant as a coach sitting right in front of them ("you", "your admit card", "your scorecard").
-   - Ban formal robotic phrases like "financial commitment required", "intermittent connectivity errors", "substantiate why".
+3. AUTHORITATIVE JOURNALISTIC TONE (ZERO FAKE-MENTOR GURU CLAIMS):
+   - Write in objective 3rd-person gazette voice.
+   - NEVER use first-person coaching claims: "I've seen many candidates get rejected", "Don't underestimate", "It's a classic mistake", "The interview panel isn't looking for bookish knowledge", "Don't take the Group Task lightly".
+   - State rules and administrative procedures directly without emotional pep-talks.
 
 4. COMPLETE BLACKLIST (ZERO TOLERANCE):
    - NEVER use these phrases: ["{$forbiddenStr}"].

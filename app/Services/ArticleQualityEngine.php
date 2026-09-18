@@ -81,6 +81,17 @@ class ArticleQualityEngine
         '/\bensure you are acting on the latest verified data[^.!?]*[.!?]/iu',
         '/\bfor comparative insights[^.!?]*[.!?]/iu',
         '/\bit\'?s time to shift your focus toward[^.!?]*[.!?]/iu',
+        '/\bI(?:\'ve| have) seen (?:many )?candidates[^.!?]*[.!?]/iu',
+        '/\bdon\'?t underestimate the[^.!?]*[.!?]/iu',
+        '/\bit\'?s a classic mistake[^.!?]*[.!?]/iu',
+        '/\b(?:the )?server traffic is insane[^.!?]*[.!?]/iu',
+        '/\bdon\'?t wait for the last day to upload[^.!?]*[.!?]/iu',
+        '/\bthe interview panel isn\'?t looking for bookish knowledge[^.!?]*[.!?]/iu',
+        '/\bdon\'?t take the (?:group task|interview|exam|test) lightly[^.!?]*[.!?]/iu',
+        '/\bthere(?:\'s| is) no second chance[^.!?]*[.!?]/iu',
+        '/\bevery engineering graduate dreams of joining[^.!?]*[.!?]/iu',
+        '/\bkeep your documents scanned and ready[^.!?]*[.!?]/iu',
+        '/\bany discrepancy here can lead to immediate disqualification[^.!?]*[.!?]/iu',
     ];
 
     /**
@@ -337,6 +348,7 @@ class ArticleQualityEngine
             '/(?<=^|>|\.|\!|\?)\s*[^<\.!?]*?\b(?:servers?\s+(?:will\s+|may\s+)?crawls?|incognito|clear(?:ing)?\s+(?:your\s+)?(?:browser\s+)?cache|browser\s+cache|server down)\b[^<\.!?]*[\.!?]\s*/iu',
             '/(?<=^|>|\.|\!|\?)\s*[^<\.!?]*?\b(?:transparent pouch|strict adherence to protocols|stationery is kept in a transparent pouch)\b[^<\.!?]*[\.!?]\s*/iu',
             '/(?<=^|>|\.|\!|\?)\s*[^<\.!?]*?\b(?:maintain a consistent sleep schedule|exam stress|avoid unnecessary stress|well-rested and prepared)\b[^<\.!?]*[\.!?]\s*/iu',
+            '/(?<=^|>|\.|\!|\?)\s*[^<\.!?]*?\b(?:I\'ve seen many candidates|don\'t underestimate|classic mistake|traffic is insane|bookish knowledge; they want practical|don\'t take the (?:Group Task|interview|exam) lightly|no second chance|dreams of joining|discrepancy here can lead to immediate disqualification)\b[^<\.!?]*[\.!?]\s*/iu',
         ];
         foreach ($sentencePurgePatterns as $pat) {
             for ($i = 0; $i < 3; $i++) {
