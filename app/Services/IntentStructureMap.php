@@ -45,8 +45,69 @@ final class IntentStructureMap
         return self::SECTIONS[$key] ?? self::SECTIONS['RECRUITMENT'];
     }
 
-    public static function getSectionTitle(string $sectionKey): string
+    public static function getSectionTitle(string $sectionKey, string $title = ''): string
     {
+        $cleanExam = '';
+        if (!empty($title)) {
+            $cleanExam = trim(preg_replace('/\s*[:\-–|].*$/', '', $title));
+            $cleanExam = trim(preg_replace('/\s+/', ' ', $cleanExam));
+        }
+
+        if (!empty($cleanExam)) {
+            $titlesWithEntity = [
+                // RECRUITMENT
+                'role_overview'                   => "Overview of {$cleanExam} Recruitment",
+                'vacancy_eligibility_snapshot'    => "Eligibility Criteria & Vacancy Details for {$cleanExam}",
+                'salary_and_perks'                => "{$cleanExam} Pay Scale & 7th CPC Salary Structure",
+                'selection_process_flowchart'     => "Selection Process & Exam Pattern for {$cleanExam}",
+                'application_procedure'           => "How to Apply Online for {$cleanExam}",
+
+                // ADMIT_CARD
+                'admit_release_overview'          => "{$cleanExam} Admit Card & Exam Date Announcement",
+                'city_intimation_distinction'     => "{$cleanExam}: City Intimation Slip vs Admit Card",
+                'exam_schedule_shifts'            => "{$cleanExam} Exam Schedule & Shift Timings",
+                'regional_portals'                => "{$cleanExam} Official Regional Download Portals",
+
+                // RESULT_CUTOFF
+                'result_overview'                 => "{$cleanExam} Result Declaration & Scorecard Availability",
+                'scorecard_links'                 => "Direct Scorecard & Merit List Links for {$cleanExam}",
+                'cutoff_analysis'                 => "Category-Wise Qualifying Cutoff Marks for {$cleanExam}",
+                'tie_breaking_criteria'           => "Tie-Breaking Criteria & Normalization Rules for {$cleanExam}",
+                'next_stage_explainer'            => "Next Stage Roadmap for Qualified Candidates in {$cleanExam}",
+
+                // ANSWER_KEY
+                'objection_window_brief'          => "{$cleanExam} Provisional Answer Key & Challenge Window",
+                'response_sheet_links'            => "Direct Response Sheet & Question Paper Links for {$cleanExam}",
+                'challenge_fee_structure'         => "Challenge Fee Structure & Guidelines for {$cleanExam}",
+                'objection_procedure'             => "Procedure to Submit Online Objections for {$cleanExam}",
+                'estimated_score_formula'         => "Score Calculation Formula & Marking Scheme for {$cleanExam}",
+
+                // SYLLABUS_CHANGE
+                'whats_changed'                   => "Summary of Revised {$cleanExam} Examination Pattern",
+                'pattern_comparison_table'        => "Old vs New Examination Pattern Comparison for {$cleanExam}",
+                'topic_breakdown'                 => "Subject-Wise Detailed Syllabus Breakdown for {$cleanExam}",
+
+                // COUNSELLING
+                'preference_locking'              => "{$cleanExam} Counselling Schedule & Choice Filling",
+                'seat_allotment_rounds'           => "Seat Allotment Rounds & Cutoff Ranks for {$cleanExam}",
+                'seat_acceptance_rules'           => "Seat Acceptance: Freeze, Float & Slide Options for {$cleanExam}",
+                'document_verification_checklist' => "Mandatory Verification Documents Checklist for {$cleanExam}",
+
+                // CORRIGENDUM
+                'corrigendum_overview'            => "Official Corrigendum & Key Amendments for {$cleanExam}",
+                'revised_schedule_matrix'         => "Original vs Revised Schedule Comparison for {$cleanExam}",
+                'revision_reason'                 => "Reason for Revision & Scope of Affected Candidates ({$cleanExam})",
+                'action_needed'                   => "Immediate Action Required from Candidates for {$cleanExam}",
+
+                // COMMON
+                'faq'                             => "Frequently Asked Questions (FAQs) About {$cleanExam}",
+            ];
+
+            if (isset($titlesWithEntity[$sectionKey])) {
+                return $titlesWithEntity[$sectionKey];
+            }
+        }
+
         $titles = [
             // RECRUITMENT
             'role_overview'                   => 'Recruitment Overview & Notification Details',
@@ -93,7 +154,7 @@ final class IntentStructureMap
             'action_needed'                   => 'Immediate Action Required from Candidates',
 
             // COMMON
-            'faq'                             => 'Frequently Asked Questions',
+            'faq'                             => 'Frequently Asked Questions (FAQs)',
         ];
 
         return $titles[$sectionKey] ?? ucwords(str_replace('_', ' ', $sectionKey));

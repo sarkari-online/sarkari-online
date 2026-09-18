@@ -100,7 +100,7 @@ class ArticleRewriteService
         $isFirstSection = true;
 
         foreach ($sections as $sectionKey) {
-            $sectionTitle = IntentStructureMap::getSectionTitle($sectionKey);
+            $sectionTitle = IntentStructureMap::getSectionTitle($sectionKey, $title);
 
             // Special structural handlers
             if ($sectionKey === 'selection_process_flowchart') {
