@@ -129,6 +129,15 @@ function extractProseOnly(string $html): string {
 }
 
 // ─── Main Gemini Humanizer call ──────────────────────────────────────────────
+// Section type detector
+function getSectionType(string $heading): string {
+    $lower = mb_strtolower($heading);
+    if (str_contains($lower, 'faq') || str_contains($lower, 'frequently')) return 'faq';
+    if (str_contains($lower, 'how to apply') || str_contains($lower, 'step')) return 'steps';
+    if (str_contains($lower, 'selection') || str_contains($lower, 'exam pattern')) return 'selection';
+    return 'general';
+}
+
 function humanizeSection(
     Gemini $gemini,
     string $sectionTitle,
@@ -137,35 +146,42 @@ function humanizeSection(
     string $examTitle,
     int $articleId
 ): string {
-    if (mb_strlen($proseText) < 30) {
-        return ''; // Too short to humanize — skip
+    if (mb_strlen($proseText) < 30) return '';
+
+    $proseText   = mb_substr($proseText, 0, 1200);
+    $sectionType = getSectionType($sectionTitle);
+
+    if ($sectionType === 'faq') {
+        $sectionRule = "THIS IS A FAQ SECTION. Make answers feel like a knowledgeable friend explaining — not a textbook.\n- Start some answers with 'Yes,' or 'No,' or 'Actually,' or 'Good question —'\n- Use 'you' directly: 'You need...', 'You'll have to...'\n- Keep each answer under 3 sentences. Very conversational.\n- Add one small real-world tip per answer.";
+    } elseif ($sectionType === 'steps') {
+        $sectionRule = "THIS IS A HOW-TO SECTION. Make it feel like a helpful senior student explaining.\n- Write as flowing prose with inline step numbers — not a rigid list.\n- Use casual language: 'First thing — go to...', 'Then just click...', 'Last step:'\n- Add one practical tip: e.g. 'keep your Aadhaar handy before you start'\n- Mix sentence lengths drastically.";
+    } elseif ($sectionType === 'selection') {
+        $sectionRule = "THIS IS A SELECTION/EXAM SECTION.\n- Use em-dashes for impact: 'The written exam — 150 MCQs — is the main filter.'\n- Start some sentences with 'And' or 'But' naturally.\n- Use 'your': 'Your academic marks will count for 40%.'\n- Break it into punchy insights, NOT formal process flow.";
+    } else {
+        $sectionRule = "GENERAL SECTION:\n- Add one unexpected or practical detail.\n- Start at least one sentence with 'And' or 'But'.\n- Use an em-dash somewhere for impact.\n- One sentence should be 4 words or less.";
     }
 
-    $proseText = mb_substr($proseText, 0, 1200); // Max per section
-
     $prompt = <<<PROMPT
-You are rewriting content for Sarkari.online — India's #1 government job info portal.
+You are rewriting content for Sarkari.online — India's top government exam portal.
 
-TARGET READERS: Indian students preparing for government exams. Many are from Hindi-medium backgrounds. They need fast, simple, clear information.
+READERS: Indian aspirants, many from Hindi-medium schools. Think Jagran Josh or Hindustan Times education section.
 
 {$fewShotExamples}
 
 ---
 
-NOW REWRITE THE FOLLOWING SECTION in that exact style:
+SECTION: "{$sectionTitle}" | EXAM: "{$examTitle}"
 
-SECTION: "{$sectionTitle}"
-EXAM: "{$examTitle}"
+{$sectionRule}
 
-STRICT RULES:
-1. Maximum 2-3 sentences per <p> paragraph. Never write long blocks.
-2. Mix very short sentences (3-6 words) with medium ones (12-15 words). Never same length twice in a row.
-3. Use natural contractions: don't, it's, you'll, can't, here's, won't, aren't.
-4. Simple Indian English — Class 10 vocabulary level only. No GRE words.
-5. NEVER use: furthermore, moreover, paramount, pivotal, multifaceted, comprehensive, streamline, delve, testament, commence, subsequent, intricate.
-6. Preserve ALL key facts: dates, fees, marks, eligibility rules, website names.
-7. Start with something direct — NOT "The [Authority] has..." or "In a major development..."
-8. Output ONLY clean HTML <p>...</p> paragraphs. No headings. No bullet lists.
+UNIVERSAL RULES:
+1. Max 2-3 sentences per <p> block. Never one big paragraph.
+2. Sentence rhythm MUST vary: mix 4-word punchy lines with 14-word factual ones.
+3. Contractions: don't, it's, you'll, can't, here's, won't, aren't, didn't.
+4. Class 10 vocabulary only. BANNED: paramount, pivotal, commence, subsequent, intricate, comprehensive, streamline, multifaceted.
+5. Keep ALL facts: dates, fees, percentages, website names, vacancy numbers.
+6. NEVER start with "The [Authority] has released..." — completely banned.
+7. Return ONLY clean HTML <p>...</p>. No <h2>, <h3>, <ul>, <ol>.
 
 TEXT TO REWRITE:
 {$proseText}
@@ -173,10 +189,10 @@ PROMPT;
 
     try {
         $result = $gemini->generate($prompt, [
-            'stage'              => 'full_humanizer_section',
+            'stage'              => 'full_humanizer_v2_' . $sectionType,
             'article_id'        => $articleId,
-            'temperature'       => 1.3,
-            'system_instruction' => "You are a senior Indian education journalist at a major Hindi-English portal. Write in simple, punchy, direct everyday Indian English. Short sentences. Short paragraphs. Never sound like a robot or an academic textbook."
+            'temperature'       => 1.7,
+            'system_instruction' => "You are RAJEEV SHARMA, a 36-year-old senior education reporter at a popular UP-based Hindi-English news portal. You write in simple, punchy, direct everyday Indian English that even a Class 10 student can read. Short sentences. Natural imperfections. You sometimes start sentences with 'And' or 'But'. You use em-dashes for impact. You make it feel like a knowledgeable friend explaining — not a textbook or AI."
         ]);
         return trim($result['text'] ?? '');
     } catch (\Throwable $e) {
