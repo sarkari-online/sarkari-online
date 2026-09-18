@@ -64,10 +64,10 @@ class HumanizerService
         '/\bcomprehensive guide\b/i'                                         => 'complete walkthrough',
         '/\bembark on\b/i'                                                   => 'start',
         '/\bembarks on\b/i'                                                  => 'starts',
-        '/\bcandidates are advised to\b/i'                                   => 'make sure to',
-        '/\bcandidates are requested to\b/i'                                 => 'you need to',
-        '/\bit is imperative that\b/i'                                       => 'you must',
-        '/\bit is mandatory for candidates to\b/i'                           => 'you must',
+        '/\bcandidates are advised to\b/i'                                   => 'candidates should',
+        '/\bcandidates are requested to\b/i'                                 => 'candidates are required to',
+        '/\bit is imperative that\b/i'                                       => 'regulations require that',
+        '/\bit is mandatory for candidates to\b/i'                           => 'candidates must',
     ];
 
     /**
@@ -145,12 +145,12 @@ class HumanizerService
 
         $intentUpper = strtoupper($intent);
         $replacementHook = match ($intentUpper) {
-            'ADMIT_CARD'      => "If you registered for {$cleanTitle}, head over to {$cleanHost} right now—your admit card is officially out. ",
-            'ANSWER_KEY'      => "Got doubts about a question in your {$cleanTitle} paper? Check {$cleanHost} right away—the provisional answer key is officially live. ",
-            'RESULT_CUTOFF'   => "If you appeared for {$cleanTitle}, head over to {$cleanHost} right now—the official scorecard and merit list are live. ",
-            'RECRUITMENT'     => "If you're planning to apply for {$cleanTitle}, the official notification is now available on {$cleanHost}. ",
-            'SYLLABUS_CHANGE' => "If you're preparing for {$cleanTitle}, review {$cleanHost} immediately—the revised syllabus and pattern are officially released. ",
-            default           => "If you're tracking updates for {$cleanTitle}, check {$cleanHost} right away—the latest official bulletin is out. "
+            'ADMIT_CARD'      => "Official admit cards and examination venue allocations for {$cleanTitle} are accessible via {$cleanHost}. ",
+            'ANSWER_KEY'      => "Provisional answer keys and recorded candidate response schedules for {$cleanTitle} are published on {$cleanHost}. ",
+            'RESULT_CUTOFF'   => "Official scorecards and category-wise qualifying thresholds for {$cleanTitle} are issued on {$cleanHost}. ",
+            'RECRUITMENT'     => "Statutory recruitment details and application instructions for {$cleanTitle} are notified on {$cleanHost}. ",
+            'SYLLABUS_CHANGE' => "The revised examination syllabus and evaluation pattern for {$cleanTitle} are notified on {$cleanHost}. ",
+            default           => "Official updates and schedule parameters for {$cleanTitle} are published on {$cleanHost}. "
         };
 
         // Match common robotic AI openings (captures optional leading <p> tag to preserve valid HTML)

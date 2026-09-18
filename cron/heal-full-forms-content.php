@@ -200,10 +200,13 @@ foreach ($candidates as $index => $term) {
             $faqsJsonEncoded = !empty($facts['faqs_json']) ? json_encode($facts['faqs_json'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : null;
 
             $upsertSql = "INSERT INTO full_form_entity_facts 
-                (full_form_id, pay_level_7cpc, basic_pay_min, basic_pay_max, gross_salary_min, gross_salary_max, allowances_summary, career_growth_summary, faqs_json, evidence_url, confidence, last_verified_at)
+                (full_form_id, parent_ministry, headquarters, established_year, pay_level_7cpc, basic_pay_min, basic_pay_max, gross_salary_min, gross_salary_max, allowances_summary, career_growth_summary, faqs_json, evidence_url, confidence, last_verified_at)
                 VALUES 
-                (:fid, :pay_lvl, :b_min, :b_max, :g_min, :g_max, :allow, :growth, :faqs, :evidence, :conf, NOW())
+                (:fid, :p_min, :hq, :est_yr, :pay_lvl, :b_min, :b_max, :g_min, :g_max, :allow, :growth, :faqs, :evidence, :conf, NOW())
                 ON DUPLICATE KEY UPDATE 
+                parent_ministry = COALESCE(VALUES(parent_ministry), parent_ministry),
+                headquarters = COALESCE(VALUES(headquarters), headquarters),
+                established_year = COALESCE(VALUES(established_year), established_year),
                 pay_level_7cpc = VALUES(pay_level_7cpc),
                 basic_pay_min = VALUES(basic_pay_min),
                 basic_pay_max = VALUES(basic_pay_max),
@@ -219,6 +222,9 @@ foreach ($candidates as $index => $term) {
 
             Database::execute($upsertSql, [
                 'fid'      => $termId,
+                'p_min'    => $facts['parent_ministry'] ?? null,
+                'hq'       => $facts['headquarters'] ?? null,
+                'est_yr'   => $facts['established_year'] ?? null,
                 'pay_lvl'  => $facts['pay_level_7cpc'],
                 'b_min'    => $facts['basic_pay_min'],
                 'b_max'    => $facts['basic_pay_max'],

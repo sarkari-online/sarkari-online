@@ -58,6 +58,13 @@ $classifier = new IntentClassifierService();
 
 $processed = 0;
 $currentIndex = 0;
+$stats = [
+    'processed' => 0,
+    'saved' => 0,
+    'verified_authority' => 0,
+    'unverified_authority' => 0,
+];
+$unverifiedList = [];
 
 foreach ($articles as $art) {
     $currentIndex++;
@@ -77,11 +84,51 @@ foreach ($articles as $art) {
     echo "[{$currentIndex}/{$totalArticles}] ({$pct}%) ▶ Processing Article #{$artId}: [{$intentKey}]\n";
     echo "  Title: {$title}\n";
     echo "  Slug: https://sarkari.online/article/{$slug}/\n";
+
+    // ─── Check exam_cycles link ──────────────────────────────────────────────
+    $cycleLink = Database::fetchOne(
+        "SELECT eca.exam_cycle_id, ec.authority_code, ec.exam_name, ec.facts_json, ec.phase_evidence_url
+         FROM exam_cycle_articles eca
+         JOIN exam_cycles ec ON ec.id = eca.exam_cycle_id
+         WHERE eca.article_id = :aid
+         LIMIT 1",
+        ['aid' => $artId]
+    );
+
+    $cycleFacts = [];
+    $isAuthorityVerified = false;
+
+    if ($cycleLink && !empty($cycleLink['authority_code'])) {
+        $authorityName = $cycleLink['authority_code'];
+        $cycleFacts = !empty($cycleLink['facts_json']) ? (json_decode($cycleLink['facts_json'], true) ?: []) : [];
+        $isAuthorityVerified = true;
+        $stats['verified_authority']++;
+        echo "  🏛️  Authority : {$authorityName} (Verified via exam_cycle #{$cycleLink['exam_cycle_id']})\n";
+    } else {
+        // Safe generic fallback — NEVER hallucinate unverified authority acronym
+        $cleanExam = trim(preg_replace('/\s*[:\-–|].*$/', '', $title));
+        $cleanExam = trim(preg_replace('/\b20[2-4]\d\b/', '', $cleanExam));
+        $authorityName = "the recruiting authority for {$cleanExam}";
+        $isAuthorityVerified = false;
+        $stats['unverified_authority']++;
+        $unverifiedList[] = [
+            'article_id' => $artId,
+            'title'      => $title,
+            'slug'       => $slug,
+            'fallback'   => $authorityName,
+            'logged_at'  => date('Y-m-d H:i:s')
+        ];
+
+        Logger::warning("heal-article-editorial-quality: Article #{$artId} has no exam_cycles link. Applied generic fallback: '{$authorityName}'");
+        echo "  ⚠️  Authority : \033[33mUNVERIFIED (No exam_cycle link)\033[0m → Generic Fallback: \"{$authorityName}\"\n";
+    }
+
+    $art['source_name'] = $authorityName;
     
     $sections = IntentStructureMap::getSections($intentKey);
-    echo "  Structure (" . count($sections) . " sections): " . implode(' → ', $sections) . "\n";
+    echo "  Structure : " . count($sections) . " sections (" . implode(' → ', $sections) . ")\n";
 
-    $result = $rewriteService->rewriteArticle($art);
+    $result = $rewriteService->rewriteArticle($art, $cycleFacts);
 
     if ($result && !empty($result['content'])) {
         $wordCount = str_word_count(strip_tags($result['content']));
@@ -93,16 +140,19 @@ foreach ($articles as $art) {
             echo "  " . mb_substr(strip_tags($result['content']), 0, 250) . "...\n\n";
         } else {
             Database::execute(
-                "UPDATE articles SET content = :content, excerpt = :excerpt, updated_at = NOW() WHERE id = :id",
+                "UPDATE articles SET content = :content, excerpt = :excerpt, source_name = :sname, source_verified = :sver, updated_at = NOW() WHERE id = :id",
                 [
                     'content' => $result['content'],
                     'excerpt' => $result['excerpt'],
+                    'sname'   => $authorityName,
+                    'sver'    => $isAuthorityVerified ? 1 : 0,
                     'id'      => $artId
                 ]
             );
             echo "  💾 Successfully saved to database!\n\n";
+            $stats['saved']++;
         }
-        $processed++;
+        $stats['processed']++;
     } else {
         echo "  ❌ Failed to generate rewrite for #{$artId}.\n\n";
     }
@@ -110,6 +160,31 @@ foreach ($articles as $art) {
     sleep(1); // rate limiting between articles
 }
 
+// Persist unverified authority list for prioritized backfilling / reverification
+if (!empty($unverifiedList)) {
+    $cacheDir = dirname(__DIR__) . '/storage/cache';
+    if (!is_dir($cacheDir)) {
+        @mkdir($cacheDir, 0755, true);
+    }
+    $unverifiedFile = $cacheDir . '/unverified_authority_articles.json';
+    $existingUnverified = file_exists($unverifiedFile) ? (json_decode((string)file_get_contents($unverifiedFile), true) ?: []) : [];
+    $merged = array_values(array_column(array_merge($existingUnverified, $unverifiedList), null, 'article_id'));
+    @file_put_contents($unverifiedFile, json_encode($merged, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+}
+
 echo "========================================================================\n";
-echo "✨ Complete: {$processed}/{$totalArticles} article(s) processed successfully!\n";
+echo "📊 SARKARI.ONLINE — BATCH MIGRATION EDITORIAL SUMMARY\n";
+echo "========================================================================\n";
+echo "Total Processed        : {$stats['processed']}/{$totalArticles}\n";
+if (!$isDryRun) {
+    echo "Successfully Saved     : {$stats['saved']}\n";
+} else {
+    echo "Mode                   : 🔍 DRY-RUN (0 database writes)\n";
+}
+echo "Verified Authority     : {$stats['verified_authority']} article(s)\n";
+echo "Unverified Authority   : {$stats['unverified_authority']} article(s) (Generic fallback applied)\n";
+if (!empty($unverifiedList)) {
+    echo "ℹ️  Unverified articles logged to storage/cache/unverified_authority_articles.json\n";
+    echo "   (Can be linked via cron/reverify-exam-cycles.php with priority)\n";
+}
 echo "========================================================================\n";

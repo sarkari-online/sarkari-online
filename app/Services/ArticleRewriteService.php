@@ -56,6 +56,16 @@ class ArticleRewriteService
         'moreover',
         'utilize',
         'comprehensive guide',
+        'stop scrolling',
+        'take a breath',
+        'crashing servers',
+        'mash the refresh button',
+        'golden ticket',
+        'we\'ve seen this movie before',
+        'don\'t panic',
+        'clock is ticking',
+        'clock ticks down',
+        'head over right now',
         'The All India Management Association has released',
         'The National Board of Examinations in Medical Sciences has released'
     ];
@@ -165,12 +175,12 @@ class ArticleRewriteService
         }
 
         $newExcerpt = match ($intentKey) {
-            'ADMIT_CARD'      => "If you registered for {$title}, head over to {$cleanHost} right now—your admit card is officially out. Don't wait until the final hours to grab your copy.",
-            'ANSWER_KEY'      => "Got doubts about your marked answers in {$title}? Head over to {$cleanHost} to check the provisional answer key and submit challenges.",
-            'RESULT_CUTOFF'   => "If you appeared for {$title}, check {$cleanHost} right away—the official scorecard and qualifying cutoff list are now live.",
-            'RECRUITMENT'     => "If you're planning to apply for {$title}, the official recruitment notification is now available on {$cleanHost}.",
-            'SYLLABUS_CHANGE' => "If you're preparing for {$title}, review {$cleanHost} immediately—the revised subject-wise syllabus and exam pattern are officially released.",
-            default           => "If you're tracking updates for {$title}, head over to {$cleanHost} right now—the latest verified bulletin is officially live."
+            'ADMIT_CARD'      => "Download official admit card and check examination schedule for {$title} on {$cleanHost}.",
+            'ANSWER_KEY'      => "Check provisional answer key, challenge window parameters, and response sheet details for {$title} on {$cleanHost}.",
+            'RESULT_CUTOFF'   => "Check official scorecards, merit ranks, and category-wise qualifying cutoffs for {$title} on {$cleanHost}.",
+            'RECRUITMENT'     => "Official notification, eligibility criteria, and application schedule for {$title} on {$cleanHost}.",
+            'SYLLABUS_CHANGE' => "Review revised examination syllabus, subject weightage, and evaluation pattern for {$title} on {$cleanHost}.",
+            default           => "Check official schedule, eligibility parameters, and verified alerts for {$title} on {$cleanHost}."
         };
 
         return [
@@ -226,11 +236,12 @@ class ArticleRewriteService
         $specificGuidance = '';
         if ($isOpening) {
             $specificGuidance = <<<GUIDE
-SPECIFIC SECTION GOAL (CONVERSATIONAL OPENING HOOK - PROVEN 0% AI FORMULA):
-- Start directly with a conversational conditional hook addressing the aspirant (e.g. "If you registered for...", "Got doubts about...").
-- NEVER start with: "The {$authority} has released...", "The {$authority} is set to...", "The wait for...", "Following the...", "As per...".
-- Warn about ground realities: server traffic on the final day, session timeouts, keeping application number & DOB ready.
-- Use natural contractions: don't, you'll, it's, won't.
+SPECIFIC SECTION GOAL (DATA-FIRST GAZETTE OPENING):
+- State the core official development immediately: what milestone or examination schedule is notified, the responsible authority ({$authority}), and key verified parameters.
+- If authority is unverified or generic, refer to it neutrally as "the recruiting authority for {$examTitle}".
+- NEVER use fake coaching hooks, urgency tropes, or server crash warnings: NO "stop scrolling", NO "take a breath", NO "don't panic", NO "head over right now", NO "crashing servers", NO "clock is ticking".
+- NEVER use formulaic AI preambles: NO "The wait is finally over", NO "In a significant development", NO "Following the announcement".
+- Maintain high sentence burstiness (mix 4-8 word concise factual statements with 15-25 word regulatory statements).
 GUIDE;
         } elseif ($isSteps) {
             $specificGuidance = <<<GUIDE

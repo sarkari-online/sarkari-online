@@ -104,8 +104,11 @@ class FullFormFactFetcherService
             . "Full Name: {$fullEn}\n"
             . "Conducting Authority / Ministry: {$body}\n"
             . "Category: {$category}\n\n"
-            . "Provide the official salary structure (7th CPC or PSU), career growth ladder, and 4-6 authentic FAQs in JSON format:\n"
+            . "Provide the official salary structure (7th CPC or PSU), organizational specifications, career growth ladder, and 4-6 authentic FAQs in JSON format:\n"
             . "{\n"
+            . "  \"parent_ministry\": string or null,\n"
+            . "  \"headquarters\": string or null,\n"
+            . "  \"established_year\": integer or null,\n"
             . "  \"pay_level_7cpc\": string or null,\n"
             . "  \"basic_pay_min\": integer or null,\n"
             . "  \"basic_pay_max\": integer or null,\n"
@@ -213,8 +216,20 @@ class FullFormFactFetcherService
             ];
         }
 
+        // Try to infer ministry from conducting_body if not already generic
+        $parentMinistry = null;
+        if (!empty($term['conducting_body'])) {
+            $cb = trim($term['conducting_body']);
+            if (stripos($cb, 'Ministry') !== false || stripos($cb, 'Department') !== false || stripos($cb, 'Government') !== false) {
+                $parentMinistry = $cb;
+            }
+        }
+
         return [
             'full_form_id'          => $termId,
+            'parent_ministry'       => $parentMinistry,
+            'headquarters'          => null,
+            'established_year'      => null,
             'pay_level_7cpc'        => $payData['pay_level'] ?? null,
             'basic_pay_min'         => $payData['min_b'] ?? null,
             'basic_pay_max'         => $payData['max_b'] ?? null,
@@ -233,14 +248,17 @@ class FullFormFactFetcherService
      */
     private function normalizeAndValidate(array $data, int $termId, string $acronym): array
     {
-        $payLevel     = $this->cleanString($data['pay_level_7cpc'] ?? null);
-        $basicPayMin  = $this->cleanInteger($data['basic_pay_min'] ?? null);
-        $basicPayMax  = $this->cleanInteger($data['basic_pay_max'] ?? null);
-        $grossMin     = $this->cleanInteger($data['gross_salary_min'] ?? null);
-        $grossMax     = $this->cleanInteger($data['gross_salary_max'] ?? null);
-        $allowances   = $this->cleanString($data['allowances_summary'] ?? null);
-        $careerGrowth = $this->cleanString($data['career_growth_summary'] ?? null);
-        $evidenceUrl  = $this->cleanUrl($data['evidence_url'] ?? null);
+        $parentMinistry  = $this->cleanString($data['parent_ministry'] ?? null);
+        $headquarters    = $this->cleanString($data['headquarters'] ?? null);
+        $establishedYear = $this->cleanYear($data['established_year'] ?? null);
+        $payLevel        = $this->cleanString($data['pay_level_7cpc'] ?? null);
+        $basicPayMin     = $this->cleanInteger($data['basic_pay_min'] ?? null);
+        $basicPayMax     = $this->cleanInteger($data['basic_pay_max'] ?? null);
+        $grossMin        = $this->cleanInteger($data['gross_salary_min'] ?? null);
+        $grossMax        = $this->cleanInteger($data['gross_salary_max'] ?? null);
+        $allowances      = $this->cleanString($data['allowances_summary'] ?? null);
+        $careerGrowth    = $this->cleanString($data['career_growth_summary'] ?? null);
+        $evidenceUrl     = $this->cleanUrl($data['evidence_url'] ?? null);
 
         $faqs = [];
         if (!empty($data['faqs']) && is_array($data['faqs'])) {
@@ -261,12 +279,13 @@ class FullFormFactFetcherService
             $temp = $grossMin; $grossMin = $grossMax; $grossMax = $temp;
         }
 
-        $hasSalary = ($payLevel !== null || $basicPayMin !== null || $grossMin !== null);
-        $hasFaqs   = !empty($faqsJson);
+        $hasSalary   = ($payLevel !== null || $basicPayMin !== null || $grossMin !== null);
+        $hasOrgSpecs = ($parentMinistry !== null || $headquarters !== null || $establishedYear !== null);
+        $hasFaqs     = !empty($faqsJson);
 
         if ($hasSalary) {
             $confidence = !empty($evidenceUrl) ? 'VERIFIED' : 'INFERRED';
-        } elseif ($hasFaqs) {
+        } elseif ($hasOrgSpecs || $hasFaqs) {
             $confidence = 'INFERRED';
         } else {
             $confidence = 'UNAVAILABLE';
@@ -274,6 +293,9 @@ class FullFormFactFetcherService
 
         return [
             'full_form_id'          => $termId,
+            'parent_ministry'       => $parentMinistry,
+            'headquarters'          => $headquarters,
+            'established_year'      => $establishedYear,
             'pay_level_7cpc'        => $payLevel,
             'basic_pay_min'         => $basicPayMin,
             'basic_pay_max'         => $basicPayMax,
@@ -285,6 +307,22 @@ class FullFormFactFetcherService
             'evidence_url'          => $evidenceUrl,
             'confidence'            => $confidence,
         ];
+    }
+
+    private function cleanYear(mixed $val): ?int
+    {
+        if ($val === null || $val === '') return null;
+        if (is_string($val)) {
+            $cleaned = preg_replace('/[^\d]/', '', $val);
+            if ($cleaned === '') return null;
+            $int = (int)$cleaned;
+        } elseif (is_numeric($val)) {
+            $int = (int)$val;
+        } else {
+            return null;
+        }
+        $currentYear = (int)date('Y');
+        return ($int >= 1700 && $int <= $currentYear) ? $int : null;
     }
 
     private function cleanString(?string $val, int $maxLength = 255): ?string

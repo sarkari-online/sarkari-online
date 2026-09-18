@@ -116,6 +116,8 @@ class ExamCycleResolverService
         'mahacet'         => 'MAHACET',
 
         // UP State — specific before generic
+        'up super tet'    => 'UPESSC',
+        'super tet'       => 'UPESSC',
         'upessc'          => 'UPESSC',
         'upsssc'          => 'UPSSSC',
         'upprpb'          => 'UPPRPB',
