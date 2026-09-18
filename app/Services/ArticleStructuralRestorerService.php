@@ -692,6 +692,12 @@ SEL;
         return str_contains($lower, 'fee') || str_contains($lower, 'apply') || str_contains($lower, 'registration');
     }
 
+    private function isSelectionSection(string $title): bool
+    {
+        $lower = mb_strtolower($title);
+        return str_contains($lower, 'selection') || str_contains($lower, 'pattern') || str_contains($lower, 'syllabus');
+    }
+
     private function isShiftSection(string $title): bool
     {
         $lower = mb_strtolower($title);
