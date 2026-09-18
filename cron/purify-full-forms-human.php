@@ -31,7 +31,6 @@ require_once dirname(__DIR__) . '/config.php';
 
 use App\Database\Database;
 use App\Helpers\Logger;
-use App\Services\HumanizerService;
 
 $dryRun = true;
 $targetAcronym = null;
@@ -127,12 +126,10 @@ foreach ($terms as $term) {
             if (empty($original)) continue;
 
             $purified = sanitizeGlossaryField($original, $mentorPurgeRegexes);
-            $purified = HumanizerService::dewriteFormalJargon($purified);
-            $purified = HumanizerService::scrubClichés($purified);
             if ($purified !== $original) {
                 $updates[$f] = $purified;
                 $modified = true;
-                $changes[] = "Purified coaching/formal jargon from {$f}";
+                $changes[] = "Stripped coaching/mentor phrases from {$f}";
             }
         }
     }
