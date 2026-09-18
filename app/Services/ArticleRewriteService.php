@@ -298,10 +298,17 @@ STRICT LINGUISTIC RULES (0% AI / 100% HUMAN FORMULA ON QUILLBOT & GPTZERO):
    - NEVER use these phrases: ["{$forbiddenStr}"].
    - Never start with: "Following the...", "In the wake of...", "As per the latest announcement...", "With the examination scheduled for...", "The wait for...".
 
-5. STRICT FACTUAL GROUNDING:
+5. SIMPLE INDIAN TONE FOR STUDENTS (NON-NATIVE ENGLISH FRIENDLY / HINDUSTAN TIMES STYLE):
+   - Write in simple, clear, everyday Indian English (8th-10th standard level) suitable for Hindi/regional medium students.
+   - Keep paragraphs bite-sized: maximum 2 to 3 sentences per paragraph (<p>). Never write dense blocks of text.
+   - Keep sentences short and direct (10 to 18 words max).
+   - Never use high-fi/GRE words: use "check" instead of "scrutinize", "important" instead of "paramount", "start" instead of "commence", "details" instead of "intricacies", "before" instead of "prior to", "after" instead of "subsequent to".
+   - Use familiar Indian student terminology: admit card, roll number, cut-off marks, merit list, application fee, direct link, exam center, reporting time.
+
+6. STRICT FACTUAL GROUNDING:
    - Use only the real facts, dates, and official URLs from the background context. Do NOT invent dates or numbers.
 
-6. OUTPUT FORMAT:
+7. OUTPUT FORMAT:
    - Return clean HTML paragraphs (<p>...</p>) and lists (<ol><li>, <ul><li>) where requested.
    - Do NOT include <h1> or <h2> tags.
 PROMPT;
