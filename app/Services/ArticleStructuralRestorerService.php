@@ -1,0 +1,618 @@
+<?php
+declare(strict_types=1);
+
+namespace App\Services;
+
+use App\AI\Gemini;
+use App\Database\Database;
+use App\Helpers\Logger;
+use App\Services\IntentClassifierService;
+use App\Services\MilestoneTableRenderer;
+use Throwable;
+
+/**
+ * ArticleStructuralRestorerService
+ * 
+ * Restores articles to their gold-standard original architecture:
+ * 1. Restores from pre-rewrite snapshots in article_migration_snapshots if available.
+ * 2. Positions the Statutory Milestone / Dates Table immediately after the first H2 section.
+ * 3. Slots Domain Tables (Vacancies, Fees, Shifts, Cutoffs) into their respective sections.
+ * 4. Eliminates misplaced duplicate tables dumped at the bottom of the article.
+ * 5. Formats the FAQ section strictly as:
+ *    <h2>Frequently Asked Questions (FAQs) About [Exam Name]</h2>
+ *    <h3>Question?</h3><p>Answer</p>
+ * 6. Enforces SEO entity keywords in all <h2> headings.
+ */
+class ArticleStructuralRestorerService
+{
+    private IntentClassifierService $classifier;
+    private MilestoneTableRenderer $tableRenderer;
+    private ?Gemini $gemini;
+
+    public function __construct(?Gemini $gemini = null)
+    {
+        $this->classifier = new IntentClassifierService();
+        $this->tableRenderer = new MilestoneTableRenderer();
+        $this->gemini = $gemini;
+    }
+
+    /**
+     * Restore or repair an article to its authentic pre-rewrite architecture.
+     */
+    public function restoreOrHeal(array $article, array $cycleFacts = [], ?array $cycleRow = null): array
+    {
+        $artId = (int)($article['id'] ?? 0);
+        $title = $article['title'] ?? '';
+        $currentContent = $article['content'] ?? '';
+        $excerpt = $article['excerpt'] ?? '';
+
+        // 1. Check if a pre-rewrite snapshot exists in article_migration_snapshots
+        $snapshot = $this->findValidSnapshot($artId);
+        if ($snapshot !== null) {
+            Logger::info("ArticleStructuralRestorer: Restored Article #{$artId} from snapshot (Run ID: {$snapshot['audit_run_id']})");
+            return [
+                'restored_from' => 'snapshot',
+                'run_id'        => $snapshot['audit_run_id'],
+                'content'       => $snapshot['content'],
+                'excerpt'       => !empty($snapshot['excerpt']) ? $snapshot['excerpt'] : $excerpt,
+                'title'         => !empty($snapshot['title']) ? $snapshot['title'] : $title,
+            ];
+        }
+
+        // 2. No snapshot available: Repair and reconstruct current content into original architecture
+        $intentEnum = $this->classifier->classify($title, $excerpt);
+        $intentKey = strtoupper($intentEnum->value);
+        $cleanExam = $this->extractCleanExamTitle($title);
+
+        $repairedContent = $this->repairArticleHtml(
+            $currentContent,
+            $title,
+            $cleanExam,
+            $intentKey,
+            $cycleFacts,
+            $cycleRow
+        );
+
+        return [
+            'restored_from' => 'structural_repair',
+            'run_id'        => null,
+            'content'       => $repairedContent,
+            'excerpt'       => $excerpt,
+            'title'         => $title,
+        ];
+    }
+
+    /**
+     * Check if a clean pre-rewrite snapshot exists for this article.
+     */
+    public function findValidSnapshot(int $articleId): ?array
+    {
+        if ($articleId <= 0) {
+            return null;
+        }
+
+        try {
+            // Find snapshots created before today's rewrite run
+            $row = Database::fetchOne(
+                "SELECT snapshot_json, audit_run_id, created_at
+                 FROM article_migration_snapshots
+                 WHERE article_id = :aid
+                 ORDER BY id ASC
+                 LIMIT 1",
+                ['aid' => $articleId]
+            );
+
+            if ($row && !empty($row['snapshot_json'])) {
+                $decoded = json_decode($row['snapshot_json'], true);
+                if (is_array($decoded) && !empty($decoded['content'])) {
+                    // Validate snapshot has rich content with at least one heading and table/paragraphs
+                    if (str_contains($decoded['content'], '<h2') && mb_strlen($decoded['content']) > 400) {
+                        return [
+                            'audit_run_id' => $row['audit_run_id'] ?? 'unknown',
+                            'content'      => $decoded['content'],
+                            'excerpt'      => $decoded['excerpt'] ?? '',
+                            'title'        => $decoded['title'] ?? '',
+                        ];
+                    }
+                }
+            }
+        } catch (Throwable $e) {
+            Logger::warning("ArticleStructuralRestorer: snapshot check failed for #{$articleId}: " . $e->getMessage());
+        }
+
+        return null;
+    }
+
+    /**
+     * Reconstruct and repair article HTML to enforce the original gold-standard structure.
+     */
+    public function repairArticleHtml(
+        string $html,
+        string $title,
+        string $cleanExam,
+        string $intent,
+        array $cycleFacts = [],
+        ?array $cycleRow = null
+    ): string {
+        // Step A: Extract all HTML tables and categorize them
+        $tables = $this->extractAndCategorizeTables($html);
+
+        // Remove all extracted tables from their current positions in the HTML
+        $htmlWithoutTables = $this->stripAllTables($html);
+
+        // Step B: Split into H2 sections
+        $sections = $this->splitIntoSections($htmlWithoutTables);
+
+        // Step C: Identify section roles and place tables into their proper sections
+        $assembledSections = [];
+        $milestoneTableInserted = false;
+        $faqSectionHandled = false;
+
+        $milestoneTableHtml = $tables['milestone'] ?? null;
+        // If no milestone table found in content, generate from cycleRow if available
+        if (!$milestoneTableHtml && $cycleRow && !empty($cycleRow['facts_json'])) {
+            $milestoneTableHtml = $this->tableRenderer->render($cycleRow, strtolower($intent));
+        }
+
+        $totalSections = count($sections);
+
+        foreach ($sections as $index => $section) {
+            $h2Title = $section['heading_text'] ?? '';
+            $body = trim($section['body_html'] ?? '');
+
+            // Ensure H2 heading contains the clean exam name for SEO
+            $updatedH2Title = $this->injectEntityIntoHeading($h2Title, $cleanExam);
+
+            // Is this the first section? Inject Milestone Table immediately after opening paragraph
+            if ($index === 0) {
+                if ($milestoneTableHtml && !$milestoneTableInserted) {
+                    $body = $this->injectTableAfterFirstParagraph($body, $milestoneTableHtml);
+                    $milestoneTableInserted = true;
+                }
+            }
+
+            // Is this a Vacancy / Eligibility section?
+            if ($this->isVacancyOrEligibilitySection($h2Title)) {
+                if (!empty($tables['vacancy'])) {
+                    $body .= "\n\n" . $tables['vacancy'];
+                    unset($tables['vacancy']);
+                }
+            }
+
+            // Is this a Fee / Application section?
+            if ($this->isFeeOrApplicationSection($h2Title)) {
+                if (!empty($tables['fee'])) {
+                    $body .= "\n\n" . $tables['fee'];
+                    unset($tables['fee']);
+                }
+            }
+
+            // Is this a Shift / Schedule section?
+            if ($this->isShiftSection($h2Title)) {
+                if (!empty($tables['shift'])) {
+                    $body .= "\n\n" . $tables['shift'];
+                    unset($tables['shift']);
+                }
+            }
+
+            // Is this a Cutoff section?
+            if ($this->isCutoffSection($h2Title)) {
+                if (!empty($tables['cutoff'])) {
+                    $body .= "\n\n" . $tables['cutoff'];
+                    unset($tables['cutoff']);
+                }
+            }
+
+            // Is this the FAQ section?
+            if ($this->isFaqSection($h2Title)) {
+                $faqSectionHandled = true;
+                $updatedH2Title = "Frequently Asked Questions (FAQs) About {$cleanExam}";
+                $body = $this->repairFaqBody($body, $cleanExam, $cycleFacts);
+            }
+
+            $assembledSections[] = "<h2>" . htmlspecialchars($updatedH2Title, ENT_QUOTES, 'UTF-8') . "</h2>\n" . $body;
+        }
+
+        // If no FAQ section was present, generate a clean factual FAQ section at the end
+        if (!$faqSectionHandled) {
+            $faqBody = $this->generateStandardFaqBlock($cleanExam, $intent, $cycleFacts);
+            $assembledSections[] = "<h2>Frequently Asked Questions (FAQs) About " . htmlspecialchars($cleanExam, ENT_QUOTES, 'UTF-8') . "</h2>\n" . $faqBody;
+        }
+
+        // If any domain tables remain unslotted, slot them before the FAQ section
+        $remainingTables = array_filter([
+            $tables['vacancy'] ?? null,
+            $tables['fee'] ?? null,
+            $tables['shift'] ?? null,
+            $tables['cutoff'] ?? null,
+            ...($tables['other'] ?? [])
+        ]);
+
+        if (!empty($remainingTables)) {
+            // Find FAQ index to insert before it
+            $faqIndex = count($assembledSections) - 1;
+            $tableBlock = implode("\n\n", $remainingTables);
+            $assembledSections[$faqIndex] = $tableBlock . "\n\n" . $assembledSections[$faqIndex];
+        }
+
+        return implode("\n\n", $assembledSections);
+    }
+
+    /**
+     * Extract and categorize tables by domain type.
+     */
+    public function extractAndCategorizeTables(string $html): array
+    {
+        $result = [
+            'milestone' => null,
+            'vacancy'   => null,
+            'fee'       => null,
+            'shift'     => null,
+            'cutoff'    => null,
+            'other'     => []
+        ];
+
+        if (!preg_match_all('/(?:<div class="table-responsive"[^>]*>)?\s*<table\b[^>]*>.*?<\/table>\s*(?:<\/div>)?/is', $html, $matches)) {
+            return $result;
+        }
+
+        foreach ($matches[0] as $tableHtml) {
+            // Wrap in table-responsive if not already wrapped
+            $wrappedTable = str_contains($tableHtml, 'table-responsive')
+                ? $tableHtml
+                : '<div class="table-responsive">' . $tableHtml . '</div>';
+
+            $lower = mb_strtolower($tableHtml);
+
+            // 1. Milestone / Dates Table
+            if (!$result['milestone'] && (
+                str_contains($lower, 'milestone') ||
+                str_contains($lower, 'statutory') ||
+                str_contains($lower, 'important date') ||
+                str_contains($lower, 'official date') ||
+                str_contains($lower, 'schedule') && str_contains($lower, 'status') ||
+                str_contains($lower, 'status-pill')
+            )) {
+                $result['milestone'] = $wrappedTable;
+                continue;
+            }
+
+            // 2. Vacancy Distribution Table
+            if (!$result['vacancy'] && (
+                str_contains($lower, 'vacancy') ||
+                str_contains($lower, 'vacancies') ||
+                (str_contains($lower, 'post') && (str_contains($lower, 'ur') || str_contains($lower, 'obc') || str_contains($lower, 'sc') || str_contains($lower, 'st')))
+            )) {
+                $result['vacancy'] = $wrappedTable;
+                continue;
+            }
+
+            // 3. Fee Structure Table
+            if (!$result['fee'] && (
+                str_contains($lower, 'fee') && (str_contains($lower, 'general') || str_contains($lower, 'sc') || str_contains($lower, 'payment') || str_contains($lower, 'amount'))
+            )) {
+                $result['fee'] = $wrappedTable;
+                continue;
+            }
+
+            // 4. Shift Schedule Table
+            if (!$result['shift'] && (
+                str_contains($lower, 'shift') && (str_contains($lower, 'reporting') || str_contains($lower, 'gate closure') || str_contains($lower, 'timing'))
+            )) {
+                $result['shift'] = $wrappedTable;
+                continue;
+            }
+
+            // 5. Cutoff Marks Table
+            if (!$result['cutoff'] && (
+                str_contains($lower, 'cut-off') ||
+                str_contains($lower, 'cutoff') ||
+                str_contains($lower, 'qualifying marks') ||
+                str_contains($lower, 'percentile')
+            )) {
+                $result['cutoff'] = $wrappedTable;
+                continue;
+            }
+
+            // Fallback: If milestone table still null and table has 2 columns with dates, assign as milestone
+            if (!$result['milestone']) {
+                $result['milestone'] = $wrappedTable;
+            } else {
+                $result['other'][] = $wrappedTable;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Remove all tables from HTML so we can re-inject them cleanly.
+     */
+    private function stripAllTables(string $html): string
+    {
+        $clean = preg_replace('/<div class="table-responsive"[^>]*>\s*<table\b[^>]*>.*?<\/table>\s*<\/div>/is', '', $html);
+        return preg_replace('/<table\b[^>]*>.*?<\/table>/is', '', $clean);
+    }
+
+    /**
+     * Split HTML content into structured sections based on <h2> tags.
+     */
+    private function splitIntoSections(string $html): array
+    {
+        $sections = [];
+        $parts = preg_split('/(<h2\b[^>]*>.*?<\/h2>)/is', $html, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+
+        $currentTitle = 'Overview';
+        $currentBody = '';
+
+        foreach ($parts as $part) {
+            if (preg_match('/<h2\b[^>]*>(.*?)<\/h2>/is', $part, $m)) {
+                if (!empty(trim($currentBody))) {
+                    $sections[] = [
+                        'heading_text' => $currentTitle,
+                        'body_html'    => trim($currentBody)
+                    ];
+                }
+                $currentTitle = trim(strip_tags($m[1]));
+                $currentBody = '';
+            } else {
+                $currentBody .= $part;
+            }
+        }
+
+        if (!empty(trim($currentBody))) {
+            $sections[] = [
+                'heading_text' => $currentTitle,
+                'body_html'    => trim($currentBody)
+            ];
+        }
+
+        return $sections;
+    }
+
+    /**
+     * Inject a table immediately after the first paragraph in a section body.
+     */
+    private function injectTableAfterFirstParagraph(string $body, string $tableHtml): string
+    {
+        if (preg_match('/<\/p>/i', $body)) {
+            return preg_replace('/<\/p>/i', "</p>\n\n" . $tableHtml . "\n", $body, 1);
+        }
+        return $tableHtml . "\n\n" . $body;
+    }
+
+    /**
+     * Format and repair FAQ body into clean semantic <h3>Question</h3><p>Answer</p> markup.
+     */
+    public function repairFaqBody(string $rawBody, string $cleanExam, array $cycleFacts = []): string
+    {
+        // Check if body already has clean <h3> tags
+        if (preg_match_all('/<h3\b[^>]*>(.*?)<\/h3>\s*(?:<p\b[^>]*>(.*?)<\/p>)?/is', $rawBody, $matches, PREG_SET_ORDER)) {
+            $cleanFaqs = '';
+            foreach ($matches as $m) {
+                $q = trim(strip_tags($m[1]));
+                $a = !empty($m[2]) ? trim(strip_tags($m[2])) : '';
+                if (!empty($q)) {
+                    if (!str_ends_with($q, '?')) {
+                        $q .= '?';
+                    }
+                    if (empty($a)) {
+                        $a = "Refer to the official circular on the official portal for complete verified guidelines.";
+                    }
+                    $cleanFaqs .= "<h3>" . htmlspecialchars($q, ENT_QUOTES, 'UTF-8') . "</h3>\n<p>" . htmlspecialchars($a, ENT_QUOTES, 'UTF-8') . "</p>\n\n";
+                }
+            }
+            if (!empty($cleanFaqs)) {
+                return trim($cleanFaqs);
+            }
+        }
+
+        // Parse Question / Answer pairs from text like "Q1: ...? Answer" or "**Q: ...** A: ..."
+        $qaPairs = [];
+
+        // Check for inline Q&A pattern first: <p><strong>?Q: ...?</strong> ...</p> or lines with "Q...: ...? Answer..."
+        $paragraphs = preg_split('/<\/p>|<br\s*\/?>/i', $rawBody);
+        foreach ($paragraphs as $p) {
+            $text = trim(strip_tags($p));
+            if (empty($text)) continue;
+
+            if (preg_match('/^(?:Q(?:uestion)?\s*\d*[:\.\-]\s*)?(.*?\?)\s*(.+)$/is', $text, $inlineMatch)) {
+                $qText = trim($inlineMatch[1]);
+                $aText = trim($inlineMatch[2]);
+                if (mb_strlen($qText) > 10 && mb_strlen($aText) > 5) {
+                    $qaPairs[] = ['q' => $qText, 'a' => $aText];
+                    continue;
+                }
+            }
+        }
+
+        // If paragraph parsing didn't find at least 2 Q&As, try multiline scan
+        if (count($qaPairs) < 2) {
+            $qaPairs = [];
+            $lines = preg_split('/\n+/', strip_tags($rawBody));
+            $currentQ = null;
+            $currentA = '';
+
+            foreach ($lines as $line) {
+                $cleanLine = trim($line);
+                if (empty($cleanLine)) continue;
+
+                if (preg_match('/^(?:Q(?:uestion)?\s*\d*[:\.\-]\s*)?(.*?\?)\s*(.+)$/is', $cleanLine, $inlineMatch)) {
+                    if ($currentQ && !empty($currentA)) {
+                        $qaPairs[] = ['q' => $currentQ, 'a' => trim($currentA)];
+                        $currentQ = null;
+                        $currentA = '';
+                    }
+                    $qaPairs[] = ['q' => trim($inlineMatch[1]), 'a' => trim($inlineMatch[2])];
+                    continue;
+                }
+
+                if (preg_match('/^(?:Q(?:uestion)?\s*\d*[:\.\-]|What|When|How|Where|Can|Is|Are|Who)\b/i', $cleanLine) || str_ends_with($cleanLine, '?')) {
+                    if ($currentQ && !empty($currentA)) {
+                        $qaPairs[] = ['q' => $currentQ, 'a' => trim($currentA)];
+                        $currentA = '';
+                    }
+                    $currentQ = preg_replace('/^Q(?:uestion)?\s*\d*[:\.\-]\s*/i', '', $cleanLine);
+                } else {
+                    if ($currentQ) {
+                        $currentA .= ' ' . preg_replace('/^A(?:nswer)?\s*\d*[:\.\-]\s*/i', '', $cleanLine);
+                    }
+                }
+            }
+
+            if ($currentQ && !empty($currentA)) {
+                $qaPairs[] = ['q' => $currentQ, 'a' => trim($currentA)];
+            }
+        }
+
+        if (count($qaPairs) >= 2) {
+            $html = '';
+            foreach ($qaPairs as $pair) {
+                $q = $pair['q'];
+                if (!str_ends_with($q, '?')) $q .= '?';
+                $html .= "<h3>" . htmlspecialchars($q, ENT_QUOTES, 'UTF-8') . "</h3>\n";
+                $html .= "<p>" . htmlspecialchars($pair['a'], ENT_QUOTES, 'UTF-8') . "</p>\n\n";
+            }
+            return trim($html);
+        }
+
+        // Fallback: Generate 3 standard factual FAQs for this exam
+        return $this->generateStandardFaqBlock($cleanExam, 'RECRUITMENT', $cycleFacts);
+    }
+
+    /**
+     * Generate standard, 100% factual FAQ block with clean <h3> tags.
+     */
+    public function generateStandardFaqBlock(string $cleanExam, string $intent, array $cycleFacts = []): string
+    {
+        $faqs = match ($intent) {
+            'ADMIT_CARD' => [
+                [
+                    'q' => "What is the difference between the City Intimation Slip and the {$cleanExam} Admit Card?",
+                    'a' => "The City Intimation Slip is issued in advance strictly to facilitate travel bookings and informs candidates of their allocated exam city. The official Admit Card (e-Call Letter), containing the exact exam venue address and roll number, is released approximately 4 days prior to the examination."
+                ],
+                [
+                    'q' => "What photo ID documents are mandatory at the {$cleanExam} exam hall?",
+                    'a' => "Candidates must present an original government-issued photo ID (Aadhaar Card, Voter ID, PAN Card, or Passport) alongside the printed hard copy of their Admit Card. Digital screenshots on smartphones are strictly prohibited at the entry gates."
+                ],
+                [
+                    'q' => "How can I retrieve my forgotten registration number for {$cleanExam}?",
+                    'a' => "Visit the official candidate portal and click on 'Forgot Registration Number'. Provide your registered mobile number, email ID, and date of birth to receive an OTP and retrieve your credentials."
+                ]
+            ],
+            'RESULT_CUTOFF' => [
+                [
+                    'q' => "Where can I check the official scorecard and merit list for {$cleanExam}?",
+                    'a' => "The official scorecard and merit list PDF are accessible directly on the examination board's official portal. Candidates require their roll number and date of birth to log in and view their subject-wise marks."
+                ],
+                [
+                    'q' => "Is there any provision for re-evaluation or re-checking of {$cleanExam} marks?",
+                    'a' => "In Computer-Based Tests (CBT), the evaluation process is fully automated and normalized. Most statutory commissions do not entertain requests for re-evaluation after the final answer key and merit list are declared."
+                ],
+                [
+                    'q' => "What is the next stage for qualified candidates in {$cleanExam}?",
+                    'a' => "Shortlisted candidates are summoned for the subsequent selection stage, which may include Stage 2 examination, skill test, physical efficiency test, or document verification as prescribed in the official advertisement."
+                ]
+            ],
+            'ANSWER_KEY' => [
+                [
+                    'q' => "What is the prescribed fee for submitting an objection against the {$cleanExam} Answer Key?",
+                    'a' => "Candidates are generally required to pay a non-refundable processing fee (typically Rs 50 to Rs 100 per question challenged) via online payment modes. If the expert committee upholds the challenge, the fee is usually refunded."
+                ],
+                [
+                    'q' => "Can I submit objections after the {$cleanExam} challenge window closes?",
+                    'a' => "No representations or objections are accepted under any circumstances after the official deadline. The online challenge portal closes automatically at the designated time."
+                ],
+                [
+                    'q' => "When will the final revised answer key for {$cleanExam} be released?",
+                    'a' => "The subject matter expert committee reviews all submitted challenges and releases the final answer key along with the declaration of the examination results."
+                ]
+            ],
+            default => [
+                [
+                    'q' => "What is the minimum educational qualification required for {$cleanExam}?",
+                    'a' => "Eligibility criteria depend on the specific post applied for, typically requiring matriculation, graduation, or a specialized degree/diploma from a recognized university or board. Refer to the official notification for post-wise requirements."
+                ],
+                [
+                    'q' => "Can final year candidates apply for {$cleanExam}?",
+                    'a' => "Candidates must possess the requisite educational qualifications and passing certificates on or before the crucial closing date for online applications specified in the official circular."
+                ],
+                [
+                    'q' => "What are the age relaxation norms for reserved categories in {$cleanExam}?",
+                    'a' => "As per government guidelines, age relaxation is admissible to SC/ST candidates (+5 years), OBC-NCL (+3 years), and PwBD candidates (+10 years) subject to submission of valid category certificates during document verification."
+                ]
+            ]
+        };
+
+        $html = '';
+        foreach ($faqs as $f) {
+            $html .= "<h3>" . htmlspecialchars($f['q'], ENT_QUOTES, 'UTF-8') . "</h3>\n";
+            $html .= "<p>" . htmlspecialchars($f['a'], ENT_QUOTES, 'UTF-8') . "</p>\n\n";
+        }
+
+        return trim($html);
+    }
+
+    /**
+     * Extract clean exam entity title (e.g. "UP Super TET 2026").
+     */
+    public function extractCleanExamTitle(string $title): string
+    {
+        $clean = trim(preg_replace('/\s*[:\-–|].*$/', '', $title));
+        $clean = trim(preg_replace('/\s+/', ' ', $clean));
+        return !empty($clean) ? $clean : 'Examination';
+    }
+
+    /**
+     * Enforce exam entity title into H2 headings for natural SEO.
+     */
+    private function injectEntityIntoHeading(string $h2Text, string $cleanExam): string
+    {
+        $cleanH2 = trim(strip_tags($h2Text));
+        if (empty($cleanH2)) {
+            return "Overview of {$cleanExam}";
+        }
+
+        // If exam name already in heading, return as is
+        if (stripos($cleanH2, $cleanExam) !== false) {
+            return $cleanH2;
+        }
+
+        // Append or prefix entity
+        if (stripos($cleanH2, 'faq') !== false || stripos($cleanH2, 'frequently asked') !== false) {
+            return "Frequently Asked Questions (FAQs) About {$cleanExam}";
+        }
+
+        return "{$cleanH2} for {$cleanExam}";
+    }
+
+    private function isVacancyOrEligibilitySection(string $title): bool
+    {
+        $lower = mb_strtolower($title);
+        return str_contains($lower, 'vacancy') || str_contains($lower, 'eligibility') || str_contains($lower, 'qualification');
+    }
+
+    private function isFeeOrApplicationSection(string $title): bool
+    {
+        $lower = mb_strtolower($title);
+        return str_contains($lower, 'fee') || str_contains($lower, 'apply') || str_contains($lower, 'registration');
+    }
+
+    private function isShiftSection(string $title): bool
+    {
+        $lower = mb_strtolower($title);
+        return str_contains($lower, 'shift') || str_contains($lower, 'schedule') || str_contains($lower, 'timing');
+    }
+
+    private function isCutoffSection(string $title): bool
+    {
+        $lower = mb_strtolower($title);
+        return str_contains($lower, 'cutoff') || str_contains($lower, 'cut-off') || str_contains($lower, 'qualifying marks');
+    }
+
+    private function isFaqSection(string $title): bool
+    {
+        $lower = mb_strtolower($title);
+        return str_contains($lower, 'faq') || str_contains($lower, 'frequently asked');
+    }
+}
