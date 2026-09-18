@@ -108,6 +108,7 @@ foreach ($articles as $art) {
         // Safe generic fallback — NEVER hallucinate unverified authority acronym
         $cleanExam = trim(preg_replace('/\s*[:\-–|].*$/', '', $title));
         $cleanExam = trim(preg_replace('/\b20[2-4]\d\b/', '', $cleanExam));
+        $cleanExam = trim(preg_replace('/\s+/', ' ', $cleanExam));
         $authorityName = "the recruiting authority for {$cleanExam}";
         $isAuthorityVerified = false;
         $stats['unverified_authority']++;
