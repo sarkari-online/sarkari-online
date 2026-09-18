@@ -25,7 +25,7 @@ use App\Services\IntentStructureMap;
 $options = getopt('', ['dry-run::', 'batch::', 'id::', 'intent::', 'all']);
 $isDryRun = isset($options['dry-run']) && ($options['dry-run'] === 'true' || $options['dry-run'] === '1');
 $isAll = isset($options['all']);
-$batchLimit = $isAll ? 999 : (int)($options['batch'] ?? 10);
+$batchLimit = $isAll ? 9999 : (int)($options['batch'] ?? 10);
 $targetId = isset($options['id']) ? (int)$options['id'] : null;
 $filterIntent = $options['intent'] ?? null;
 
