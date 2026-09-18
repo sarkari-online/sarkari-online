@@ -40,8 +40,7 @@ $articles = Database::fetchAll(
     "SELECT id, title FROM articles
      WHERE status = 'published'
      ORDER BY id ASC
-     LIMIT :limit OFFSET :offset",
-    ['limit' => $limit, 'offset' => $offset]
+     LIMIT {$limit} OFFSET {$offset}"
 );
 
 $total = count($articles);
