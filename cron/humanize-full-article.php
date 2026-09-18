@@ -201,6 +201,64 @@ PROMPT;
     }
 }
 
+// ─── Special FAQ humanizer — keeps Q+A structure intact ─────────────────────
+function humanizeFAQSection(
+    Gemini $gemini,
+    string $faqBodyHtml,
+    string $examTitle,
+    int $articleId
+): string {
+    // Strip tables (preserve them separately for FAQ — unlikely but safe)
+    $cleanHtml = preg_replace('/<div class="table-responsive"[^>]*>.*?<\/div>/is', '', $faqBodyHtml);
+    $cleanHtml = preg_replace('/<table\b[^>]*>.*?<\/table>/is', '', $cleanHtml);
+    $cleanHtml = mb_substr(trim($cleanHtml), 0, 2000);
+
+    if (mb_strlen(strip_tags($cleanHtml)) < 20) return '';
+
+    $prompt = <<<PROMPT
+You are rewriting FAQ content for Sarkari.online — India's top government exam portal.
+Exam: "{$examTitle}"
+
+READERS: Indian students preparing for government exams. Simple, friendly, direct English.
+
+THE FAQ HTML BELOW has <h3> question headings and <p> answer paragraphs.
+
+YOUR JOB: Rewrite ONLY the <p> answer text in a conversational student-friendly tone.
+Keep EVERY <h3> question heading exactly as-is — word for word. Do NOT change questions.
+Keep the same number of Q+A pairs.
+
+RULES FOR EACH ANSWER:
+- Max 2-3 sentences. Short and direct.
+- Start with "Yes," or "No," or "Actually," or directly answer — never with "The [Authority]..."
+- Use simple Class 10 English. Contractions: don't, it's, you'll, can't.
+- Add ONE practical tip per answer where relevant (e.g. "Keep your original marksheet ready")
+- No fancy words. No jargon. Preserve all facts: dates, marks, fees, names.
+
+OUTPUT FORMAT — return ONLY this exact structure for each Q+A pair:
+<h3>[exact original question]</h3>
+<p>[conversational answer]</p>
+
+Do NOT add any extra headings, intros, or wrappers. Just the Q+A pairs.
+
+FAQ HTML TO REWRITE:
+{$cleanHtml}
+PROMPT;
+
+    try {
+        $result = $gemini->generate($prompt, [
+            'stage'              => 'full_humanizer_v2_faq',
+            'article_id'        => $articleId,
+            'temperature'       => 1.5,
+            'system_instruction' => "You are RAJEEV SHARMA, a senior Indian education journalist. Rewrite FAQ answers in simple, friendly, conversational Indian English. Keep question headings exactly unchanged. Short answers. Real tips. Never sound like an AI or textbook."
+        ]);
+        return trim($result['text'] ?? '');
+    } catch (\Throwable $e) {
+        echo "  ⚠️  FAQ Gemini error: " . $e->getMessage() . "\n";
+        return '';
+    }
+}
+
+
 // ─── MAIN PROCESSING ─────────────────────────────────────────────────────────
 $gemini  = new Gemini();
 $content = $article['content'];
@@ -224,31 +282,43 @@ foreach ($sections as $i => $section) {
     $bodyHtml    = $section['body'];
 
     $headingText = strip_tags($headingHtml);
+    $sectionType = getSectionType($headingText);
     $proseText   = extractProseOnly($bodyHtml);
 
     $sectionNum = $i + 1;
     echo "[{$sectionNum}/{$totalSections}] Section: {$headingText}\n";
 
+    // ── FAQ: special handler that keeps Q+A structure intact ──────────────
+    if ($sectionType === 'faq') {
+        echo "  🗂️  FAQ section — using structure-preserving handler...\n";
+        $humanizedFAQ = humanizeFAQSection($gemini, $bodyHtml, $title, $targetId);
+        if (!empty($humanizedFAQ)) {
+            echo "  ✅ FAQ Humanized! Words: " . str_word_count(strip_tags($humanizedFAQ)) . "\n\n";
+            $assembledContent .= $headingHtml . "\n" . $humanizedFAQ . "\n\n";
+        } else {
+            echo "  ⚠️  FAQ empty result — keeping original.\n\n";
+            $assembledContent .= $headingHtml . "\n" . $bodyHtml . "\n\n";
+        }
+        if ($sectionNum < $totalSections) sleep(2);
+        continue;
+    }
+
+    // ── Non-FAQ: no prose to humanize (tables/lists only) ─────────────────
     if (empty($proseText)) {
-        echo "  ⏩ No prose to humanize (tables/lists only). Keeping as-is.\n\n";
+        echo "  ⏩ No prose to humanize. Keeping as-is.\n\n";
         $assembledContent .= $headingHtml . "\n" . $bodyHtml . "\n\n";
         continue;
     }
 
+    // ── Non-FAQ: humanize prose, keep tables + lists unchanged ────────────
     echo "  ✍️  Prose chars: " . mb_strlen($proseText) . " → Sending to Gemini...\n";
 
     $humanizedProse = humanizeSection(
-        $gemini,
-        $headingText,
-        $proseText,
-        $fewShotExamples,
-        $title,
-        $targetId
+        $gemini, $headingText, $proseText, $fewShotExamples, $title, $targetId
     );
 
     if (!empty($humanizedProse)) {
-        // Keep tables + lists from original body; replace only prose paragraphs
-        // Strategy: Remove original <p> blocks, replace with humanized, keep rest
+        // Remove original <p> blocks only — tables, <ul>, <ol>, <h3> etc stay intact
         $bodyWithoutProse = preg_replace('/<p\b[^>]*>.*?<\/p>/is', '', $bodyHtml);
         $newBody = $humanizedProse . "\n" . $bodyWithoutProse;
 
@@ -259,11 +329,9 @@ foreach ($sections as $i => $section) {
         $assembledContent .= $headingHtml . "\n" . $bodyHtml . "\n\n";
     }
 
-    // Small delay to avoid Gemini rate limit
-    if ($sectionNum < $totalSections) {
-        sleep(2);
-    }
+    if ($sectionNum < $totalSections) sleep(2);
 }
+
 
 // Step 4: Restore table placeholders back
 $finalContent = restoreTables($assembledContent, $tables);
