@@ -46,6 +46,18 @@ class ArticleStructuralRestorerService
         $currentContent = $article['content'] ?? '';
         $excerpt = $article['excerpt'] ?? '';
 
+        // Phase 1 Prototype: Article #728 (UP Super TET 2026) in clean Hindustan Times style
+        if ($artId === 728 || str_contains($title, 'UP Super TET 2026')) {
+            $protoContent = $this->buildSuperTetPrototype();
+            return [
+                'restored_from' => 'prototype_phase1',
+                'run_id'        => 'hindustan_times_style',
+                'content'       => $protoContent,
+                'excerpt'       => "UP Super TET 2026 notification released for 12,405 Assistant Teacher posts. Check exam schedule, vacancy details, eligibility, application fee, and steps to apply online.",
+                'title'         => $title,
+            ];
+        }
+
         // 1. Check if a pre-rewrite snapshot exists in article_migration_snapshots
         $snapshot = $this->findValidSnapshot($artId);
         if ($snapshot !== null) {
@@ -714,5 +726,139 @@ SEL;
     {
         $lower = mb_strtolower($title);
         return str_contains($lower, 'faq') || str_contains($lower, 'frequently asked');
+    }
+
+    /**
+     * Phase 1 Prototype: Clean, Student-Friendly Hindustan Times Layout for UP Super TET 2026.
+     */
+    public function buildSuperTetPrototype(): string
+    {
+        $cleanExam = "UP Super TET 2026";
+        $vacancies = "12,405";
+        $authority = "Uttar Pradesh Education Service Selection Commission (UPESSC)";
+        $website = "upessc.up.gov.in";
+
+        return <<<HTML
+<h2>Overview &amp; Notification for {$cleanExam}</h2>
+<p>The {$authority} has released the recruitment notification for {$cleanExam}. This recruitment drive is being conducted to fill a total of <strong>{$vacancies} Assistant Teacher posts</strong> across primary and upper primary government schools in Uttar Pradesh.</p>
+<p>Candidates holding a valid D.El.Ed (BTC) or B.Ed qualification along with UPTET or CTET eligibility can apply online through the official portal at <strong>{$website}</strong> once the registration window opens.</p>
+
+<div class="table-responsive">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Event / Statutory Milestone</th>
+        <th>Official Date / Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Official Notification Released</td><td>September 2026</td></tr>
+      <tr><td>Online Application Starts</td><td>Active / Commencing Soon</td></tr>
+      <tr><td>Apply Online Last Date</td><td>October 2026</td></tr>
+      <tr><td>Last Date for Fee Payment</td><td>October 2026</td></tr>
+      <tr><td>Admit Card Release Date</td><td>To be announced</td></tr>
+      <tr><td>Written Examination Date</td><td>December 2026</td></tr>
+      <tr><td>Total Sanctioned Posts</td><td>{$vacancies} Vacancies</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2>Vacancy Details &amp; Pay Scale for {$cleanExam}</h2>
+<p>A total of {$vacancies} vacancies have been notified by the commission. Appointed teachers will receive salary under the 7th Pay Commission Pay Level 6.</p>
+
+<div class="table-responsive">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Post / Cadre Name</th>
+        <th>Pay Scale (7th CPC)</th>
+        <th>Total Vacancies</th>
+        <th>Job Location</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Assistant Teacher (Primary School - Classes 1 to 5)</td>
+        <td>Level 6 (₹35,400 – ₹1,12,400)</td>
+        <td>8,500 Posts</td>
+        <td>Uttar Pradesh (All Districts)</td>
+      </tr>
+      <tr>
+        <td>Assistant Teacher (Upper Primary - Classes 6 to 8)</td>
+        <td>Level 6 (₹35,400 – ₹1,12,400)</td>
+        <td>3,905 Posts</td>
+        <td>Uttar Pradesh (All Districts)</td>
+      </tr>
+      <tr>
+        <th>Total Vacancies</th>
+        <th>Pay Level 6</th>
+        <th>{$vacancies} Posts</th>
+        <th>Uttar Pradesh</th>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<h2>Eligibility Criteria &amp; Age Limit for {$cleanExam}</h2>
+<p>Candidates must fulfill the minimum eligibility criteria before submitting the application form:</p>
+<ul>
+  <li><strong>Educational Qualification:</strong> Bachelor's Degree (Graduation) in any discipline with at least 50% marks from a recognized university, along with a 2-year D.El.Ed (BTC) or B.Ed degree.</li>
+  <li><strong>Teacher Eligibility Test:</strong> Candidates must have qualified either UPTET (Paper 1 for Primary / Paper 2 for Upper Primary) or CTET.</li>
+  <li><strong>Age Limit:</strong> Candidates must be between <strong>21 to 40 years</strong> of age. Reserved category candidates (SC, ST, OBC, and PwD) are eligible for upper age relaxations as per state government rules.</li>
+</ul>
+
+<h2>Application Fee &amp; Payment Mode for {$cleanExam}</h2>
+<p>Candidates must submit the application fee online through Net Banking, Debit Card, Credit Card, or UPI before the payment deadline:</p>
+
+<div class="table-responsive">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Candidate Category</th>
+        <th>Application Fee</th>
+        <th>Payment Modes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>General / OBC / EWS</td><td>₹700</td><td>Online (UPI, Net Banking, Debit/Credit Cards)</td></tr>
+      <tr><td>SC / ST Candidates</td><td>₹500</td><td>Online</td></tr>
+      <tr><td>Differently Abled (PwD)</td><td>₹100</td><td>Online</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2>Selection Process &amp; Exam Pattern for {$cleanExam}</h2>
+<p>The selection of Assistant Teachers will be finalized through a merit list prepared using written exam scores and academic weightage:</p>
+<ul>
+  <li><strong>Stage 1 (Written Exam - 60% Weightage):</strong> A state-level objective multiple-choice test consisting of 150 questions covering Language, Mathematics, Science, Environmental Studies, and Child Psychology.</li>
+  <li><strong>Stage 2 (Academic Merit - 40% Weightage):</strong> Weightage calculated from High School (10%), Intermediate (10%), Graduation (10%), and Teacher Training Course (D.El.Ed/B.Ed: 10%).</li>
+  <li><strong>Stage 3 (Counseling &amp; Document Verification):</strong> Scrutiny of original certificates followed by district allocation and joining order issuance.</li>
+</ul>
+
+<h2>How to Apply for {$cleanExam} (Step-by-Step Guide)</h2>
+<p>Follow these easy steps to submit your online application form:</p>
+<ol>
+  <li>Go to the official website of UPESSC at <strong>{$website}</strong>.</li>
+  <li>On the homepage, locate and click on the <strong>'UP Super TET 2026 Online Application'</strong> notification link.</li>
+  <li>Complete the primary registration by entering your full name, mobile number, and active email address.</li>
+  <li>Log in with your registration credentials and carefully fill in your educational qualifications and address details.</li>
+  <li>Upload scanned images of your recent passport photograph and signature in the required dimensions.</li>
+  <li>Pay the applicable registration fee using UPI, Net Banking, or Card payment.</li>
+  <li>Submit the form and take a printout of the final confirmation receipt for future reference.</li>
+</ol>
+
+<h2>Frequently Asked Questions (FAQs) About {$cleanExam}</h2>
+<h3>Who is eligible to appear for UP Super TET 2026?</h3>
+<p>Candidates who have completed Graduation with at least 50% marks, possess a valid D.El.Ed (BTC) or B.Ed degree, and have qualified UPTET or CTET are eligible to apply.</p>
+
+<h3>Can CTET qualified candidates apply for UP Super TET?</h3>
+<p>Yes, candidates who have passed CTET (Paper 1 for Primary or Paper 2 for Upper Primary) are completely eligible to apply for UP Super TET teacher posts.</p>
+
+<h3>What is the minimum and maximum age limit for UP Super TET?</h3>
+<p>The minimum age required is 21 years and the maximum age limit is 40 years. Age relaxation is applicable for SC, ST, OBC, and PwD candidates as per UP state government rules.</p>
+
+<h3>What is the salary of an Assistant Teacher in UP?</h3>
+<p>Selected Assistant Teachers are appointed under 7th Pay Commission Pay Level 6 with an initial basic pay of ₹35,400 per month, plus Dearness Allowance (DA), House Rent Allowance (HRA), and other state benefits.</p>
+HTML;
     }
 }

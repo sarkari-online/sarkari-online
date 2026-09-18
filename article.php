@@ -324,9 +324,6 @@ include __DIR__ . '/components/header.php';
                     $tocData = \App\Services\TableOfContentsService::process($renderedContent);
                     $renderedContent = $tocData['content'];
                     ?>
-                    <!-- Google Position 0 Featured Snippet & Direct Answer Box -->
-                    <?= FeaturedSnippetService::render($article) ?>
-
                     <?= $renderedContent ?>
                 </div>
 
