@@ -50,8 +50,11 @@ foreach ($argv as $arg) {
         $startId = (int)substr($arg, 11);
     } elseif ($arg === '--reset-cursor') {
         $resetCursor = true;
+    } elseif ($arg === '--force') {
+        $force = true;
     }
 }
+$force = $force ?? false;
 
 $cacheDir = dirname(__DIR__) . '/storage/cache';
 if (!is_dir($cacheDir)) {
@@ -104,6 +107,9 @@ if (!empty($targetSlug)) {
     foreach ($filterAcronyms as $k => $acr) {
         $params["acr_{$k}"] = $acr;
     }
+} elseif ($force) {
+    $sql .= " AND g.id > :last_id";
+    $params['last_id'] = $lastProcessedId;
 } else {
     $sql .= " AND g.id > :last_id 
               AND (f.id IS NULL OR f.last_verified_at < DATE_SUB(NOW(), INTERVAL 90 DAY))";
