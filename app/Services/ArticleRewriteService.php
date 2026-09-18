@@ -92,6 +92,9 @@ class ArticleRewriteService
             // Scrub clichés & robotic fillers
             $purified = HumanizerService::scrubClichés($rawHtml);
 
+            // De-formalize academic gazette jargon into plain human web phrases
+            $purified = HumanizerService::dewriteFormalJargon($purified);
+
             // Post-clean any residual AI filler sentences
             $purified = $this->purgeFillerSentences($purified);
 
@@ -161,119 +164,130 @@ class ArticleRewriteService
         $intentSpec = match ($intent) {
             'RECRUITMENT' => <<<SPEC
 SECTIONS TO GENERATE:
-1. Lead Gazette Notice: Maximum 2 short sentences in 3rd-person gazette tone stating vacancies, authority ({$authority}), and application mode.
-2. Official Recruitment Highlights Table:
+1. Lead Notice: Maximum 2 short, simple sentences stating the recruitment notice for {$cleanTitle}, total vacancies, authority ({$authority}), and official portal {$cleanHost}.
+2. Recruitment Highlights Table:
    <div class="statutory-fact-card">
      <table class="table-striped">
-       <thead><tr><th colspan="2">{$cleanTitle} - Official Recruitment Parameters</th></tr></thead>
+       <thead><tr><th colspan="2">{$cleanTitle} - Recruitment Highlights</th></tr></thead>
        <tbody>
          <tr><th>Recruiting Body</th><td>{$authority}</td></tr>
-         <tr><th>Post / Designation</th><td>Notified Post Name</td></tr>
-         <tr><th>Sanctioned Vacancies</th><td>As notified in circular</td></tr>
-         <tr><th>Pay Scale / Matrix</th><td>As per 7th CPC / State Rules</td></tr>
-         <tr><th>Mandatory Eligibility</th><td>Degree + Professional Diploma/Certificate</td></tr>
-         <tr><th>Age Bracket</th><td>As per State/Central Norms</td></tr>
-         <tr><th>Official Portal</th><td>{$cleanHost}</td></tr>
+         <tr><th>Post Name</th><td>As notified in circular</td></tr>
+         <tr><th>Total Vacancies</th><td>As notified</td></tr>
+         <tr><th>Pay Scale</th><td>As per 7th CPC / State Rules</td></tr>
+         <tr><th>Eligibility</th><td>Degree + relevant certificate</td></tr>
+         <tr><th>Age Limit</th><td>As per state/central rules</td></tr>
+         <tr><th>Official Website</th><td>{$cleanHost}</td></tr>
        </tbody>
      </table>
    </div>
-3. Key Eligibility & Academic Criteria: <h2> and <ul> with <strong>Bold Labels</strong> (Educational Qualification, Qualifying Test Mandate, Age Limit & Relaxations).
-4. Selection & Examination Scheme: <h2> and <ul> with <strong>Bold Labels</strong> (Written Examination, Academic/Physical Weightage, Document Scrutiny).
-5. Step-by-Step Application Procedure: <h2> and <ol> with 4-5 concise, active numbered steps.
-6. Official Verification Guidance: <h2> and 2 concise sentences with portal link {$cleanHost}.
+3. Eligibility Criteria: <h2> and <ul> with short bullet fragments (under 12 words each):
+   - <strong>Educational Qualification:</strong> Degree / diploma as specified in circular.
+   - <strong>Qualifying Exam:</strong> Relevant eligibility test if applicable.
+   - <strong>Age Limit:</strong> Minimum and maximum age with standard category relaxations.
+4. Selection Process: <h2> and <ul> with short bullet fragments (under 10 words each):
+   - <strong>Written Exam:</strong> Objective / computer-based test.
+   - <strong>Merit List:</strong> Based on exam score and qualification marks.
+   - <strong>Document Verification:</strong> Scrutiny of original certificates.
+5. How to Apply: <h2> and <ol> with 4-5 short numbered steps (1 line each, under 12 words).
+6. Official Updates: <h2> and 1 short sentence advising candidates to verify details on {$cleanHost}.
 SPEC,
             'ADMIT_CARD' => <<<SPEC
 SECTIONS TO GENERATE:
-1. Lead Gazette Notice: Maximum 2 short sentences stating admit card issuance for {$cleanTitle}, authority ({$authority}), and portal {$cleanHost}.
-2. Examination & Hall Ticket Highlights Table:
+1. Lead Notice: Maximum 2 short, simple sentences stating admit card release for {$cleanTitle}, authority ({$authority}), and download site {$cleanHost}.
+2. Highlights Table:
    <div class="statutory-fact-card">
      <table class="table-striped">
-       <thead><tr><th colspan="2">{$cleanTitle} - Examination & Hall Ticket Parameters</th></tr></thead>
+       <thead><tr><th colspan="2">{$cleanTitle} - Admit Card Highlights</th></tr></thead>
        <tbody>
          <tr><th>Conducting Authority</th><td>{$authority}</td></tr>
          <tr><th>Examination Name</th><td>{$cleanTitle}</td></tr>
-         <tr><th>Document Issued</th><td>Admit Card / Hall Ticket</td></tr>
-         <tr><th>Required Credentials</th><td>Registration / Roll Number & Date of Birth</td></tr>
-         <tr><th>Exam Mode</th><td>Computer Based Test (CBT) / Offline Written</td></tr>
-         <tr><th>Official Portal</th><td>{$cleanHost}</td></tr>
+         <tr><th>Document</th><td>Admit Card / Hall Ticket</td></tr>
+         <tr><th>Login Credentials</th><td>Registration / Roll Number & DOB</td></tr>
+         <tr><th>Exam Mode</th><td>CBT / Written Examination</td></tr>
+         <tr><th>Official Website</th><td>{$cleanHost}</td></tr>
        </tbody>
      </table>
    </div>
-3. Mandatory Documents for Exam Day: <h2> and <ul> with <strong>Bold Labels</strong> (Printed Hall Ticket, Original Photo ID Proof, Passport Photographs, Prohibited Items).
-4. Step-by-Step Guide to Download Hall Ticket: <h2> and <ol> with 4-5 concise active numbered steps.
-5. Reporting Logistics & Shift Protocols: <h2> and <ul> with <strong>Bold Labels</strong> (Gate Closure Timing, Biometric Attendance).
-6. Discrepancy & Helpdesk Assistance: <h2> and 2 concise sentences with helpdesk contact guidance.
+3. Exam Day Requirements: <h2> and <ul> with short bullet fragments (under 10 words each):
+   - <strong>Printed Admit Card:</strong> Clear printout with photo.
+   - <strong>Photo ID Proof:</strong> Original Aadhaar / PAN / Voter ID.
+   - <strong>Passport Photos:</strong> Recent color photographs.
+   - <strong>Prohibited Items:</strong> No phones, calculators, or smartwatches.
+4. How to Download Admit Card: <h2> and <ol> with 4-5 short numbered steps (1 line each).
+5. Important Instructions: <h2> and <ul> with short bullet fragments (Gate closure time, reporting schedule).
+6. Official Helpdesk: <h2> and 1 short sentence on contacting helpline for corrections.
 SPEC,
             'ANSWER_KEY' => <<<SPEC
 SECTIONS TO GENERATE:
-1. Lead Gazette Notice: Maximum 2 short sentences stating provisional answer key release for {$cleanTitle} and challenge window on {$cleanHost}.
-2. Key Objection Parameters Table:
+1. Lead Notice: Maximum 2 short, simple sentences stating answer key release for {$cleanTitle} and challenge window on {$cleanHost}.
+2. Highlights Table:
    <div class="statutory-fact-card">
      <table class="table-striped">
-       <thead><tr><th colspan="2">{$cleanTitle} - Answer Key & Objection Parameters</th></tr></thead>
+       <thead><tr><th colspan="2">{$cleanTitle} - Answer Key Highlights</th></tr></thead>
        <tbody>
          <tr><th>Conducting Authority</th><td>{$authority}</td></tr>
          <tr><th>Examination Name</th><td>{$cleanTitle}</td></tr>
-         <tr><th>Document Released</th><td>Provisional Answer Key & Response Sheet</td></tr>
+         <tr><th>Release Type</th><td>Provisional Answer Key & Response Sheet</td></tr>
          <tr><th>Objection Mode</th><td>Online Candidate Portal</td></tr>
-         <tr><th>Challenge Fee</th><td>As notified per question</td></tr>
-         <tr><th>Official Portal</th><td>{$cleanHost}</td></tr>
+         <tr><th>Challenge Fee</th><td>As specified per question</td></tr>
+         <tr><th>Official Website</th><td>{$cleanHost}</td></tr>
        </tbody>
      </table>
    </div>
-3. Step-by-Step Key & Response Sheet Retrieval: <h2> and <ol> with 4-5 concise active steps.
-4. Objection Filing & Representation Rules: <h2> and <ul> with <strong>Bold Labels</strong> (Representation Window, Mandatory Evidence, Processing Fee).
-5. Marking Scheme & Score Calculation Formula: <h2> and <ul> with <strong>Bold Labels</strong> (Correct Marks, Negative Deduction, Raw Score Formula).
-6. Final Answer Key Protocol: <h2> and 2 concise sentences on expert review.
+3. How to Check Answer Key: <h2> and <ol> with 4-5 short numbered steps.
+4. Objection Submission Rules: <h2> and <ul> with short bullet fragments (Representation dates, proof requirement, fee).
+5. Marking Scheme: <h2> and <ul> with short bullet fragments (Marks for correct answers, negative marking rules).
+6. Final Key Note: <h2> and 1 short sentence on final key review.
 SPEC,
             'RESULT_CUTOFF' => <<<SPEC
 SECTIONS TO GENERATE:
-1. Lead Gazette Notice: Maximum 2 short sentences stating scorecards and cutoff declaration for {$cleanTitle} by {$authority}.
-2. Result Declaration Highlights Table:
+1. Lead Notice: Maximum 2 short, simple sentences stating result declaration and cutoff marks for {$cleanTitle} by {$authority}.
+2. Highlights Table:
    <div class="statutory-fact-card">
      <table class="table-striped">
-       <thead><tr><th colspan="2">{$cleanTitle} - Result & Cutoff Parameters</th></tr></thead>
+       <thead><tr><th colspan="2">{$cleanTitle} - Result Highlights</th></tr></thead>
        <tbody>
          <tr><th>Conducting Authority</th><td>{$authority}</td></tr>
          <tr><th>Examination Name</th><td>{$cleanTitle}</td></tr>
-         <tr><th>Declaration Type</th><td>Scorecard, Merit List & Cutoff Marks</td></tr>
-         <tr><th>Evaluation Method</th><td>Normalized / Scaled Merit Score</td></tr>
-         <tr><th>Required Login</th><td>Roll Number / Registration No & DOB</td></tr>
-         <tr><th>Official Portal</th><td>{$cleanHost}</td></tr>
+         <tr><th>Document Type</th><td>Scorecard, Merit List & Cutoff Marks</td></tr>
+         <tr><th>Score Calculation</th><td>Normalized Merit Score</td></tr>
+         <tr><th>Login Details</th><td>Roll Number / Registration No & DOB</td></tr>
+         <tr><th>Official Website</th><td>{$cleanHost}</td></tr>
        </tbody>
      </table>
    </div>
-3. Category-Wise Qualifying Norms: <h2> and <ul> with <strong>Bold Labels</strong> (General/UR, OBC-NCL, EWS, SC/ST).
-4. Tie-Breaking Criteria & Merit Rules: <h2> and <ul> with <strong>Bold Labels</strong> (Domain Scores, Date of Birth).
-5. Step-by-Step Scorecard Retrieval: <h2> and <ol> with 4-5 concise active steps.
-6. Subsequent Counseling & Verification: <h2> and 2 concise sentences on original document scrutiny.
+3. Qualifying Marks & Cutoff: <h2> and <ul> with short bullet fragments (General, OBC, EWS, SC/ST categories).
+4. Tie-Breaking Rules: <h2> and <ul> with short bullet fragments (Domain marks, age criteria).
+5. How to Check Result: <h2> and <ol> with 4-5 short numbered steps.
+6. Next Selection Stage: <h2> and 1 short sentence on certificate verification.
 SPEC,
             default => <<<SPEC
 SECTIONS TO GENERATE:
-1. Lead Gazette Notice: Maximum 2 short sentences stating syllabus and examination framework for {$cleanTitle}.
-2. Examination Framework Table:
+1. Lead Notice: Maximum 2 short, simple sentences stating syllabus and examination pattern for {$cleanTitle}.
+2. Highlights Table:
    <div class="statutory-fact-card">
      <table class="table-striped">
-       <thead><tr><th colspan="2">{$cleanTitle} - Examination Framework</th></tr></thead>
+       <thead><tr><th colspan="2">{$cleanTitle} - Exam Overview</th></tr></thead>
        <tbody>
          <tr><th>Conducting Authority</th><td>{$authority}</td></tr>
          <tr><th>Examination Name</th><td>{$cleanTitle}</td></tr>
-         <tr><th>Mode of Examination</th><td>Computer Based Test / Written</td></tr>
-         <tr><th>Negative Marking</th><td>Applicable as per official circular</td></tr>
-         <tr><th>Official Portal</th><td>{$cleanHost}</td></tr>
+         <tr><th>Exam Mode</th><td>Computer Based Test / Written Exam</td></tr>
+         <tr><th>Negative Marking</th><td>As per official scheme</td></tr>
+         <tr><th>Official Website</th><td>{$cleanHost}</td></tr>
        </tbody>
      </table>
    </div>
-3. Subject Breakdown & Topic Weightage: <h2> and <ul> with <strong>Bold Labels</strong>.
-4. Marking Scheme & Evaluation Norms: <h2> and <ul> with <strong>Bold Labels</strong>.
-5. Preparation Blueprint: <h2> and <ol> with 4-5 actionable steps.
-6. Official Portal Verification: <h2> and 2 concise sentences.
+3. Exam Pattern & Subjects: <h2> and <ul> with short bullet fragments.
+4. Marking Scheme: <h2> and <ul> with short bullet fragments.
+5. Preparation Steps: <h2> and <ol> with 4-5 short steps.
+6. Official Updates: <h2> and 1 short sentence.
 SPEC
         };
 
         return <<<PROMPT
-You are a senior Indian government gazette editor for Sarkari.online.
-Rewrite the following article into a strict DATA-FIRST GAZETTE GUIDE. Output final clean HTML directly.
+You are an educational web editor writing for students on Sarkari.online.
+Rewrite the following article into a clean, mobile-friendly guide like SarkariResult or FreeJobAlert.
+Write in plain, simple, direct human English. No academic jargon. No robotic tone. Output clean HTML directly.
 
 ARTICLE DETAILS:
 - Title: {$examTitle}
@@ -285,13 +299,14 @@ ARTICLE DETAILS:
 
 {$intentSpec}
 
-CRITICAL ANTI-AI / HUMAN-GAZETTE CONSTRAINTS (GUARANTEED <10% AI ON DETECTORS):
-1. NO LONG ESSAY PARAGRAPHS: Every paragraph must be strictly 1 or 2 factual sentences (maximum 35 words per paragraph).
-2. PURE DATA-DENSITY: 70% of content must be inside the Table, Bullet lists (<ul><li><strong>Label:</strong> Details</li></ul>), or Numbered steps (<ol><li>...</li></ol>).
-3. ZERO FILLER PHRASES: Do NOT use phrases like 'clear mandate', 'essential to note', 'serves as a testament', 'in a significant development', 'stay tuned', 'the wait is over'.
-4. ZERO COACHING SLANG: Do NOT use 'stop scrolling', 'take a breath', 'crashing servers', 'hold your horses', 'seen this movie before'.
-5. TOTAL LENGTH: 350 to 450 words total.
-6. RETURN CLEAN HTML ONLY: Start directly with the first HTML tag (<p> or <h2>). Do NOT wrap in markdown code fences (no ```html).
+CRITICAL ANTI-AI & HUMAN WRITING RULES (STRICT <=10% AI SCORE GUARANTEE):
+1. HUMAN CONVERSATIONAL WEB STYLE: Write in clear, natural English. Avoid academic gazette language. Do NOT use words like 'possess', 'alongside', 'dissemination', 'contingent upon', 'statutory', 'category-based relaxations', 'authenticate credentials'.
+2. SHORT BULLET FRAGMENTS: In all bullet lists (<ul><li>), write short, punchy fragments under 12 words per bullet (e.g. <li><strong>Age Limit:</strong> 21 to 40 years. Standard relaxations apply.</li>). Do NOT write long essay sentences inside bullets.
+3. CONCISE STEPS: In numbered steps (<ol><li>), write 1 short active line per step (under 12 words each).
+4. SHORT PARAGRAPHS: Any prose paragraph must be strictly 1 or 2 short sentences (under 30 words total).
+5. NO HALLUCINATIONS: Do NOT invent examination dates, application deadlines, or specific post names not in the context snippet. If a date is not confirmed, state 'Dates to be announced on the official portal'.
+6. TARGET LENGTH: 250 to 320 words total.
+7. RETURN CLEAN HTML ONLY: Start directly with <p> or <h2>. Do NOT wrap in markdown code fences (no ```html).
 PROMPT;
     }
 
