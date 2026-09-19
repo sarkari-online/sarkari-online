@@ -39,7 +39,7 @@ class TableOfContentsService {
 
         foreach ($matches as $m) {
             $level = (int)$m[1];
-            $rawText = trim(strip_tags($m[3]));
+            $rawText = html_entity_decode(trim(strip_tags($m[3])), ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
             // Filter out empty or whitespace-only headings
             if (empty($rawText)) {
@@ -96,7 +96,11 @@ class TableOfContentsService {
                 $newAttrs = ' id="' . $anchor . '"' . $m[2];
             }
 
-            return "<h{$level}{$newAttrs}>{$m[3]}</h{$level}>";
+            // Clean any double-encoded &amp;amp; and repeated "for [Exam] for [Exam]" inside the heading HTML
+            $cleanInner = preg_replace('/&amp;amp;/i', '&amp;', $m[3]);
+            $cleanInner = preg_replace('/(\bfor\s+[^<]+?)\s+\1/i', '$1', $cleanInner);
+
+            return "<h{$level}{$newAttrs}>{$cleanInner}</h{$level}>";
         }, $html);
 
         // Build HTML Table of Contents component
@@ -129,7 +133,10 @@ class TableOfContentsService {
             $anchor = htmlspecialchars($h['anchor'], ENT_QUOTES, 'UTF-8');
             // Clean redundant leading numbers from heading text (e.g. "1. Overview" -> "Overview")
             $cleanTitle = preg_replace('/^\d+[\.\)\s\-]+\s*/u', '', $h['title']);
-            $title = htmlspecialchars($cleanTitle, ENT_QUOTES, 'UTF-8');
+            $cleanTitle = html_entity_decode($cleanTitle, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            // Remove duplicate repetitions like "for Exam for Exam"
+            $cleanTitle = preg_replace('/(\bfor\s+[^,\.\(\)]+?)\s+\1/i', '$1', $cleanTitle);
+            $title = htmlspecialchars($cleanTitle, ENT_QUOTES, 'UTF-8', false);
             $level = $h['level'];
 
             if ($level === 2) {

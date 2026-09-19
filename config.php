@@ -236,7 +236,7 @@ const NAV_LINKS = [
  * Escape HTML output safely
  */
 function e(?string $string): string {
-    return htmlspecialchars((string)($string ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    return htmlspecialchars((string)($string ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8', false);
 }
 
 /**

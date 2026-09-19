@@ -313,7 +313,7 @@ SEL;
                 $body = $this->repairFaqBody($body, $cleanExam, $cycleFacts);
             }
 
-            $assembledSections[] = "<h2>" . htmlspecialchars($updatedH2Title, ENT_QUOTES, 'UTF-8') . "</h2>\n" . $body;
+            $assembledSections[] = "<h2>" . htmlspecialchars($updatedH2Title, ENT_QUOTES, 'UTF-8', false) . "</h2>\n" . $body;
         }
 
         // If no FAQ section was present, generate a clean factual FAQ section at the end
@@ -674,10 +674,15 @@ SEL;
      */
     private function injectEntityIntoHeading(string $h2Text, string $cleanExam): string
     {
-        $cleanH2 = trim(strip_tags($h2Text));
+        $cleanH2 = html_entity_decode(trim(strip_tags($h2Text)), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $cleanExam = html_entity_decode(trim($cleanExam), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
         if (empty($cleanH2)) {
             return "Overview of {$cleanExam}";
         }
+
+        // Clean any existing duplicate "for [Exam] for [Exam]"
+        $cleanH2 = preg_replace('/(\bfor\s+[^,\.\(\)]+?)\s+\1/i', '$1', $cleanH2);
 
         // If exam name already in heading, return as is
         if (stripos($cleanH2, $cleanExam) !== false) {

@@ -286,8 +286,11 @@ foreach ($articles as $idx => $articleRow) {
 
     foreach ($sections as $si => $section) {
         $headingHtml = $section['heading'];
+        // Clean any double-encoded &amp;amp; and repeated "for [Exam] for [Exam]"
+        $headingHtml = preg_replace('/&amp;amp;/i', '&amp;', $headingHtml);
+        $headingHtml = preg_replace('/(\bfor\s+[^<]+?)\s+\1/i', '$1', $headingHtml);
         $bodyHtml    = $section['body'];
-        $headingText = strip_tags($headingHtml);
+        $headingText = html_entity_decode(strip_tags($headingHtml), ENT_QUOTES | ENT_HTML5, 'UTF-8');
         $sectionType = getSectionType($headingText);
         $proseText   = extractProseOnly($bodyHtml);
 
