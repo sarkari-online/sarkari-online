@@ -204,30 +204,19 @@ class Gemini {
 
                     // Handle rate limit (429)
                     if ($httpCode === 429) {
-                        $retrySeconds = 10;
+                        $retrySeconds = 30;
                         if (preg_match('/retry in ([0-9.]+)s/i', $rawBody, $m)) {
-                            $retrySeconds = (int)ceil((float)$m[1]) + 2;
+                            $retrySeconds = (int)ceil((float)$m[1]) + 3;
                         } elseif (str_contains(strtolower($rawBody), 'day') || str_contains(strtolower($rawBody), 'free_tier_requests')) {
                             $retrySeconds = 600; // 10 mins for daily quota
                         }
 
-                        // Rate limit (429): Google asks to wait $retrySeconds (usually 30-58s)
-                        // Sleep directly and retry without throwing or breaking!
-                        if ($retrySeconds <= 65 && $try < 2) {
-                            Logger::warning("Gemini model {$currentModel} rate limited (429). Sleeping {$retrySeconds}s for quota reset before retry...");
+                        // Rate limit is per-API-key across all models.
+                        // Always sleep out the quota reset period directly right here!
+                        if ($retrySeconds <= 70) {
+                            Logger::warning("Gemini API key rate limited (429). Sleeping {$retrySeconds}s for quota replenish...");
                             sleep($retrySeconds);
-                            continue;
-                        }
-
-                        // Check if there are other models to try
-                        $isLastModel = ($mIdx === $lastModelKey);
-                        if (!$isLastModel) {
-                            Logger::warning("Gemini model {$currentModel} rate limited (429); falling back to next available model.");
-                            break; // Try next model!
-                        } else {
-                            // Last model hit 429: wait out the full retry seconds, then do final retry
-                            Logger::warning("All Gemini models temporarily rate limited. Sleeping {$retrySeconds}s before final attempt...");
-                            sleep($retrySeconds);
+                            // Retry same model immediately after sleeping
                             try {
                                 $resRetry = $this->executeCurl($url, $payload);
                                 if ($resRetry['http_code'] === 200) {
@@ -245,10 +234,11 @@ class Gemini {
                                     ];
                                 }
                             } catch (Throwable $retryEx) {}
-                            
-                            $lastError = "Gemini API HTTP 429: Rate limit across all models (waited {$retrySeconds}s).";
-                            break 2;
                         }
+
+                        $lastError = "Gemini API HTTP 429: Rate limit cooldown active for {$retrySeconds}s.";
+                        // Don't hammer subsequent models if whole API key is rate limited; sleep and exit this call
+                        break 2;
                     }
 
                     // Server error (500/503) -> brief wait
