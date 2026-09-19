@@ -132,10 +132,12 @@ class GlossaryPipelineService
         if (!empty($generated['faqs']) && is_array($generated['faqs'])) {
             $cleanedFaqs = [];
             foreach ($generated['faqs'] as $faq) {
-                if (!empty($faq['question']) && !empty($faq['answer'])) {
+                $q = $faq['q'] ?? $faq['question'] ?? null;
+                $a = $faq['a'] ?? $faq['answer'] ?? null;
+                if (!empty($q) && !empty($a)) {
                     $cleanedFaqs[] = [
-                        'question' => Sanitizer::string($faq['question']),
-                        'answer' => Sanitizer::string($faq['answer'])
+                        'q' => Sanitizer::string($q),
+                        'a' => Sanitizer::string($a)
                     ];
                 }
             }
@@ -205,47 +207,45 @@ class GlossaryPipelineService
         }
 
         $prompt = <<<PROMPT
-You are the Chief Statutory Lexicographer for Sarkari.online, an authoritative public portal for Indian government examinations, commission gazettes, and public sector employment.
+You are RAJEEV SHARMA, a 36-year-old senior Indian education journalist writing for Sarkari.online.
+TARGET READERS: Indian students preparing for competitive exams (mostly Class 10/12 Hindi-medium background).
+MISSION: Generate 100% FACTUAL, ULTRA-SHORT, PUNCHY, SIMPLE, and 100% HUMAN data for this Indian government abbreviation. No long essays or academic paragraphs!
 
 TARGET ACRONYM: "{$acronym}"{$hintText}
 
-Generate 100% FACTUAL, accurate, gazette-style data for this Indian government examination, public commission, administrative post, or PSU abbreviation.
-
-STRICT HUMAN-EDITORIAL CONSTRAINTS:
-1. OBJECTIVE 3RD-PERSON JOURNALISTIC TONE:
-   - Write strictly in neutral, authoritative 3rd-person voice (like The Hindu, Indian Express, or Jagran Josh).
-   - NEVER use first-person coaching claims: "I've seen many candidates get rejected", "In my experience", "Don't underestimate", "It's a classic mistake", "The interview panel isn't looking for bookish knowledge", "Don't take the Group Task lightly", "Every graduate dreams of joining".
-   - State official criteria directly and factually. No dramatic warnings or motivational fluff.
-
-2. HIGH BURSTINESS & NATURAL CADENCE:
-   - Mix concise sentences with informative factual sentences.
-   - Use natural contractions where appropriate (don't, it's, haven't).
-
-3. STRICT CLICHÉ BLACKLIST (ZERO TOLERANCE):
-   - NEVER use: "digital governance initiative", "streamline the recruitment process", "centralized repository", "eliminate redundancy", "reflecting the government's commitment to", "fosters transparency", "crucial step", "pivotal role", "serves as a testament to", "in today's digital era", "without further ado", "traffic is insane", "server traffic".
-
-STRICT FIELD SPECIFICATIONS:
-1. "full_form_en": The exact official expansion in English.
-2. "full_form_hi": The exact authentic Hindi translation and meaning (शुद्ध हिंदी अनुवाद).
-3. "category": EXACTLY ONE of: ["civil_services", "defence", "banking", "railway", "police", "teaching", "engineering", "medical", "entrance"].
-4. "conducting_body": The exact Ministry, Commission, or Exam Board (e.g. "Ministry of Petroleum and Natural Gas", "UPSC", "SSC", "NTA", "RRB").
-5. "official_portal": Official .gov.in, .nic.in, or statutory agency website URL.
-6. "overview": 100-140 words in authoritative, neutral gazette voice. Detail the organisation/post's establishment, headquarters, parent ministry, statutory mandate, and operational role. NO personal coaching advice.
-7. "eligibility_criteria": 60-90 words stating official educational qualifications (degree/discipline), minimum marks (General vs reserved categories), and official age limits with standard statutory relaxations. Strictly factual.
-8. "selection_process": 60-90 words detailing the official gazetted recruitment stages (e.g. CBT/GATE shortlisting, Group Discussion/Interview, Document Verification, and Medical Examination). Strictly procedural.
-9. "syllabus_snapshot": 50-80 words listing the official examination subjects and key technical/general aptitude domains. Strictly factual.
-10. Salary Details (if a job post or cadre):
-    - "pay_level_7cpc": Pay Matrix Level e.g. "Level 3 (7th CPC)" or "Executive Scale E-2" (or null if statutory board)
-    - "basic_pay_min": Integer e.g. 21700 (or null)
-    - "basic_pay_max": Integer e.g. 69100 (or null)
-    - "gross_salary_min": Integer e.g. 35000 (or null)
-    - "gross_salary_max": Integer e.g. 42000 (or null)
-    - "allowances_summary": "DA, HRA, Transport Allowance, Medical Benefits"
-    - "career_growth_summary": 40-70 words on official promotion hierarchy.
-11. "faqs": Exactly 3 factual administrative FAQs with concise answers:
+STRICT SPECIFICATIONS:
+1. "full_form_en": Exact official expansion in English.
+2. "full_form_hi": Authentic Hindi translation/meaning (शुद्ध हिंदी अनुवाद).
+3. "category": Exactly one of: ["civil_services", "defence", "banking", "railway", "police", "teaching", "engineering", "medical", "entrance"].
+4. "conducting_body": Exact Ministry, Commission, or Exam Board (e.g. "UPSC", "SSC", "NTA", "Ministry of Railways").
+5. "official_portal": Official .gov.in, .nic.in, or official agency website URL.
+6. "overview": Max 45 words. 2 short punchy paragraphs. Start directly.
+   E.g.: "Looking for a central government job? Staff Selection Commission—or SSC—is where millions of Indian graduates begin. It's an attached body under the Department of Personnel and Training (DoPT).\n\nFrom Income Tax Inspector to Delhi Police Sub-Inspector, SSC conducts major exams for Group B and C posts on ssc.gov.in."
+7. "eligibility_criteria": Max 4 short points separated by semicolons (each point under 14 words).
+   E.g.: "10th Pass Level: Apply for MTS and Havaldar posts; 12th Pass Posts: CHSL and Stenographer are open to you; Graduate Level: Officer posts require graduation in any discipline; Age Limit: 18 to 27 or 32 years, with standard relaxations for reserved categories."
+8. "selection_process": Max 4 short sequential points separated by semicolons (each point under 12 words).
+   E.g.: "Tier 1 CBT: A 60-minute online screening test with 100 objective questions; Tier 2 Mains: Advanced computer exam testing core subjects with negative marking; Skill Tests: Typing or stenography speed test where applicable; Final Stage: Merit list followed by document verification and medicals."
+9. "syllabus_snapshot": 4 core subjects separated by semicolons (each point under 10 words).
+   E.g.: "Quantitative Aptitude: Arithmetic, algebra, geometry, and percentages; General Intelligence: Puzzles, series, and logical reasoning; English Language: Grammar basics, vocabulary, and reading comprehension; General Awareness: Current affairs, Indian polity, and history."
+10. Salary Details (if a job post or cadre, else null for basic_pay/gross_salary):
+    - "pay_level_7cpc": Pay Matrix Level e.g. "Level 7 (7th CPC)" or "Level 4 (7th CPC)" (or null)
+    - "basic_pay_min": Integer e.g. 25500 (or null)
+    - "basic_pay_max": Integer e.g. 81100 (or null)
+    - "gross_salary_min": Integer e.g. 38000 (or null)
+    - "gross_salary_max": Integer e.g. 45000 (or null)
+    - "allowances_summary": Max 20 words. 1 short sentence (e.g. "Includes Dearness Allowance (DA), House Rent Allowance (HRA), Transport Allowance, and central medical coverage.")
+    - "career_growth_summary": Max 30 words. 2 short sentences on promotions.
+11. "faqs": Exactly 3 FAQs with ULTRA-SHORT answers (1-2 sentences, max 25 words per answer):
     - FAQ 1: What is the full form of {$acronym} in Hindi?
     - FAQ 2: What is the minimum qualification and age limit for {$acronym}?
     - FAQ 3: What is the selection process and salary scale for {$acronym}?
+
+STYLE RULES:
+- Keep sentences short (4-12 words).
+- Use natural contractions (it's, you'll, don't, can't, here's).
+- Use em-dashes (—).
+- Class 10 vocabulary only. BANNED: paramount, pivotal, delve, realm, comprehensive, streamline, multifaceted, commence, subsequent, intricate, testament, beacon, foster, vital.
+- Keep all facts exact.
 
 Return ONLY valid JSON matching this exact structure:
 {
@@ -267,17 +267,24 @@ Return ONLY valid JSON matching this exact structure:
   "allowances_summary": "string",
   "career_growth_summary": "string",
   "faqs": [
-    {"question": "string", "answer": "string"}
+    {"q": "string", "a": "string"}
   ]
 }
 PROMPT;
 
         try {
-            $response = $this->gemini->generateJson($prompt, [
-                'stage' => 'glossary_generation',
-                'temperature' => 0.1,
+            $response = $this->gemini->generate($prompt, [
+                'stage' => 'glossary_generation_v3',
+                'json_mode' => true,
+                'temperature' => 1.7,
+                'system_instruction' => "You are RAJEEV SHARMA, a senior Indian education journalist. Write in simple, ultra-short, punchy everyday Indian English. Never write long essays or academic paragraphs. Every sentence is direct and conversational. Return strictly valid JSON."
             ]);
-            return $response['data'] ?? null;
+            $rawText = trim($response['text'] ?? '');
+            $json = json_decode($rawText, true);
+            if (!$json && preg_match('/\{.*\}/s', $rawText, $m)) {
+                $json = json_decode($m[0], true);
+            }
+            return is_array($json) ? $json : null;
         } catch (Throwable $e) {
             Logger::error("GlossaryPipelineService: Gemini generation error for '{$acronym}': " . $e->getMessage());
             return null;

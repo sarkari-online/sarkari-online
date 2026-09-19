@@ -34,8 +34,8 @@ class FaqSchemaRenderer
 
         $validItems = [];
         foreach ($faqs as $item) {
-            $q = trim((string)($item['q'] ?? ''));
-            $a = trim((string)($item['a'] ?? ''));
+            $q = trim((string)($item['q'] ?? $item['question'] ?? ''));
+            $a = trim((string)($item['a'] ?? $item['answer'] ?? ''));
             if (!empty($q) && !empty($a)) {
                 $validItems[] = [
                     'q' => $q,
