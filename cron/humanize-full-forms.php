@@ -115,56 +115,61 @@ TERM: "{$acronym}"
 FULL FORM: "{$fullEn}"
 CONDUCTING BODY: "{$conductingBody}"
 
-CURRENT DATA:
+CURRENT DATA (this is your ONLY source of facts — see ABSOLUTE RULE below):
 Overview: {$currOverview}
 Eligibility: {$currEligibility}
 Selection: {$currSelection}
 Syllabus: {$currSyllabus}
 Career Growth: {$currGrowth}
 Allowances: {$currAllowances}
+FAQS TO REWRITE SHORT:
 {$faqPromptText}
 
 ---
 
 WRITE ACCORDING TO THESE STRICT FORMAT RULES:
 
-1. "overview": Max 45 words. 2 short punchy paragraphs. Start directly.
-   E.g.:
-   "Looking for a central government job? Staff Selection Commission—or SSC—is where millions of Indian graduates begin. It's an attached body under the Department of Personnel and Training (DoPT).\n\nFrom Income Tax Inspector to Delhi Police Sub-Inspector, SSC conducts major exams for Group B and C posts on ssc.gov.in."
+1. "overview": Max 45 words. 2 short punchy paragraphs. Start directly without robotic openings. Use only entity/body names and facts given above — nothing else.
+   
+   Structure example (rhythm only — do not copy any names or numbers from this, it is illustrative of SENTENCE SHAPE only):
+   "Looking for a [type] government job? [Acronym]—or [full form]—is where [target group] begin. It's a [status] under [conducting body].\n\nFrom [example post] to [example post], [acronym] conducts exams for [category] posts on [official site]."
 
-2. "eligibility_criteria": Max 4 short points separated by semicolons (each point under 14 words):
-   E.g.:
-   "10th Pass Level: Apply for SSC MTS and Havaldar posts; 12th Pass Posts: CHSL and Stenographer are open to you; Graduate Level: CGL and CPO officer posts require graduation in any discipline; Age Limit: 18 to 27 or 32 years, with standard relaxations for reserved categories."
+2. "eligibility_criteria": Max 4 short points separated by semicolons (each point under 14 words). Only include a point if CURRENT DATA actually contains that specific fact — if fewer than 4 genuine facts are available, write fewer points rather than padding.
+   
+   Structure example (rhythm only, no real numbers):
+   "[Qualification level]: Apply for [post types]; [Qualification level]: [post types] are open to you; [Qualification level]: [post types] require [requirement]; Age Limit: [only if explicitly stated in input data], with relaxations for reserved categories [only if input data confirms this]."
 
-3. "selection_process": Max 4 short sequential points separated by semicolons (each point under 12 words):
-   E.g.:
-   "Tier 1 CBT: A 60-minute online screening test with 100 objective questions; Tier 2 Mains: Advanced computer exam testing core subjects with negative marking; Skill Tests: Typing or stenography speed test where applicable; Final Stage: Merit list followed by document verification and medicals."
+3. "selection_process": Max 4 short sequential points separated by semicolons (each point under 12 words). Stage names and formats must come from CURRENT DATA only.
+   
+   Structure example (rhythm only):
+   "[Stage name]: A [format] testing [what it tests]; [Stage name]: [format] covering [subjects]; [Stage name if applicable]: [skill/type] test where applicable; Final Stage: [what determines final selection]."
 
-4. "syllabus_snapshot": 4 core subjects separated by semicolons (each point under 10 words):
-   E.g.:
-   "Quantitative Aptitude: Arithmetic, algebra, geometry, and percentages; General Intelligence: Puzzles, series, and logical reasoning; English Language: Grammar basics, vocabulary, and reading comprehension; General Awareness: Current affairs, Indian polity, and history."
+4. "syllabus_snapshot": Up to 4 core subjects separated by semicolons (each point under 10 words), drawn only from CURRENT DATA. If fewer than 4 subjects are given, list only what's given.
+   
+   Structure example (rhythm only):
+   "[Subject]: [sub-topics]; [Subject]: [sub-topics]; [Subject]: [sub-topics]; [Subject]: [sub-topics]."
 
-5. "career_growth_summary": Max 30 words. 2 short sentences:
-   E.g.:
-   "Start as an Assistant Section Officer or Inspector. Through departmental exams and regular service years, you step up to Section Officer, Under Secretary, and Director."
+5. "career_growth_summary": Max 30 words. 2 short sentences. The progression path must match CURRENT DATA exactly — do not invent intermediate ranks or a 'typical' ladder if the input doesn't specify one.
+   
+   Structure example (rhythm only):
+   "Start as [entry post]. Through [progression mechanism], you step up to [next levels] — as stated in the given data, nothing added."
 
-6. "allowances_summary": Max 20 words. 1 short sentence:
-   E.g.:
-   "Includes Dearness Allowance (DA), House Rent Allowance (HRA), Transport Allowance, and central government medical coverage."
+6. "allowances_summary": Max 20 words. 1 short sentence. List only allowances named in CURRENT DATA.
+   
+   Structure example (rhythm only):
+   "Includes [allowance], [allowance], and [allowance] as applicable."
 
-7. "faqs": Array of rewritten FAQs with same questions, but answers must be ULTRA-SHORT (1-2 sentences, max 25 words per answer).
-   E.g.:
-   [
-     {"q": "What is the role of SSC?", "a": "SSC recruits staff for Group B and C posts across central government ministries."},
-     {"q": "Does the salary vary for different posts?", "a": "Yes. It starts around ₹25,000 for MTS and reaches over ₹80,000 for officer posts."}
-   ]
+7. "faqs": Exactly 3 FAQs with ULTRA-SHORT answers (1-2 sentences, max 25 words per answer). Rewrite the wording/tone of FAQS for punch and simplicity — but every fact, number, and figure inside an answer must already be present in that same FAQ's original text. Do not add a number that wasn't in the source FAQ.
+
+---
 
 RULES:
 - Keep sentences short (4-12 words).
 - Use natural contractions (it's, you'll, don't, can't, here's).
 - Use em-dashes (—).
 - Class 10 vocabulary only. BANNED: paramount, pivotal, delve, realm, comprehensive, streamline, multifaceted, commence, subsequent, intricate, testament, beacon, foster, vital.
-- Keep all facts exact.
+- FACTUAL LOCK: Every number, date, age, percentage, fee, or post name in your output must be traceable word-for-word to the CURRENT DATA fields above. If you cannot trace it, remove it. A short, factually-bare sentence is always correct; an invented one is strictly forbidden.
+- Do not generalize a specific input fact into a broader claim.
 
 Return ONLY a valid JSON object matching this schema:
 {
@@ -187,7 +192,7 @@ PROMPT;
             'stage'              => 'humanize_full_form_v3',
             'json_mode'          => true,
             'temperature'        => 1.7,
-            'system_instruction' => "You are RAJEEV SHARMA, a 36-year-old senior Indian education journalist. Write in simple, ultra-short, punchy everyday Indian English. Never write long essays or academic paragraphs. Every sentence is direct and conversational. Return strictly valid JSON."
+            'system_instruction' => "You are RAJEEV SHARMA, a 36-year-old senior Indian education journalist. Write in simple, ultra-short, punchy everyday Indian English. Never write long essays or academic paragraphs. Every sentence is direct and conversational. ABSOLUTE RULE — NEVER BROKEN: You may only use factual data (numbers, dates, ages, percentages, fees, post names, pay figures) that appears literally in the CURRENT DATA fields given to you. If a fact isn't in the provided data, leave it out entirely — do not estimate, round, generalize, or invent. A missing fact produces a shorter sentence, never a guessed one. Return strictly valid JSON."
         ]);
 
         $rawText = trim($result['text'] ?? '');

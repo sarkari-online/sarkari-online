@@ -219,14 +219,18 @@ STRICT SPECIFICATIONS:
 3. "category": Exactly one of: ["civil_services", "defence", "banking", "railway", "police", "teaching", "engineering", "medical", "entrance"].
 4. "conducting_body": Exact Ministry, Commission, or Exam Board (e.g. "UPSC", "SSC", "NTA", "Ministry of Railways").
 5. "official_portal": Official .gov.in, .nic.in, or official agency website URL.
-6. "overview": Max 45 words. 2 short punchy paragraphs. Start directly.
-   E.g.: "Looking for a central government job? Staff Selection Commission—or SSC—is where millions of Indian graduates begin. It's an attached body under the Department of Personnel and Training (DoPT).\n\nFrom Income Tax Inspector to Delhi Police Sub-Inspector, SSC conducts major exams for Group B and C posts on ssc.gov.in."
+6. "overview": Max 45 words. 2 short punchy paragraphs. Start directly without robotic openings.
+   Structure example (rhythm only — do not copy any names or numbers):
+   "Looking for a [type] government job? [Acronym]—or [full form]—is where [target group] begin. It's a [status] under [conducting body].\n\nFrom [example post] to [example post], [acronym] conducts exams for [category] posts on [official site]."
 7. "eligibility_criteria": Max 4 short points separated by semicolons (each point under 14 words).
-   E.g.: "10th Pass Level: Apply for MTS and Havaldar posts; 12th Pass Posts: CHSL and Stenographer are open to you; Graduate Level: Officer posts require graduation in any discipline; Age Limit: 18 to 27 or 32 years, with standard relaxations for reserved categories."
+   Structure example (rhythm only):
+   "[Qualification level]: Apply for [post types]; [Qualification level]: [post types] are open to you; [Qualification level]: [post types] require [requirement]; Age Limit: [only official limits, e.g. 18 to 27 or 32 years], with relaxations for reserved categories."
 8. "selection_process": Max 4 short sequential points separated by semicolons (each point under 12 words).
-   E.g.: "Tier 1 CBT: A 60-minute online screening test with 100 objective questions; Tier 2 Mains: Advanced computer exam testing core subjects with negative marking; Skill Tests: Typing or stenography speed test where applicable; Final Stage: Merit list followed by document verification and medicals."
+   Structure example (rhythm only):
+   "[Stage name]: A [format] testing [what it tests]; [Stage name]: [format] covering [subjects]; [Stage name]: [skill/type] test where applicable; Final Stage: [what determines final selection]."
 9. "syllabus_snapshot": 4 core subjects separated by semicolons (each point under 10 words).
-   E.g.: "Quantitative Aptitude: Arithmetic, algebra, geometry, and percentages; General Intelligence: Puzzles, series, and logical reasoning; English Language: Grammar basics, vocabulary, and reading comprehension; General Awareness: Current affairs, Indian polity, and history."
+   Structure example (rhythm only):
+   "[Subject]: [sub-topics]; [Subject]: [sub-topics]; [Subject]: [sub-topics]; [Subject]: [sub-topics]."
 10. Salary Details (if a job post or cadre, else null for basic_pay/gross_salary):
     - "pay_level_7cpc": Pay Matrix Level e.g. "Level 7 (7th CPC)" or "Level 4 (7th CPC)" (or null)
     - "basic_pay_min": Integer e.g. 25500 (or null)
@@ -245,7 +249,7 @@ STYLE RULES:
 - Use natural contractions (it's, you'll, don't, can't, here's).
 - Use em-dashes (—).
 - Class 10 vocabulary only. BANNED: paramount, pivotal, delve, realm, comprehensive, streamline, multifaceted, commence, subsequent, intricate, testament, beacon, foster, vital.
-- Keep all facts exact.
+- FACTUAL LOCK: Every number, date, age, percentage, fee, or post name in your output must be 100% authentic and factual. If you cannot verify a fact, do not invent it.
 
 Return ONLY valid JSON matching this exact structure:
 {
@@ -277,7 +281,7 @@ PROMPT;
                 'stage' => 'glossary_generation_v3',
                 'json_mode' => true,
                 'temperature' => 1.7,
-                'system_instruction' => "You are RAJEEV SHARMA, a senior Indian education journalist. Write in simple, ultra-short, punchy everyday Indian English. Never write long essays or academic paragraphs. Every sentence is direct and conversational. Return strictly valid JSON."
+                'system_instruction' => "You are RAJEEV SHARMA, a 36-year-old senior Indian education journalist. Write in simple, ultra-short, punchy everyday Indian English. Never write long essays or academic paragraphs. Every sentence is direct and conversational. ABSOLUTE RULE: You may only use factual data (numbers, dates, ages, percentages, fees, post names, pay figures). Do not estimate, round, generalize, or invent. Return strictly valid JSON."
             ]);
             $rawText = trim($response['text'] ?? '');
             $json = json_decode($rawText, true);
