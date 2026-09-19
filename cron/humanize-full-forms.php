@@ -1,16 +1,16 @@
 <?php
 /**
- * Sarkari.online - Full Forms (Glossary Terms) 2-Pass Student-Grade Humanizer
+ * Sarkari.online - Ultra-Crisp Full Forms 2-Pass Humanizer
  *
- * Rewrites glossary_terms (overview, eligibility, selection, syllabus) AND
- * full_form_entity_facts (career_growth, FAQs) into student-friendly Indian English
- * (Hindustan Times / Jagran Josh style, RAJEEV SHARMA persona, temp 1.7)
- * to bring AI detector score down from 77% to under 25%.
+ * Rewrites ALL text on full-form pages (Overview, Eligibility, Selection, Syllabus,
+ * Career Growth, Allowances, and FAQs) into ultra-short, punchy Class 10 student English.
+ *
+ * Eliminates long essays, DoPT textbook jargon, and robotic AI patterns.
+ * Brings AI detector score strictly below 20%.
  *
  * Usage:
  *   php cron/humanize-full-forms.php --acronym=SSC --dry-run
  *   php cron/humanize-full-forms.php --acronym=SSC
- *   php cron/humanize-full-forms.php --limit=5 --dry-run
  *   php cron/humanize-full-forms.php
  */
 
@@ -32,7 +32,7 @@ $limit          = isset($options['limit']) ? max(1, (int)$options['limit']) : 99
 $offset         = isset($options['offset']) ? max(0, (int)$options['offset']) : 0;
 
 echo "==========================================================\n";
-echo "🎓 Full Forms 2-Pass High-Perplexity Humanizer (Temp 1.7)\n";
+echo "⚡ Ultra-Short & Crisp Full Forms Humanizer (Temp 1.7)\n";
 echo "Mode: " . ($isDryRun ? "DRY-RUN (no DB save)" : "LIVE SAVE") . "\n";
 if ($targetAcronym) echo "Target Acronym: {$targetAcronym}\n";
 if ($targetSlug)    echo "Target Slug:    {$targetSlug}\n";
@@ -88,66 +88,103 @@ foreach ($terms as $idx => $term) {
     $currSelection   = trim(strip_tags($term['selection_process'] ?? ''));
     $currSyllabus    = trim(strip_tags($term['syllabus_snapshot'] ?? ''));
 
-    // Fetch associated facts if present
-    $facts = Database::fetchOne("SELECT career_growth_summary, faqs_json FROM full_form_entity_facts WHERE full_form_id = :fid LIMIT 1", ['fid' => $termId]);
-    $currGrowth = !empty($facts['career_growth_summary']) ? trim(strip_tags($facts['career_growth_summary'])) : '';
-    $currFaqs   = !empty($facts['faqs_json']) ? $facts['faqs_json'] : '';
+    // Fetch associated facts
+    $facts = Database::fetchOne("SELECT career_growth_summary, allowances_summary, faqs_json FROM full_form_entity_facts WHERE full_form_id = :fid LIMIT 1", ['fid' => $termId]);
+    $currGrowth     = !empty($facts['career_growth_summary']) ? trim(strip_tags($facts['career_growth_summary'])) : '';
+    $currAllowances = !empty($facts['allowances_summary']) ? trim(strip_tags($facts['allowances_summary'])) : '';
+    $rawFaqs        = !empty($facts['faqs_json']) ? json_decode($facts['faqs_json'], true) : [];
+
+    $faqPromptText = "";
+    if (is_array($rawFaqs) && !empty($rawFaqs)) {
+        $faqPromptText = "FAQS TO REWRITE SHORT:\n";
+        foreach ($rawFaqs as $fi => $f) {
+            $faqPromptText .= "Q: " . ($f['q'] ?? '') . "\n";
+            $faqPromptText .= "Current A: " . ($f['a'] ?? '') . "\n\n";
+        }
+    }
 
     $prompt = <<<PROMPT
-You are RAJEEV SHARMA, a 36-year-old senior Indian education reporter for Sarkari.online.
-You write in simple, punchy, direct everyday Indian English (Hindustan Times Education / Jagran Josh style) that Class 10 Hindi-medium students can easily read.
+You are RAJEEV SHARMA, a 36-year-old senior Indian education journalist writing for Sarkari.online.
+TARGET READERS: Indian students preparing for competitive exams (mostly Class 10/12 Hindi-medium background).
+MISSION: Rewrite this full-form guide to be ULTRA-SHORT, PUNCHY, SIMPLE, and 100% HUMAN. No long essays!
 
 TERM: "{$acronym}"
 FULL FORM: "{$fullEn}"
 CONDUCTING BODY: "{$conductingBody}"
 
-STUDY THESE EXACT EXAMPLES OF HOW TO WRITE:
-
-[OVERVIEW EXAMPLE]
-Looking for a central government job? Staff Selection Commission—or SSC—is where millions of students start. It's an attached body under the Department of Personnel and Training (DoPT).
-From Income Tax Inspector to Delhi Police Sub-Inspector, SSC conducts recruitment for premier Group B and C posts. Everything runs online on ssc.gov.in. Lakhs of aspirants register each year, making competition fierce but completely open to merit.
-
-[ELIGIBILITY EXAMPLE]
-10th Pass Candidates: You can apply for SSC MTS and Havaldar posts; 12th Pass Students: CHSL and Stenographer Grade C and D are open to you; Graduate Aspirants: CGL and CPO officer posts require a graduation degree in any discipline; Age Bracket: Mostly 18 to 27 or 32 years, with standard government relaxations for reserved categories.
-
-[SELECTION EXAMPLE]
-Tier 1 CBT: A 60-minute online screening test with 100 objective questions; Tier 2 Mains: Comprehensive online exam covering core subjects with negative marking; Skill Tests: Typing or stenography speed test for clerical roles; Final Stage: Merit ranking followed by document verification and medical checkup.
-
-[SYLLABUS EXAMPLE]
-Quantitative Aptitude: Arithmetic, percentages, ratio-proportion, algebra, and geometry; General Intelligence & Reasoning: Puzzles, number series, seating arrangements, and coding; English Comprehension: Grammar basics, error spotting, idioms, and reading passages; General Awareness: Daily current affairs, Indian constitution, history, and general science.
-
-[CAREER GROWTH EXAMPLE]
-Joining as an Assistant Section Officer opens up a solid promotion ladder. With departmental tests and service years, you step up to Section Officer, Under Secretary, and eventually Deputy Secretary or Director.
-
----
-
-CURRENT CONTENT TO REWRITE:
+CURRENT DATA:
 Overview: {$currOverview}
 Eligibility: {$currEligibility}
 Selection: {$currSelection}
 Syllabus: {$currSyllabus}
 Career Growth: {$currGrowth}
+Allowances: {$currAllowances}
+{$faqPromptText}
 
 ---
 
-UNIVERSAL RULES:
-1. Short sentences (4-12 words). Vary rhythm: mix very short 3-word punchy lines with medium ones.
-2. Mandatory contractions: it's, don't, you'll, can't, here's, won't.
-3. Use em-dashes (—) for natural emphasis.
-4. Sometimes start sentences with 'And' or 'But'.
-5. BANNED words: paramount, pivotal, delve, realm, comprehensive, streamline, multifaceted, commence, subsequent, intricate, testament, beacon, foster, vital.
-6. PRESERVE ALL FACTS: qualifications, degrees, age numbers, test stages, portals.
-7. Return strictly a JSON object with keys: "overview", "eligibility_criteria", "selection_process", "syllabus_snapshot", "career_growth_summary".
+WRITE ACCORDING TO THESE STRICT FORMAT RULES:
+
+1. "overview": Max 45 words. 2 short punchy paragraphs. Start directly.
+   E.g.:
+   "Looking for a central government job? Staff Selection Commission—or SSC—is where millions of Indian graduates begin. It's an attached body under the Department of Personnel and Training (DoPT).\n\nFrom Income Tax Inspector to Delhi Police Sub-Inspector, SSC conducts major exams for Group B and C posts on ssc.gov.in."
+
+2. "eligibility_criteria": Max 4 short points separated by semicolons (each point under 14 words):
+   E.g.:
+   "10th Pass Level: Apply for SSC MTS and Havaldar posts; 12th Pass Posts: CHSL and Stenographer are open to you; Graduate Level: CGL and CPO officer posts require graduation in any discipline; Age Limit: 18 to 27 or 32 years, with standard relaxations for reserved categories."
+
+3. "selection_process": Max 4 short sequential points separated by semicolons (each point under 12 words):
+   E.g.:
+   "Tier 1 CBT: A 60-minute online screening test with 100 objective questions; Tier 2 Mains: Advanced computer exam testing core subjects with negative marking; Skill Tests: Typing or stenography speed test where applicable; Final Stage: Merit list followed by document verification and medicals."
+
+4. "syllabus_snapshot": 4 core subjects separated by semicolons (each point under 10 words):
+   E.g.:
+   "Quantitative Aptitude: Arithmetic, algebra, geometry, and percentages; General Intelligence: Puzzles, series, and logical reasoning; English Language: Grammar basics, vocabulary, and reading comprehension; General Awareness: Current affairs, Indian polity, and history."
+
+5. "career_growth_summary": Max 30 words. 2 short sentences:
+   E.g.:
+   "Start as an Assistant Section Officer or Inspector. Through departmental exams and regular service years, you step up to Section Officer, Under Secretary, and Director."
+
+6. "allowances_summary": Max 20 words. 1 short sentence:
+   E.g.:
+   "Includes Dearness Allowance (DA), House Rent Allowance (HRA), Transport Allowance, and central government medical coverage."
+
+7. "faqs": Array of rewritten FAQs with same questions, but answers must be ULTRA-SHORT (1-2 sentences, max 25 words per answer).
+   E.g.:
+   [
+     {"q": "What is the role of SSC?", "a": "SSC recruits staff for Group B and C posts across central government ministries."},
+     {"q": "Does the salary vary for different posts?", "a": "Yes. It starts around ₹25,000 for MTS and reaches over ₹80,000 for officer posts."}
+   ]
+
+RULES:
+- Keep sentences short (4-12 words).
+- Use natural contractions (it's, you'll, don't, can't, here's).
+- Use em-dashes (—).
+- Class 10 vocabulary only. BANNED: paramount, pivotal, delve, realm, comprehensive, streamline, multifaceted, commence, subsequent, intricate, testament, beacon, foster, vital.
+- Keep all facts exact.
+
+Return ONLY a valid JSON object matching this schema:
+{
+  "overview": "...",
+  "eligibility_criteria": "...",
+  "selection_process": "...",
+  "syllabus_snapshot": "...",
+  "career_growth_summary": "...",
+  "allowances_summary": "...",
+  "faqs": [
+    {"q": "...", "a": "..."}
+  ]
+}
 PROMPT;
 
     try {
-        echo "  ✍️  Sending to Gemini (Temp 1.7 RAJEEV SHARMA Persona)...\n";
+        echo "  ✍️  Sending to Gemini (Temp 1.7 Ultra-Short Humanizer)...\n";
 
         $result = $gemini->generate($prompt, [
-            'stage'              => 'humanize_full_form_v2',
+            'stage'              => 'humanize_full_form_v3',
             'json_mode'          => true,
             'temperature'        => 1.7,
-            'system_instruction' => "You are RAJEEV SHARMA, a 36-year-old senior Indian education journalist. Simple, punchy, conversational Indian English. Short sentences. Natural contractions. High burstiness. Never sound like a textbook or AI."
+            'system_instruction' => "You are RAJEEV SHARMA, a 36-year-old senior Indian education journalist. Write in simple, ultra-short, punchy everyday Indian English. Never write long essays or academic paragraphs. Every sentence is direct and conversational. Return strictly valid JSON."
         ]);
 
         $rawText = trim($result['text'] ?? '');
@@ -166,10 +203,12 @@ PROMPT;
         $newSelection   = trim($json['selection_process'] ?? $currSelection);
         $newSyllabus    = trim($json['syllabus_snapshot'] ?? $currSyllabus);
         $newGrowth      = trim($json['career_growth_summary'] ?? $currGrowth);
+        $newAllowances  = trim($json['allowances_summary'] ?? $currAllowances);
+        $newFaqs        = !empty($json['faqs']) && is_array($json['faqs']) ? json_encode($json['faqs'], JSON_UNESCAPED_UNICODE) : null;
 
-        echo "  ✅ Humanized!\n";
-        echo "  📋 Overview:\n     " . mb_substr($newOverview, 0, 180) . "...\n";
-        echo "  📋 Eligibility:\n     " . mb_substr($newEligibility, 0, 180) . "...\n";
+        $wordCount = str_word_count($newOverview . ' ' . $newEligibility . ' ' . $newSelection . ' ' . $newSyllabus);
+        echo "  ✅ Humanized! Total prose words: {$wordCount} (Ultra-Short)\n";
+        echo "  📋 Overview:\n     " . mb_substr($newOverview, 0, 150) . "...\n";
 
         if (!$isDryRun) {
             Database::execute(
@@ -190,28 +229,31 @@ PROMPT;
                 ]
             );
 
-            if (!empty($newGrowth)) {
-                Database::execute(
-                    "UPDATE full_form_entity_facts 
-                     SET career_growth_summary = :gw, 
-                         last_verified_at = NOW(), 
-                         updated_at = NOW() 
-                     WHERE full_form_id = :id",
-                    [
-                        'gw' => $newGrowth,
-                        'id' => $termId
-                    ]
-                );
-            } else {
-                Database::execute(
-                    "UPDATE full_form_entity_facts 
-                     SET last_verified_at = NOW(), updated_at = NOW() 
-                     WHERE full_form_id = :id",
-                    ['id' => $termId]
-                );
+            // Update full_form_entity_facts
+            $factsParams = [
+                'id' => $termId,
+                'gw' => $newGrowth ?: null,
+                'al' => $newAllowances ?: null,
+            ];
+
+            $faqUpdateSql = "";
+            if (!empty($newFaqs)) {
+                $faqUpdateSql = ", faqs_json = :faqs";
+                $factsParams['faqs'] = $newFaqs;
             }
 
-            echo "  💾 Saved to glossary_terms & full_form_entity_facts!\n\n";
+            Database::execute(
+                "UPDATE full_form_entity_facts 
+                 SET career_growth_summary = :gw, 
+                     allowances_summary = :al, 
+                     last_verified_at = NOW(), 
+                     updated_at = NOW() 
+                     {$faqUpdateSql}
+                 WHERE full_form_id = :id",
+                $factsParams
+            );
+
+            echo "  💾 Saved to glossary_terms & full_form_entity_facts (including FAQs & Allowances)!\n\n";
         } else {
             echo "  🔵 DRY-RUN: Not saved.\n\n";
         }
@@ -229,7 +271,7 @@ PROMPT;
 }
 
 echo "==========================================================\n";
-echo "✅ FULL FORMS HUMANIZER COMPLETE\n";
+echo "✅ ULTRA-SHORT FULL FORMS HUMANIZER COMPLETE\n";
 echo "==========================================================\n";
 echo "Processed: {$total}\n";
 echo "Success:   {$success}\n";
