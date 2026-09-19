@@ -48,6 +48,9 @@ if ($targetAcronym) {
 } elseif ($targetSlug) {
     $where .= " AND slug = :slg";
     $params['slg'] = $targetSlug;
+} else {
+    // Only process terms not yet humanized today
+    $where .= " AND (last_reviewed_at IS NULL OR last_reviewed_at < CURDATE())";
 }
 
 $sql = "SELECT id, acronym, slug, full_form_en, full_form_hi, category, conducting_body, 

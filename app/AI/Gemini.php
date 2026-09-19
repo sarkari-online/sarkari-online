@@ -106,9 +106,9 @@ class Gemini {
         if (self::isCircuitBreakerActive()) {
             $val = (int)Database::fetchValue("SELECT value FROM settings WHERE `key` = 'gemini_circuit_breaker_until' LIMIT 1");
             $rem = max(1, $val - time());
-            if ($rem <= 15) {
-                Logger::info("Gemini circuit breaker waiting {$rem}s for short cooldown to expire...");
-                sleep($rem);
+            if ($rem <= 65) {
+                Logger::info("Gemini circuit breaker waiting {$rem}s for cooldown to expire...");
+                sleep($rem + 1);
             } else {
                 $err = "Gemini API circuit breaker is active (cooldown). Please wait {$rem}s before retrying.";
                 // Note: Do NOT log this local cooldown rejection to ai_logs to avoid false failure count inflation
