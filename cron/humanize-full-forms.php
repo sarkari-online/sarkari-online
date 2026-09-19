@@ -189,6 +189,14 @@ PROMPT;
                     'id' => $termId
                 ]
             );
+            try {
+                Database::execute(
+                    "UPDATE full_form_entity_facts 
+                     SET last_verified_at = NOW(), updated_at = NOW() 
+                     WHERE full_form_id = :id",
+                    ['id' => $termId]
+                );
+            } catch (\Throwable $e) {}
             echo "  💾 Saved to database!\n\n";
         } else {
             echo "  🔵 DRY-RUN: Not saved.\n\n";
