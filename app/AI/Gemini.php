@@ -29,7 +29,7 @@ class Gemini {
             $dbModel = Database::fetchValue("SELECT value FROM settings WHERE `key` = 'gemini_model' LIMIT 1");
         } catch (Throwable $e) {}
 
-        $this->model = $model ?: ($dbModel ?: (string)Env::get('GEMINI_MODEL', 'gemini-3.1-flash-lite'));
+        $this->model = $model ?: ($dbModel ?: (string)Env::get('GEMINI_MODEL', 'gemini-3.5-flash'));
         $this->timeout = (int)Env::get('GEMINI_TIMEOUT', 90);
         $this->maxRetries = (int)Env::get('GEMINI_MAX_RETRIES', 3);
     }
@@ -152,14 +152,13 @@ class Gemini {
             $payload['tools'] = $options['tools'];
         }
 
-        // Active Google Gemini models in 2026: high-throughput flash-lite models first, followed by next-gen flash
-        // Deprecated gemini-2.5-flash / gemini-2.5-flash-lite completely removed (they return 404 from Google)
+        // Active Google Gemini models in 2026: high-throughput gemini-3.5-flash first (most reliable quota)
+        // Preview models (3.6, 3.7, 3.8) have a low 20 RPD cap; gemini-3.5-flash has full active quota.
         $modelsToTry = array_values(array_unique(array_filter([
+            'gemini-3.5-flash',
             $this->model,
-            'gemini-3.1-flash-lite',
             'gemini-3.5-flash-lite',
-            'gemini-3.7-flash',
-            'gemini-3.8-flash',
+            'gemini-3.1-flash-lite',
             'gemini-3.6-flash'
         ])));
         $lastModelKey = count($modelsToTry) - 1;
@@ -204,41 +203,28 @@ class Gemini {
 
                     // Handle rate limit (429)
                     if ($httpCode === 429) {
-                        $retrySeconds = 30;
+                        // If model hit hard daily quota (e.g. preview 20 RPD cap), switch to next model immediately!
+                        $isHardDailyCap = str_contains(strtolower($rawBody), 'day') || str_contains($rawBody, 'limit: 20');
+                        if ($isHardDailyCap) {
+                            Logger::warning("Gemini model {$currentModel} hit hard daily quota cap (limit: 20). Switching to next model immediately.");
+                            break; // Try next model immediately!
+                        }
+
+                        $retrySeconds = 25;
                         if (preg_match('/retry in ([0-9.]+)s/i', $rawBody, $m)) {
-                            $retrySeconds = (int)ceil((float)$m[1]) + 3;
-                        } elseif (str_contains(strtolower($rawBody), 'day') || str_contains(strtolower($rawBody), 'free_tier_requests')) {
-                            $retrySeconds = 600; // 10 mins for daily quota
+                            $retrySeconds = (int)ceil((float)$m[1]) + 2;
                         }
 
-                        // Rate limit is per-API-key across all models.
-                        // Always sleep out the quota reset period directly right here!
-                        if ($retrySeconds <= 70) {
-                            Logger::warning("Gemini API key rate limited (429). Sleeping {$retrySeconds}s for quota replenish...");
+                        // Per-minute rate limit: sleep out the cooldown and retry once
+                        if ($retrySeconds <= 65 && $try < 2) {
+                            Logger::warning("Gemini model {$currentModel} rate limited (429). Sleeping {$retrySeconds}s for quota replenish...");
                             sleep($retrySeconds);
-                            // Retry same model immediately after sleeping
-                            try {
-                                $resRetry = $this->executeCurl($url, $payload);
-                                if ($resRetry['http_code'] === 200) {
-                                    $json = json_decode($resRetry['body'], true);
-                                    $text = $json['candidates'][0]['content']['parts'][0]['text'] ?? '';
-                                    $tokensUsed = $json['usageMetadata']['totalTokenCount'] ?? 0;
-                                    $groundingMetadata = $json['candidates'][0]['groundingMetadata'] ?? null;
-                                    $this->logOperation($stage, $articleId, $trendId, $prompt, $text, $tokensUsed, true, null);
-                                    return [
-                                        'text' => $text,
-                                        'tokens_used' => $tokensUsed,
-                                        'model' => $currentModel,
-                                        'status' => 'success',
-                                        'grounding_metadata' => $groundingMetadata
-                                    ];
-                                }
-                            } catch (Throwable $retryEx) {}
+                            continue; // Retry same model after sleep
                         }
 
-                        $lastError = "Gemini API HTTP 429: Rate limit cooldown active for {$retrySeconds}s.";
-                        // Don't hammer subsequent models if whole API key is rate limited; sleep and exit this call
-                        break 2;
+                        // If still failing or last try, switch to next model
+                        Logger::warning("Gemini model {$currentModel} rate limited after wait; falling back to next available model.");
+                        break;
                     }
 
                     // Server error (500/503) -> brief wait
