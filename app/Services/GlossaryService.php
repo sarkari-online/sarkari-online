@@ -216,12 +216,16 @@ class GlossaryService {
 
         $hindiPart = !empty($fullHi) ? " (हिंदी में: <strong>{$fullHi}</strong>)" : "";
 
-        // Extract first contextual sentence from overview or fallback
-        $contextSentence = "It functions under {$body} as an official authority for examination administration and cadre recruitment";
+        // Extract first contextual factual sentence from overview or fallback
+        $contextSentence = "It operates under {$body} to conduct statutory competitive examinations and cadre recruitments across India";
         if (!empty($term['overview'])) {
-            $sentences = preg_split('/(?<=[.?!])\s+/', trim(strip_tags($term['overview'])), 2);
-            if (!empty($sentences[0]) && strlen($sentences[0]) > 20 && strlen($sentences[0]) < 180) {
-                $contextSentence = rtrim($sentences[0], '.');
+            $sentences = preg_split('/(?<=[.?!])\s+/', trim(strip_tags($term['overview'])), 4);
+            foreach ($sentences as $s) {
+                $trimmed = trim($s, " \t\n\r\0\x0B.");
+                if (strlen($trimmed) > 25 && strlen($trimmed) < 180 && !str_ends_with($trimmed, '?') && !preg_match('/^(?:Want|Looking|Are you|Have you|Did you)\b/i', $trimmed)) {
+                    $contextSentence = $trimmed;
+                    break;
+                }
             }
         }
 
