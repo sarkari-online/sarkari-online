@@ -261,12 +261,26 @@ PROMPT;
         $success++;
 
     } catch (\Throwable $e) {
-        echo "  ❌ Error: " . $e->getMessage() . "\n\n";
+        $msg = $e->getMessage();
+        echo "  ❌ Error: " . $msg . "\n\n";
         $failed++;
+
+        // If rate limit or circuit breaker, sleep and retry this term
+        if (str_contains($msg, 'circuit breaker') || str_contains($msg, '429') || str_contains($msg, 'Rate limit')) {
+            $waitTime = 40;
+            if (preg_match('/wait ([0-9]+)s/i', $msg, $m)) {
+                $waitTime = (int)$m[1] + 3;
+            } elseif (preg_match('/cooldown active for ([0-9]+)s/i', $msg, $m)) {
+                $waitTime = (int)$m[1] + 3;
+            }
+            echo "  ⏳ Rate limit hit. Sleeping {$waitTime}s before continuing...\n\n";
+            sleep($waitTime);
+        }
     }
 
     if ($termNum < $total) {
-        sleep(3);
+        // Sleep 6s between calls to prevent hitting 15 RPM free tier limits
+        sleep(6);
     }
 }
 
