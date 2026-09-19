@@ -211,9 +211,10 @@ class Gemini {
                             $retrySeconds = 600; // 10 mins for daily quota
                         }
 
-                        // If it is a short rate-limit cooldown (<= 15s), pause and retry in-line!
-                        if ($retrySeconds <= 15 && $try < 2) {
-                            Logger::warning("Gemini model {$currentModel} rate limited (429). Sleeping {$retrySeconds}s for quota replenishment...");
+                        // Rate limit (429): Google asks to wait $retrySeconds (usually 30-58s)
+                        // Sleep directly and retry without throwing or breaking!
+                        if ($retrySeconds <= 65 && $try < 2) {
+                            Logger::warning("Gemini model {$currentModel} rate limited (429). Sleeping {$retrySeconds}s for quota reset before retry...");
                             sleep($retrySeconds);
                             continue;
                         }
@@ -224,29 +225,28 @@ class Gemini {
                             Logger::warning("Gemini model {$currentModel} rate limited (429); falling back to next available model.");
                             break; // Try next model!
                         } else {
-                            if ($retrySeconds <= 15) {
-                                Logger::warning("All Gemini models temporarily rate limited. Sleeping {$retrySeconds}s before final attempt...");
-                                sleep($retrySeconds);
-                                try {
-                                    $resRetry = $this->executeCurl($url, $payload);
-                                    if ($resRetry['http_code'] === 200) {
-                                        $json = json_decode($resRetry['body'], true);
-                                        $text = $json['candidates'][0]['content']['parts'][0]['text'] ?? '';
-                                        $tokensUsed = $json['usageMetadata']['totalTokenCount'] ?? 0;
-                                        $groundingMetadata = $json['candidates'][0]['groundingMetadata'] ?? null;
-                                        $this->logOperation($stage, $articleId, $trendId, $prompt, $text, $tokensUsed, true, null);
-                                        return [
-                                            'text' => $text,
-                                            'tokens_used' => $tokensUsed,
-                                            'model' => $currentModel,
-                                            'status' => 'success',
-                                            'grounding_metadata' => $groundingMetadata
-                                        ];
-                                    }
-                                } catch (Throwable $retryEx) {}
-                            }
-                            self::setCircuitBreaker($retrySeconds, "HTTP 429 Rate Limit across all models");
-                            $lastError = "Gemini API HTTP 429: Rate limit cooldown active for {$retrySeconds}s.";
+                            // Last model hit 429: wait out the full retry seconds, then do final retry
+                            Logger::warning("All Gemini models temporarily rate limited. Sleeping {$retrySeconds}s before final attempt...");
+                            sleep($retrySeconds);
+                            try {
+                                $resRetry = $this->executeCurl($url, $payload);
+                                if ($resRetry['http_code'] === 200) {
+                                    $json = json_decode($resRetry['body'], true);
+                                    $text = $json['candidates'][0]['content']['parts'][0]['text'] ?? '';
+                                    $tokensUsed = $json['usageMetadata']['totalTokenCount'] ?? 0;
+                                    $groundingMetadata = $json['candidates'][0]['groundingMetadata'] ?? null;
+                                    $this->logOperation($stage, $articleId, $trendId, $prompt, $text, $tokensUsed, true, null);
+                                    return [
+                                        'text' => $text,
+                                        'tokens_used' => $tokensUsed,
+                                        'model' => $currentModel,
+                                        'status' => 'success',
+                                        'grounding_metadata' => $groundingMetadata
+                                    ];
+                                }
+                            } catch (Throwable $retryEx) {}
+                            
+                            $lastError = "Gemini API HTTP 429: Rate limit across all models (waited {$retrySeconds}s).";
                             break 2;
                         }
                     }

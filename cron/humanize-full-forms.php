@@ -185,109 +185,123 @@ Return ONLY a valid JSON object matching this schema:
 }
 PROMPT;
 
-    try {
-        echo "  ✍️  Sending to Gemini (Temp 1.7 Ultra-Short Humanizer)...\n";
+    $termProcessed = false;
+    $retries = 0;
 
-        $result = $gemini->generate($prompt, [
-            'stage'              => 'humanize_full_form_v3',
-            'json_mode'          => true,
-            'temperature'        => 1.7,
-            'system_instruction' => "You are RAJEEV SHARMA, a 36-year-old senior Indian education journalist. Write in simple, ultra-short, punchy everyday Indian English. Never write long essays or academic paragraphs. Every sentence is direct and conversational. ABSOLUTE RULE — NEVER BROKEN: You may only use factual data (numbers, dates, ages, percentages, fees, post names, pay figures) that appears literally in the CURRENT DATA fields given to you. If a fact isn't in the provided data, leave it out entirely — do not estimate, round, generalize, or invent. A missing fact produces a shorter sentence, never a guessed one. Return strictly valid JSON."
-        ]);
+    while (!$termProcessed && $retries < 4) {
+        $retries++;
+        try {
+            echo "  ✍️  Sending to Gemini (Temp 1.7 Ultra-Short Humanizer)...\n";
 
-        $rawText = trim($result['text'] ?? '');
-        $json = json_decode($rawText, true);
+            $result = $gemini->generate($prompt, [
+                'stage'              => 'humanize_full_form_v3',
+                'json_mode'          => true,
+                'temperature'        => 1.7,
+                'system_instruction' => "You are RAJEEV SHARMA, a 36-year-old senior Indian education journalist. Write in simple, ultra-short, punchy everyday Indian English. Never write long essays or academic paragraphs. Every sentence is direct and conversational. ABSOLUTE RULE — NEVER BROKEN: You may only use factual data (numbers, dates, ages, percentages, fees, post names, pay figures) that appears literally in the CURRENT DATA fields given to you. If a fact isn't in the provided data, leave it out entirely — do not estimate, round, generalize, or invent. A missing fact produces a shorter sentence, never a guessed one. Return strictly valid JSON."
+            ]);
 
-        if (!$json && preg_match('/\{.*\}/s', $rawText, $m)) {
-            $json = json_decode($m[0], true);
-        }
+            $rawText = trim($result['text'] ?? '');
+            $json = json_decode($rawText, true);
 
-        if (!$json || empty($json['overview'])) {
-            throw new \Exception("Invalid JSON returned: " . substr($rawText, 0, 150));
-        }
-
-        $newOverview    = trim($json['overview']);
-        $newEligibility = trim($json['eligibility_criteria'] ?? $currEligibility);
-        $newSelection   = trim($json['selection_process'] ?? $currSelection);
-        $newSyllabus    = trim($json['syllabus_snapshot'] ?? $currSyllabus);
-        $newGrowth      = trim($json['career_growth_summary'] ?? $currGrowth);
-        $newAllowances  = trim($json['allowances_summary'] ?? $currAllowances);
-        $newFaqs        = !empty($json['faqs']) && is_array($json['faqs']) ? json_encode($json['faqs'], JSON_UNESCAPED_UNICODE) : null;
-
-        $wordCount = str_word_count($newOverview . ' ' . $newEligibility . ' ' . $newSelection . ' ' . $newSyllabus);
-        echo "  ✅ Humanized! Total prose words: {$wordCount} (Ultra-Short)\n";
-        echo "  📋 Overview:\n     " . mb_substr($newOverview, 0, 150) . "...\n";
-
-        if (!$isDryRun) {
-            Database::execute(
-                "UPDATE glossary_terms 
-                 SET overview = :ov, 
-                     eligibility_criteria = :el, 
-                     selection_process = :sp, 
-                     syllabus_snapshot = :sy, 
-                     last_reviewed_at = CURDATE(), 
-                     updated_at = NOW() 
-                 WHERE id = :id",
-                [
-                    'ov' => $newOverview,
-                    'el' => $newEligibility,
-                    'sp' => $newSelection,
-                    'sy' => $newSyllabus,
-                    'id' => $termId
-                ]
-            );
-
-            // Update full_form_entity_facts
-            $factsParams = [
-                'id' => $termId,
-                'gw' => $newGrowth ?: null,
-                'al' => $newAllowances ?: null,
-            ];
-
-            $faqUpdateSql = "";
-            if (!empty($newFaqs)) {
-                $faqUpdateSql = ", faqs_json = :faqs";
-                $factsParams['faqs'] = $newFaqs;
+            if (!$json && preg_match('/\{.*\}/s', $rawText, $m)) {
+                $json = json_decode($m[0], true);
             }
 
-            Database::execute(
-                "UPDATE full_form_entity_facts 
-                 SET career_growth_summary = :gw, 
-                     allowances_summary = :al, 
-                     last_verified_at = NOW(), 
-                     updated_at = NOW() 
-                     {$faqUpdateSql}
-                 WHERE full_form_id = :id",
-                $factsParams
-            );
-
-            echo "  💾 Saved to glossary_terms & full_form_entity_facts (including FAQs & Allowances)!\n\n";
-        } else {
-            echo "  🔵 DRY-RUN: Not saved.\n\n";
-        }
-
-        $success++;
-
-    } catch (\Throwable $e) {
-        $msg = $e->getMessage();
-        echo "  ❌ Error: " . $msg . "\n\n";
-        $failed++;
-
-        // If rate limit or circuit breaker, sleep and retry this term
-        if (str_contains($msg, 'circuit breaker') || str_contains($msg, '429') || str_contains($msg, 'Rate limit')) {
-            $waitTime = 40;
-            if (preg_match('/wait ([0-9]+)s/i', $msg, $m)) {
-                $waitTime = (int)$m[1] + 3;
-            } elseif (preg_match('/cooldown active for ([0-9]+)s/i', $msg, $m)) {
-                $waitTime = (int)$m[1] + 3;
+            if (!$json || empty($json['overview'])) {
+                throw new \Exception("Invalid JSON returned: " . substr($rawText, 0, 150));
             }
-            echo "  ⏳ Rate limit hit. Sleeping {$waitTime}s before continuing...\n\n";
-            sleep($waitTime);
+
+            $newOverview    = trim($json['overview']);
+            $newEligibility = trim($json['eligibility_criteria'] ?? $currEligibility);
+            $newSelection   = trim($json['selection_process'] ?? $currSelection);
+            $newSyllabus    = trim($json['syllabus_snapshot'] ?? $currSyllabus);
+            $newGrowth      = trim($json['career_growth_summary'] ?? $currGrowth);
+            $newAllowances  = trim($json['allowances_summary'] ?? $currAllowances);
+            $newFaqs        = !empty($json['faqs']) && is_array($json['faqs']) ? json_encode($json['faqs'], JSON_UNESCAPED_UNICODE) : null;
+
+            $wordCount = str_word_count($newOverview . ' ' . $newEligibility . ' ' . $newSelection . ' ' . $newSyllabus);
+            echo "  ✅ Humanized! Total prose words: {$wordCount} (Ultra-Short)\n";
+            echo "  📋 Overview:\n     " . mb_substr($newOverview, 0, 150) . "...\n";
+
+            if (!$isDryRun) {
+                Database::execute(
+                    "UPDATE glossary_terms 
+                     SET overview = :ov, 
+                         eligibility_criteria = :el, 
+                         selection_process = :sp, 
+                         syllabus_snapshot = :sy, 
+                         last_reviewed_at = CURDATE(), 
+                         updated_at = NOW() 
+                     WHERE id = :id",
+                    [
+                        'ov' => $newOverview,
+                        'el' => $newEligibility,
+                        'sp' => $newSelection,
+                        'sy' => $newSyllabus,
+                        'id' => $termId
+                    ]
+                );
+
+                // Update full_form_entity_facts
+                $factsParams = [
+                    'id' => $termId,
+                    'gw' => $newGrowth ?: null,
+                    'al' => $newAllowances ?: null,
+                ];
+
+                $faqUpdateSql = "";
+                if (!empty($newFaqs)) {
+                    $faqUpdateSql = ", faqs_json = :faqs";
+                    $factsParams['faqs'] = $newFaqs;
+                }
+
+                Database::execute(
+                    "UPDATE full_form_entity_facts 
+                     SET career_growth_summary = :gw, 
+                         allowances_summary = :al, 
+                         last_verified_at = NOW(), 
+                         updated_at = NOW() 
+                         {$faqUpdateSql}
+                     WHERE full_form_id = :id",
+                    $factsParams
+                );
+
+                echo "  💾 Saved to glossary_terms & full_form_entity_facts (including FAQs & Allowances)!\n\n";
+            } else {
+                echo "  🔵 DRY-RUN: Not saved.\n\n";
+            }
+
+            $success++;
+            $termProcessed = true;
+
+        } catch (\Throwable $e) {
+            $msg = $e->getMessage();
+            echo "  ❌ Error: " . $msg . "\n\n";
+
+            // If rate limit or circuit breaker, sleep and retry this SAME term
+            if (str_contains($msg, 'circuit breaker') || str_contains($msg, '429') || str_contains($msg, 'Rate limit')) {
+                $waitTime = 50;
+                if (preg_match('/wait ([0-9]+)s/i', $msg, $m)) {
+                    $waitTime = (int)$m[1] + 3;
+                } elseif (preg_match('/cooldown active for ([0-9]+)s/i', $msg, $m)) {
+                    $waitTime = (int)$m[1] + 3;
+                }
+                echo "  ⏳ Rate limit hit. Sleeping {$waitTime}s before retrying {$acronym}...\n\n";
+                sleep($waitTime);
+                // Clear DB lock so retry is fresh
+                try {
+                    Database::query("DELETE FROM settings WHERE `key` = 'gemini_circuit_breaker_until'");
+                } catch (\Throwable $ex) {}
+            } else {
+                // Non-rate limit error: record failure and break out of while
+                $failed++;
+                break;
+            }
         }
     }
 
     if ($termNum < $total) {
-        // Sleep 6s between calls to prevent hitting 15 RPM free tier limits
+        // Sleep 6s between terms for safe quota spacing
         sleep(6);
     }
 }
