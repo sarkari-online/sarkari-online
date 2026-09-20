@@ -146,9 +146,11 @@ class SchemaService {
 
         // Positive Intent Gate: Must be genuine recruitment/vacancy
         $contentType = $article['content_type'] ?? '';
+        $categorySlug = $article['category_slug'] ?? '';
         $isRecruitment = ($contentType === 'recruitment_page')
-            || ((str_contains($lowerTitle, 'recruitment') || str_contains($lowerTitle, 'vacancy') || str_contains($lowerTitle, 'bharti') || str_contains($lowerTitle, 'posts'))
-                && (str_contains($lowerTitle, 'apply') || str_contains($lowerTitle, 'notification') || str_contains($lowerTitle, 'online form')));
+            || ((str_contains($lowerTitle, 'recruitment') || str_contains($lowerTitle, 'vacancy') || str_contains($lowerTitle, 'vacancies') || str_contains($lowerTitle, 'bharti') || str_contains($lowerTitle, 'posts'))
+                && (str_contains($lowerTitle, 'apply') || str_contains($lowerTitle, 'notification') || str_contains($lowerTitle, 'online form') || str_contains($lowerTitle, 'dates')))
+            || ($categorySlug === 'government-jobs' && (str_contains($lowerTitle, 'notification') || str_contains($lowerTitle, 'apply') || str_contains($lowerTitle, 'vacancies')));
 
         if (!$isRecruitment) {
             return null;
@@ -242,13 +244,32 @@ class SchemaService {
      * Try to extract an active future application deadline date from article content
      */
     private static function extractDeadlineDate(string $content): ?string {
+        $months = 'January|February|March|April|May|June|July|August|September|October|November|December';
         $patterns = [
-            '/(?:last\s*date(?:\s+to\s+apply)?|apply\s*by|application\s*deadline|closing\s*date)(?:\s+is)?\s*[:\-]?\s*(\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+202[5-9])/i',
-            '/(?:last\s*date(?:\s+to\s+apply)?|apply\s*by|application\s*deadline|closing\s*date)(?:\s+is)?\s*[:\-]?\s*(\d{1,2}[\/\-]\d{1,2}[\/\-]202[5-9])/i'
+            // 1. Month Day, Year (e.g. October 6, 2026 or October 06, 2026)
+            "/(?:last\s*date(?:\s+to\s+apply)?|apply\s*by|application\s*deadline|closing\s*date|window\s*closes\s*on)(?:\s+is)?\s*[:\-]?\s*((?:{$months})\s+\d{1,2},?\s+202[5-9])/i",
+            // 2. Day Month Year (e.g. 6 October 2026 or 06 October 2026)
+            "/(?:last\s*date(?:\s+to\s+apply)?|apply\s*by|application\s*deadline|closing\s*date|window\s*closes\s*on)(?:\s+is)?\s*[:\-]?\s*(\d{1,2}\s+(?:{$months})\s+202[5-9])/i",
+            // 3. Numeric Date (e.g. 06/10/2026 or 06-10-2026)
+            '/(?:last\s*date(?:\s+to\s+apply)?|apply\s*by|application\s*deadline|closing\s*date)(?:\s+is)?\s*[:\-]?\s*(\d{1,2}[\/\-]\d{1,2}[\/\-]202[5-9])/i',
+            // 4. Milestone Table row match: <td>Application (Deadline|Last Date)</td>...<td>Date</td>
+            "/(?:application\s*(?:deadline|last\s*date)|closing\s*date)[^<]*<\/(?:td|th)>\s*<(?:td|th)[^>]*>(?:<[^>]+>)*\s*((?:{$months})\s+\d{1,2},?\s+202[5-9]|\d{1,2}\s+(?:{$months})\s+202[5-9]|\d{1,2}[\/\-]\d{1,2}[\/\-]202[5-9])/i"
         ];
 
         foreach ($patterns as $pattern) {
             if (preg_match($pattern, $content, $m)) {
+                $dateStr = trim($m[1]);
+                $ts = strtotime($dateStr);
+                if ($ts && $ts > time()) {
+                    return date('Y-m-d', $ts);
+                }
+            }
+        }
+
+        // Fallback: strip HTML tags and try again on clean plain text
+        $plainText = strip_tags($content);
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $plainText, $m)) {
                 $dateStr = trim($m[1]);
                 $ts = strtotime($dateStr);
                 if ($ts && $ts > time()) {
