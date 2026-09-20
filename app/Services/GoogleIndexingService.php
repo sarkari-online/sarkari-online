@@ -129,20 +129,88 @@ class GoogleIndexingService {
     }
 
     /**
+     * Check if an article is 100% strictly eligible for Google Indexing API.
+     * Google restricts Indexing API to JobPosting and BroadcastEvent only.
+     * Pinging for generic articles, admit cards, results, or expired dates risks Google penalty.
+     *
+     * @param array $article Article database record
+     * @return array ['eligible' => bool, 'reason' => string, 'job_schema' => ?array]
+     */
+    public static function checkEligibility(array $article): array {
+        // 1. Category check - must be government-jobs or recruitment
+        $catSlug = $article['category_slug'] ?? '';
+        if ($catSlug !== 'government-jobs') {
+            return [
+                'eligible' => false,
+                'reason' => "Category '{$catSlug}' is not government-jobs. Google Indexing API is strictly restricted to JobPosting notices.",
+                'job_schema' => null
+            ];
+        }
+
+        // 2. Lifecycle check - must not be closed, archived, historical
+        $lifecycle = $article['lifecycle_status'] ?? 'draft';
+        if (in_array($lifecycle, ['closed', 'exam_completed', 'admit_card_released', 'result_released', 'historical', 'archived'], true)) {
+            return [
+                'eligible' => false,
+                'reason' => "Article lifecycle is '{$lifecycle}'. Only active recruitment notifications can be pinged.",
+                'job_schema' => null
+            ];
+        }
+
+        // 3. Negative keyword check on Title - admit card, result, answer key, etc.
+        $title = $article['title'] ?? '';
+        $lowerTitle = mb_strtolower($title);
+        $negativeKeywords = ['admit card', 'hall ticket', 'result', 'answer key', 'syllabus', 'exam date', 'exam city', 'cut off', 'merit list'];
+        foreach ($negativeKeywords as $neg) {
+            if (str_contains($lowerTitle, $neg)) {
+                return [
+                    'eligible' => false,
+                    'reason' => "Title contains non-job keyword '{$neg}'. Indexing API disallowed.",
+                    'job_schema' => null
+                ];
+            }
+        }
+
+        // 4. Decode raw_payload if present
+        $rawPayload = [];
+        if (!empty($article['raw_payload'])) {
+            $rawPayload = is_array($article['raw_payload']) ? $article['raw_payload'] : (json_decode($article['raw_payload'], true) ?? []);
+        }
+
+        // 5. Generate and validate Schema.org JobPosting
+        $jobSchema = SchemaService::generateJobPosting($article, $rawPayload);
+        if (!$jobSchema || ($jobSchema['@type'] ?? '') !== 'JobPosting') {
+            return [
+                'eligible' => false,
+                'reason' => "Article does not have a valid JobPosting schema with a future application deadline (validThrough).",
+                'job_schema' => null
+            ];
+        }
+
+        // 6. Verify validThrough deadline is strictly in the future
+        $validThrough = $jobSchema['validThrough'] ?? null;
+        if (!$validThrough || strtotime($validThrough) <= time()) {
+            return [
+                'eligible' => false,
+                'reason' => "Application deadline ({$validThrough}) has already passed or is invalid.",
+                'job_schema' => null
+            ];
+        }
+
+        return [
+            'eligible' => true,
+            'reason' => "Eligible JobPosting with deadline {$validThrough}",
+            'job_schema' => $jobSchema
+        ];
+    }
+
+    /**
      * Submit a URL to Google Real-Time Indexing API
      * @param string $url Full canonical URL
      * @param string $type URL_UPDATED or URL_DELETED
      * @return array
      */
     public static function pingUrl(string $url, string $type = 'URL_UPDATED'): array {
-        // Hard Kill-Switch: Permanently halted for non-JobPosting articles to protect domain trust.
-        // Google restricts Indexing API to JobPosting and BroadcastEvent only; misuse causes index suppression.
-        return [
-            'success' => false,
-            'message' => 'Google Indexing API is halted for algorithmic recovery. Rely on XML Sitemap and Search Console.',
-            'status_code' => 403
-        ];
-
         $accessToken = self::getAccessToken();
         if (!$accessToken) {
             return [
@@ -208,8 +276,12 @@ class GoogleIndexingService {
 
     /**
      * Submit an Article by ID (Strictly gated to verified JobPosting articles per Google ToS)
+     *
+     * @param int $articleId
+     * @param bool $force Bypass eligibility gate only if explicitly requested (e.g. manual admin override)
+     * @return array
      */
-    public static function pingArticle(int $articleId): array {
+    public static function pingArticle(int $articleId, bool $force = false): array {
         $article = Database::fetchOne(
             "SELECT a.*, c.slug AS category_slug, t.raw_payload 
              FROM articles a 
@@ -227,7 +299,21 @@ class GoogleIndexingService {
             ];
         }
 
-        // Real-Time Google Indexing Notification for published recruitment and education updates
+        // Safety Gate: Check eligibility strictly
+        if (!$force) {
+            $check = self::checkEligibility($article);
+            if (!$check['eligible']) {
+                Logger::info("Google Indexing API skipped for Article #{$articleId}: " . $check['reason']);
+                return [
+                    'success' => false,
+                    'message' => 'Skipped: ' . $check['reason'],
+                    'status_code' => 422,
+                    'ineligible' => true
+                ];
+            }
+        }
+
+        // Real-Time Google Indexing Notification for verified recruitment notices
         $canonical = !empty($article['canonical_url']) ? $article['canonical_url'] : url('article/' . $article['slug'] . '/');
         return self::pingUrl($canonical, 'URL_UPDATED');
     }

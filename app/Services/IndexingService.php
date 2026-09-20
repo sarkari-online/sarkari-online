@@ -73,11 +73,28 @@ class IndexingService {
      * Send URL notification to Google Indexing API via Service Account OAuth2 JWT
      */
     private static function pingGoogleIndexingApi(string $url, string $type = 'URL_UPDATED'): array {
-        // Hard Kill-Switch: Permanently halted for domain trust recovery per Google Search Central policy.
+        if (!GoogleIndexingService::isConfigured()) {
+            return [
+                'attempted' => false,
+                'success' => false,
+                'message' => 'Google Indexing Service Account key is not configured.'
+            ];
+        }
+
+        if (!self::checkAndIncrementQuota('google', self::MAX_GOOGLE_DAILY_QUOTA)) {
+            return [
+                'attempted' => true,
+                'success' => false,
+                'message' => 'Daily Google Indexing API quota limit reached (' . self::MAX_GOOGLE_DAILY_QUOTA . '/day).'
+            ];
+        }
+
+        $res = GoogleIndexingService::pingUrl($url, $type);
         return [
-            'attempted' => false,
-            'success' => false,
-            'message' => 'Google Indexing API is halted for algorithmic recovery. Rely on XML Sitemap and Search Console.'
+            'attempted' => true,
+            'success' => $res['success'] ?? false,
+            'message' => $res['message'] ?? '',
+            'status_code' => $res['status_code'] ?? 0
         ];
     }
 

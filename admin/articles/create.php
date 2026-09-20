@@ -66,6 +66,12 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 
         if ($validator->passes()) {
             $newId = ArticleService::create($formData);
+
+            // If published directly, auto-ping Google Indexing API if eligible
+            if (($formData['status'] ?? '') === 'published') {
+                \App\Services\GoogleIndexingService::pingArticle($newId);
+            }
+
             header("Location: " . url('admin/articles/edit.php?id=' . $newId . '&created=1'));
             exit;
         } else {

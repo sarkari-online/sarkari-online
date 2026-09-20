@@ -341,10 +341,10 @@ class PublishingService {
             'quality_score' => (int)$article['quality_score']
         ]);
 
-        // Google Indexing API halted: strictly restricted to JobPosting/BroadcastEvent per Google policy.
-        // if (GoogleIndexingService::isConfigured()) {
-        //     GoogleIndexingService::pingArticle($articleId);
-        // }
+        // 6. Real-Time Google Indexing API Notification (Gated strictly to verified JobPostings)
+        if (GoogleIndexingService::isConfigured()) {
+            GoogleIndexingService::pingArticle($articleId);
+        }
 
         // 7. Real-Time IndexNow Notification (Microsoft Bing, Yahoo, Yandex, Naver)
         if (IndexNowService::isConfigured()) {

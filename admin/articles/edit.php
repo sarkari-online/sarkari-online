@@ -12,6 +12,8 @@ use App\Helpers\CSRF;
 use App\Helpers\Sanitizer;
 use App\Helpers\Validator;
 
+use App\Services\GoogleIndexingService;
+
 $adminPageKey = 'articles';
 $adminPageTitle = 'Edit Article';
 
@@ -27,37 +29,66 @@ $categories = CategoryService::getAll();
 $authors = Database::fetchAll("SELECT id, username, email FROM users WHERE status = 'active' ORDER BY username ASC");
 $errors = [];
 $success = !empty($_GET['created']) ? 'Article created successfully!' : '';
+$indexingNotice = '';
+
+// Check Eligibility for Google Indexing API
+$indexingEligibility = GoogleIndexingService::checkEligibility($article);
 
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     if (!CSRF::validateRequest()) {
         $errors['csrf'] = 'Security session expired. Please refresh and try again.';
     } else {
-        $postData = $_POST;
-
-        // Check if Save Draft or Publish was clicked
-        if (isset($_POST['save_draft'])) {
-            $postData['status'] = 'draft';
-        } elseif (isset($_POST['publish_now'])) {
-            $postData['status'] = 'published';
-        }
-
-        $validator = new Validator($_POST);
-        $validator->required('title', 'Article Headline')
-                  ->minLength('title', 10, 'Article Headline')
-                  ->required('category_id', 'Category')
-                  ->required('content', 'Article Content')
-                  ->minLength('content', 20, 'Article Content');
-
-        if ($validator->passes()) {
-            $updateSuccess = ArticleService::update($id, $postData);
-            if ($updateSuccess) {
-                $success = 'Article updated successfully!';
-                $article = ArticleService::getById($id);
+        // Manual Google Indexing Ping Trigger
+        if (isset($_POST['ping_google_indexing'])) {
+            $forcePing = isset($_POST['force_ping']);
+            $res = GoogleIndexingService::pingArticle($id, $forcePing);
+            if ($res['success']) {
+                $indexingNotice = 'success:' . ($res['message'] ?? 'Google Indexing API successfully notified.');
             } else {
-                $errors['general'] = 'Failed to update article in database.';
+                $indexingNotice = 'error:' . ($res['message'] ?? 'Failed to notify Google Indexing API.');
             }
+            $article = ArticleService::getById($id);
+            $indexingEligibility = GoogleIndexingService::checkEligibility($article);
         } else {
-            $errors = $validator->errors();
+            $postData = $_POST;
+            $wasAlreadyPublished = ($article['status'] === 'published');
+
+            // Check if Save Draft or Publish was clicked
+            if (isset($_POST['save_draft'])) {
+                $postData['status'] = 'draft';
+            } elseif (isset($_POST['publish_now'])) {
+                $postData['status'] = 'published';
+            }
+
+            $validator = new Validator($_POST);
+            $validator->required('title', 'Article Headline')
+                      ->minLength('title', 10, 'Article Headline')
+                      ->required('category_id', 'Category')
+                      ->required('content', 'Article Content')
+                      ->minLength('content', 20, 'Article Content');
+
+            if ($validator->passes()) {
+                $updateSuccess = ArticleService::update($id, $postData);
+                if ($updateSuccess) {
+                    $success = 'Article updated successfully!';
+                    $article = ArticleService::getById($id);
+                    $indexingEligibility = GoogleIndexingService::checkEligibility($article);
+
+                    // Auto-Ping Google Indexing API on publish / update if eligible
+                    if ($article['status'] === 'published' && $indexingEligibility['eligible']) {
+                        $pingRes = GoogleIndexingService::pingArticle($id);
+                        if ($pingRes['success']) {
+                            $indexingNotice = 'success:Google Indexing API notified in real-time for this JobPosting!';
+                        } else {
+                            $indexingNotice = 'warning:Article saved, but Google Indexing ping: ' . ($pingRes['message'] ?? 'pending');
+                        }
+                    }
+                } else {
+                    $errors['general'] = 'Failed to update article in database.';
+                }
+            } else {
+                $errors = $validator->errors();
+            }
         }
     }
 }
@@ -102,6 +133,44 @@ include dirname(__DIR__) . '/components/header.php';
             </div>
         </div>
     <?php endif; ?>
+
+    <?php if (!empty($indexingNotice)): 
+        $noticeType = str_starts_with($indexingNotice, 'success:') ? 'success' : (str_starts_with($indexingNotice, 'warning:') ? 'warning' : 'danger');
+        $noticeMsg = substr($indexingNotice, strpos($indexingNotice, ':') + 1);
+    ?>
+        <div class="info-callout" style="background-color: var(--color-<?= $noticeType ?>-light, #f0fdf4); border-left-color: var(--color-<?= $noticeType ?>, #16a34a); color: var(--color-<?= $noticeType ?>, #15803d); margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+                <strong>Google Indexing API:</strong> <?= e($noticeMsg) ?>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <!-- Google Indexing API Status Box -->
+    <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div style="width: 10px; height: 10px; border-radius: 50%; background-color: <?= $indexingEligibility['eligible'] ? '#16a34a' : '#9ca3af' ?>;"></div>
+            <div>
+                <strong style="font-size: 0.9rem; color: var(--text-main);">Google Indexing API Status:</strong>
+                <?php if ($indexingEligibility['eligible']): ?>
+                    <span style="color: #16a34a; font-weight: 600; font-size: 0.85rem;">Eligible for Fast Indexing (Active Recruitment Notice)</span>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);"><?= e($indexingEligibility['reason']) ?></div>
+                <?php else: ?>
+                    <span style="color: #6b7280; font-size: 0.85rem;">Standard Crawl (Zero Penalty Guard: <?= e($indexingEligibility['reason']) ?>)</span>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <?php if ($article['status'] === 'published'): ?>
+            <form action="<?= url('admin/articles/edit.php?id=' . $id) ?>" method="POST" style="margin: 0; display: inline-flex; align-items: center; gap: 0.5rem;">
+                <?= CSRF::field() ?>
+                <button type="submit" name="ping_google_indexing" value="1" class="btn btn-outline" style="border-color: #4f46e5; color: #4f46e5; font-size: 0.85rem; padding: 0.4rem 0.85rem; display: inline-flex; align-items: center; gap: 0.4rem;">
+                    <?= icon('refresh-cw', 'icon-xs') ?> Ping Google Indexing API Now
+                </button>
+            </form>
+        <?php else: ?>
+            <span style="font-size: 0.8rem; color: var(--text-muted); font-style: italic;">Auto-pings upon publishing if eligible</span>
+        <?php endif; ?>
+    </div>
 
     <form action="<?= url('admin/articles/edit.php?id=' . $id) ?>" method="POST" class="admin-table-box" style="padding: 2rem;">
         <?= CSRF::field() ?>
