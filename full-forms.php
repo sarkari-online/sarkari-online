@@ -66,14 +66,18 @@ if (!empty($termSlug)) {
     $salaryTableHtml = !empty($facts) ? SalaryTableRenderer::render($facts) : null;
     $faqBlockHtml = !empty($facts['faqs_json']) ? FaqSchemaRenderer::render($facts['faqs_json']) : null;
 
-    // Internal link candidate resolver (Live published articles/updates)
+    // Internal link candidate resolver (Live published articles/updates only — prevents 301 circular redirects)
     $matchedArticle = null;
     if (!empty($term['related_article_slug'])) {
-        $matchedArticle = [
-            'slug'  => $term['related_article_slug'],
-            'title' => "Verified 2026 Examination Schedule & Application Guide for {$term['acronym']}"
-        ];
-    } else {
+        try {
+            $matchedArticle = Database::fetchOne(
+                "SELECT slug, title FROM articles WHERE slug = :slg AND status = 'published' LIMIT 1",
+                ['slg' => $term['related_article_slug']]
+            );
+        } catch (\Throwable $e) {}
+    }
+
+    if (!$matchedArticle) {
         try {
             $matched = Database::fetchOne(
                 "SELECT slug, title FROM articles 
@@ -287,12 +291,18 @@ $letterSuffix = !empty($reqLetter) ? " - Letter {$reqLetter}" : "";
 $pageTitle = "A to Z Govt & Exam Full Forms Directory{$letterSuffix}{$pageSuffix} | " . SITE_NAME;
 $pageDesc = "Complete A-to-Z directory of Indian government exams, defence, banking, civil services, and technical full forms with eligibility on Sarkari.online.{$pageSuffix}";
 
-$canonicalParams = [];
-if (!empty($reqLetter)) $canonicalParams['letter'] = $reqLetter;
-if (!empty($reqCategory)) $canonicalParams['category'] = $reqCategory;
-if ($currentPage > 1) $canonicalParams['page'] = $currentPage;
-$canonicalUrl = url('full-forms/' . (!empty($canonicalParams) ? '?' . http_build_query($canonicalParams) : ''));
+// Canonical is STRICTLY the clean hub URL to prevent indexation bloat of 280+ faceted filter variations
+$canonicalUrl = url('full-forms/');
 $ogType = 'website';
+
+// Faceted Navigation Rule: If any filter, search, or pagination is active, do NOT index the filter page!
+$hasActiveFilter = !empty($reqLetter) || !empty($reqCategory) || !empty($reqSearch) || $currentPage > 1;
+if ($hasActiveFilter) {
+    $metaRobots = 'noindex, follow';
+    if (!headers_sent()) {
+        header('X-Robots-Tag: noindex, follow');
+    }
+}
 
 $crumbs = [
     ['label' => 'Home', 'url' => url()],

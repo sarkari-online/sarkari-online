@@ -33,7 +33,7 @@ class StateJobService {
             ],
             'match_keywords' => ['UPSSSC', 'UPPSC', 'UP Police', 'Uttar Pradesh', 'Lekhpal', 'UPTET', 'UP TET', 'Allahabad High Court', 'UPPCL', 'UP Metro', 'UP BEd'],
             'conducting_bodies' => [
-                ['name' => 'UP Subordinate Services Selection Commission', 'abbr' => 'UPSSSC', 'url' => 'http://upsssc.gov.in', 'desc' => 'Group C, Lekhpal, Junior Assistant & PET'],
+                ['name' => 'UP Subordinate Services Selection Commission', 'abbr' => 'UPSSSC', 'url' => 'https://upsssc.gov.in', 'desc' => 'Group C, Lekhpal, Junior Assistant & PET'],
                 ['name' => 'UP Public Service Commission', 'abbr' => 'UPPSC', 'url' => 'https://uppsc.up.nic.in', 'desc' => 'PCS, RO/ARO, Medical & Judicial Services'],
                 ['name' => 'UP Police Recruitment & Promotion Board', 'abbr' => 'UPPRPB', 'url' => 'https://uppbpb.gov.in', 'desc' => 'Constable, Sub-Inspector (SI), Jail Warder'],
                 ['name' => 'High Court of Judicature at Allahabad', 'abbr' => 'Allahabad HC', 'url' => 'https://www.allahabadhighcourt.in', 'desc' => 'RO, ARO, Stenographer, Group C & D']

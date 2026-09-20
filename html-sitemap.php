@@ -67,13 +67,16 @@ $tools = [
     ['title' => 'Govt Job Age Calculator & Eligibility Tool', 'url' => 'tools/age-calculator/', 'desc' => 'Compute exact age in years, months, and days as of any recruitment cutoff date with category relaxations.'],
 ];
 
-// 5. Popular Full Forms Highlights
-$topFullForms = [
-    'UPSC', 'SSC', 'RRB', 'IBPS', 'NEET', 'JEE', 'CTET', 'GATE', 'NDA', 'CDS',
-    'CGL', 'CHSL', 'MTS', 'BPSC', 'UPPSC', 'HSSC', 'KPSC', 'MPSC', 'TNPSC', 'WBPSC',
-    'IAS', 'IPS', 'IFS', 'IES', 'DSP', 'DM', 'BDO', 'VDO', 'Lekhpal', 'Patwari',
-    'DRDO', 'ISRO', 'BARC', 'AIIMS', 'UGC', 'AICTE', 'NTA', 'CBSE', 'SEBI', 'RBI'
-];
+// 5. Popular Full Forms Highlights (Dynamic from DB to eliminate any 404 broken links)
+$topFullForms = [];
+try {
+    $dbTerms = \App\Database\Database::fetchAll(
+        "SELECT acronym, slug FROM glossary_terms ORDER BY id ASC LIMIT 40"
+    );
+    if (!empty($dbTerms)) {
+        $topFullForms = $dbTerms;
+    }
+} catch (\Throwable $e) {}
 
 // Structured Data Schema
 $schemaJson = json_encode([
@@ -599,9 +602,9 @@ include __DIR__ . '/components/header.php';
             </p>
 
             <div class="sitemap-chip-wrap">
-                <?php foreach ($topFullForms as $acronym): ?>
-                    <a href="<?= url('full-forms/' . strtolower($acronym) . '/') ?>" class="sitemap-chip">
-                        <span><?= e($acronym) ?> Full Form</span>
+                <?php foreach ($topFullForms as $tf): ?>
+                    <a href="<?= url('full-forms/' . e($tf['slug']) . '/') ?>" class="sitemap-chip">
+                        <span><?= e($tf['acronym']) ?> Full Form</span>
                     </a>
                 <?php endforeach; ?>
                 <a href="<?= url('full-forms/') ?>" class="sitemap-chip" style="background: #1e3a8a; color: #ffffff; border-color: #1e3a8a;">

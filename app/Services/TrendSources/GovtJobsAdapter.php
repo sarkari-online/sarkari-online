@@ -77,7 +77,7 @@ class GovtJobsAdapter implements TrendSourceInterface {
         [
             'keyword'       => 'UPSSSC PET 2026: Preliminary Eligibility Test Notification, Syllabus & Registration',
             'source'        => 'UP Subordinate Services Selection Commission',
-            'url'           => 'http://upsssc.gov.in',
+            'url'           => 'https://upsssc.gov.in',
             'trend_score'   => 97,
             'category_hint' => 'government-jobs',
             'snippet'       => 'Uttar Pradesh Preliminary Eligibility Test for Group C recruitment including Lekhpal, Junior Assistant, and Village Development Officer (VDO).'

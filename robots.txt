@@ -38,6 +38,14 @@ Disallow: /database/
 Disallow: /storage/
 Disallow: /tests/
 
+# Disallow Internal Search & Faceted Filter Query Parameters (Preserves Crawl Budget)
+Disallow: /search/
+Disallow: /full-forms/?*
+Disallow: /full-forms/*?*
+Disallow: /*?*letter=*
+Disallow: /*?*category=*
+
 # Sitemap Location
 Sitemap: https://sarkari.online/sitemap.xml
 Sitemap: https://sarkari.online/news-sitemap.xml
+

@@ -211,6 +211,17 @@ const CATEGORIES = [
         'icon' => 'cpu',
         'pillar' => 'higher_ed',
         'statutory_tags' => ['AI Tools', 'Exam Calculators', 'Productivity']
+    ],
+    'school-boards' => [
+        'name' => 'School Boards',
+        'hindi_name' => 'स्कूल बोर्ड (CBSE / ICSE / State Boards)',
+        'slug' => 'school-boards',
+        'description' => 'Verified dates, sample papers, admit cards, and result announcements for CBSE, ICSE, and State School Boards.',
+        'color' => '#0284c7',
+        'bg_light' => '#f0f9ff',
+        'icon' => 'book-open',
+        'pillar' => 'exams',
+        'statutory_tags' => ['CBSE Board', 'ICSE / ISC', 'State Boards', 'Class 10 & 12']
     ]
 ];
 

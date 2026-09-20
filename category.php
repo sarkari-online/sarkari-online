@@ -15,8 +15,9 @@ $slug = trim($slug, '/');
 $category = CategoryService::getBySlug($slug) ?: get_category($slug);
 
 if (!$category) {
-    $category = get_category('exam-results');
-    $slug = 'exam-results';
+    http_response_code(404);
+    include __DIR__ . '/404.php';
+    exit;
 }
 
 $currentPage = max(1, (int)($_GET['page'] ?? 1));
@@ -32,9 +33,13 @@ $latestArticleMod = !empty($articles[0]['updated_at'])
 CrawlEfficiencyService::handleConditionalGet('cat-' . $slug . '-p' . $currentPage, $latestArticleMod);
 
 // SEO Setup
-$pageTitle = $category['name'] . ' Updates, Notifications & Direct Links';
+$pageSuffix = ($currentPage > 1) ? " (Page {$currentPage})" : "";
+$pageTitle = $category['name'] . " Updates, Notifications & Direct Links{$pageSuffix}";
 $pageDesc = $category['description'] ?? 'Verified updates and official notifications.';
 $canonicalUrl = url('category/' . $slug . '/');
+if ($currentPage > 1) {
+    $metaRobots = 'noindex, follow';
+}
 $ogType = 'website';
 
 $crumbs = [
