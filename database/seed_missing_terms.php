@@ -400,6 +400,21 @@ $missingTerms = [
         "selection_process" => "Combined State / Upper Subordinate Services (PCS) Exam: Prelims (GS Paper-I merit rank + CSAT Paper-II qualifying 33%) -> Mains (6 Compulsory General Studies Papers + General Hindi + Essay) -> Interview (100 marks).",
         "syllabus_snapshot" => "Indian History, National Movement, Geography, Polity, Economy, Environment; UP-Specific GS Papers 5 & 6 (Uttar Pradesh History, Polity, Geography, Economy, Agriculture, Culture); General Hindi and Essay.",
         "related_article_slug" => null
+    ],
+    [
+        "acronym" => "SIR",
+        "slug" => "sir",
+        "letter" => "S",
+        "full_form_en" => "Special Intensive Revision",
+        "full_form_hi" => "विशेष गहन पुनरीक्षण",
+        "category" => "civil_services",
+        "conducting_body" => "Election Commission of India (ECI) / Chief Electoral Officer (CEO) Delhi",
+        "official_portal" => "https://ceodelhi.gov.in/SIR2026.aspx",
+        "overview" => "It is an official voter list verification and electoral roll revision exercise conducted by the Election Commission of India and Chief Electoral Officers. Special Intensive Revision (SIR)—officially termed विशेष गहन पुनरीक्षण in Hindi—operates under statutory authority (such as CEO Delhi at ceodelhi.gov.in/SIR2026.aspx). Through intensive house-to-house enumeration by Booth Level Officers (BLOs), SIR authenticates existing electors, enrolls first-time voters turning 18, collects enumeration forms, resolves claims and objections (Forms 6, 7, and 8), and eliminates duplicate or shifted entries before legislative assembly and parliamentary elections.",
+        "eligibility_criteria" => "Citizenship: Indian citizen residing within the assembly constituency. Age Criterion: Must have completed 18 years of age on or before the designated qualifying date. Proof of Age: Valid birth certificate, 10th class marksheet, Aadhaar card, or PAN card. Proof of Residence: Current water or electricity bill, bank passbook, Indian passport, or registered rent agreement. New Voter Application: Online or offline submission of Form 6 for fresh registration. Correction or Shifting: Submission of Form 8 for address change or correction of particulars.",
+        "selection_process" => "Stage 1: House-to-house physical verification and enumeration by designated Booth Level Officers (BLOs). Stage 2: Publication of Integrated Draft Electoral Roll on the CEO portal and at local polling booths. Stage 3: Statutory window for electors to file claims and objections through Form 6, 7, or 8. Stage 4: Scrutiny, verification, and disposal of claims by the Electoral Registration Officer (ERO). Stage 5: Publication of the authenticated Final Electoral Roll with updated voter records.",
+        "syllabus_snapshot" => "Legal Mandate: Governed under the Representation of the People Act 1950 and Registration of Electors Rules 1960. Form 6: Official application for inclusion of name in the electoral roll for first-time voters. Form 6A: Application for registration of overseas and Non-Resident Indian (NRI) electors. Form 7: Application for objection against proposed inclusion or deletion of an existing entry. Form 8: Application for correction of voter particulars, shifting of residence, or duplicate EPIC card. Official Portals: Chief Electoral Officer Delhi at ceodelhi.gov.in/SIR2026.aspx and the National Voter Services Portal at voters.eci.gov.in.",
+        "related_article_slug" => null
     ]
 ];
 
