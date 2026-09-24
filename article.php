@@ -42,6 +42,32 @@ if (!$article && $slug !== '') {
         'ssc-chsl-tier-1-2026-final-answer-key-released' => 'full-forms/chsl',
         'ctet-july-2026-result-marksheet-digilocker-download' => 'full-forms/ctet',
         'nta-ugc-net-june-2026-re-exam-dates-admit-card' => 'full-forms/nta',
+
+        // Pruned Speculative 2027 & Duplicate Articles (Clean 301 Fallbacks)
+        'cbse-datesheet-2027-class-10-12' => 'category/exam-dates',
+        'cbse-board-exam-2027-date-sheet' => 'category/exam-dates',
+        'mbose-sslc-2027-exam-dates' => 'category/exam-dates',
+        'wbjee-2027-exam-application-guide' => 'category/exam-dates',
+        'gate-2027-syllabus-exam-pattern-eligibility' => 'gate-2026-exam-dates-registration',
+        'jee-main-2027-syllabus-weightage' => 'category/syllabus',
+        'up-super-tet-2026-application' => 'category/teaching-jobs',
+        'rrb-group-d-2026-answer-key' => 'rrb-group-d-2026-notification-application',
+        'upsc-ese-2026-interview-schedule-scorecard' => 'upsc-ese-2026-notification-vacancies-dates',
+        'bpsc-tre-4-application-postponed-dates' => 'category/teaching-jobs',
+        'aws-nsdc-ai-skill-initiative-2026' => 'category/government-jobs',
+        'neet-pg-2026-answer-key-response-sheet' => 'neet-pg-2026-result-scorecard',
+        'neet-pg-2026-answer-key-objection' => 'neet-pg-2026-result-scorecard',
+        'neet-pg-2026-answer-key' => 'neet-pg-2026-result-scorecard',
+        'neet-pg-2026-exam-time-shift-timings' => 'neet-pg-2026-result-scorecard',
+        'digilocker-abc-id-creation-2026' => 'how-to-create-apaar-id-digilocker',
+        'link-aadhaar-abc-digilocker-2026' => 'how-to-create-apaar-id-digilocker',
+        'ssc-cgl-2026-tier-1-exam-guide' => 'ssc-cgl-2026-notification-apply',
+        'ibps-rrb-clerk-2026-registration' => 'ibps-rrb-2026-registration-apply-online',
+        'nsp-otr-2026-27-registration-guide' => 'nsp-scholarship-2026-27-registration-guide',
+        'neet-ug-2026-counselling-schedule-released-mcc-nic-in' => 'neet-ug-2026-counselling-registration',
+        'maharashtra-neet-ug-2026-round-1-allotment' => 'neet-ug-2026-counselling-registration',
+        'rajasthan-neet-ug-2026-round-1-seat-allotment' => 'neet-ug-2026-counselling-registration',
+        'mht-cet-2026-cap-round-4-options' => 'mht-cet-2026-cap-counselling-results',
     ];
     if (isset($legacySlugRedirects[$slug])) {
         $dest = $legacySlugRedirects[$slug];
