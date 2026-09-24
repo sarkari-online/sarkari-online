@@ -701,15 +701,6 @@ class PipelineService {
         // 12. Real-Time Search Engine Indexing & High-Authority Backlink Syndication
         if ($finalStatus === 'published') {
             try {
-                if (GoogleIndexingService::isConfigured()) {
-                    $gRes = GoogleIndexingService::pingArticle($articleId);
-                    Logger::info("PipelineService: Google Indexing ping for Article #{$articleId}: " . ($gRes['message'] ?? 'Done'));
-                }
-            } catch (Throwable $e) {
-                Logger::warning("PipelineService: Google Indexing ping error: " . $e->getMessage());
-            }
-
-            try {
                 if (IndexNowService::isConfigured()) {
                     $inRes = IndexNowService::pingArticle($articleId);
                     Logger::info("PipelineService: IndexNow ping for Article #{$articleId}: " . ($inRes['message'] ?? 'Done'));

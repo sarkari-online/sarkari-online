@@ -341,11 +341,6 @@ class PublishingService {
             'quality_score' => (int)$article['quality_score']
         ]);
 
-        // 6. Real-Time Google Indexing API Notification (Gated strictly to verified JobPostings)
-        if (GoogleIndexingService::isConfigured()) {
-            GoogleIndexingService::pingArticle($articleId);
-        }
-
         // 7. Real-Time IndexNow Notification (Microsoft Bing, Yahoo, Yandex, Naver)
         if (IndexNowService::isConfigured()) {
             IndexNowService::pingArticle($articleId);
