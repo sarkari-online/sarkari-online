@@ -167,9 +167,7 @@ $ogType = 'website';
 $dbArticles = ArticleService::getLatestPublished(12);
 
 // ── HTTP Crawl Efficiency & Cache Validation Headers (Googlebot 304 & ETag) ──
-$homepageModTime = !empty($dbArticles[0]['updated_at']) 
-    ? $dbArticles[0]['updated_at'] 
-    : (!empty($dbArticles[0]['published_at']) ? $dbArticles[0]['published_at'] : 'now');
+$homepageModTime = \App\Database\Database::fetchValue("SELECT GREATEST(COALESCE(MAX(updated_at), '1970-01-01'), COALESCE(MAX(published_at), '1970-01-01')) FROM articles WHERE status = 'published'") ?: (!empty($dbArticles[0]['updated_at']) ? $dbArticles[0]['updated_at'] : 'now');
 CrawlEfficiencyService::handleConditionalGet('home-index', $homepageModTime);
 
 if (!empty($dbArticles)) {

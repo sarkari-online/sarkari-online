@@ -68,15 +68,24 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             $acronym = trim($_POST['custom_acronym'] ?? '');
             $hint = trim($_POST['custom_hint'] ?? '');
             $category = trim($_POST['custom_category'] ?? '');
+            $forceUpdate = !empty($_POST['force_update']);
 
             if (!empty($acronym)) {
                 @set_time_limit(180);
-                $res = $pipeline->generateAndPublish($acronym, $hint ?: null, $category ?: null);
+                $res = $pipeline->generateAndPublish($acronym, $hint ?: null, $category ?: null, $forceUpdate);
                 if (!empty($res['success'])) {
                     $slug = $res['slug'] ?? strtolower($acronym);
                     $viewUrl = url("full-forms/{$slug}/");
-                    $message = "🚀 Instant Term Published! <strong>{$acronym}</strong> is live. <a href=\"{$viewUrl}\" target=\"_blank\" style=\"color: #1e3a8a; text-decoration: underline; font-weight: bold;\">Open Public URL &rarr;</a>";
-                    $messageType = 'success';
+                    $editUrl = !empty($res['id']) ? url("admin/glossary/edit.php?id=" . $res['id']) : '#';
+
+                    if (!empty($res['already_exists']) && !$forceUpdate) {
+                        $message = "⚠️ Term '<strong>{$acronym}</strong>' already exists in the live glossary. <a href=\"{$editUrl}\" style=\"color: #1e3a8a; text-decoration: underline; font-weight: bold;\">Click here to Edit or Re-generate it</a>, or check 'Re-generate & Overwrite' below to replace.";
+                        $messageType = 'warning';
+                    } else {
+                        $actionLabel = $forceUpdate ? 'Updated & Re-generated' : 'Published';
+                        $message = "🚀 Instant Term {$actionLabel}! <strong>{$acronym}</strong> is live. <a href=\"{$viewUrl}\" target=\"_blank\" style=\"color: #1e3a8a; text-decoration: underline; font-weight: bold;\">Open Public URL &rarr;</a> | <a href=\"{$editUrl}\" style=\"color: #1e3a8a; text-decoration: underline;\">Edit Details</a>";
+                        $messageType = 'success';
+                    }
                 } else {
                     $message = "❌ Error: " . ($res['error'] ?? 'Failed to generate term.');
                     $messageType = 'danger';
@@ -193,7 +202,7 @@ include dirname(__DIR__) . '/components/header.php';
     </div>
 
     <!-- Navigation Tabs -->
-    <div style="display: flex; gap: 8px; border-bottom: 2px solid #e2e8f0; margin-bottom: 1.5rem;">
+    <div style="display: gap: 8px; border-bottom: 2px solid #e2e8f0; margin-bottom: 1.5rem;">
         <a href="<?= url('admin/glossary/?tab=queue') ?>" style="padding: 0.65rem 1.25rem; font-size: 0.9rem; font-weight: 700; text-decoration: none; border-bottom: 3px solid <?= $activeTab === 'queue' ? '#2563eb' : 'transparent' ?>; color: <?= $activeTab === 'queue' ? '#2563eb' : '#64748b' ?>; display: flex; align-items: center; gap: 6px;">
             <span>Candidate Queue</span>
             <span style="background: #eff6ff; color: #2563eb; padding: 2px 7px; border-radius: 9999px; font-size: 0.72rem;"><?= count($candidates) ?></span>
@@ -343,6 +352,13 @@ include dirname(__DIR__) . '/components/header.php';
                     </select>
                 </div>
 
+                <div style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" name="force_update" id="force_update" value="1" style="width: 16px; height: 16px; accent-color: #2563eb;">
+                    <label for="force_update" style="font-size: 0.85rem; font-weight: 600; color: #334155; margin: 0; cursor: pointer;">
+                        Re-generate &amp; Overwrite if acronym already exists in live glossary
+                    </label>
+                </div>
+
                 <button type="submit" id="instantBtn" class="btn btn-primary" style="padding: 0.75rem 1.75rem; font-size: 0.95rem; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
                     <span>Generate &amp; Publish Live &rarr;</span>
                 </button>
@@ -406,7 +422,10 @@ include dirname(__DIR__) . '/components/header.php';
                                     <td style="padding: 0.85rem 1rem; font-size: 0.8rem; color: #166534;">
                                         <?= !empty($term['pay_level_7cpc']) ? e($term['pay_level_7cpc']) : '<span style="color: #94a3b8;">Statutory Board</span>' ?>
                                     </td>
-                                    <td style="padding: 0.85rem 1rem; text-align: right;">
+                                    <td style="padding: 0.85rem 1rem; text-align: right; white-space: nowrap;">
+                                        <a href="<?= url("admin/glossary/edit.php?id=" . (int)$term['id']) ?>" class="btn btn-sm btn-primary" style="font-size: 0.78rem; padding: 0.3rem 0.65rem; margin-right: 4px;">
+                                            Edit
+                                        </a>
                                         <a href="<?= $publicUrl ?>" target="_blank" class="btn btn-sm btn-outline" style="font-size: 0.78rem; padding: 0.3rem 0.65rem; color: #2563eb;">
                                             View Page &rarr;
                                         </a>

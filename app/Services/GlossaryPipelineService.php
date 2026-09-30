@@ -28,8 +28,9 @@ class GlossaryPipelineService
 
     /**
      * Generate full detail and publish a term to glossary_terms & full_form_entity_facts
+     * If $forceUpdate is true, regenerates and overwrites an existing term.
      */
-    public function generateAndPublish(string $acronym, ?string $hintFullForm = null, ?string $hintCategory = null): array
+    public function generateAndPublish(string $acronym, ?string $hintFullForm = null, ?string $hintCategory = null, bool $forceUpdate = false): array
     {
         $acronym = trim($acronym);
         $slug = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $acronym));
@@ -40,7 +41,7 @@ class GlossaryPipelineService
             "SELECT id, slug, full_form_en FROM glossary_terms WHERE slug = :slug OR acronym = :acr LIMIT 1",
             ['slug' => $slug, 'acr' => $acronym]
         );
-        if ($existing) {
+        if ($existing && !$forceUpdate) {
             return [
                 'success' => true,
                 'already_exists' => true,
@@ -52,7 +53,7 @@ class GlossaryPipelineService
             ];
         }
 
-        Logger::info("GlossaryPipelineService: Initiating AI generation for '{$acronym}'");
+        Logger::info("GlossaryPipelineService: Initiating AI generation for '{$acronym}'" . ($forceUpdate ? " (FORCE UPDATE)" : ""));
 
         // 2. Fetch authoritative expansion and details via Gemini AI
         $generated = $this->callGeminiForFullForm($acronym, $hintFullForm, $hintCategory);
@@ -94,8 +95,8 @@ class GlossaryPipelineService
             }
         } catch (Throwable $e) {}
 
-        // 4. Insert into glossary_terms
-        $termInsert = [
+        // 4. Insert or Update glossary_terms
+        $termData = [
             'acronym' => $acronym,
             'slug' => $slug,
             'letter' => $letter,
@@ -109,17 +110,41 @@ class GlossaryPipelineService
             'selection_process' => $selection,
             'syllabus_snapshot' => $syllabus,
             'related_article_slug' => $matchedArticleSlug,
-            'last_reviewed_at' => date('Y-m-d'),
-            'created_at' => date('Y-m-d H:i:s'),
-            'updated_at' => date('Y-m-d H:i:s')
+            'last_reviewed_at' => date('Y-m-d')
         ];
 
-        $termId = (int)Database::insert('glossary_terms', $termInsert);
-        if ($termId <= 0) {
-            return ['success' => false, 'error' => "Database insertion failed for glossary_terms."];
+        if ($existing && $forceUpdate) {
+            $termId = (int)$existing['id'];
+            Database::execute(
+                "UPDATE glossary_terms SET
+                    letter = :letter,
+                    full_form_en = :full_form_en,
+                    full_form_hi = :full_form_hi,
+                    category = :category,
+                    conducting_body = :conducting_body,
+                    official_portal = :official_portal,
+                    overview = :overview,
+                    eligibility_criteria = :eligibility_criteria,
+                    selection_process = :selection_process,
+                    syllabus_snapshot = :syllabus_snapshot,
+                    related_article_slug = :related_article_slug,
+                    last_reviewed_at = :last_reviewed_at,
+                    updated_at = NOW()
+                 WHERE id = :id",
+                array_merge($termData, ['id' => $termId])
+            );
+        } else {
+            $termInsert = array_merge($termData, [
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s')
+            ]);
+            $termId = (int)Database::insert('glossary_terms', $termInsert);
+            if ($termId <= 0) {
+                return ['success' => false, 'error' => "Database insertion failed for glossary_terms."];
+            }
         }
 
-        // 5. Insert into full_form_entity_facts
+        // 5. Insert or Update full_form_entity_facts
         $payLevel = !empty($generated['pay_level_7cpc']) ? Sanitizer::string($generated['pay_level_7cpc']) : null;
         $basicMin = !empty($generated['basic_pay_min']) && is_numeric($generated['basic_pay_min']) ? (int)$generated['basic_pay_min'] : null;
         $basicMax = !empty($generated['basic_pay_max']) && is_numeric($generated['basic_pay_max']) ? (int)$generated['basic_pay_max'] : null;
@@ -147,24 +172,56 @@ class GlossaryPipelineService
         }
 
         try {
-            Database::insert('full_form_entity_facts', [
-                'full_form_id' => $termId,
-                'pay_level_7cpc' => $payLevel,
-                'basic_pay_min' => $basicMin,
-                'basic_pay_max' => $basicMax,
-                'gross_salary_min' => $grossMin,
-                'gross_salary_max' => $grossMax,
-                'allowances_summary' => $allowances,
-                'career_growth_summary' => $growth,
-                'faqs_json' => $faqsJson,
-                'evidence_url' => $officialPortal,
-                'confidence' => 'VERIFIED',
-                'last_verified_at' => date('Y-m-d H:i:s'),
-                'created_at' => date('Y-m-d H:i:s'),
-                'updated_at' => date('Y-m-d H:i:s')
-            ]);
+            $existingFact = Database::fetchOne("SELECT id FROM full_form_entity_facts WHERE full_form_id = :fid LIMIT 1", ['fid' => $termId]);
+            if ($existingFact) {
+                Database::execute(
+                    "UPDATE full_form_entity_facts SET
+                        pay_level_7cpc = :pay_level,
+                        basic_pay_min = :basic_min,
+                        basic_pay_max = :basic_max,
+                        gross_salary_min = :gross_min,
+                        gross_salary_max = :gross_max,
+                        allowances_summary = :allowances,
+                        career_growth_summary = :growth,
+                        faqs_json = :faqs_json,
+                        evidence_url = :evidence_url,
+                        confidence = 'VERIFIED',
+                        last_verified_at = NOW(),
+                        updated_at = NOW()
+                     WHERE full_form_id = :fid",
+                    [
+                        'pay_level' => $payLevel,
+                        'basic_min' => $basicMin,
+                        'basic_max' => $basicMax,
+                        'gross_min' => $grossMin,
+                        'gross_max' => $grossMax,
+                        'allowances' => $allowances,
+                        'growth' => $growth,
+                        'faqs_json' => $faqsJson,
+                        'evidence_url' => $officialPortal,
+                        'fid' => $termId
+                    ]
+                );
+            } else {
+                Database::insert('full_form_entity_facts', [
+                    'full_form_id' => $termId,
+                    'pay_level_7cpc' => $payLevel,
+                    'basic_pay_min' => $basicMin,
+                    'basic_pay_max' => $basicMax,
+                    'gross_salary_min' => $grossMin,
+                    'gross_salary_max' => $grossMax,
+                    'allowances_summary' => $allowances,
+                    'career_growth_summary' => $growth,
+                    'faqs_json' => $faqsJson,
+                    'evidence_url' => $officialPortal,
+                    'confidence' => 'VERIFIED',
+                    'last_verified_at' => date('Y-m-d H:i:s'),
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => date('Y-m-d H:i:s')
+                ]);
+            }
         } catch (Throwable $e) {
-            Logger::error("GlossaryPipelineService: facts insert warning: " . $e->getMessage());
+            Logger::error("GlossaryPipelineService: facts insert/update warning: " . $e->getMessage());
         }
 
         // 6. Update candidate status if was in queue
@@ -178,7 +235,7 @@ class GlossaryPipelineService
         // 7. Update scheduler state log
         $this->recordPublicationInState($acronym);
 
-        Logger::info("GlossaryPipelineService: Successfully published term #{$termId} '{$acronym}' ({$fullFormEn})");
+        Logger::info("GlossaryPipelineService: Successfully published/updated term #{$termId} '{$acronym}' ({$fullFormEn})");
 
         return [
             'success' => true,
@@ -280,7 +337,7 @@ PROMPT;
             $response = $this->gemini->generate($prompt, [
                 'stage' => 'glossary_generation_v3',
                 'json_mode' => true,
-                'temperature' => 1.7,
+                'temperature' => 0.4,
                 'system_instruction' => "You are RAJEEV SHARMA, a 36-year-old senior Indian education journalist. Write in simple, ultra-short, punchy everyday Indian English. Never write long essays or academic paragraphs. Every sentence is direct and conversational. ABSOLUTE RULE: You may only use factual data (numbers, dates, ages, percentages, fees, post names, pay figures). Do not estimate, round, generalize, or invent. Return strictly valid JSON."
             ]);
             $rawText = trim($response['text'] ?? '');
@@ -469,6 +526,14 @@ PROMPT;
             $candidate['category'] ?? null
         );
 
+        // Always mark candidate as verified so already-existing terms never stall the candidate queue
+        try {
+            Database::execute(
+                "UPDATE glossary_candidate_terms SET status = 'verified', reviewed_at = NOW() WHERE acronym = :acr",
+                ['acr' => $candidate['acronym']]
+            );
+        } catch (Throwable $e) {}
+
         // Mark slot as executed
         $state = self::getSchedulerState();
         $state['executed_slots'][] = $dueSlot;
@@ -476,6 +541,115 @@ PROMPT;
 
         Logger::info("GlossaryPipelineService: Slot {$dueSlot} executed with result: " . json_encode($result));
         return $result;
+    }
+
+    /**
+     * Manually update an existing glossary term and its entity facts
+     */
+    public function updateTermManually(int $id, array $data, ?array $factsData = null): bool
+    {
+        if ($id <= 0) {
+            return false;
+        }
+
+        $termUpdate = [
+            'acronym' => Sanitizer::string($data['acronym'] ?? ''),
+            'letter' => strtoupper(substr(trim($data['acronym'] ?? 'A'), 0, 1)),
+            'full_form_en' => Sanitizer::string($data['full_form_en'] ?? ''),
+            'full_form_hi' => !empty($data['full_form_hi']) ? Sanitizer::string($data['full_form_hi']) : null,
+            'category' => Sanitizer::string($data['category'] ?? 'civil_services'),
+            'conducting_body' => Sanitizer::string($data['conducting_body'] ?? ''),
+            'official_portal' => !empty($data['official_portal']) ? Sanitizer::string($data['official_portal']) : 'https://india.gov.in',
+            'overview' => Sanitizer::html($data['overview'] ?? ''),
+            'eligibility_criteria' => !empty($data['eligibility_criteria']) ? Sanitizer::html($data['eligibility_criteria']) : null,
+            'selection_process' => !empty($data['selection_process']) ? Sanitizer::html($data['selection_process']) : null,
+            'syllabus_snapshot' => !empty($data['syllabus_snapshot']) ? Sanitizer::html($data['syllabus_snapshot']) : null,
+            'related_article_slug' => !empty($data['related_article_slug']) ? Sanitizer::string($data['related_article_slug']) : null,
+            'last_reviewed_at' => date('Y-m-d')
+        ];
+
+        try {
+            Database::execute(
+                "UPDATE glossary_terms SET
+                    acronym = :acronym,
+                    letter = :letter,
+                    full_form_en = :full_form_en,
+                    full_form_hi = :full_form_hi,
+                    category = :category,
+                    conducting_body = :conducting_body,
+                    official_portal = :official_portal,
+                    overview = :overview,
+                    eligibility_criteria = :eligibility_criteria,
+                    selection_process = :selection_process,
+                    syllabus_snapshot = :syllabus_snapshot,
+                    related_article_slug = :related_article_slug,
+                    last_reviewed_at = :last_reviewed_at,
+                    updated_at = NOW()
+                 WHERE id = :id",
+                array_merge($termUpdate, ['id' => $id])
+            );
+
+            if ($factsData !== null) {
+                $payLevel = !empty($factsData['pay_level_7cpc']) ? Sanitizer::string($factsData['pay_level_7cpc']) : null;
+                $basicMin = !empty($factsData['basic_pay_min']) && is_numeric($factsData['basic_pay_min']) ? (int)$factsData['basic_pay_min'] : null;
+                $basicMax = !empty($factsData['basic_pay_max']) && is_numeric($factsData['basic_pay_max']) ? (int)$factsData['basic_pay_max'] : null;
+                $grossMin = !empty($factsData['gross_salary_min']) && is_numeric($factsData['gross_salary_min']) ? (int)$factsData['gross_salary_min'] : null;
+                $grossMax = !empty($factsData['gross_salary_max']) && is_numeric($factsData['gross_salary_max']) ? (int)$factsData['gross_salary_max'] : null;
+                $allowances = !empty($factsData['allowances_summary']) ? Sanitizer::string($factsData['allowances_summary']) : null;
+                $growth = !empty($factsData['career_growth_summary']) ? Sanitizer::string($factsData['career_growth_summary']) : null;
+
+                $existingFact = Database::fetchOne("SELECT id FROM full_form_entity_facts WHERE full_form_id = :fid LIMIT 1", ['fid' => $id]);
+                if ($existingFact) {
+                    Database::execute(
+                        "UPDATE full_form_entity_facts SET
+                            pay_level_7cpc = :pay_level,
+                            basic_pay_min = :basic_min,
+                            basic_pay_max = :basic_max,
+                            gross_salary_min = :gross_min,
+                            gross_salary_max = :gross_max,
+                            allowances_summary = :allowances,
+                            career_growth_summary = :growth,
+                            evidence_url = :evidence_url,
+                            last_verified_at = NOW(),
+                            updated_at = NOW()
+                         WHERE full_form_id = :fid",
+                        [
+                            'pay_level' => $payLevel,
+                            'basic_min' => $basicMin,
+                            'basic_max' => $basicMax,
+                            'gross_min' => $grossMin,
+                            'gross_max' => $grossMax,
+                            'allowances' => $allowances,
+                            'growth' => $growth,
+                            'evidence_url' => $termUpdate['official_portal'],
+                            'fid' => $id
+                        ]
+                    );
+                } else {
+                    Database::insert('full_form_entity_facts', [
+                        'full_form_id' => $id,
+                        'pay_level_7cpc' => $payLevel,
+                        'basic_pay_min' => $basicMin,
+                        'basic_pay_max' => $basicMax,
+                        'gross_salary_min' => $grossMin,
+                        'gross_salary_max' => $grossMax,
+                        'allowances_summary' => $allowances,
+                        'career_growth_summary' => $growth,
+                        'evidence_url' => $termUpdate['official_portal'],
+                        'confidence' => 'VERIFIED',
+                        'last_verified_at' => date('Y-m-d H:i:s'),
+                        'created_at' => date('Y-m-d H:i:s'),
+                        'updated_at' => date('Y-m-d H:i:s')
+                    ]);
+                }
+            }
+
+            Logger::info("GlossaryPipelineService: Manually updated term #{$id} ({$termUpdate['acronym']})");
+            return true;
+        } catch (Throwable $e) {
+            Logger::error("GlossaryPipelineService: Manual update error: " . $e->getMessage());
+            return false;
+        }
     }
 
     private function recordPublicationInState(string $acronym): void

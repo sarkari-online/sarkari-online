@@ -32,6 +32,7 @@ class CrawlEfficiencyService
 
         // Set authoritative validation & crawling headers (if headers not already dispatched)
         if (!headers_sent()) {
+            header("Cache-Control: public, max-age=0, must-revalidate");
             header("Last-Modified: {$gmtLastMod}");
             header("ETag: {$etag}");
             header("X-Robots-Tag: max-snippet:-1, max-image-preview:large, max-video-preview:-1");
