@@ -399,8 +399,12 @@ if ($dbConnected) {
         $artCount = (int)$db->query("SELECT COUNT(*) FROM articles WHERE status = 'published'")->fetchColumn();
         $catCount = (int)$db->query("SELECT COUNT(*) FROM categories")->fetchColumn();
         $trnCount = (int)$db->query("SELECT COUNT(*) FROM trends")->fetchColumn();
+        $glossaryCount = 0;
+        try {
+            $glossaryCount = (int)$db->query("SELECT COUNT(*) FROM glossary_terms")->fetchColumn();
+        } catch (\Throwable $e) {}
         
-        echo "  • Database Repository Rows : {$green}{$artCount} Published Articles{$reset} | {$catCount} Categories | {$trnCount} Trends\n";
+        echo "  • Database Repository Rows : {$green}{$artCount} Published Articles{$reset} | {$cyan}{$glossaryCount} Full Forms (A-Z){$reset} | {$catCount} Categories | {$trnCount} Trends\n";
 
         // 2. Duplicate Title or Slug Check
         $dupTitles = Database::fetchAll("SELECT title, COUNT(*) as c FROM articles WHERE status = 'published' GROUP BY title HAVING c > 1");
