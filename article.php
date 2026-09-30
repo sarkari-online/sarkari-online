@@ -104,6 +104,18 @@ if (!$article && $slug !== '') {
             }
         }
     } catch (\Throwable $e) {}
+
+    // Draft / Archived Article Fallback: If article was pruned to draft, 301 redirect to its category or full-forms
+    try {
+        $draftArticle = ArticleService::getBySlug($slug, true);
+        if ($draftArticle) {
+            $destUrl = !empty($draftArticle['category_slug']) 
+                ? url('category/' . $draftArticle['category_slug'] . '/') 
+                : url('full-forms/');
+            header("Location: " . $destUrl, true, 301);
+            exit;
+        }
+    } catch (\Throwable $e) {}
 }
 
 if (!$article) {

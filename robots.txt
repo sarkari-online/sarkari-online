@@ -18,6 +18,7 @@ Allow: /latest-jobs/
 Allow: /state-jobs/
 Allow: /jobs/
 Allow: /tools/
+Allow: /full-forms/
 Allow: /article/
 Allow: /category/
 Allow: /about/

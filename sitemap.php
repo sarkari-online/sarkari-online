@@ -90,7 +90,24 @@ echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
     </url>
     <?php endforeach; ?>
 
-    <!-- 2. Canonical Category Archives -->
+    <!-- 2. Individual A-to-Z Government Full Form URLs (Top Authority Hub) -->
+    <?php 
+    $glossaryTerms = \App\Services\GlossaryService::getAllForSitemap();
+    foreach ($glossaryTerms as $gTerm):
+        $gUrl = url('full-forms/' . $gTerm['slug'] . '/');
+        if (isset($seenUrls[$gUrl])) continue;
+        $seenUrls[$gUrl] = true;
+        $gLastmod = !empty($gTerm['last_verified_at']) 
+            ? date('Y-m-d', strtotime($gTerm['last_verified_at'])) 
+            : (!empty($gTerm['updated_at']) ? date('Y-m-d', strtotime($gTerm['updated_at'])) : ($gTerm['last_reviewed_at'] ?? '2026-09-07'));
+    ?>
+    <url>
+        <loc><?= htmlspecialchars($gUrl, ENT_XML1, 'UTF-8') ?></loc>
+        <lastmod><?= $gLastmod ?></lastmod>
+    </url>
+    <?php endforeach; ?>
+
+    <!-- 3. Canonical Category Archives -->
     <?php foreach ($categories as $cat): 
         $catUrl = url('category/' . $cat['slug'] . '/');
         if (isset($seenUrls[$catUrl])) continue;
@@ -117,7 +134,7 @@ echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
     </url>
     <?php endforeach; ?>
 
-    <!-- 3. Canonical Published Articles -->
+    <!-- 4. Canonical Published Articles (Active & High Authority) -->
     <?php foreach ($articles as $art): 
         $articleUrl = url('article/' . $art['slug'] . '/');
         if (isset($seenUrls[$articleUrl])) continue;
@@ -158,23 +175,6 @@ echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
             <image:title><?= htmlspecialchars($art['title'], ENT_XML1, 'UTF-8') ?></image:title>
         </image:image>
         <?php endif; ?>
-    </url>
-    <?php endforeach; ?>
-
-    <!-- Individual A-to-Z Government Full Form URLs -->
-    <?php 
-    $glossaryTerms = \App\Services\GlossaryService::getAllForSitemap();
-    foreach ($glossaryTerms as $gTerm):
-        $gUrl = url('full-forms/' . $gTerm['slug'] . '/');
-        if (isset($seenUrls[$gUrl])) continue;
-        $seenUrls[$gUrl] = true;
-        $gLastmod = !empty($gTerm['last_verified_at']) 
-            ? date('Y-m-d', strtotime($gTerm['last_verified_at'])) 
-            : (!empty($gTerm['updated_at']) ? date('Y-m-d', strtotime($gTerm['updated_at'])) : ($gTerm['last_reviewed_at'] ?? '2026-09-07'));
-    ?>
-    <url>
-        <loc><?= htmlspecialchars($gUrl, ENT_XML1, 'UTF-8') ?></loc>
-        <lastmod><?= $gLastmod ?></lastmod>
     </url>
     <?php endforeach; ?>
 
