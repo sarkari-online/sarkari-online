@@ -11,7 +11,10 @@ use App\Database\Database;
 use App\Services\ArticleService;
 use App\Services\JobDirectoryService;
 
-// Column 1: Results & Scorecards
+// Target uniform count across all 3 columns for balanced UI
+$feedLimit = 6;
+
+// Column 1: Results & Scorecards / Answer Keys
 $resultsFeed = Database::fetchAll("
     SELECT a.id, a.title, a.slug, a.published_at, a.source_name, c.slug as category_slug, c.name as category_name
     FROM articles a
@@ -19,10 +22,27 @@ $resultsFeed = Database::fetchAll("
     WHERE a.status = 'published' 
       AND (c.slug IN ('exam-results', 'answer-keys') OR a.title LIKE '%Result%' OR a.title LIKE '%Scorecard%' OR a.title LIKE '%Answer Key%' OR a.title LIKE '%Merit List%')
     ORDER BY a.published_at DESC, a.id DESC 
-    LIMIT 8
+    LIMIT " . (int)$feedLimit . "
 ");
-if (empty($resultsFeed)) {
-    $resultsFeed = ArticleService::getLatestPublished(8, 1);
+
+// Seamless backfill if results are fewer than 6, so Column 1 is never empty or uneven
+if (count($resultsFeed) < $feedLimit) {
+    $existingIds = array_column($resultsFeed, 'id');
+    $fillers = Database::fetchAll("
+        SELECT a.id, a.title, a.slug, a.published_at, a.source_name, c.slug as category_slug, c.name as category_name
+        FROM articles a
+        JOIN categories c ON a.category_id = c.id
+        WHERE a.status = 'published'
+        ORDER BY a.published_at DESC, a.id DESC
+        LIMIT 15
+    ");
+    foreach ($fillers as $f) {
+        if (count($resultsFeed) >= $feedLimit) break;
+        if (!in_array($f['id'], $existingIds, true)) {
+            $resultsFeed[] = $f;
+            $existingIds[] = $f['id'];
+        }
+    }
 }
 
 // Column 2: Admit Cards & Exam Dates
@@ -33,24 +53,47 @@ $admitFeed = Database::fetchAll("
     WHERE a.status = 'published' 
       AND (c.slug IN ('admit-cards', 'exam-dates') OR a.title LIKE '%Admit Card%' OR a.title LIKE '%Hall Ticket%' OR a.title LIKE '%City Slip%' OR a.title LIKE '%Exam Date%')
     ORDER BY a.published_at DESC, a.id DESC 
-    LIMIT 8
+    LIMIT " . (int)$feedLimit . "
 ");
-if (empty($admitFeed)) {
-    $admitFeed = ArticleService::getLatestPublished(8, 2);
+if (count($admitFeed) < $feedLimit) {
+    $existingIds = array_column($admitFeed, 'id');
+    $fillers = Database::fetchAll("
+        SELECT a.id, a.title, a.slug, a.published_at, a.source_name, c.slug as category_slug, c.name as category_name
+        FROM articles a
+        JOIN categories c ON a.category_id = c.id
+        WHERE a.status = 'published'
+        ORDER BY a.published_at DESC, a.id DESC
+        LIMIT 15
+    ");
+    foreach ($fillers as $f) {
+        if (count($admitFeed) >= $feedLimit) break;
+        if (!in_array($f['id'], $existingIds, true)) {
+            $admitFeed[] = $f;
+            $existingIds[] = $f['id'];
+        }
+    }
 }
 
 // Column 3: Latest Government Jobs with Live Vacancies & Deadlines
-$jobsFeed = JobDirectoryService::getActiveJobs(8);
-if (empty($jobsFeed)) {
-    $jobsFeed = Database::fetchAll("
+$jobsFeed = JobDirectoryService::getActiveJobs($feedLimit);
+if (count($jobsFeed) < $feedLimit) {
+    $existingIds = array_column($jobsFeed, 'id');
+    $fillers = Database::fetchAll("
         SELECT a.id, a.title, a.slug, a.published_at, a.source_name, c.slug as category_slug, c.name as category_name
         FROM articles a
         JOIN categories c ON a.category_id = c.id
         WHERE a.status = 'published' 
-          AND (c.slug IN ('government-jobs', 'scholarships', 'entrance-exams') OR a.title LIKE '%Apply%' OR a.title LIKE '%Recruitment%' OR a.title LIKE '%Posts%' OR a.title LIKE '%Fellowship%' OR a.title LIKE '%Vacancy%')
+          AND (c.slug IN ('government-jobs', 'scholarships', 'entrance-exams') OR a.title LIKE '%Apply%' OR a.title LIKE '%Recruitment%' OR a.title LIKE '%Posts%' OR a.title LIKE '%Vacancy%')
         ORDER BY a.published_at DESC, a.id DESC 
-        LIMIT 8
+        LIMIT 15
     ");
+    foreach ($fillers as $f) {
+        if (count($jobsFeed) >= $feedLimit) break;
+        if (!in_array($f['id'], $existingIds, true)) {
+            $jobsFeed[] = $f;
+            $existingIds[] = $f['id'];
+        }
+    }
 }
 
 // Helper to extract a short clean badge from title or source_name
@@ -106,13 +149,16 @@ function get_feed_badge(array $item): string {
                             <polyline points="22 4 12 14.01 9 11.01"></polyline>
                         </svg>
                     </span>
-                    <h3 class="col-title">Results &amp; Scorecards</h3>
+                    <h3 class="col-title">Results &amp; Key Updates</h3>
                 </div>
                 <span class="col-count-badge"><?= count($resultsFeed) ?> Live</span>
             </div>
 
             <ul class="fast-feed-list">
-                <?php foreach ($resultsFeed as $item): ?>
+                <?php foreach ($resultsFeed as $item): 
+                    $isResultType = (stripos($item['title'], 'result') !== false || stripos($item['title'], 'scorecard') !== false || stripos($item['title'], 'merit') !== false);
+                    $actionLabel = $isResultType ? 'Check Result' : 'Details';
+                ?>
                     <li class="fast-feed-item">
                         <a href="<?= url('article/' . $item['slug'] . '/') ?>" class="fast-feed-item-link" title="<?= e($item['title']) ?>">
                             <div class="item-headline-row">
@@ -122,7 +168,7 @@ function get_feed_badge(array $item): string {
                             <div class="item-meta-row">
                                 <span class="item-date"><?= date('d M Y', strtotime($item['published_at'])) ?></span>
                                 <span class="item-action-link">
-                                    <span>Check Result</span>
+                                    <span><?= $actionLabel ?></span>
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
                                 </span>
                             </div>

@@ -37,7 +37,6 @@ $activeSlugsToKeep = [
     'bpsc-72nd-cce-prelims-2026-admit-card',
     'hssc-haryana-cet-2026-apply-online',
     'ctet-2026-syllabus-exam-pattern',
-    'neet-pg-2026-result-scorecard',
     'gate-2026-exam-dates-registration',
     'ibps-po-2026-exam-pattern-syllabus',
     'sbi-clerk-junior-associate-2026-syllabus',

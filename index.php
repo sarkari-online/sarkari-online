@@ -184,9 +184,18 @@ if (!empty($dbArticles)) {
 }
 
 // Category-Specific Database Records
-$examUpdates = ArticleService::getLatestPublished(4, 3); // Category 3: Exam Dates
-if (empty($examUpdates)) {
-    $examUpdates = ArticleService::getLatestPublished(4, 1); // Fallback: Exam Results
+$examUpdates = ArticleService::getLatestPublished(5, 3); // Category 3: Exam Dates
+if (count($examUpdates) < 5) {
+    // Backfill so Left column always has 5 items matching Right column Trending (5 items)
+    $existingIds = array_column($examUpdates, 'id');
+    $moreExamUpdates = ArticleService::getLatestPublished(10);
+    foreach ($moreExamUpdates as $meu) {
+        if (count($examUpdates) >= 5) break;
+        if (!in_array($meu['id'], $existingIds, true)) {
+            $examUpdates[] = $meu;
+            $existingIds[] = $meu['id'];
+        }
+    }
 }
 
 $govtJobs = ArticleService::getLatestPublished(3, 6); // Category 6: Government Jobs
@@ -245,6 +254,9 @@ include __DIR__ . '/components/header.php';
 
         <!-- 2. 3-Pillar Candidate Action Hub (Results | Admit Cards | Latest Jobs) -->
         <?php include __DIR__ . '/components/fast-feed-columns.php'; ?>
+
+        <!-- 2.5 A-to-Z Government & Exam Full Forms Hub (Alphabet Bar + Search + Top 12 Cards) -->
+        <?php include __DIR__ . '/components/home-glossary-hub.php'; ?>
 
         <!-- 3. Two-Column Layout: Exam Updates + Trending 1-5 -->
         <section class="content-section">
