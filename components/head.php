@@ -145,7 +145,7 @@ if (!$isAdminSession):
     <link rel="icon" type="image/png" sizes="16x16" href="<?= url('assets/favicon-16x16.png?v=2') ?>">
     <link rel="apple-touch-icon" sizes="180x180" href="<?= url('assets/apple-touch-icon.png?v=2') ?>">
     <link rel="manifest" href="<?= url('assets/site.webmanifest') ?>">
-    <meta name="theme-color" content="#1e3a8a">
+    <meta name="theme-color" content="#1a237e">
     <!-- Core Web Vitals Resource Hints & Preconnects -->
     <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
     <link rel="dns-prefetch" href="https://www.googletagmanager.com">
@@ -170,7 +170,7 @@ if (!$isAdminSession):
     svg.icon-lg{width:24px;height:24px}
     svg.icon-xl{width:32px;height:32px}
     *,*::before,*::after{box-sizing:border-box}
-    body{margin:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans Devanagari","Noto Sans",Arial,sans-serif;background:#f8fafc;color:#0f172a}
+    body{margin:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans Devanagari","Noto Sans",Arial,sans-serif;background:var(--bg-page);color:var(--text-body)}
     img{max-width:100%;height:auto;display:block}
     .goog-te-banner-frame,iframe.skiptranslate,.VIpgJd-ZVi9od-aZ2wEe-wOHMyf,.VIpgJd-ZVi9od-ORHb-OEVmcb{display:none!important;visibility:hidden!important;height:0!important;width:0!important}
     body{top:0!important}
