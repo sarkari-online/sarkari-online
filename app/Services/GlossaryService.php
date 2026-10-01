@@ -229,12 +229,11 @@ class GlossaryService {
             }
         }
 
-        $html = '<div class="direct-answer-container" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.25rem 1.5rem; margin: 1.25rem 0 1.75rem 0;">'
-              . '<div style="font-size: 0.72rem; font-weight: 700; color: #1e3a8a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 6px;">'
-              . '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>'
-              . 'Official Definition &amp; Statutory Meaning'
+        $html = '<div class="direct-answer-container" style="background: var(--bg-page); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem 1.5rem; margin: 1.25rem 0 1.75rem 0;">'
+              . '<div style="font-size: 0.72rem; font-weight: 700; color: var(--color-primary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 6px;">'
+              . 'Direct Definition &amp; Meaning'
               . '</div>'
-              . '<p class="direct-answer" data-snippet-target="true" style="margin: 0; font-size: 1.05rem; line-height: 1.65; color: #0f172a;">'
+              . '<p class="direct-answer" data-snippet-target="true" style="margin: 0; font-size: 1.05rem; line-height: 1.65; color: var(--text-main);">'
               . "<strong>{$acronym} full form</strong> is <strong>{$fullEn}</strong>{$hindiPart}. {$contextSentence}."
               . '</p>'
               . '</div>';
@@ -250,14 +249,14 @@ class GlossaryService {
         $portalHost = !empty($portal) ? parse_url($portal, PHP_URL_HOST) : '';
 
         $html = '<div class="glossary-facts-wrapper" style="margin: 1.5rem 0 2rem 0; overflow-x: auto;">'
-              . '<table class="glossary-facts-table" style="width: 100%; border-collapse: collapse; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.875rem;">'
+              . '<table class="glossary-facts-table" style="width: 100%; border-collapse: collapse; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.875rem;">'
               . '<tbody>'
-              . '<tr style="border-bottom: 1px solid #f1f5f9;"><th style="width: 32%; text-align: left; padding: 0.75rem 1rem; background: #f8fafc; color: #475569; font-weight: 600;">Acronym / Short Form</th><td style="padding: 0.75rem 1rem; color: #0f172a; font-weight: 700;">' . htmlspecialchars($term['acronym']) . '</td></tr>'
-              . '<tr style="border-bottom: 1px solid #f1f5f9;"><th style="text-align: left; padding: 0.75rem 1rem; background: #f8fafc; color: #475569; font-weight: 600;">Full Form (English)</th><td style="padding: 0.75rem 1rem; color: #1e3a8a; font-weight: 700;">' . htmlspecialchars($term['full_form_en']) . '</td></tr>'
-              . (!empty($term['full_form_hi']) ? '<tr style="border-bottom: 1px solid #f1f5f9;"><th style="text-align: left; padding: 0.75rem 1rem; background: #f8fafc; color: #475569; font-weight: 600;">हिंदी अर्थ (Hindi Meaning)</th><td style="padding: 0.75rem 1rem; color: #0f172a; font-weight: 600;">' . htmlspecialchars($term['full_form_hi']) . '</td></tr>' : '')
-              . '<tr style="border-bottom: 1px solid #f1f5f9;"><th style="text-align: left; padding: 0.75rem 1rem; background: #f8fafc; color: #475569; font-weight: 600;">Domain / Sector</th><td style="padding: 0.75rem 1rem; color: #0f172a;">' . htmlspecialchars(ucfirst(str_replace('_', ' ', $term['category']))) . '</td></tr>'
-              . '<tr style="border-bottom: 1px solid #f1f5f9;"><th style="text-align: left; padding: 0.75rem 1rem; background: #f8fafc; color: #475569; font-weight: 600;">Regulatory / Conducting Body</th><td style="padding: 0.75rem 1rem; color: #0f172a; font-weight: 600;">' . htmlspecialchars($term['conducting_body'] ?? 'Government of India') . '</td></tr>'
-              . (!empty($portal) ? '<tr><th style="text-align: left; padding: 0.75rem 1rem; background: #f8fafc; color: #475569; font-weight: 600;">Official Portal</th><td style="padding: 0.75rem 1rem;"><a href="' . htmlspecialchars($portal) . '" target="_blank" rel="noopener noreferrer" style="color: #1e3a8a; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Official Portal">' . htmlspecialchars($portalHost ?: $portal) . ' <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a></td></tr>' : '')
+              . '<tr style="border-bottom: 1px solid var(--border-subtle);"><th style="width: 32%; text-align: left; padding: 0.75rem 1rem; background: var(--bg-page); color: var(--text-muted); font-weight: 600;">Acronym / Short Form</th><td style="padding: 0.75rem 1rem; color: var(--text-main); font-weight: 700;">' . htmlspecialchars($term['acronym']) . '</td></tr>'
+              . '<tr style="border-bottom: 1px solid var(--border-subtle);"><th style="text-align: left; padding: 0.75rem 1rem; background: var(--bg-page); color: var(--text-muted); font-weight: 600;">Full Form (English)</th><td style="padding: 0.75rem 1rem; color: var(--color-primary); font-weight: 700;">' . htmlspecialchars($term['full_form_en']) . '</td></tr>'
+              . (!empty($term['full_form_hi']) ? '<tr style="border-bottom: 1px solid var(--border-subtle);"><th style="text-align: left; padding: 0.75rem 1rem; background: var(--bg-page); color: var(--text-muted); font-weight: 600;">हिंदी अर्थ (Hindi Meaning)</th><td style="padding: 0.75rem 1rem; color: var(--text-main); font-weight: 600;">' . htmlspecialchars($term['full_form_hi']) . '</td></tr>' : '')
+              . '<tr style="border-bottom: 1px solid var(--border-subtle);"><th style="text-align: left; padding: 0.75rem 1rem; background: var(--bg-page); color: var(--text-muted); font-weight: 600;">Domain / Sector</th><td style="padding: 0.75rem 1rem; color: var(--text-main);">' . htmlspecialchars(ucfirst(str_replace('_', ' ', $term['category']))) . '</td></tr>'
+              . '<tr style="border-bottom: 1px solid var(--border-subtle);"><th style="text-align: left; padding: 0.75rem 1rem; background: var(--bg-page); color: var(--text-muted); font-weight: 600;">Regulatory / Conducting Body</th><td style="padding: 0.75rem 1rem; color: var(--text-main); font-weight: 600;">' . htmlspecialchars($term['conducting_body'] ?? 'Government of India') . '</td></tr>'
+              . (!empty($portal) ? '<tr><th style="text-align: left; padding: 0.75rem 1rem; background: var(--bg-page); color: var(--text-muted); font-weight: 600;">Official Portal</th><td style="padding: 0.75rem 1rem;"><a href="' . htmlspecialchars($portal) . '" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary); font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Official Portal">' . htmlspecialchars($portalHost ?: $portal) . ' <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a></td></tr>' : '')
               . '</tbody>'
               . '</table>'
               . '</div>';

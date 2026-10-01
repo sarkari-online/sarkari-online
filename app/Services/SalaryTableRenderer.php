@@ -87,16 +87,16 @@ class SalaryTableRenderer
         $tbody = '';
         foreach ($rows as $r) {
             $tbody .= "    <tr>\n"
-                    . "      <td style=\"padding: 10px 14px; font-weight: 700; color: #1e293b; background: #f8fafc; border-bottom: 1px solid #e2e8f0; width: 35%;\">{$r['label']}</td>\n"
-                    . "      <td style=\"padding: 10px 14px; color: #334155; border-bottom: 1px solid #e2e8f0;\">{$r['value']}</td>\n"
+                    . "      <td style=\"padding: 10px 14px; font-weight: 700; color: var(--text-main); background: var(--bg-page); border-bottom: 1px solid var(--border-color); width: 35%;\">{$r['label']}</td>\n"
+                    . "      <td style=\"padding: 10px 14px; color: var(--text-body); border-bottom: 1px solid var(--border-color);\">{$r['value']}</td>\n"
                     . "    </tr>\n";
         }
 
-        $html = "<div class=\"salary-table-wrapper\" style=\"margin: 1.5rem 0; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);\">\n"
+        $html = "<div class=\"salary-table-wrapper\" style=\"margin: 1.5rem 0; border: 1px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-xs);\">\n"
               . "  <div style=\"overflow-x: auto;\">\n"
               . "    <table style=\"width: 100%; border-collapse: collapse; font-size: 0.925rem; text-align: left;\">\n"
               . "      <thead>\n"
-              . "        <tr style=\"background: #1e3a8a; color: #ffffff;\">\n"
+              . "        <tr style=\"background: var(--color-primary); color: #ffffff;\">\n"
               . "          <th style=\"padding: 11px 14px; font-weight: 700; border: none;\">Compensation Component</th>\n"
               . "          <th style=\"padding: 11px 14px; font-weight: 700; border: none;\">Entitlement / Amount</th>\n"
               . "        </tr>\n"
@@ -106,9 +106,9 @@ class SalaryTableRenderer
               . "      </tbody>\n"
               . "    </table>\n"
               . "  </div>\n"
-              . "  <div style=\"padding: 0.85rem 1.15rem; background: #f0fdf4; border-top: 1px solid #bbf7d0; font-size: 0.875rem; color: #166534; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;\">\n"
-              . "    <span>Calculate your exact in-hand salary as per HRA city classification (X, Y, Z) &amp; prevailing DA:</span>\n"
-              . "    <a href=\"{$calcUrl}\" style=\"color: #15803d; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; display: inline-flex; align-items: center; gap: 4px;\">\n"
+              . "  <div style=\"padding: 0.85rem 1.15rem; background: var(--color-success-light); border-top: 1px solid var(--border-color); font-size: 0.875rem; color: var(--color-success); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;\">\n"
+              . "    <span>Calculate exact in-hand salary as per HRA city classification (X, Y, Z) &amp; prevailing DA:</span>\n"
+              . "    <a href=\"{$calcUrl}\" style=\"color: var(--color-india-green); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; display: inline-flex; align-items: center; gap: 4px;\">\n"
               . "      <span>7th Pay Salary Calculator</span> &rarr;\n"
               . "    </a>\n"
               . "  </div>\n"

@@ -329,26 +329,25 @@ include __DIR__ . '/components/header.php';
             </ol>
         </nav>
 
-        <!-- Institutional Clean Header -->
-        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 2.25rem; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);">
+        <!-- Directory Header -->
+        <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 2rem; margin-bottom: 2rem; box-shadow: var(--shadow-sm);">
             <div style="max-width: 860px;">
-                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 0.75rem; background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; margin-bottom: 0.85rem;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                    <span>Official Statutory &amp; Academic Lexicon &middot; <?= $totalCount ?> Terms Indexed (A-Z)</span>
+                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.75rem; background: var(--color-primary-light); border: 1px solid var(--border-color); color: var(--color-primary); margin-bottom: 0.85rem;">
+                    <span>Government &amp; Examination Full Forms &middot; <?= $totalCount ?> Terms (A-Z)</span>
                 </div>
-                <h1 style="font-size: 1.85rem; font-weight: 800; line-height: 1.25; margin: 0 0 0.6rem 0; color: #0f172a; letter-spacing: -0.02em;">
+                <h1 style="font-size: 1.85rem; font-weight: 800; line-height: 1.25; margin: 0 0 0.6rem 0; color: var(--text-heading); letter-spacing: -0.02em;">
                     A-to-Z Government &amp; Examination Full Forms Directory
                 </h1>
-                <p style="font-size: 0.95rem; color: #64748b; line-height: 1.6; margin: 0;">
-                    Authentic dictionary of central ministries, competitive examinations, defense forces, banking institutions, and civil services across India with bilingual full forms (English &amp; Hindi) and statutory eligibility criteria.
+                <p style="font-size: 0.95rem; color: var(--text-muted); line-height: 1.6; margin: 0;">
+                    Complete reference directory of competitive examinations, government agencies, defense, banking, and civil services across India with bilingual full forms and key eligibility details.
                 </p>
             </div>
         </div>
 
-        <!-- Live Search Input (Pure client-side filter, creates zero junk crawl URLs) -->
+        <!-- Live Search Input -->
         <div style="margin-bottom: 1.5rem; position: relative; max-width: 680px;">
-            <input type="text" id="glossarySearchInput" placeholder="Search by acronym, full name, or Hindi meaning (e.g. UPSC, SSC, NEET, Police, Bank)..." style="width: 100%; padding: 0.85rem 1rem 0.85rem 2.75rem; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; outline: none; background: #ffffff; color: #0f172a; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04); transition: border-color 0.15s ease, box-shadow 0.15s ease;" onfocus="this.style.borderColor='#1e3a8a'; this.style.boxShadow='0 0 0 3px rgba(30, 58, 138, 0.12)';" onblur="this.style.borderColor='#cbd5e1'; this.style.boxShadow='0 1px 2px rgba(15, 23, 42, 0.04)';" oninput="filterGlossaryCards()">
-            <svg style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #64748b;" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="glossarySearchInput" placeholder="Search acronym, full form, or exam (e.g. UPSC, SSC, NEET, Police, Bank)..." style="width: 100%; padding: 0.85rem 1rem 0.85rem 2.75rem; border: 1.5px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.95rem; outline: none; background: var(--bg-surface); color: var(--text-main); box-shadow: var(--shadow-xs); transition: border-color 0.15s ease, box-shadow 0.15s ease;" onfocus="this.style.borderColor='var(--color-primary)'; this.style.boxShadow='0 0 0 3px rgba(26, 35, 126, 0.12)';" onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='var(--shadow-xs)';" oninput="filterGlossaryCards()">
+            <svg style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-light);" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </div>
 
         <!-- Category Filter Pills Bar -->
@@ -374,7 +373,7 @@ include __DIR__ . '/components/header.php';
                     if ($catKey !== 'ALL') $catParams['category'] = $catKey;
                     $catUrl = url('full-forms/' . (!empty($catParams) ? '?' . http_build_query($catParams) : ''));
                 ?>
-                    <a href="<?= $catUrl ?>" class="cat-btn <?= $isCatActive ? 'active' : '' ?>" style="padding: 5px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: <?= $isCatActive ? '700' : '600' ?>; border: 1px solid <?= $isCatActive ? '#1e3a8a' : '#e2e8f0' ?>; background: <?= $isCatActive ? '#1e3a8a' : '#ffffff' ?>; color: <?= $isCatActive ? '#ffffff' : '#334155' ?>; text-decoration: none; display: inline-block; transition: all 0.15s ease;">
+                    <a href="<?= $catUrl ?>" class="cat-btn <?= $isCatActive ? 'active' : '' ?>" style="padding: 5px 12px; border-radius: var(--radius-pill); font-size: 0.78rem; font-weight: <?= $isCatActive ? '700' : '600' ?>; border: 1px solid <?= $isCatActive ? 'var(--color-primary)' : 'var(--border-color)' ?>; background: <?= $isCatActive ? 'var(--color-primary)' : 'var(--bg-surface)' ?>; color: <?= $isCatActive ? '#ffffff' : 'var(--text-body)' ?>; text-decoration: none; display: inline-block; transition: all 0.15s ease;">
                         <?= e($catLabel) ?>
                     </a>
                 <?php endforeach; ?>
@@ -382,14 +381,14 @@ include __DIR__ . '/components/header.php';
         </div>
 
         <!-- Crawlable Alphabet Jump Bar (A to Z) with Clean Server-Side Pagination Links -->
-        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.75rem 1rem; margin-bottom: 2rem; overflow-x: auto; white-space: nowrap; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);">
+        <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.75rem 1rem; margin-bottom: 2rem; overflow-x: auto; white-space: nowrap; box-shadow: var(--shadow-xs);">
             <div style="display: inline-flex; align-items: center; gap: 6px;">
                 <?php
                 $allAlphaParams = [];
                 if (!empty($reqCategory)) $allAlphaParams['category'] = $reqCategory;
                 $allAlphaUrl = url('full-forms/' . (!empty($allAlphaParams) ? '?' . http_build_query($allAlphaParams) : ''));
                 ?>
-                <a href="<?= $allAlphaUrl ?>" class="alpha-btn <?= empty($reqLetter) ? 'active' : '' ?>" data-letter="ALL" style="padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; border: 1px solid #1e3a8a; background: <?= empty($reqLetter) ? '#1e3a8a' : '#ffffff' ?>; color: <?= empty($reqLetter) ? '#ffffff' : '#0f172a' ?>; text-decoration: none; display: inline-block; transition: all 0.15s ease;">
+                <a href="<?= $allAlphaUrl ?>" class="alpha-btn <?= empty($reqLetter) ? 'active' : '' ?>" data-letter="ALL" style="padding: 6px 12px; border-radius: var(--radius-sm); font-size: 0.8rem; font-weight: 700; border: 1px solid var(--color-primary); background: <?= empty($reqLetter) ? 'var(--color-primary)' : 'var(--bg-surface)' ?>; color: <?= empty($reqLetter) ? '#ffffff' : 'var(--text-heading)' ?>; text-decoration: none; display: inline-block; transition: all 0.15s ease;">
                     ALL (<?= $totalCount ?>)
                 </a>
                 <?php for ($i = 65; $i <= 90; $i++): 
@@ -401,11 +400,11 @@ include __DIR__ . '/components/header.php';
                     $charUrl = url('full-forms/?' . http_build_query($charParams));
                 ?>
                     <?php if ($hasTerms): ?>
-                        <a href="<?= $charUrl ?>" class="alpha-btn <?= $isSel ? 'active' : '' ?>" data-letter="<?= $char ?>" style="padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; border: 1px solid <?= $isSel ? '#1e3a8a' : '#cbd5e1' ?>; background: <?= $isSel ? '#1e3a8a' : '#ffffff' ?>; color: <?= $isSel ? '#ffffff' : '#0f172a' ?>; text-decoration: none; display: inline-block; transition: all 0.15s ease;">
-                            <?= $char ?> <span style="font-size: 0.7rem; color: <?= $isSel ? '#bfdbfe' : '#64748b' ?>;">(<?= $alphabetCounts[$char] ?>)</span>
+                        <a href="<?= $charUrl ?>" class="alpha-btn <?= $isSel ? 'active' : '' ?>" data-letter="<?= $char ?>" style="padding: 6px 10px; border-radius: var(--radius-sm); font-size: 0.8rem; font-weight: 700; border: 1px solid <?= $isSel ? 'var(--color-primary)' : 'var(--border-color)' ?>; background: <?= $isSel ? 'var(--color-primary)' : 'var(--bg-surface)' ?>; color: <?= $isSel ? '#ffffff' : 'var(--text-heading)' ?>; text-decoration: none; display: inline-block; transition: all 0.15s ease;">
+                            <?= $char ?> <span style="font-size: 0.7rem; color: <?= $isSel ? 'var(--color-primary-light)' : 'var(--text-muted)' ?>;">(<?= $alphabetCounts[$char] ?>)</span>
                         </a>
                     <?php else: ?>
-                        <span class="alpha-btn disabled" data-letter="<?= $char ?>" style="padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; border: 1px solid #f1f5f9; background: #f8fafc; color: #cbd5e1; display: inline-block; cursor: default;">
+                        <span class="alpha-btn disabled" data-letter="<?= $char ?>" style="padding: 6px 10px; border-radius: var(--radius-sm); font-size: 0.8rem; font-weight: 700; border: 1px solid var(--border-subtle); background: var(--bg-page); color: var(--border-strong); display: inline-block; cursor: default;">
                             <?= $char ?>
                         </span>
                     <?php endif; ?>
@@ -416,37 +415,37 @@ include __DIR__ . '/components/header.php';
         <!-- Cards Grid -->
         <div id="glossaryGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.25rem;">
             <?php foreach ($allTerms as $item): ?>
-                <div class="glossary-card" data-letter="<?= e($item['letter']) ?>" data-category="<?= e($item['category']) ?>" data-search="<?= strtolower(e($item['acronym'] . ' ' . $item['full_form_en'] . ' ' . ($item['full_form_hi'] ?? '') . ' ' . ($item['conducting_body'] ?? ''))) ?>" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03); transition: all 0.2s ease-in-out;" onmouseover="this.style.borderColor='#1e3a8a'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 18px -4px rgba(30, 58, 138, 0.12)';" onmouseout="this.style.borderColor='#e2e8f0'; this.style.transform='translateY(0)'; this.style.boxShadow='0 1px 3px rgba(15, 23, 42, 0.03)';">
+                <div class="glossary-card" data-letter="<?= e($item['letter']) ?>" data-category="<?= e($item['category']) ?>" data-search="<?= strtolower(e($item['acronym'] . ' ' . $item['full_form_en'] . ' ' . ($item['full_form_hi'] ?? '') . ' ' . ($item['conducting_body'] ?? ''))) ?>" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; box-shadow: var(--shadow-xs); transition: all 0.2s ease-in-out;" onmouseover="this.style.borderColor='var(--color-primary)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='var(--shadow-card-hover)';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-xs)';">
                     <div>
                         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
-                            <span style="font-size: 1.3rem; font-weight: 800; color: #1e3a8a; letter-spacing: -0.01em;">
+                            <span style="font-size: 1.3rem; font-weight: 800; color: var(--color-primary); letter-spacing: -0.01em;">
                                 <?= e($item['acronym']) ?>
                             </span>
-                            <span style="font-size: 0.7rem; font-weight: 700; color: #1e3a8a; background: #eff6ff; border: 1px solid #bfdbfe; padding: 2px 8px; border-radius: 4px; text-transform: uppercase;">
+                            <span style="font-size: 0.7rem; font-weight: 700; color: var(--color-primary); background: var(--color-primary-light); border: 1px solid var(--border-color); padding: 2px 8px; border-radius: var(--radius-xs); text-transform: uppercase;">
                                 <?= e(ucfirst(str_replace('_', ' ', $item['category']))) ?>
                             </span>
                         </div>
 
-                        <h2 style="font-size: 1.05rem; font-weight: 700; color: #0f172a; margin: 0 0 0.35rem 0; line-height: 1.35;">
+                        <h2 style="font-size: 1.05rem; font-weight: 700; color: var(--text-heading); margin: 0 0 0.35rem 0; line-height: 1.35;">
                             <?= e($item['full_form_en']) ?>
                         </h2>
 
                         <?php if (!empty($item['full_form_hi'])): ?>
-                            <div style="font-size: 0.9rem; font-weight: 600; color: #334155; margin-bottom: 0.75rem; font-family: 'Noto Sans Devanagari', sans-serif;">
+                            <div style="font-size: 0.9rem; font-weight: 600; color: var(--text-body); margin-bottom: 0.75rem; font-family: 'Noto Sans Devanagari', sans-serif;">
                                 हिंदी: <?= e($item['full_form_hi']) ?>
                             </div>
                         <?php endif; ?>
 
-                        <p style="font-size: 0.85rem; color: #64748b; line-height: 1.55; margin: 0 0 1.25rem 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.55; margin: 0 0 1.25rem 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
                             <?= e($item['overview']) ?>
                         </p>
                     </div>
 
                     <div>
                         <?php if (!empty($item['conducting_body'])): ?>
-                            <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 0.85rem; padding-top: 0.5rem; border-top: 1px solid #f1f5f9; display: flex; align-items: center; gap: 4px;">
+                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.85rem; padding-top: 0.5rem; border-top: 1px solid var(--border-subtle); display: flex; align-items: center; gap: 4px;">
                                 <span>Authority:</span>
-                                <strong style="color: #1e293b; font-weight: 600;"><?= e($item['conducting_body']) ?></strong>
+                                <strong style="color: var(--text-main); font-weight: 600;"><?= e($item['conducting_body']) ?></strong>
                             </div>
                         <?php endif; ?>
 
@@ -482,7 +481,7 @@ include __DIR__ . '/components/header.php';
         ?>
             <nav class="pagination-wrapper" aria-label="Full Forms Directory Pagination" style="margin-top: 3rem; display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap;">
                 <?php if ($currentPage > 1): ?>
-                    <a href="<?= $buildPageUrl($currentPage - 1) ?>" class="page-btn" style="padding: 8px 14px; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #0f172a; font-weight: 600; text-decoration: none; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 4px;">
+                    <a href="<?= $buildPageUrl($currentPage - 1) ?>" class="page-btn" style="padding: 8px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-surface); color: var(--text-heading); font-weight: 600; text-decoration: none; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 4px;">
                         &larr; Prev
                     </a>
                 <?php endif; ?>
@@ -491,34 +490,34 @@ include __DIR__ . '/components/header.php';
                 $startPage = max(1, $currentPage - 2);
                 $endPage = min($totalPages, $currentPage + 2);
                 if ($startPage > 1): ?>
-                    <a href="<?= $buildPageUrl(1) ?>" class="page-btn" style="padding: 8px 14px; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #0f172a; font-weight: 600; text-decoration: none; font-size: 0.875rem;">1</a>
+                    <a href="<?= $buildPageUrl(1) ?>" class="page-btn" style="padding: 8px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-surface); color: var(--text-heading); font-weight: 600; text-decoration: none; font-size: 0.875rem;">1</a>
                     <?php if ($startPage > 2): ?>
-                        <span style="color: #94a3b8; padding: 0 4px;">&hellip;</span>
+                        <span style="color: var(--text-light); padding: 0 4px;">&hellip;</span>
                     <?php endif; ?>
                 <?php endif; ?>
 
                 <?php for ($i = $startPage; $i <= $endPage; $i++): 
                     $isActive = ($i === $currentPage);
                 ?>
-                    <a href="<?= $buildPageUrl($i) ?>" class="page-btn <?= $isActive ? 'active' : '' ?>" style="padding: 8px 14px; border-radius: 6px; border: 1px solid <?= $isActive ? '#1e3a8a' : '#cbd5e1' ?>; background: <?= $isActive ? '#1e3a8a' : '#ffffff' ?>; color: <?= $isActive ? '#ffffff' : '#0f172a' ?>; font-weight: <?= $isActive ? '700' : '600' ?>; text-decoration: none; font-size: 0.875rem;">
+                    <a href="<?= $buildPageUrl($i) ?>" class="page-btn <?= $isActive ? 'active' : '' ?>" style="padding: 8px 14px; border-radius: var(--radius-sm); border: 1px solid <?= $isActive ? 'var(--color-primary)' : 'var(--border-color)' ?>; background: <?= $isActive ? 'var(--color-primary)' : 'var(--bg-surface)' ?>; color: <?= $isActive ? '#ffffff' : 'var(--text-heading)' ?>; font-weight: <?= $isActive ? '700' : '600' ?>; text-decoration: none; font-size: 0.875rem;">
                         <?= $i ?>
                     </a>
                 <?php endfor; ?>
 
                 <?php if ($endPage < $totalPages): ?>
                     <?php if ($endPage < $totalPages - 1): ?>
-                        <span style="color: #94a3b8; padding: 0 4px;">&hellip;</span>
+                        <span style="color: var(--text-light); padding: 0 4px;">&hellip;</span>
                     <?php endif; ?>
-                    <a href="<?= $buildPageUrl($totalPages) ?>" class="page-btn" style="padding: 8px 14px; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #0f172a; font-weight: 600; text-decoration: none; font-size: 0.875rem;"><?= $totalPages ?></a>
+                    <a href="<?= $buildPageUrl($totalPages) ?>" class="page-btn" style="padding: 8px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-surface); color: var(--text-heading); font-weight: 600; text-decoration: none; font-size: 0.875rem;"><?= $totalPages ?></a>
                 <?php endif; ?>
 
                 <?php if ($currentPage < $totalPages): ?>
-                    <a href="<?= $buildPageUrl($currentPage + 1) ?>" class="page-btn" style="padding: 8px 14px; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #0f172a; font-weight: 600; text-decoration: none; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 4px;">
+                    <a href="<?= $buildPageUrl($currentPage + 1) ?>" class="page-btn" style="padding: 8px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-surface); color: var(--text-heading); font-weight: 600; text-decoration: none; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 4px;">
                         Next &rarr;
                     </a>
                 <?php endif; ?>
             </nav>
-            <div style="text-align: center; margin-top: 0.75rem; font-size: 0.8rem; color: #64748b;">
+            <div style="text-align: center; margin-top: 0.75rem; font-size: 0.8rem; color: var(--text-muted);">
                 Showing page <strong><?= $currentPage ?></strong> of <strong><?= $totalPages ?></strong> (<?= $totalFilteredCount ?> total acronyms)
             </div>
         <?php endif; ?>
