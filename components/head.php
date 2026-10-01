@@ -184,10 +184,8 @@ if (!$isAdminSession):
     .site-header .mobile-menu-toggle{color:#ffffff!important}
     </style>
 
-    <!-- Master Minified CSS Design System -->
-    <?php $cssFile = file_exists(dirname(__DIR__) . '/assets/css/main.min.css') ? 'css/main.min.css' : 'css/main.css'; ?>
-    <link rel="preload" href="<?= asset($cssFile) ?>" as="style">
-    <link rel="stylesheet" href="<?= asset($cssFile) ?>">
+    <!-- Master CSS Design System (Cache-Proof) -->
+    <link rel="stylesheet" href="<?= asset('css/main.css') ?>">
 
     <!-- Schema.org Organization Structured Data -->
     <script type="application/ld+json">
