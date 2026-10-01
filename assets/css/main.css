@@ -336,9 +336,9 @@ p:last-child {
     position: sticky;
     top: 0;
     z-index: 1000;
-    background-color: var(--bg-surface);
-    border-bottom: 1px solid var(--border-color);
-    box-shadow: var(--shadow-xs);
+    background-color: var(--color-primary); /* #1a237e Logo Navy */
+    border-bottom: 3px solid var(--color-accent); /* #f57c00 Logo Orange strip */
+    box-shadow: 0 4px 14px rgba(26, 35, 126, 0.25);
     transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, background-color 0.25s ease;
     will-change: transform;
 }
@@ -350,7 +350,7 @@ p:last-child {
 
 .site-header.header-pinned {
     transform: translateY(0);
-    box-shadow: 0 6px 20px -3px rgba(15, 23, 42, 0.12), 0 2px 6px -1px rgba(15, 23, 42, 0.06) !important;
+    box-shadow: 0 6px 20px -3px rgba(15, 23, 42, 0.2), 0 2px 6px -1px rgba(15, 23, 42, 0.1) !important;
 }
 
 .header-inner {
@@ -367,7 +367,7 @@ p:last-child {
     gap: 0.6rem;
     font-size: 1.35rem;
     font-weight: 800;
-    color: var(--color-primary);
+    color: #ffffff;
     text-decoration: none;
     letter-spacing: -0.03em;
 }
@@ -376,14 +376,14 @@ p:last-child {
     width: 32px;
     height: 32px;
     border-radius: var(--radius-sm);
-    background: linear-gradient(135deg, var(--color-primary) 0%, #1e40af 100%);
+    background: var(--color-accent);
     color: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 900;
     font-size: 1.1rem;
-    box-shadow: 0 2px 4px rgba(30, 58, 138, 0.2);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .brand-text {
@@ -393,7 +393,7 @@ p:last-child {
 }
 
 .brand-name {
-    color: var(--color-primary);
+    color: #ffffff;
 }
 
 .brand-name span {
@@ -403,7 +403,7 @@ p:last-child {
 .brand-tag {
     font-size: 0.65rem;
     font-weight: 600;
-    color: var(--text-muted);
+    color: rgba(255, 255, 255, 0.7);
     letter-spacing: 0.05em;
     text-transform: uppercase;
     margin-top: 2px;
@@ -419,7 +419,7 @@ p:last-child {
 .nav-link {
     font-size: 0.9375rem;
     font-weight: 600;
-    color: var(--text-body);
+    color: rgba(255, 255, 255, 0.92);
     padding: 0.5rem 0.85rem;
     border-radius: var(--radius-sm);
     transition: var(--transition);
@@ -428,13 +428,13 @@ p:last-child {
 }
 
 .nav-link:hover {
-    color: var(--color-primary);
-    background-color: var(--color-primary-light);
+    color: var(--color-accent);
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .nav-link.active {
-    color: var(--color-primary);
-    background-color: var(--color-primary-light);
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.16);
     font-weight: 700;
 }
 
@@ -674,23 +674,23 @@ p:last-child {
 }
 
 .header-btn {
-    background: transparent;
-    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.25);
     border-radius: var(--radius-sm);
     width: 38px;
     height: 38px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--text-body);
+    color: #ffffff;
     cursor: pointer;
     transition: var(--transition);
 }
 
 .header-btn:hover {
-    background-color: var(--bg-surface-subtle);
-    color: var(--color-primary);
-    border-color: var(--border-strong);
+    background-color: rgba(255, 255, 255, 0.22);
+    color: var(--color-accent);
+    border-color: var(--color-accent);
 }
 
 .mobile-menu-toggle {
@@ -4172,10 +4172,10 @@ p:last-child {
     gap: 0.4rem;
     height: 38px;
     padding: 0 0.65rem;
-    background-color: var(--bg-surface);
-    border: 1px solid var(--border-color);
+    background-color: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.25);
     border-radius: var(--radius-sm);
-    color: var(--text-main);
+    color: #ffffff;
     font-size: 0.8125rem;
     font-weight: 600;
     cursor: pointer;
@@ -4183,9 +4183,9 @@ p:last-child {
 }
 
 .lang-select-btn:hover {
-    border-color: var(--color-primary);
-    background-color: var(--bg-surface-subtle);
-    color: var(--color-primary);
+    border-color: var(--color-accent);
+    background-color: rgba(255, 255, 255, 0.22);
+    color: var(--color-accent);
 }
 
 .lang-chevron-icon {

@@ -12,12 +12,9 @@
     <div class="container">
         <div class="header-inner">
             
-            <!-- Brand / Logo -->
+            <!-- Brand / Logo (White on Navy) -->
             <a href="<?= url() ?>" class="site-brand" aria-label="<?= e(SITE_NAME) ?> - Back to homepage" title="<?= e(SITE_NAME) ?> — Sarkari Result, Latest Govt Jobs 2026">
-                <picture>
-                    <source srcset="<?= asset('sarkari-logo-transparent.webp') ?>" type="image/webp">
-                    <img src="<?= asset('sarkari-logo-transparent.png') ?>" alt="<?= e(SITE_NAME) ?> - Sarkari Result &amp; Latest Govt Jobs 2026" title="<?= e(SITE_NAME) ?> - Official Education &amp; Recruitment Portal" class="site-logo-img" width="185" height="48" fetchpriority="high" decoding="async">
-                </picture>
+                <img src="<?= asset('sarkari-logo-white.png') ?>" alt="<?= e(SITE_NAME) ?> - Sarkari Result &amp; Latest Govt Jobs 2026" title="<?= e(SITE_NAME) ?> - Official Education &amp; Recruitment Portal" class="site-logo-img" width="185" height="48" fetchpriority="high" decoding="async">
             </a>
 
             <!-- Desktop Navigation -->
