@@ -58,20 +58,21 @@ include __DIR__ . '/components/header.php';
         <!-- Breadcrumbs -->
         <?php include __DIR__ . '/components/breadcrumbs.php'; ?>
 
-        <!-- Category Header -->
-        <header class="category-page-header">
-            <div class="card-meta" style="margin-bottom: 0.5rem;">
-                <span class="badge" style="background-color: <?= e($category['color'] ?? '#1e3a8a') ?>15; color: <?= e($category['color'] ?? '#1e3a8a') ?>; font-size: 0.75rem;">
+        <!-- Category Header (Executive Redesign) -->
+        <header class="category-hero-card" style="background: #ffffff; border: 1px solid #e0e0e0; border-left: 5px solid #f57c00; border-radius: 14px; padding: 2rem 2.25rem; margin-bottom: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.04);">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem;">
+                <span style="font-size: 0.72rem; font-weight: 700; color: #ffffff; background: #1a237e; padding: 4px 12px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
                     <?= e($category['name']) ?> Archive
                 </span>
-                <span class="meta-dot"></span>
-                <span><?= e((string)$categoryData['total']) ?> Verified Updates Published</span>
+                <span style="font-size: 0.75rem; color: #546e7a; font-weight: 600;">
+                    <?= e((string)$categoryData['total']) ?> Verified Updates Published
+                </span>
             </div>
-            <h1 class="category-page-title" style="color: <?= e($category['color'] ?? '#1e3a8a') ?>;">
-                <?= icon($category['icon'] ?? 'award') ?>
+            <h1 style="font-size: 2.15rem; font-weight: 800; color: #0f172a; margin: 0 0 0.75rem 0; line-height: 1.25; letter-spacing: -0.02em; display: flex; align-items: center; gap: 0.5rem;">
+                <?= icon($category['icon'] ?? 'award', 'icon-lg', ['style' => 'color: #1a237e;']) ?>
                 <span><?= e($category['name']) ?></span>
             </h1>
-            <p class="category-page-desc">
+            <p style="font-size: 1rem; color: #546e7a; line-height: 1.6; margin: 0; max-width: 860px;">
                 <?= e($category['description']) ?>
             </p>
         </header>

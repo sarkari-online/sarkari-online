@@ -408,29 +408,29 @@ include __DIR__ . '/components/header.php';
             </ol>
         </nav>
 
-        <!-- Directory Header -->
-        <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 2rem; margin-bottom: 2rem; box-shadow: var(--shadow-sm);">
-            <div style="max-width: 860px;">
-                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.75rem; background: var(--color-primary-light); border: 1px solid var(--border-color); color: var(--color-primary); margin-bottom: 0.85rem;">
-                    <span>Government &amp; Examination Full Forms &middot; <?= $totalCount ?> Terms (A-Z)</span>
-                </div>
-                <h1 style="font-size: 1.85rem; font-weight: 800; line-height: 1.25; margin: 0 0 0.6rem 0; color: var(--text-heading); letter-spacing: -0.02em;">
-                    A-to-Z Government &amp; Examination Full Forms Directory
-                </h1>
-                <p style="font-size: 0.95rem; color: var(--text-muted); line-height: 1.6; margin: 0;">
-                    Complete reference directory of competitive examinations, government agencies, defense, banking, and civil services across India with bilingual full forms and key eligibility details.
-                </p>
+        <!-- Directory Header (Executive Redesign Hero Card) -->
+        <div class="directory-hero-card" style="background: #ffffff; border: 4px solid #f57c00; border-radius: 16px; padding: 2.25rem; margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(245, 124, 0, 0.08);">
+            <div style="margin-bottom: 1rem;">
+                <span style="background: #f57c00; color: #ffffff; padding: 6px 18px; border-radius: 9999px; font-weight: 700; font-size: 0.85rem; letter-spacing: 0.3px; display: inline-block;">
+                    Official Examination &amp; Career Lexicon &middot; <?= $totalCount ?> Terms (A-Z)
+                </span>
             </div>
+            <h1 style="font-size: 2.25rem; font-weight: 800; line-height: 1.25; margin: 0 0 0.85rem 0; color: #0f172a; letter-spacing: -0.02em;">
+                A-to-Z Government &amp; Examination Full Forms Directory
+            </h1>
+            <p style="font-size: 1rem; color: #546e7a; line-height: 1.6; margin: 0; max-width: 860px;">
+                Verified reference directory of competitive examinations, government agencies, defense forces, banking institutions, and civil services across India with bilingual acronyms, eligibility criteria, and direct portal links.
+            </p>
         </div>
 
         <!-- Live Search Input -->
         <div style="margin-bottom: 1.5rem; position: relative; max-width: 680px;">
-            <input type="text" id="glossarySearchInput" placeholder="Search acronym, full form, or exam (e.g. UPSC, SSC, NEET, Police, Bank)..." style="width: 100%; padding: 0.85rem 1rem 0.85rem 2.75rem; border: 1.5px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.95rem; outline: none; background: var(--bg-surface); color: var(--text-main); box-shadow: var(--shadow-xs); transition: border-color 0.15s ease, box-shadow 0.15s ease;" onfocus="this.style.borderColor='var(--color-primary)'; this.style.boxShadow='0 0 0 3px rgba(26, 35, 126, 0.12)';" onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='var(--shadow-xs)';" oninput="filterGlossaryCards()">
-            <svg style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-light);" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="glossarySearchInput" placeholder="Search acronym, full form, or exam (e.g. UPSC, SSC, NEET, Police, Bank)..." style="width: 100%; padding: 0.85rem 1rem 0.85rem 2.75rem; border: 1.5px solid #e0e0e0; border-radius: 8px; font-size: 0.95rem; outline: none; background: #ffffff; color: #0f172a; box-shadow: 0 1px 3px rgba(0,0,0,0.04); transition: border-color 0.15s ease, box-shadow 0.15s ease;" onfocus="this.style.borderColor='#1a237e'; this.style.boxShadow='0 0 0 3px rgba(26, 35, 126, 0.12)';" onblur="this.style.borderColor='#e0e0e0'; this.style.boxShadow='0 1px 3px rgba(0,0,0,0.04)';" oninput="filterGlossaryCards()">
+            <svg style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #78909c;" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </div>
 
         <!-- Category Filter Pills Bar -->
-        <div style="margin-bottom: 1rem; overflow-x: auto; white-space: nowrap; padding-bottom: 0.25rem;">
+        <div style="margin-bottom: 1.25rem; overflow-x: auto; white-space: nowrap; padding-bottom: 0.25rem;">
             <div style="display: inline-flex; gap: 8px;">
                 <?php
                 $catList = [
@@ -452,22 +452,23 @@ include __DIR__ . '/components/header.php';
                     if ($catKey !== 'ALL') $catParams['category'] = $catKey;
                     $catUrl = url('full-forms/' . (!empty($catParams) ? '?' . http_build_query($catParams) : ''));
                 ?>
-                    <a href="<?= $catUrl ?>" class="cat-btn <?= $isCatActive ? 'active' : '' ?>" style="padding: 5px 12px; border-radius: var(--radius-pill); font-size: 0.78rem; font-weight: <?= $isCatActive ? '700' : '600' ?>; border: 1px solid <?= $isCatActive ? 'var(--color-primary)' : 'var(--border-color)' ?>; background: <?= $isCatActive ? 'var(--color-primary)' : 'var(--bg-surface)' ?>; color: <?= $isCatActive ? '#ffffff' : 'var(--text-body)' ?>; text-decoration: none; display: inline-block; transition: all 0.15s ease;">
+                    <a href="<?= $catUrl ?>" class="cat-btn <?= $isCatActive ? 'active' : '' ?>" style="padding: 6px 14px; border-radius: 9999px; font-size: 0.8rem; font-weight: <?= $isCatActive ? '700' : '600' ?>; border: 1px solid <?= $isCatActive ? '#1a237e' : '#e0e0e0' ?>; background: <?= $isCatActive ? '#1a237e' : '#ffffff' ?>; color: <?= $isCatActive ? '#ffffff' : '#37474f' ?>; text-decoration: none; display: inline-block; transition: all 0.15s ease;">
                         <?= e($catLabel) ?>
                     </a>
                 <?php endforeach; ?>
             </div>
         </div>
 
-        <!-- Crawlable Alphabet Jump Bar (A to Z) with Clean Server-Side Pagination Links -->
-        <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.75rem 1rem; margin-bottom: 2rem; overflow-x: auto; white-space: nowrap; box-shadow: var(--shadow-xs);">
+        <!-- Crawlable Alphabet Jump Bar (A to Z) with Exact Mockup Rounded Navy Buttons -->
+        <div style="background: #ffffff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 2rem; overflow-x: auto; white-space: nowrap; box-shadow: 0 1px 4px rgba(0,0,0,0.03);">
             <div style="display: inline-flex; align-items: center; gap: 6px;">
                 <?php
                 $allAlphaParams = [];
                 if (!empty($reqCategory)) $allAlphaParams['category'] = $reqCategory;
                 $allAlphaUrl = url('full-forms/' . (!empty($allAlphaParams) ? '?' . http_build_query($allAlphaParams) : ''));
+                $isAllActive = empty($reqLetter);
                 ?>
-                <a href="<?= $allAlphaUrl ?>" class="alpha-btn <?= empty($reqLetter) ? 'active' : '' ?>" data-letter="ALL" style="padding: 6px 12px; border-radius: var(--radius-sm); font-size: 0.8rem; font-weight: 700; border: 1px solid var(--color-primary); background: <?= empty($reqLetter) ? 'var(--color-primary)' : 'var(--bg-surface)' ?>; color: <?= empty($reqLetter) ? '#ffffff' : 'var(--text-heading)' ?>; text-decoration: none; display: inline-block; transition: all 0.15s ease;">
+                <a href="<?= $allAlphaUrl ?>" class="az-pill-btn <?= $isAllActive ? 'active' : '' ?>" style="display: inline-flex; align-items: center; justify-content: center; height: 38px; padding: 0 16px; border-radius: 8px; font-weight: 800; font-size: 0.85rem; text-decoration: none; transition: all 0.15s ease; background: <?= $isAllActive ? '#f57c00' : '#1a237e' ?>; color: #ffffff;" onmouseover="if(!this.classList.contains('active')) this.style.background='#f57c00';" onmouseout="if(!this.classList.contains('active')) this.style.background='#1a237e';">
                     ALL (<?= $totalCount ?>)
                 </a>
                 <?php for ($i = 65; $i <= 90; $i++): 
@@ -479,11 +480,11 @@ include __DIR__ . '/components/header.php';
                     $charUrl = url('full-forms/?' . http_build_query($charParams));
                 ?>
                     <?php if ($hasTerms): ?>
-                        <a href="<?= $charUrl ?>" class="alpha-btn <?= $isSel ? 'active' : '' ?>" data-letter="<?= $char ?>" style="padding: 6px 10px; border-radius: var(--radius-sm); font-size: 0.8rem; font-weight: 700; border: 1px solid <?= $isSel ? 'var(--color-primary)' : 'var(--border-color)' ?>; background: <?= $isSel ? 'var(--color-primary)' : 'var(--bg-surface)' ?>; color: <?= $isSel ? '#ffffff' : 'var(--text-heading)' ?>; text-decoration: none; display: inline-block; transition: all 0.15s ease;">
-                            <?= $char ?> <span style="font-size: 0.7rem; color: <?= $isSel ? 'var(--color-primary-light)' : 'var(--text-muted)' ?>;">(<?= $alphabetCounts[$char] ?>)</span>
+                        <a href="<?= $charUrl ?>" class="az-pill-btn <?= $isSel ? 'active' : '' ?>" data-letter="<?= $char ?>" style="display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 8px; font-weight: 800; font-size: 0.95rem; text-decoration: none; transition: all 0.15s ease; background: <?= $isSel ? '#f57c00' : '#1a237e' ?>; color: #ffffff;" onmouseover="if(!this.classList.contains('active')) this.style.background='#f57c00';" onmouseout="if(!this.classList.contains('active')) this.style.background='#1a237e';">
+                            <?= $char ?>
                         </a>
                     <?php else: ?>
-                        <span class="alpha-btn disabled" data-letter="<?= $char ?>" style="padding: 6px 10px; border-radius: var(--radius-sm); font-size: 0.8rem; font-weight: 700; border: 1px solid var(--border-subtle); background: var(--bg-page); color: var(--border-strong); display: inline-block; cursor: default;">
+                        <span class="az-pill-btn disabled" data-letter="<?= $char ?>" style="display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 8px; font-weight: 700; font-size: 0.95rem; background: #f1f5f9; color: #94a3b8; cursor: default;">
                             <?= $char ?>
                         </span>
                     <?php endif; ?>

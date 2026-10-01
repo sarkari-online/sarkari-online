@@ -229,55 +229,54 @@ include __DIR__ . '/components/header.php';
         <div class="article-layout-grid">
             
             <!-- Left Main Article Column -->
-            <article class="article-main-column">
+            <article class="article-main-column" style="background: #ffffff; border: 1px solid #e0e0e0; border-radius: 14px; padding: 2.25rem; box-shadow: 0 2px 10px rgba(0,0,0,0.04); margin-bottom: 2rem;">
                 
                 <!-- Article Header -->
-                <header class="article-header">
-                    <div class="card-meta">
-                        <a href="<?= url('category/' . ($article['category_slug'] ?? 'exam-results') . '/') ?>" class="badge" style="background-color: <?= e($article['category_color'] ?? '#1e3a8a') ?>15; color: <?= e($article['category_color'] ?? '#1e3a8a') ?>; font-size: 0.75rem;" title="<?= e($article['category_name'] ?? 'Education') ?> Category Archives">
-                            <?= e($article['category_name'] ?? 'Education') ?>
-                        </a>
-                        <span class="meta-dot"></span>
-                        <span class="badge badge-verified">
-                            <?= icon('shield-check', 'icon-sm') ?> Source Verified
+                <header class="article-header" style="margin-bottom: 1.5rem;">
+                    <div class="card-meta" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem;">
+                        <span style="font-size: 0.72rem; font-weight: 700; color: #ffffff; background: #1a237e; padding: 4px 12px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
+                            <?= e($article['category_name'] ?? 'Notice') ?>
+                        </span>
+                        <span style="font-size: 0.72rem; font-weight: 700; color: #15803d; background: #e8f5e9; border: 1px solid #bbf7d0; padding: 3px 10px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px;">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            Official Notice Verified
                         </span>
                     </div>
 
-                    <h1 class="article-headline">
+                    <h1 class="article-headline" style="font-size: 2.25rem; font-weight: 800; color: #0f172a; margin: 0 0 1rem 0; line-height: 1.25; letter-spacing: -0.02em;">
                         <?= e($article['title']) ?>
                     </h1>
 
                     <?php if (!empty($article['excerpt'])): ?>
-                        <div class="article-lead-excerpt">
+                        <div class="article-lead-excerpt" style="font-size: 1.05rem; line-height: 1.65; color: #37474f; margin-bottom: 1.25rem; font-weight: 400;">
                             <?= e($article['excerpt']) ?>
                         </div>
                     <?php endif; ?>
 
                     <!-- Author and Timestamp Byline -->
-                    <div class="article-byline">
-                        <div class="byline-author-info">
-                            <a href="<?= $authorUrl ?>" class="author-avatar" style="text-decoration: none; background: <?= $authorBg ?>; color: #fff; overflow: hidden; display: flex; align-items: center; justify-content: center;" aria-label="Author Profile: <?= e($authorName) ?>" title="Author Profile: <?= e($authorName) ?>">
+                    <div class="article-byline" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; padding: 1rem 0; border-top: 1px solid #e0e0e0; border-bottom: 1px solid #e0e0e0; margin-bottom: 1.5rem;">
+                        <div class="byline-author-info" style="display: flex; align-items: center; gap: 0.75rem;">
+                            <a href="<?= $authorUrl ?>" class="author-avatar" style="text-decoration: none; width: 40px; height: 40px; border-radius: 50%; background: #1a237e; color: #fff; overflow: hidden; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem;" aria-label="Author Profile: <?= e($authorName) ?>" title="Author Profile: <?= e($authorName) ?>">
                                 <?php if (!empty($authorImg)): ?>
-                                    <img src="<?= asset($authorImg) ?>" alt="<?= e($authorName) ?>" width="34" height="34" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                                    <img src="<?= asset($authorImg) ?>" alt="<?= e($authorName) ?>" width="40" height="40" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
                                     <span style="display: none;"><?= $authorAvatar ?></span>
                                 <?php else: ?>
                                     <?= $authorAvatar ?>
                                 <?php endif; ?>
                             </a>
                             <div>
-                                <a href="<?= $authorUrl ?>" class="byline-author-name" style="text-decoration: none; color: inherit; display: inline-flex; align-items: center; gap: 4px;" title="Author Profile: <?= e($authorName) ?>">
-                                    <?= e($authorName) ?>
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#047857" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" title="Verified Analyst"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <a href="<?= $authorUrl ?>" style="text-decoration: none; color: #0f172a; font-weight: 700; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 4px;" title="Author Profile: <?= e($authorName) ?>">
+                                    <span><?= e($authorName) ?></span>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" title="Verified Analyst"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                 </a>
-                                <div style="font-size: 0.75rem; color: var(--text-muted);"><?= e($authorTitle) ?></div>
+                                <div style="font-size: 0.75rem; color: #78909c;"><?= e($authorTitle) ?></div>
                             </div>
                         </div>
 
-                        <div class="byline-dates notranslate" style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
+                        <div class="byline-dates notranslate" style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; font-size: 0.8rem; color: #546e7a;">
                             <?php
                             $publishedTimestamp = strtotime($article['original_published_at'] ?? $article['published_at'] ?? $article['created_at']);
                             $updatedTimestamp = !empty($article['updated_at']) ? strtotime($article['updated_at']) : $publishedTimestamp;
-                            // Ensure updated_at is never displayed earlier than published_at
                             if ($updatedTimestamp < $publishedTimestamp) {
                                 $updatedTimestamp = $publishedTimestamp;
                             }
@@ -295,17 +294,86 @@ include __DIR__ . '/components/header.php';
                     <?php include __DIR__ . '/components/audio-player.php'; ?>
                 </header>
 
-                <!-- Featured Image -->
-                <div class="article-featured-media">
-                    <?php if (!empty($article['featured_image']) && file_exists(__DIR__ . '/' . ltrim($article['featured_image'], '/'))): 
+                <!-- Featured Image with Automatic Cache Busting -->
+                <?php
+                $artImgSrc = null;
+                if (!empty($article['featured_image'])) {
+                    $artLocalPath = dirname(__DIR__) . '/' . ltrim($article['featured_image'], '/');
+                    $artImgVersion = file_exists($artLocalPath) ? filemtime($artLocalPath) : time();
+                    $artImgSrc = url($article['featured_image']) . '?v=' . $artImgVersion;
+                }
+                ?>
+                <div class="article-featured-media" style="border-radius: 12px; overflow: hidden; border: 1px solid #e0e0e0; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 1.5rem;">
+                    <?php if (!empty($artImgSrc)): 
                         $artImgAlt = !empty($article['featured_image_alt']) ? $article['featured_image_alt'] : ($article['title'] ?? 'Official Exam Notification');
                         $artImgTitle = $article['title'] ?? $artImgAlt;
                     ?>
-                        <img src="<?= e(url($article['featured_image'])) ?>" alt="<?= e($artImgAlt) ?>" title="<?= e($artImgTitle) ?>" width="880" height="495" loading="eager" fetchpriority="high" decoding="async">
+                        <img src="<?= e($artImgSrc) ?>" alt="<?= e($artImgAlt) ?>" title="<?= e($artImgTitle) ?>" width="880" height="495" loading="eager" fetchpriority="high" decoding="async" style="width: 100%; height: auto; display: block;">
                     <?php else: ?>
                         <?= render_thumbnail_svg($article['category_slug'] ?? 'exam-results', $article['title'], 880, 495) ?>
                     <?php endif; ?>
                 </div>
+
+                <!-- Quick Factsheet Box (Vibrant Orange Border Brand Identity) -->
+                <div class="article-quick-facts" style="background: #ffffff; border: 1px solid #e0e0e0; border-left: 5px solid #f57c00; border-radius: 8px; padding: 1.25rem 1.5rem; margin-bottom: 2rem; box-shadow: 0 1px 4px rgba(0,0,0,0.04);">
+                    <div style="font-size: 0.72rem; font-weight: 800; color: #f57c00; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.65rem;">
+                        OFFICIAL FACTSHEET &amp; SUMMARY
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem 1.5rem;">
+                        <div>
+                            <span style="font-size: 0.72rem; font-weight: 700; color: #78909c; text-transform: uppercase; display: block; margin-bottom: 2px;">Recruiting Authority</span>
+                            <strong style="font-size: 0.95rem; color: #1a237e; font-weight: 700;"><?= e($sourceName) ?></strong>
+                        </div>
+                        <div>
+                            <span style="font-size: 0.72rem; font-weight: 700; color: #78909c; text-transform: uppercase; display: block; margin-bottom: 2px;">Category / Stream</span>
+                            <strong style="font-size: 0.95rem; color: #0f172a; font-weight: 700;"><?= e($article['category_name'] ?? 'Notice') ?></strong>
+                        </div>
+                        <?php if (!empty($sourceUrl)): ?>
+                        <div>
+                            <span style="font-size: 0.72rem; font-weight: 700; color: #78909c; text-transform: uppercase; display: block; margin-bottom: 2px;">Official Portal</span>
+                            <a href="<?= e($sourceUrl) ?>" target="_blank" rel="noopener noreferrer" style="color: #1a237e; font-weight: 700; font-size: 0.95rem; text-decoration: underline; text-underline-offset: 3px; display: inline-flex; align-items: center; gap: 4px;">
+                                <span><?= parse_url($sourceUrl, PHP_URL_HOST) ?: 'Official Website' ?></span> ↗
+                            </a>
+                        </div>
+                        <?php endif; ?>
+                        <div>
+                            <span style="font-size: 0.72rem; font-weight: 700; color: #78909c; text-transform: uppercase; display: block; margin-bottom: 2px;">Date of Release</span>
+                            <strong style="font-size: 0.95rem; color: #0f172a; font-weight: 700;"><?= date('d M Y', strtotime($article['published_at'])) ?></strong>
+                        </div>
+                    </div>
+                </div>
+
+                <style>
+                .article-body-content h2 {
+                    font-size: 1.35rem;
+                    font-weight: 800;
+                    color: #0f172a;
+                    border-left: 4px solid #1a237e;
+                    padding-left: 0.85rem;
+                    margin: 2.25rem 0 1rem 0;
+                    border-bottom: none;
+                    line-height: 1.35;
+                }
+                .article-body-content h3 {
+                    font-size: 1.15rem;
+                    font-weight: 700;
+                    color: #1a237e;
+                    margin: 1.75rem 0 0.75rem 0;
+                }
+                .article-body-content table th {
+                    background: #1a237e !important;
+                    color: #ffffff !important;
+                    font-weight: 700 !important;
+                    letter-spacing: 0.03em !important;
+                }
+                .article-body-content blockquote {
+                    background: #fafafa !important;
+                    border-left: 4px solid #f57c00 !important;
+                    padding: 1.15rem 1.35rem !important;
+                    margin: 1.5rem 0 !important;
+                    border-radius: 0 8px 8px 0 !important;
+                }
+                </style>
 
                 <!-- Article Body Content -->
                 <div class="article-body-content">
@@ -341,9 +409,9 @@ include __DIR__ . '/components/header.php';
                     $hasExistingAlsoRead = (bool)preg_match('/class=["\'](also-read-card|also-read-callout|see-also)["\']/i', $renderedContent) || str_contains($renderedContent, '📌 ALSO READ:');
                     if (!$hasExistingAlsoRead && !empty($relatedArticles[0])) {
                         $firstRel = $relatedArticles[0];
-                        $alsoReadCallout = '<div class="also-read-callout" style="margin: 1.5rem 0; padding: 1rem 1.25rem; background: #f8fafc; border-left: 4px solid var(--color-primary, #1e3a8a); border-radius: 0 8px 8px 0; font-size: 0.95rem;">'
-                            . '<span style="font-weight: 800; color: var(--color-primary, #1e3a8a); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">📌 ALSO READ:</span>'
-                            . '<a href="' . e(url('article/' . $firstRel['slug'] . '/')) . '" title="' . e($firstRel['title']) . '" style="color: #1e293b; font-weight: 700; text-decoration: underline; text-underline-offset: 3px;">' . e($firstRel['title']) . '</a>'
+                        $alsoReadCallout = '<div class="also-read-callout" style="margin: 1.5rem 0; padding: 1rem 1.25rem; background: #ffffff; border: 1px solid #e0e0e0; border-left: 4px solid #f57c00; border-radius: 0 8px 8px 0; font-size: 0.95rem; box-shadow: 0 1px 4px rgba(0,0,0,0.03);">'
+                            . '<span style="font-weight: 800; color: #f57c00; text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">📌 ALSO READ:</span>'
+                            . '<a href="' . e(url('article/' . $firstRel['slug'] . '/')) . '" title="' . e($firstRel['title']) . '" style="color: #0f172a; font-weight: 700; text-decoration: underline; text-underline-offset: 3px;">' . e($firstRel['title']) . '</a>'
                             . '</div>';
 
                         $pIndex = 0;
@@ -367,20 +435,21 @@ include __DIR__ . '/components/header.php';
 
                 <!-- Also Read / Related Articles Grid -->
                 <?php if (!empty($relatedArticles)): ?>
-                    <section class="related-articles-section" style="margin: 2.5rem 0 1.5rem; padding: 1.5rem; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+                    <section class="related-articles-section" style="margin: 2.5rem 0 1.5rem; padding: 1.5rem; background: #ffffff; border-radius: 12px; border: 1px solid #e0e0e0; border-left: 4px solid #1a237e; box-shadow: 0 1px 4px rgba(0,0,0,0.03);">
                         <h3 style="font-size: 1.15rem; font-weight: 800; color: #0f172a; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                            <?= icon('book-open', 'icon-sm') ?> Also Read: Related Educational Updates &amp; Guides
+                            <?= icon('book-open', 'icon-sm', ['style' => 'color: #1a237e;']) ?>
+                            <span>Also Read: Related Official Notices &amp; Guides</span>
                         </h3>
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
                             <?php foreach ($relatedArticles as $rel): ?>
-                                <a href="<?= e(url('article/' . $rel['slug'] . '/')) ?>" title="<?= e($rel['title']) ?>" style="display: block; padding: 1rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; box-shadow: 0 1px 3px rgba(0,0,0,0.05);" class="related-article-card">
-                                    <span style="font-size: 0.7rem; font-weight: 700; color: <?= e($rel['category_color'] ?? '#1e3a8a') ?>; text-transform: uppercase; display: block; margin-bottom: 0.35rem;">
-                                        <?= e($rel['category_name'] ?? 'Education') ?>
+                                <a href="<?= e(url('article/' . $rel['slug'] . '/')) ?>" title="<?= e($rel['title']) ?>" style="display: block; padding: 1rem; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 8px; text-decoration: none; box-shadow: 0 1px 3px rgba(0,0,0,0.03); transition: all 0.2s ease;" class="related-article-card" onmouseover="this.style.background='#ffffff'; this.style.borderColor='#1a237e';" onmouseout="this.style.background='#fafafa'; this.style.borderColor='#e0e0e0';">
+                                    <span style="font-size: 0.7rem; font-weight: 700; color: #1a237e; text-transform: uppercase; display: block; margin-bottom: 0.35rem;">
+                                        <?= e($rel['category_name'] ?? 'Notice') ?>
                                     </span>
-                                    <h4 style="font-size: 0.875rem; font-weight: 700; color: #1e293b; line-height: 1.4; margin: 0 0 0.5rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                    <h4 style="font-size: 0.875rem; font-weight: 700; color: #0f172a; line-height: 1.4; margin: 0 0 0.5rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
                                         <?= e($rel['title']) ?>
                                     </h4>
-                                    <span style="font-size: 0.75rem; color: #64748b;">
+                                    <span style="font-size: 0.75rem; color: #78909c;">
                                         <?= format_date($rel['updated_at'] ?? $rel['published_at']) ?>
                                     </span>
                                 </a>
@@ -391,17 +460,17 @@ include __DIR__ . '/components/header.php';
 
                 <!-- Official Source Verification Box -->
                 <?php if (!empty($sourceName)): ?>
-                    <div class="source-verification-box" role="complementary" aria-label="Official Source Attribution">
-                        <div class="source-ver-icon">
+                    <div class="source-verification-box" role="complementary" aria-label="Official Source Attribution" style="background: #f0fdf4; border: 1px solid #bbf7d0; border-left: 4px solid #16a34a; border-radius: 8px; padding: 1.25rem; margin: 2rem 0; display: flex; align-items: flex-start; gap: 1rem;">
+                        <div class="source-ver-icon" style="color: #16a34a; flex-shrink: 0; margin-top: 2px;">
                             <?= icon('shield-check', 'icon-lg') ?>
                         </div>
                         <div class="source-ver-details">
-                            <div class="source-ver-title">Official Source Reference &amp; Verification</div>
-                            <p class="source-ver-text">
+                            <div class="source-ver-title" style="font-weight: 700; color: #166534; font-size: 0.95rem; margin-bottom: 0.25rem;">Official Source Reference &amp; Verification</div>
+                            <p class="source-ver-text" style="font-size: 0.875rem; color: #14532d; margin-bottom: 0.5rem; line-height: 1.5;">
                                 Information in this report has been fact-checked against official releases from <strong><?= e($sourceName) ?></strong><?= !empty($sourceRef) ? ' (Reference: ' . e($sourceRef) . ')' : '' ?>.
                             </p>
                             <?php if (!empty($sourceUrl)): ?>
-                                <a href="<?= e($sourceUrl) ?>" target="_blank" rel="noopener noreferrer" class="source-ver-link" title="Visit Official Authority Portal: <?= e($sourceName) ?>">
+                                <a href="<?= e($sourceUrl) ?>" target="_blank" rel="noopener noreferrer" class="source-ver-link" title="Visit Official Authority Portal: <?= e($sourceName) ?>" style="font-size: 0.8125rem; font-weight: 700; color: #15803d; display: inline-flex; align-items: center; gap: 0.35rem; text-decoration: underline;">
                                     Visit Official Authority Portal (<?= e($sourceName) ?>) <?= icon('external-link', 'icon-sm') ?>
                                 </a>
                             <?php endif; ?>

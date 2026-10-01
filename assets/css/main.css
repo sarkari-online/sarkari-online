@@ -2276,9 +2276,9 @@ p:last-child {
     position: absolute;
     bottom: -2px;
     left: 0;
-    width: 48px;
-    height: 2px;
-    background-color: var(--color-primary);
+    width: 60px;
+    height: 3px;
+    background-color: var(--color-accent);
 }
 
 .section-title {
@@ -3045,19 +3045,23 @@ p:last-child {
 }
 
 .article-body-content h2 {
-    font-size: 1.45rem;
-    margin-top: 2rem;
-    margin-bottom: 0.85rem;
-    color: var(--text-main);
-    padding-bottom: 0.35rem;
-    border-bottom: 1px solid var(--border-color);
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #0f172a;
+    border-left: 4px solid #1a237e;
+    padding-left: 0.85rem;
+    margin-top: 2.25rem;
+    margin-bottom: 1rem;
+    border-bottom: none;
+    line-height: 1.35;
 }
 
 .article-body-content h3 {
-    font-size: 1.2rem;
-    margin-top: 1.5rem;
-    margin-bottom: 0.65rem;
-    color: var(--text-main);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1a237e;
+    margin-top: 1.75rem;
+    margin-bottom: 0.75rem;
 }
 
 .article-body-content p {
@@ -3122,14 +3126,14 @@ p:last-child {
 /* Table Header */
 .article-body-content table th,
 .data-table th {
-    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+    background: #1a237e;
     color: #ffffff;
     font-weight: 700;
     font-size: 0.85rem;
     text-transform: uppercase;
     letter-spacing: 0.04em;
     padding: 0.95rem 1.15rem;
-    border-bottom: 2px solid #172554;
+    border-bottom: 2px solid #0d1642;
     border-right: 1px solid rgba(255, 255, 255, 0.12);
     vertical-align: middle;
     white-space: nowrap;
@@ -3333,8 +3337,9 @@ p:last-child {
 
 /* Official Source Verification Box */
 .source-verification-box {
-    background-color: var(--color-secondary-light);
-    border: 1px solid #99f6e4;
+    background-color: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-left: 4px solid #16a34a;
     border-radius: var(--radius-md);
     padding: 1.25rem;
     margin: 2rem 0;
@@ -3344,28 +3349,28 @@ p:last-child {
 }
 
 .source-ver-icon {
-    color: var(--color-secondary);
+    color: #16a34a;
     flex-shrink: 0;
     margin-top: 2px;
 }
 
 .source-ver-title {
     font-weight: 700;
-    color: var(--color-secondary);
+    color: #166534;
     font-size: 0.95rem;
     margin-bottom: 0.25rem;
 }
 
 .source-ver-text {
     font-size: 0.875rem;
-    color: #134e4a;
+    color: #14532d;
     margin-bottom: 0.5rem;
 }
 
 .source-ver-link {
     font-size: 0.8125rem;
     font-weight: 700;
-    color: var(--color-secondary);
+    color: #15803d;
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;

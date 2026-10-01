@@ -155,6 +155,9 @@ if (count($jobsFeed) < $feedLimit) {
              COLUMN 2: RESULTS (Mockup Style)
              ========================================== -->
         <div class="candidate-feed-col col-results">
+            <h3 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0 0 1.35rem 0; letter-spacing: -0.01em;">
+                Results
+            </h3>
             <div style="display: flex; flex-direction: column; gap: 1rem;">
                 <?php foreach ($resultsFeed as $item): 
                     $dateStr = !empty($item['published_at']) ? date('M d, Y', strtotime($item['published_at'])) : date('M d, Y');
@@ -186,6 +189,9 @@ if (count($jobsFeed) < $feedLimit) {
              COLUMN 3: ADMIT CARD (Mockup Style)
              ========================================== -->
         <div class="candidate-feed-col col-admit">
+            <h3 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0 0 1.35rem 0; letter-spacing: -0.01em;">
+                Admit Cards
+            </h3>
             <div style="display: flex; flex-direction: column; gap: 1rem;">
                 <?php foreach ($admitFeed as $item): 
                     $dateStr = !empty($item['published_at']) ? date('M d, Y', strtotime($item['published_at'])) : date('M d, Y');
@@ -217,6 +223,9 @@ if (count($jobsFeed) < $feedLimit) {
              COLUMN 4: JOBS (Mockup Style)
              ========================================== -->
         <div class="candidate-feed-col col-jobs">
+            <h3 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0 0 1.35rem 0; letter-spacing: -0.01em;">
+                Latest Jobs
+            </h3>
             <div style="display: flex; flex-direction: column; gap: 1rem;">
                 <?php foreach ($jobsFeed as $item): 
                     $dateStr = !empty($item['published_at']) ? date('M d, Y', strtotime($item['published_at'])) : date('M d, Y');
