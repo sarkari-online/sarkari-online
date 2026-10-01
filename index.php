@@ -231,7 +231,7 @@ include __DIR__ . '/components/header.php';
         <!-- Portal Lead Header / Semantic Visible H1 -->
         <div class="portal-welcome-strip" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; padding: 0.75rem 1.15rem; margin-bottom: 1.25rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
             <div style="display: flex; align-items: center; gap: 0.65rem;">
-                <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: #eff6ff; color: var(--color-primary); flex-shrink: 0;">
+                <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: var(--color-primary-light); color: var(--color-primary); flex-shrink: 0;">
                     <?= icon('award', 'icon-sm') ?>
                 </span>
                 <h1 style="font-size: 1.05rem; font-weight: 700; color: var(--text-heading); margin: 0; line-height: 1.35; letter-spacing: -0.01em;">
@@ -239,8 +239,8 @@ include __DIR__ . '/components/header.php';
                 </h1>
             </div>
             <div style="display: flex; align-items: center; gap: 0.6rem;">
-                <span class="badge" style="background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; font-size: 0.72rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.2rem 0.55rem; border-radius: 9999px;">
-                    <span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                <span class="badge" style="background: var(--color-success-light); color: var(--color-india-green); border: 1px solid var(--color-success-light); font-size: 0.72rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.2rem 0.55rem; border-radius: 9999px;">
+                    <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--color-india-green); display: inline-block;"></span>
                     Live Updates
                 </span>
                 <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 500;">
@@ -279,7 +279,7 @@ include __DIR__ . '/components/header.php';
                             <div class="exam-update-card">
                                 <div class="exam-update-info">
                                     <div class="card-meta" style="margin-bottom: 0.25rem;">
-                                        <span class="badge badge-pill" style="background: #eff6ff; color: #1e3a8a; font-weight: 700; font-size: 0.7rem; border: 1px solid #bfdbfe;">
+                                        <span class="badge badge-pill" style="background: var(--color-primary-light); color: var(--color-primary); font-weight: 700; font-size: 0.7rem; border: 1px solid var(--border-color);">
                                             <?= e($exam['category_name'] ?? 'Exam Notice') ?>
                                         </span>
                                         <span><?= format_date($exam['published_at'] ?? 'now') ?></span>
@@ -392,14 +392,14 @@ include __DIR__ . '/components/header.php';
                     <div style="display: flex; flex-direction: column; gap: 0.85rem;">
                         
                         <!-- Tool 1: Age Calculator -->
-                        <div class="card-compact-row" style="background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1rem 1.15rem; display: flex; gap: 1rem; align-items: center; transition: all 0.2s ease;">
-                            <div style="width: 48px; height: 48px; border-radius: 10px; background: #eff6ff; border: 1px solid #bfdbfe; display: flex; align-items: center; justify-content: center; color: #1e3a8a; flex-shrink: 0;">
+                        <div class="card-compact-row" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1rem 1.15rem; display: flex; gap: 1rem; align-items: center; transition: all 0.2s ease;">
+                            <div style="width: 48px; height: 48px; border-radius: 10px; background: var(--color-primary-light); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; color: var(--color-primary); flex-shrink: 0;">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                             </div>
                             <div style="flex: 1; min-width: 0;">
                                 <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 0.25rem;">
-                                    <span style="font-size: 0.6875rem; font-weight: 700; color: #1e40af; background: #dbeafe; padding: 2px 7px; border-radius: 4px;">DoPT Statutory Rules</span>
-                                    <span style="font-size: 0.7rem; color: #64748b;">2026 Cutoff</span>
+                                    <span style="font-size: 0.6875rem; font-weight: 700; color: var(--color-primary); background: var(--color-primary-light); padding: 2px 7px; border-radius: 4px;">DoPT Rules</span>
+                                    <span style="font-size: 0.7rem; color: var(--text-light);">2026 Cutoff</span>
                                 </div>
                                 <h3 style="font-size: 0.95rem; font-weight: 700; line-height: 1.35; margin: 0 0 0.25rem 0;">
                                     <a href="<?= url('tools/age-calculator/') ?>" style="color: var(--text-main); text-decoration: none;" title="Govt Job Age Calculator &amp; Eligibility Checker">Govt Job Age Calculator &amp; Eligibility Checker</a>
@@ -413,14 +413,14 @@ include __DIR__ . '/components/header.php';
                         </div>
 
                         <!-- Tool 2: 7th Pay Salary Calculator -->
-                        <div class="card-compact-row" style="background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1rem 1.15rem; display: flex; gap: 1rem; align-items: center; transition: all 0.2s ease;">
-                            <div style="width: 48px; height: 48px; border-radius: 10px; background: #f0fdf4; border: 1px solid #bbf7d0; display: flex; align-items: center; justify-content: center; color: #16a34a; flex-shrink: 0;">
+                        <div class="card-compact-row" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1rem 1.15rem; display: flex; gap: 1rem; align-items: center; transition: all 0.2s ease;">
+                            <div style="width: 48px; height: 48px; border-radius: 10px; background: var(--color-success-light); border: 1px solid var(--color-success-light); display: flex; align-items: center; justify-content: center; color: var(--color-india-green); flex-shrink: 0;">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                             </div>
                             <div style="flex: 1; min-width: 0;">
                                 <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 0.25rem;">
-                                    <span style="font-size: 0.6875rem; font-weight: 700; color: #15803d; background: #dcfce7; padding: 2px 7px; border-radius: 4px;">7th CPC Matrix</span>
-                                    <span style="font-size: 0.7rem; color: #64748b;">50% DA Updated</span>
+                                    <span style="font-size: 0.6875rem; font-weight: 700; color: var(--color-india-green); background: var(--color-success-light); padding: 2px 7px; border-radius: 4px;">7th CPC Matrix</span>
+                                    <span style="font-size: 0.7rem; color: var(--text-light);">50% DA Updated</span>
                                 </div>
                                 <h3 style="font-size: 0.95rem; font-weight: 700; line-height: 1.35; margin: 0 0 0.25rem 0;">
                                     <a href="<?= url('tools/7th-pay-commission-salary-calculator/') ?>" style="color: var(--text-main); text-decoration: none;" title="7th Pay Commission Salary &amp; In-Hand Calculator">7th Pay Commission Salary &amp; In-Hand Calculator</a>
@@ -434,14 +434,14 @@ include __DIR__ . '/components/header.php';
                         </div>
 
                         <!-- Tool 3: CGPA Converter -->
-                        <div class="card-compact-row" style="background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1rem 1.15rem; display: flex; gap: 1rem; align-items: center; transition: all 0.2s ease;">
-                            <div style="width: 48px; height: 48px; border-radius: 10px; background: #f0f9ff; border: 1px solid #bae6fd; display: flex; align-items: center; justify-content: center; color: #0284c7; flex-shrink: 0;">
+                        <div class="card-compact-row" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1rem 1.15rem; display: flex; gap: 1rem; align-items: center; transition: all 0.2s ease;">
+                            <div style="width: 48px; height: 48px; border-radius: 10px; background: var(--color-primary-light); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; color: var(--color-primary); flex-shrink: 0;">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
                             </div>
                             <div style="flex: 1; min-width: 0;">
                                 <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 0.25rem;">
-                                    <span style="font-size: 0.6875rem; font-weight: 700; color: #0369a1; background: #e0f2fe; padding: 2px 7px; border-radius: 4px;">CBSE &amp; AICTE Formula</span>
-                                    <span style="font-size: 0.7rem; color: #64748b;">10-Point Scale</span>
+                                    <span style="font-size: 0.6875rem; font-weight: 700; color: var(--color-primary); background: var(--color-primary-light); padding: 2px 7px; border-radius: 4px;">CBSE &amp; AICTE Formula</span>
+                                    <span style="font-size: 0.7rem; color: var(--text-light);">10-Point Scale</span>
                                 </div>
                                 <h3 style="font-size: 0.95rem; font-weight: 700; line-height: 1.35; margin: 0 0 0.25rem 0;">
                                     <a href="<?= url('tools/cgpa-to-percentage-calculator/') ?>" style="color: var(--text-main); text-decoration: none;" title="CGPA to Percentage &amp; Marks Converter">CGPA to Percentage &amp; Marks Converter</a>
@@ -473,7 +473,7 @@ include __DIR__ . '/components/header.php';
                                     <?= icon('check-circle', 'icon-sm') ?>
                                 </div>
                                 <div>
-                                    <span class="badge" style="font-size: 0.7rem; font-weight: 700; background: #e0e7ff; color: #1e1b4b; margin-bottom: 0.25rem;"><?= e($pop['category_name'] ?? 'Guide') ?></span>
+                                    <span class="badge" style="font-size: 0.7rem; font-weight: 700; background: var(--color-primary-light); color: var(--color-primary); margin-bottom: 0.25rem;"><?= e($pop['category_name'] ?? 'Guide') ?></span>
                                     <h3 style="font-size: 0.9375rem; font-weight: 700; line-height: 1.35; margin-bottom: 0.25rem;">
                                         <a href="<?= url('article/' . $pop['slug'] . '/') ?>" title="<?= e($pop['title']) ?>"><?= e($pop['title']) ?></a>
                                     </h3>
@@ -496,7 +496,7 @@ include __DIR__ . '/components/header.php';
                         <span>Explore Portals &amp; Categories</span>
                     </h2>
                     <p class="topic-matrix-subtitle">
-                        Instant direct access to all 10 verified education, admission, and statutory recruitment archives.
+                        Instant direct access to all 10 verified education, admission, and recruitment archives.
                     </p>
                 </div>
             </div>
@@ -517,9 +517,9 @@ include __DIR__ . '/components/header.php';
                 <?php endforeach; ?>
             </div>
 
-            <!-- Statutory Popular Boards Quick Links Strip -->
+            <!-- Popular Boards Quick Links Strip -->
             <div class="topic-boards-strip">
-                <span class="topic-boards-label">Key Statutory Portals:</span>
+                <span class="topic-boards-label">Key Portals:</span>
                 <div class="topic-boards-chips">
                     <a href="<?= url('category/entrance-exams/') ?>" class="topic-board-chip" title="NTA NEET, JEE &amp; CUET Entrance Exams">NTA (NEET / JEE / CUET)</a>
                     <a href="<?= url('category/government-jobs/') ?>" class="topic-board-chip" title="UPSC Civil Services IAS &amp; NDA Recruitment">UPSC Civil Services</a>
@@ -540,7 +540,7 @@ include __DIR__ . '/components/header.php';
                     <span>Frequently Asked Questions — Sarkari.online</span>
                 </h2>
                 <p style="font-size: 0.875rem; color: var(--text-muted); margin-top: 0.25rem;">
-                    Answers to common questions about latest government jobs, admit cards, results, and statutory notifications.
+                    Answers to common questions about latest government jobs, admit cards, results, and notifications.
                 </p>
             </div>
 
@@ -581,7 +581,7 @@ include __DIR__ . '/components/header.php';
                         Are all job notifications on Sarkari.online officially verified?
                     </h3>
                     <p style="font-size: 0.875rem; color: var(--text-body); line-height: 1.6; margin: 0;">
-                        Yes, every job notification, examination calendar, and scorecard link on Sarkari.online is authenticated directly from official statutory government portals and commission gazettes before publication.
+                        Yes, every job notification, examination calendar, and scorecard link on Sarkari.online is authenticated directly from official government portals and commission gazettes before publication.
                     </p>
                 </div>
 

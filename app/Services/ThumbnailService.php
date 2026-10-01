@@ -171,12 +171,12 @@ class ThumbnailService {
         } else {
             // Brand Emblem Box [S]
             imagefilledrectangle($img, 60, 50, 105, 95, $accentColor);
-            $emblemTextColor = imagecolorallocate($img, 15, 23, 42);
+            $emblemTextColor = imagecolorallocate($img, 255, 255, 255);
             $this->drawText($img, 30, 0, 72, 85, $emblemTextColor, "S", true);
 
             // Brand Name Text
             $this->drawText($img, 24, 0, 120, 76, $whiteColor, "SARKARI.ONLINE", true);
-            $this->drawText($img, 13, 0, 120, 93, $mutedTextColor, "INDEPENDENT EDUCATION & EXAMS DESK", false);
+            $this->drawText($img, 13, 0, 120, 93, $mutedTextColor, "GOVERNMENT EXAMS & RECRUITMENT DESK", false);
         }
 
         // Category Badge Pill (Right aligned)
@@ -209,16 +209,16 @@ class ThumbnailService {
         // Subtitle / Highlight Strip with crisp drawn verified badge
         $subY = $startY + ($lineCount * $lineSpacing) + 25;
         $this->drawVerifiedBadge($img, 105, $subY - 14, $accentColor);
-        $this->drawText($img, 20, 0, 138, $subY, $accentColor, "VERIFIED PUBLIC NOTICE & DIRECT DETAILS", true);
+        $this->drawText($img, 20, 0, 138, $subY, $accentColor, "OFFICIAL NOTICE & DIRECT APPLICATION DETAILS", true);
 
         // 6. Bottom Information Footer Bar
         // Source Reference Pill
         imagefilledrectangle($img, 105, 480, 620, 535, imagecolorallocatealpha($img, 255, 255, 255, 110));
-        $this->drawText($img, 18, 0, 125, 514, $whiteColor, "Source: " . $this->truncate($sourceName, 36), false);
+        $this->drawText($img, 18, 0, 125, 514, $whiteColor, "Authority: " . $this->truncate($sourceName, 36), false);
 
         // Date Pill
         imagefilledrectangle($img, 860, 480, 1100, 535, imagecolorallocatealpha($img, 255, 255, 255, 110));
-        $this->drawText($img, 18, 0, 885, 514, $mutedTextColor, "Date: " . $dateStr, false);
+        $this->drawText($img, 18, 0, 885, 514, $mutedTextColor, "Updated: " . $dateStr, false);
 
         // 7. Save as WebP (for fast web loading) and PNG (for Google Blogger & social crawlers)
         $saved = imagewebp($img, $fullPath, 85);
@@ -367,9 +367,9 @@ class ThumbnailService {
                 'accent' => [56, 189, 248]       // Sky Blue #38bdf8
             ],
             default => [
-                'bg_top' => [15, 23, 42],
-                'bg_bottom' => [30, 58, 138],
-                'accent' => [245, 158, 11]
+                'bg_top' => [26, 35, 126],       // Navy #1a237e (Logo Primary)
+                'bg_bottom' => [13, 22, 66],     // Deep Navy
+                'accent' => [245, 124, 0]        // Orange #f57c00 (Logo Accent)
             ]
         };
     }

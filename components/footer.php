@@ -18,7 +18,7 @@
                         <img src="<?= asset('sarkari-logo-white.png') ?>" alt="<?= e(SITE_NAME) ?> - Sarkari Result &amp; Latest Govt Jobs" title="<?= e(SITE_NAME) ?> - Official Public Employment &amp; Examination Portal" style="height: 38px; width: auto; max-width: 175px; object-fit: contain; display: block;">
                     </a>
                     <p class="footer-brand-desc">
-                        An independent digital news observatory providing verified schedules, recruitment circulars, and scholarship gazettes for students and competitive exam aspirants across India.
+                        Education &amp; Career Portal
                     </p>
                     <div class="footer-live-status-pill">
                         <span class="live-pulse-dot"></span>
@@ -110,9 +110,9 @@
         <div class="container">
             <div class="footer-bottom-flex">
                 <div class="footer-copy-left">
-                    <div>&copy; <?= date('Y') ?> <?= e(SITE_NAME) ?> &middot; Independent Educational Information Network.</div>
-                    <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.35rem; display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <div>&copy; <?= date('Y') ?> <?= e(SITE_NAME) ?> &middot; Government Exams &middot; Results &middot; Jobs &middot; Education</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem; display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                         <span>Portal Last Updated: <strong style="color: #cbd5e1;"><?= e($siteLastUpdatedStr) ?></strong></span>
                         <?php if ($publishedArticlesCount > 0): ?>
                             <span class="footer-sep">&middot;</span>

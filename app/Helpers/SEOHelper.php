@@ -184,7 +184,7 @@ class SEOHelper {
                 'url' => SITE_URL,
                 'logo' => [
                     '@type' => 'ImageObject',
-                    'url' => url('assets/images/logo.png')
+                    'url' => url('assets/sarkari-logo-transparent.png')
                 ]
             ],
             'articleSection' => $article['category_name'] ?? 'Education'

@@ -1,58 +1,67 @@
 /* ==========================================================================
-   EduPulse — Master Design System (Phase 0)
-   Editorial, high-trust, mobile-first design system for Indian Education
+   Sarkari.online — Master Design System
+   Professional, authoritative, government-grade portal design system
+   Colors matched to official Sarkari.online brand logo
    ========================================================================== */
 
 :root {
-    /* Color Palette */
-    --color-primary: #1e3a8a;          /* Deep Navy/Royal Blue (Trust & Authority) */
-    --color-primary-hover: #172554;
-    --color-primary-light: #eff6ff;
+    /* ── Brand Palette (Matched to Logo) ── */
+    --color-primary: #1a237e;          /* Logo Navy Blue — headers, nav, headings */
+    --color-primary-hover: #0d1642;
+    --color-primary-light: #e8eaf6;
     
-    --color-secondary: #0f766e;        /* Deep Emerald/Teal (Academic & Verified) */
-    --color-secondary-light: #f0fdfa;
+    --color-secondary: #1565c0;        /* Medium Blue — secondary links, info */
+    --color-secondary-light: #e3f2fd;
     
-    --color-accent: #b45309;           /* Amber/Ochre (High Priority Alerts) */
-    --color-accent-light: #fffbeb;
+    --color-accent: #f57c00;           /* Logo Orange (.online) — badges, CTAs, highlights */
+    --color-accent-hover: #ef6c00;
+    --color-accent-light: #fff3e0;
 
-    --color-success: #15803d;
-    --color-success-light: #f0fdf4;
-    --color-warning: #b45309;
-    --color-warning-light: #fffbeb;
-    --color-danger: #b91c1c;
-    --color-danger-light: #fef2f2;
+    /* ── Indian Tricolor Accents ── */
+    --color-saffron: #ff9933;          /* Graduation tassel / decorative saffron */
+    --color-india-green: #138808;      /* Indian flag green / verified states */
+    --color-ashoka-blue: #000080;      /* Ashoka Chakra navy / deep trust tone */
 
-    /* Backgrounds & Surfaces */
-    --bg-page: #f8fafc;                /* Neutral Cool Canvas */
-    --bg-surface: #ffffff;             /* Crisp Card Surface */
-    --bg-surface-subtle: #f1f5f9;      /* Subtle Neutral */
+    /* ── Semantic Status Colors ── */
+    --color-success: #2e7d32;
+    --color-success-light: #e8f5e9;
+    --color-warning: #f57c00;
+    --color-warning-light: #fff3e0;
+    --color-danger: #c62828;
+    --color-danger-light: #ffebee;
+
+    /* ── Backgrounds & Surfaces ── */
+    --bg-page: #f5f5f5;               /* Warm neutral canvas (not cold blue) */
+    --bg-surface: #ffffff;             /* Crisp card surface */
+    --bg-surface-subtle: #fafafa;      /* Subtle warm neutral */
     --bg-surface-elevated: #ffffff;
 
-    /* Typography Colors (High Contrast WCAG AAA) */
-    --text-main: #0f172a;              /* Slate 900 */
-    --text-body: #334155;              /* Slate 700 */
-    --text-muted: #475569;             /* Slate 600 (5.5:1 contrast) */
-    --text-light: #64748b;             /* Slate 500 */
+    /* ── Typography Colors (WCAG AAA) ── */
+    --text-heading: #1a237e;           /* Navy headings matching logo */
+    --text-main: #0f172a;              /* Near-black for emphasis */
+    --text-body: #37474f;              /* Blue-grey 800 — professional body text */
+    --text-muted: #546e7a;            /* Blue-grey 600 — secondary info */
+    --text-light: #78909c;            /* Blue-grey 400 — tertiary/meta */
     --text-on-primary: #ffffff;
 
-    /* Borders & Dividers */
-    --border-subtle: #f1f5f9;
-    --border-color: #e2e8f0;          /* Slate 200 */
-    --border-strong: #cbd5e1;         /* Slate 300 */
+    /* ── Borders & Dividers ── */
+    --border-subtle: #f5f5f5;
+    --border-color: #e0e0e0;          /* Grey 300 */
+    --border-strong: #bdbdbd;         /* Grey 400 */
 
-    /* Typography System */
+    /* ── Typography System ── */
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Devanagari", "Noto Sans", "Helvetica Neue", Arial, sans-serif;
     --font-serif: Georgia, Cambria, "Times New Roman", Times, serif;
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-    /* Shadows */
-    --shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
-    --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.07), 0 1px 2px -1px rgba(15, 23, 42, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
-    --shadow-card-hover: 0 12px 20px -4px rgba(15, 23, 42, 0.12);
+    /* ── Elevation / Shadows ── */
+    --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+    --shadow-card-hover: 0 8px 24px -4px rgba(26, 35, 126, 0.12);
 
-    /* Radii */
+    /* ── Radii ── */
     --radius-xs: 3px;
     --radius-sm: 6px;
     --radius-md: 8px;
@@ -60,7 +69,7 @@
     --radius-xl: 16px;
     --radius-pill: 9999px;
 
-    /* Layout Constraints */
+    /* ── Layout Constraints ── */
     --container-max: 1240px;
     --container-narrow: 840px;
     --header-height: 64px;

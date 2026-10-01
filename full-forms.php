@@ -105,33 +105,32 @@ if (!empty($termSlug)) {
     include __DIR__ . '/components/header.php';
     ?>
 
-    <main class="site-main" style="padding: 2rem 0 5rem 0; background: #f8fafc;">
+    <main class="site-main" style="padding: 2rem 0 5rem 0; background: var(--bg-page);">
         <div class="container">
             
             <!-- Breadcrumbs -->
             <nav class="breadcrumb-nav" aria-label="Breadcrumb" style="margin-bottom: 1.5rem;">
-                <ol style="display: flex; flex-wrap: wrap; gap: 0.5rem; list-style: none; padding: 0; margin: 0; font-size: 0.8125rem; color: #64748b;">
-                    <li><a href="<?= url() ?>" style="color: var(--color-primary); text-decoration: none; font-weight: 500;">Home</a> <span style="margin: 0 0.35rem; color: #cbd5e1;">/</span></li>
-                    <li><a href="<?= url('full-forms/') ?>" style="color: var(--color-primary); text-decoration: none; font-weight: 500;">Full Forms (A-Z)</a> <span style="margin: 0 0.35rem; color: #cbd5e1;">/</span></li>
-                    <li style="color: #0f172a; font-weight: 600;"><?= e($term['acronym']) ?></li>
+                <ol style="display: flex; flex-wrap: wrap; gap: 0.5rem; list-style: none; padding: 0; margin: 0; font-size: 0.8125rem; color: var(--text-light);">
+                    <li><a href="<?= url() ?>" style="color: var(--color-primary); text-decoration: none; font-weight: 500;">Home</a> <span style="margin: 0 0.35rem; color: var(--border-color);">/</span></li>
+                    <li><a href="<?= url('full-forms/') ?>" style="color: var(--color-primary); text-decoration: none; font-weight: 500;">Full Forms (A-Z)</a> <span style="margin: 0 0.35rem; color: var(--border-color);">/</span></li>
+                    <li style="color: var(--text-heading); font-weight: 600;"><?= e($term['acronym']) ?></li>
                 </ol>
             </nav>
 
             <!-- Main Detail Card -->
-            <article style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 2.25rem; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05); margin-bottom: 2rem;">
+            <article style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 2rem; box-shadow: var(--shadow-sm); margin-bottom: 2rem;">
                 
                 <!-- Category Badge & Verification Strip -->
                 <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 1.25rem;">
-                    <span style="font-size: 0.72rem; font-weight: 700; color: #1e3a8a; background: #eff6ff; border: 1px solid #bfdbfe; padding: 3px 9px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+                    <span style="font-size: 0.75rem; font-weight: 600; color: var(--color-primary); background: var(--bg-page); border: 1px solid var(--border-color); padding: 4px 10px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
                         <?= e(ucfirst(str_replace('_', ' ', $term['category']))) ?>
                     </span>
-                    <div style="font-size: 0.75rem; color: #15803d; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 3px 9px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
-                        <span>Verified Statutory Lexicon &middot; Last Reviewed: <?= date('M d, Y', $latestTimestamp) ?></span>
+                    <div style="font-size: 0.75rem; color: var(--text-light); font-weight: 500;">
+                        Last updated: <?= date('M d, Y', $latestTimestamp) ?>
                     </div>
                 </div>
 
-                <h1 style="font-size: 2rem; font-weight: 800; color: #0f172a; margin: 0 0 0.5rem 0; line-height: 1.25; letter-spacing: -0.02em;">
+                <h1 style="font-size: 1.85rem; font-weight: 800; color: var(--text-heading); margin: 0 0 0.5rem 0; line-height: 1.3;">
                     Full Form of <?= e($term['acronym']) ?>
                 </h1>
 
@@ -142,58 +141,58 @@ if (!empty($termSlug)) {
                 <?= GlossaryService::renderFactsTable($term) ?>
 
                 <!-- Structured Factual Sections -->
-                <div style="font-size: 0.95rem; color: #334155; line-height: 1.7;">
+                <div style="font-size: 0.95rem; color: var(--text-body); line-height: 1.7;">
                     
-                    <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 2rem 0 0.5rem 0;">
-                        1. Official Mandate, Scope &amp; Background
+                    <h2 style="font-size: 1.2rem; font-weight: 700; color: var(--text-heading); margin: 2rem 0 0.75rem 0; padding-left: 0.75rem; border-left: 3px solid var(--color-accent);">
+                        Overview
                     </h2>
                     <p style="margin: 0 0 1.25rem 0;">
                         <?= nl2br(e($term['overview'])) ?>
                     </p>
 
                     <?php if (!empty($term['eligibility_criteria'])): ?>
-                        <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 2rem 0 0.5rem 0;">
-                            2. Eligibility Criteria, Qualifications &amp; Age Limits
+                        <h2 style="font-size: 1.2rem; font-weight: 700; color: var(--text-heading); margin: 2rem 0 0.75rem 0; padding-left: 0.75rem; border-left: 3px solid var(--color-accent);">
+                            Eligibility &amp; Age Limits
                         </h2>
                         <?= GlossaryService::renderSectionBulletList($term['eligibility_criteria']) ?>
                     <?php endif; ?>
 
                     <?php if (!empty($term['selection_process'])): ?>
-                        <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 2rem 0 0.5rem 0;">
-                            3. Examination Scheme &amp; Selection Procedure
+                        <h2 style="font-size: 1.2rem; font-weight: 700; color: var(--text-heading); margin: 2rem 0 0.75rem 0; padding-left: 0.75rem; border-left: 3px solid var(--color-accent);">
+                            Selection Process
                         </h2>
                         <?= GlossaryService::renderSectionBulletList($term['selection_process']) ?>
                     <?php endif; ?>
 
                     <?php if (!empty($term['syllabus_snapshot'])): ?>
-                        <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 2rem 0 0.5rem 0;">
-                            4. Core Syllabus &amp; Key Subjects
+                        <h2 style="font-size: 1.2rem; font-weight: 700; color: var(--text-heading); margin: 2rem 0 0.75rem 0; padding-left: 0.75rem; border-left: 3px solid var(--color-accent);">
+                            Syllabus Highlights
                         </h2>
                         <?= GlossaryService::renderSectionBulletList($term['syllabus_snapshot']) ?>
                     <?php endif; ?>
 
                     <!-- Section 5: Salary & Pay Scale (Only rendered when verified facts are present) -->
                     <?php if (!empty($salaryTableHtml)): ?>
-                        <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 2rem 0 0.5rem 0;">
-                            5. Salary, Pay Scale &amp; 7th CPC Allowances
+                        <h2 style="font-size: 1.2rem; font-weight: 700; color: var(--text-heading); margin: 2rem 0 0.75rem 0; padding-left: 0.75rem; border-left: 3px solid var(--color-accent);">
+                            Salary &amp; Pay Scale
                         </h2>
                         <?= $salaryTableHtml ?>
                     <?php endif; ?>
 
                     <!-- Section 6: Career Growth & Promotion Hierarchy -->
                     <?php if (!empty($facts['career_growth_summary'])): ?>
-                        <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 2rem 0 0.5rem 0;">
-                            6. Career Growth &amp; Promotion Hierarchy
+                        <h2 style="font-size: 1.2rem; font-weight: 700; color: var(--text-heading); margin: 2rem 0 0.75rem 0; padding-left: 0.75rem; border-left: 3px solid var(--color-accent);">
+                            Career Growth
                         </h2>
-                        <p style="margin: 0 0 1.25rem 0; background: #f8fafc; border-left: 4px solid #1e3a8a; padding: 0.85rem 1.15rem; border-radius: 0 8px 8px 0; color: #334155; line-height: 1.7;">
+                        <p style="margin: 0 0 1.25rem 0; background: var(--bg-page); border-left: 4px solid var(--color-accent); padding: 0.85rem 1.15rem; border-radius: 0 var(--radius-md) var(--radius-md) 0; color: var(--text-body); line-height: 1.7;">
                             <?= nl2br(e($facts['career_growth_summary'])) ?>
                         </p>
                     <?php endif; ?>
 
                     <!-- Section 7: Frequently Asked Questions & FAQPage Schema -->
                     <?php if (!empty($faqBlockHtml)): ?>
-                        <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 2rem 0 0.5rem 0;">
-                            7. Frequently Asked Questions (FAQs)
+                        <h2 style="font-size: 1.2rem; font-weight: 700; color: var(--text-heading); margin: 2rem 0 0.75rem 0; padding-left: 0.75rem; border-left: 3px solid var(--color-accent);">
+                            FAQs
                         </h2>
                         <?= $faqBlockHtml ?>
                     <?php endif; ?>
@@ -202,22 +201,22 @@ if (!empty($termSlug)) {
 
                 <!-- Internal Linking Engine / Live Exam Updates Connection -->
                 <?php if (!empty($matchedArticle)): ?>
-                    <div style="margin-top: 2rem; padding: 1.25rem 1.5rem; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px;">
-                        <span style="font-weight: 800; color: #1e3a8a; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; display: block; margin-bottom: 0.35rem;">
+                    <div style="margin-top: 2rem; padding: 1.25rem 1.5rem; background: var(--bg-page); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+                        <span style="font-weight: 800; color: var(--color-primary); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; display: block; margin-bottom: 0.35rem;">
                             📌 LIVE RECRUITMENT &amp; EXAM UPDATES
                         </span>
-                        <a href="<?= url('article/' . $matchedArticle['slug'] . '/') ?>" style="color: #1e3a8a; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; font-size: 1rem;">
+                        <a href="<?= url('article/' . $matchedArticle['slug'] . '/') ?>" style="color: var(--color-primary); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; font-size: 1rem;">
                             <?= e($matchedArticle['title']) ?> &rarr;
                         </a>
                     </div>
                 <?php endif; ?>
 
                 <!-- Back to Directory CTA -->
-                <div style="margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid #f1f5f9; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem;">
-                    <a href="<?= url('full-forms/') ?>" style="color: #1e3a8a; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-size: 0.875rem;">
+                <div style="margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem;">
+                    <a href="<?= url('full-forms/') ?>" style="color: var(--color-primary); font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-size: 0.875rem;">
                         &larr; <span>Back to A-to-Z Full Forms Directory</span>
                     </a>
-                    <a href="<?= url('tools/') ?>" style="color: #64748b; font-weight: 600; text-decoration: none; font-size: 0.875rem;">
+                    <a href="<?= url('tools/') ?>" style="color: var(--text-light); font-weight: 600; text-decoration: none; font-size: 0.875rem;">
                         Explore Student Calculators &amp; Tools &rarr;
                     </a>
                 </div>
@@ -227,16 +226,16 @@ if (!empty($termSlug)) {
             <!-- Related Acronyms Grid -->
             <?php if (!empty($relatedTerms)): ?>
                 <div style="margin-top: 2.5rem;">
-                    <h3 style="font-size: 1.15rem; font-weight: 800; color: #0f172a; margin-bottom: 1rem;">
+                    <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-heading); margin-bottom: 1rem;">
                         Related <?= e(ucfirst(str_replace('_', ' ', $term['category']))) ?> Acronyms &amp; Full Forms
                     </h3>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem;">
                         <?php foreach ($relatedTerms as $rt): ?>
-                            <a href="<?= url('full-forms/' . $rt['slug'] . '/') ?>" style="display: block; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.15rem; text-decoration: none; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04); transition: all 0.15s ease;" onmouseover="this.style.borderColor='#1e3a8a'; this.style.boxShadow='0 4px 12px rgba(30, 58, 138, 0.08)';" onmouseout="this.style.borderColor='#e2e8f0'; this.style.boxShadow='0 1px 2px rgba(15, 23, 42, 0.04)';">
-                                <span style="font-size: 1.1rem; font-weight: 800; color: #1e3a8a; display: block; margin-bottom: 0.25rem;">
+                            <a href="<?= url('full-forms/' . $rt['slug'] . '/') ?>" style="display: block; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.15rem; text-decoration: none; box-shadow: var(--shadow-sm); transition: all 0.15s ease;" onmouseover="this.style.borderColor='var(--color-primary)';" onmouseout="this.style.borderColor='var(--border-color)';">
+                                <span style="font-size: 1.1rem; font-weight: 800; color: var(--color-primary); display: block; margin-bottom: 0.25rem;">
                                     <?= e($rt['acronym']) ?>
                                 </span>
-                                <span style="font-size: 0.85rem; font-weight: 600; color: #1e293b; line-height: 1.4; display: block;">
+                                <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-body); line-height: 1.4; display: block;">
                                     <?= e($rt['full_form_en']) ?>
                                 </span>
                             </a>

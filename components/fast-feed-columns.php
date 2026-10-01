@@ -257,16 +257,16 @@ function get_feed_badge(array $item): string {
                     $isNotice = ($statusType === 'notice');
 
                     $actionText = 'Apply';
-                    $actionColor = '#059669';
+                    $actionColor = 'var(--color-india-green)';
                     if ($isClosed) {
                         $actionText = 'Closed';
-                        $actionColor = '#64748b';
+                        $actionColor = 'var(--text-light)';
                     } elseif ($isNotice) {
                         $actionText = 'Postponed';
-                        $actionColor = '#d97706';
+                        $actionColor = 'var(--color-accent)';
                     } elseif ($isUrgent) {
                         $actionText = 'Today';
-                        $actionColor = '#dc2626';
+                        $actionColor = 'var(--color-accent)';
                     }
                 ?>
                     <li class="fast-feed-item">
@@ -276,7 +276,7 @@ function get_feed_badge(array $item): string {
                                 <span class="item-title"><?= e($item['title']) ?></span>
                             </div>
                             <div class="item-meta-row">
-                                <span class="item-date" style="font-size: 0.72rem; font-weight: <?= $isUrgent ? '700' : '600' ?>; color: <?= $isUrgent ? '#dc2626' : ($isClosed ? '#94a3b8' : ($isNotice ? '#d97706' : '#475569')) ?>; display: inline-flex; align-items: center; gap: 4px;">
+                                <span class="item-date" style="font-size: 0.72rem; font-weight: <?= $isUrgent ? '700' : '600' ?>; color: <?= $isUrgent ? 'var(--color-accent)' : ($isClosed ? 'var(--text-muted)' : ($isNotice ? 'var(--color-accent)' : 'var(--text-muted)')) ?>; display: inline-flex; align-items: center; gap: 4px;">
                                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                                     <span><?= e($deadlineText) ?></span>
                                 </span>

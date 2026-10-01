@@ -31,7 +31,7 @@ if (!empty($dbLatest)) {
                 <div class="update-ticker-track">
                     <?php foreach ($breakingUpdates as $update): ?>
                         <a href="<?= url($update['url']) ?>" class="ticker-item" title="<?= e($update['title']) ?>">
-                            <span class="badge badge-pill" style="font-size: 0.65rem; background: rgba(255,255,255,0.15); color: #fff;"><?= e($update['tag']) ?></span>
+                            <span class="badge badge-pill" style="font-size: 0.65rem; background: rgba(255,255,255,0.15); color: var(--bg-page);"><?= e($update['tag']) ?></span>
                             <span><?= e($update['title']) ?></span>
                             <span class="ticker-time">(<?= e($update['time']) ?>)</span>
                         </a>
@@ -39,7 +39,7 @@ if (!empty($dbLatest)) {
                     <!-- Duplicate for infinite seamless scroll -->
                     <?php foreach ($breakingUpdates as $update): ?>
                         <a href="<?= url($update['url']) ?>" class="ticker-item" aria-hidden="true" tabindex="-1" title="<?= e($update['title']) ?>">
-                            <span class="badge badge-pill" style="font-size: 0.65rem; background: rgba(255,255,255,0.15); color: #fff;"><?= e($update['tag']) ?></span>
+                            <span class="badge badge-pill" style="font-size: 0.65rem; background: rgba(255,255,255,0.15); color: var(--bg-page);"><?= e($update['tag']) ?></span>
                             <span><?= e($update['title']) ?></span>
                             <span class="ticker-time">(<?= e($update['time']) ?>)</span>
                         </a>

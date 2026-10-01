@@ -233,8 +233,8 @@
         </nav>
 
         <div style="padding: 1.25rem; margin-top: auto; border-top: 1px solid var(--border-color); font-size: 0.8125rem; color: var(--text-muted);">
-            <p><strong>Sarkari.online Information Network</strong></p>
-            <p>Independent alerts on Indian entrance exams, results, admit cards, notifications, and scholarships.</p>
+            <p><strong>Sarkari.online</strong></p>
+            <p>Government Exams &middot; Results &middot; Jobs &middot; Education</p>
         </div>
     </div>
 </div>
@@ -244,7 +244,7 @@
     <div class="search-modal-box">
         <form action="<?= url('search/') ?>" method="GET" class="search-modal-form">
             <?= icon('search', 'icon-lg', ['style' => 'color: var(--text-muted); margin-right: 0.5rem;']) ?>
-            <input type="search" name="q" class="search-modal-input" placeholder="Search exams, results, admit cards, jobs..." autocomplete="off">
+            <input type="search" name="q" class="search-modal-input" placeholder="Search exams, results, jobs..." autocomplete="off">
             <button type="button" class="header-btn search-modal-close" aria-label="Close search modal">
                 <?= icon('close') ?>
             </button>
