@@ -105,147 +105,226 @@ if (!empty($termSlug)) {
     include __DIR__ . '/components/header.php';
     ?>
 
-    <main class="site-main" style="padding: 2rem 0 5rem 0; background: var(--bg-page);">
-        <div class="container">
+    <main class="site-main" style="padding: 2rem 0 5rem 0; background: #f4f6f9;">
+        <div class="container" style="max-width: 1240px; margin: 0 auto; padding: 0 1rem;">
             
             <!-- Breadcrumbs -->
             <nav class="breadcrumb-nav" aria-label="Breadcrumb" style="margin-bottom: 1.5rem;">
-                <ol style="display: flex; flex-wrap: wrap; gap: 0.5rem; list-style: none; padding: 0; margin: 0; font-size: 0.8125rem; color: var(--text-light);">
-                    <li><a href="<?= url() ?>" style="color: var(--color-primary); text-decoration: none; font-weight: 500;">Home</a> <span style="margin: 0 0.35rem; color: var(--border-color);">/</span></li>
-                    <li><a href="<?= url('full-forms/') ?>" style="color: var(--color-primary); text-decoration: none; font-weight: 500;">Full Forms (A-Z)</a> <span style="margin: 0 0.35rem; color: var(--border-color);">/</span></li>
-                    <li style="color: var(--text-heading); font-weight: 600;"><?= e($term['acronym']) ?></li>
+                <ol style="display: flex; flex-wrap: wrap; gap: 0.5rem; list-style: none; padding: 0; margin: 0; font-size: 0.8125rem; color: #546e7a;">
+                    <li><a href="<?= url() ?>" style="color: #1a237e; text-decoration: none; font-weight: 600;">Home</a> <span style="margin: 0 0.35rem; color: #cbd5e1;">/</span></li>
+                    <li><a href="<?= url('full-forms/') ?>" style="color: #1a237e; text-decoration: none; font-weight: 600;">Full Forms</a> <span style="margin: 0 0.35rem; color: #cbd5e1;">/</span></li>
+                    <li style="color: #1a237e; font-weight: 700;"><?= e($term['acronym']) ?></li>
                 </ol>
             </nav>
 
-            <!-- Main Detail Card -->
-            <article style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 2rem; box-shadow: var(--shadow-sm); margin-bottom: 2rem;">
+            <!-- 2-COLUMN PREMIUM EDITORIAL LAYOUT (Matches Mockup) -->
+            <div class="fullform-editorial-grid" style="display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 2rem; align-items: start;">
                 
-                <!-- Category Badge & Verification Strip -->
-                <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 1.25rem;">
-                    <span style="font-size: 0.75rem; font-weight: 600; color: var(--color-primary); background: var(--bg-page); border: 1px solid var(--border-color); padding: 4px 10px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
-                        <?= e(ucfirst(str_replace('_', ' ', $term['category']))) ?>
-                    </span>
-                    <div style="font-size: 0.75rem; color: var(--text-light); font-weight: 500;">
-                        Last updated: <?= date('M d, Y', $latestTimestamp) ?>
-                    </div>
-                </div>
-
-                <h1 style="font-size: 1.85rem; font-weight: 800; color: var(--text-heading); margin: 0 0 0.5rem 0; line-height: 1.3;">
-                    Full Form of <?= e($term['acronym']) ?>
-                </h1>
-
-                <!-- Google Position 0 Direct Answer Snippet Target Block -->
-                <?= GlossaryService::renderDirectAnswerBlock($term) ?>
-
-                <!-- Structured Compact Facts Table -->
-                <?= GlossaryService::renderFactsTable($term) ?>
-
-                <!-- Structured Factual Sections -->
-                <div style="font-size: 0.95rem; color: var(--text-body); line-height: 1.7;">
+                <!-- LEFT COLUMN: MAIN ARTICLE -->
+                <article style="background: #ffffff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 2.25rem; box-shadow: 0 2px 10px rgba(0,0,0,0.04);">
                     
-                    <h2 style="font-size: 1.2rem; font-weight: 700; color: var(--text-heading); margin: 2rem 0 0.75rem 0; padding-left: 0.75rem; border-left: 3px solid var(--color-accent);">
-                        Overview
-                    </h2>
-                    <p style="margin: 0 0 1.25rem 0;">
-                        <?= nl2br(e($term['overview'])) ?>
-                    </p>
-
-                    <?php if (!empty($term['eligibility_criteria'])): ?>
-                        <h2 style="font-size: 1.2rem; font-weight: 700; color: var(--text-heading); margin: 2rem 0 0.75rem 0; padding-left: 0.75rem; border-left: 3px solid var(--color-accent);">
-                            Eligibility &amp; Age Limits
-                        </h2>
-                        <?= GlossaryService::renderSectionBulletList($term['eligibility_criteria']) ?>
-                    <?php endif; ?>
-
-                    <?php if (!empty($term['selection_process'])): ?>
-                        <h2 style="font-size: 1.2rem; font-weight: 700; color: var(--text-heading); margin: 2rem 0 0.75rem 0; padding-left: 0.75rem; border-left: 3px solid var(--color-accent);">
-                            Selection Process
-                        </h2>
-                        <?= GlossaryService::renderSectionBulletList($term['selection_process']) ?>
-                    <?php endif; ?>
-
-                    <?php if (!empty($term['syllabus_snapshot'])): ?>
-                        <h2 style="font-size: 1.2rem; font-weight: 700; color: var(--text-heading); margin: 2rem 0 0.75rem 0; padding-left: 0.75rem; border-left: 3px solid var(--color-accent);">
-                            Syllabus Highlights
-                        </h2>
-                        <?= GlossaryService::renderSectionBulletList($term['syllabus_snapshot']) ?>
-                    <?php endif; ?>
-
-                    <!-- Section 5: Salary & Pay Scale (Only rendered when verified facts are present) -->
-                    <?php if (!empty($salaryTableHtml)): ?>
-                        <h2 style="font-size: 1.2rem; font-weight: 700; color: var(--text-heading); margin: 2rem 0 0.75rem 0; padding-left: 0.75rem; border-left: 3px solid var(--color-accent);">
-                            Salary &amp; Pay Scale
-                        </h2>
-                        <?= $salaryTableHtml ?>
-                    <?php endif; ?>
-
-                    <!-- Section 6: Career Growth & Promotion Hierarchy -->
-                    <?php if (!empty($facts['career_growth_summary'])): ?>
-                        <h2 style="font-size: 1.2rem; font-weight: 700; color: var(--text-heading); margin: 2rem 0 0.75rem 0; padding-left: 0.75rem; border-left: 3px solid var(--color-accent);">
-                            Career Growth
-                        </h2>
-                        <p style="margin: 0 0 1.25rem 0; background: var(--bg-page); border-left: 4px solid var(--color-accent); padding: 0.85rem 1.15rem; border-radius: 0 var(--radius-md) var(--radius-md) 0; color: var(--text-body); line-height: 1.7;">
-                            <?= nl2br(e($facts['career_growth_summary'])) ?>
-                        </p>
-                    <?php endif; ?>
-
-                    <!-- Section 7: Frequently Asked Questions & FAQPage Schema -->
-                    <?php if (!empty($faqBlockHtml)): ?>
-                        <h2 style="font-size: 1.2rem; font-weight: 700; color: var(--text-heading); margin: 2rem 0 0.75rem 0; padding-left: 0.75rem; border-left: 3px solid var(--color-accent);">
-                            FAQs
-                        </h2>
-                        <?= $faqBlockHtml ?>
-                    <?php endif; ?>
-
-                </div>
-
-                <!-- Internal Linking Engine / Live Exam Updates Connection -->
-                <?php if (!empty($matchedArticle)): ?>
-                    <div style="margin-top: 2rem; padding: 1.25rem 1.5rem; background: var(--bg-page); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
-                        <span style="font-weight: 800; color: var(--color-primary); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; display: block; margin-bottom: 0.35rem;">
-                            📌 LIVE RECRUITMENT &amp; EXAM UPDATES
+                    <!-- Category Badge & Last Updated -->
+                    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 1rem;">
+                        <span style="font-size: 0.72rem; font-weight: 700; color: #ffffff; background: #1a237e; padding: 4px 12px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
+                            <?= e(ucfirst(str_replace('_', ' ', $term['category']))) ?>
                         </span>
-                        <a href="<?= url('article/' . $matchedArticle['slug'] . '/') ?>" style="color: var(--color-primary); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; font-size: 1rem;">
-                            <?= e($matchedArticle['title']) ?> &rarr;
+                        <div style="font-size: 0.78rem; color: #78909c; font-weight: 500;">
+                            Last reviewed: <?= date('d M Y', $latestTimestamp) ?>
+                        </div>
+                    </div>
+
+                    <!-- Authority H1 Headline -->
+                    <h1 style="font-size: 2.15rem; font-weight: 800; color: #1a237e; margin: 0 0 1.25rem 0; line-height: 1.25; letter-spacing: -0.02em;">
+                        <?= e($term['acronym']) ?> Full Form: <?= e($term['full_form_en']) ?>
+                    </h1>
+
+                    <!-- QUICK FACTS BOX WITH THICK ORANGE LEFT BORDER (Brand Logo Identity) -->
+                    <div style="background: #ffffff; border: 1px solid #e0e0e0; border-left: 5px solid #f57c00; border-radius: 8px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 4px rgba(0,0,0,0.04);">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem 1.75rem;">
+                            <div>
+                                <span style="font-size: 0.75rem; font-weight: 700; color: #78909c; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 2px;">Conducting Body</span>
+                                <strong style="font-size: 1rem; color: #1a237e; font-weight: 700;"><?= e($term['conducting_body'] ?? 'Government of India') ?></strong>
+                            </div>
+                            <?php if (!empty($term['official_portal'])): ?>
+                            <div>
+                                <span style="font-size: 0.75rem; font-weight: 700; color: #78909c; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 2px;">Official Portal</span>
+                                <a href="<?= e($term['official_portal']) ?>" target="_blank" rel="noopener noreferrer" style="color: #1a237e; font-weight: 700; font-size: 1rem; text-decoration: underline; text-underline-offset: 3px; display: inline-flex; align-items: center; gap: 4px;">
+                                    <span><?= parse_url($term['official_portal'], PHP_URL_HOST) ?: 'Official Portal' ?></span>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                                </a>
+                            </div>
+                            <?php endif; ?>
+                            <div>
+                                <span style="font-size: 0.75rem; font-weight: 700; color: #78909c; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 2px;">Category / Domain</span>
+                                <strong style="font-size: 1rem; color: #0f172a; font-weight: 700;"><?= e(ucfirst(str_replace('_', ' ', $term['category']))) ?></strong>
+                            </div>
+                            <?php if (!empty($term['full_form_hi'])): ?>
+                            <div>
+                                <span style="font-size: 0.75rem; font-weight: 700; color: #78909c; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 2px;">हिंदी अर्थ (Hindi Meaning)</span>
+                                <strong style="font-size: 1rem; color: #0f172a; font-weight: 700; font-family: 'Noto Sans Devanagari', sans-serif;"><?= e($term['full_form_hi']) ?></strong>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <!-- QUICK ANSWER HIGHLIGHTED CALLOUT BOX (Ice Blue Background) -->
+                    <div style="background: #eef5fc; border: 1px solid #d0e3f7; border-radius: 8px; padding: 1.25rem 1.5rem; margin-bottom: 2rem;">
+                        <p style="margin: 0; font-size: 1.05rem; line-height: 1.65; color: #1a237e;">
+                            <strong style="color: #0d1642;"><?= e($term['acronym']) ?> stands for</strong> <strong><?= e($term['full_form_en']) ?></strong><?php if (!empty($term['full_form_hi'])): ?> (हिंदी में: <strong><?= e($term['full_form_hi']) ?></strong>)<?php endif; ?>. <?= e($term['overview'] ? explode('.', $term['overview'])[0] . '.' : '') ?>
+                        </p>
+                    </div>
+
+                    <!-- Factual Sections -->
+                    <div style="font-size: 0.975rem; color: #37474f; line-height: 1.75;">
+                        
+                        <!-- Section: Overview -->
+                        <h2 style="font-size: 1.3rem; font-weight: 800; color: #1a237e; margin: 2.25rem 0 0.85rem 0; padding-left: 0.85rem; border-left: 4px solid #1a237e;">
+                            Overview
+                        </h2>
+                        <p style="margin: 0 0 1.25rem 0;">
+                            <?= nl2br(e($term['overview'])) ?>
+                        </p>
+
+                        <!-- Section: Eligibility & Age Limits -->
+                        <?php if (!empty($term['eligibility_criteria'])): ?>
+                            <h2 style="font-size: 1.3rem; font-weight: 800; color: #1a237e; margin: 2.25rem 0 0.85rem 0; padding-left: 0.85rem; border-left: 4px solid #1a237e;">
+                                Eligibility &amp; Age Limits
+                            </h2>
+                            <?= GlossaryService::renderSectionBulletList($term['eligibility_criteria']) ?>
+                        <?php endif; ?>
+
+                        <!-- Section: Selection Process -->
+                        <?php if (!empty($term['selection_process'])): ?>
+                            <h2 style="font-size: 1.3rem; font-weight: 800; color: #1a237e; margin: 2.25rem 0 0.85rem 0; padding-left: 0.85rem; border-left: 4px solid #1a237e;">
+                                Selection Process
+                            </h2>
+                            <?= GlossaryService::renderSectionBulletList($term['selection_process']) ?>
+                        <?php endif; ?>
+
+                        <!-- Section: Syllabus Highlights -->
+                        <?php if (!empty($term['syllabus_snapshot'])): ?>
+                            <h2 style="font-size: 1.3rem; font-weight: 800; color: #1a237e; margin: 2.25rem 0 0.85rem 0; padding-left: 0.85rem; border-left: 4px solid #1a237e;">
+                                Syllabus Highlights
+                            </h2>
+                            <?= GlossaryService::renderSectionBulletList($term['syllabus_snapshot']) ?>
+                        <?php endif; ?>
+
+                        <!-- Section: Salary & Pay Scale -->
+                        <?php if (!empty($salaryTableHtml)): ?>
+                            <h2 style="font-size: 1.3rem; font-weight: 800; color: #1a237e; margin: 2.25rem 0 0.85rem 0; padding-left: 0.85rem; border-left: 4px solid #1a237e;">
+                                Salary &amp; Pay Scale
+                            </h2>
+                            <?= $salaryTableHtml ?>
+                        <?php endif; ?>
+
+                        <!-- Section: Career Growth -->
+                        <?php if (!empty($facts['career_growth_summary'])): ?>
+                            <h2 style="font-size: 1.3rem; font-weight: 800; color: #1a237e; margin: 2.25rem 0 0.85rem 0; padding-left: 0.85rem; border-left: 4px solid #1a237e;">
+                                Career Growth
+                            </h2>
+                            <div style="background: #fafafa; border-left: 4px solid #f57c00; padding: 1rem 1.25rem; border-radius: 0 8px 8px 0; color: #37474f; line-height: 1.7; margin-bottom: 1.5rem;">
+                                <?= nl2br(e($facts['career_growth_summary'])) ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <!-- Section: FAQs -->
+                        <?php if (!empty($faqBlockHtml)): ?>
+                            <h2 style="font-size: 1.3rem; font-weight: 800; color: #1a237e; margin: 2.25rem 0 0.85rem 0; padding-left: 0.85rem; border-left: 4px solid #1a237e;">
+                                Frequently Asked Questions
+                            </h2>
+                            <?= $faqBlockHtml ?>
+                        <?php endif; ?>
+
+                    </div>
+
+                    <!-- Internal Linking to Active Recruitment -->
+                    <?php if (!empty($matchedArticle)): ?>
+                        <div style="margin-top: 2rem; padding: 1.25rem 1.5rem; background: #e8eaf6; border: 1px solid #c5cae9; border-radius: 8px;">
+                            <span style="font-weight: 800; color: #1a237e; text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.5px; display: block; margin-bottom: 0.35rem;">
+                                📢 LIVE RECRUITMENT &amp; EXAM NOTICE
+                            </span>
+                            <a href="<?= url('article/' . $matchedArticle['slug'] . '/') ?>" style="color: #1a237e; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; font-size: 1.05rem;">
+                                <?= e($matchedArticle['title']) ?> &rarr;
+                            </a>
+                        </div>
+                    <?php endif; ?>
+
+                    <!-- Bottom Navigation -->
+                    <div style="margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid #e0e0e0; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem;">
+                        <a href="<?= url('full-forms/') ?>" style="color: #1a237e; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem;">
+                            &larr; <span>Back to A-to-Z Full Forms Directory</span>
+                        </a>
+                        <a href="<?= url('tools/') ?>" style="color: #546e7a; font-weight: 600; text-decoration: none; font-size: 0.875rem;">
+                            Explore Student Calculators &rarr;
                         </a>
                     </div>
-                <?php endif; ?>
 
-                <!-- Back to Directory CTA -->
-                <div style="margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem;">
-                    <a href="<?= url('full-forms/') ?>" style="color: var(--color-primary); font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-size: 0.875rem;">
-                        &larr; <span>Back to A-to-Z Full Forms Directory</span>
-                    </a>
-                    <a href="<?= url('tools/') ?>" style="color: var(--text-light); font-weight: 600; text-decoration: none; font-size: 0.875rem;">
-                        Explore Student Calculators &amp; Tools &rarr;
-                    </a>
-                </div>
+                </article>
 
-            </article>
+                <!-- RIGHT COLUMN: STICKY EDITORIAL SIDEBAR (Mockup) -->
+                <aside class="fullform-sidebar" style="position: sticky; top: 90px;">
+                    
+                    <!-- Related Full Forms Card -->
+                    <?php if (!empty($relatedTerms)): ?>
+                        <div style="background: #ffffff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 1.5rem;">
+                            <h3 style="font-size: 1.05rem; font-weight: 800; color: #1a237e; margin: 0 0 1rem 0; padding-bottom: 0.65rem; border-bottom: 2px solid #f57c00; display: flex; align-items: center; justify-content: space-between;">
+                                <span>Related Full Forms</span>
+                                <span style="font-size: 0.7rem; font-weight: 700; color: #78909c; text-transform: uppercase;"><?= e(ucfirst(str_replace('_', ' ', $term['category']))) ?></span>
+                            </h3>
+                            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                <?php foreach ($relatedTerms as $rt): ?>
+                                    <a href="<?= url('full-forms/' . $rt['slug'] . '/') ?>" style="display: block; padding: 0.85rem 1rem; border: 1px solid #e0e0e0; border-radius: 8px; text-decoration: none; background: #fafafa; transition: all 0.2s ease;" onmouseover="this.style.borderColor='#1a237e'; this.style.background='#ffffff'; this.style.boxShadow='0 4px 12px rgba(26,35,126,0.1)';" onmouseout="this.style.borderColor='#e0e0e0'; this.style.background='#fafafa'; this.style.boxShadow='none';">
+                                        <strong style="color: #1a237e; font-size: 1.05rem; display: block; margin-bottom: 2px;">
+                                            <?= e($rt['acronym']) ?>
+                                        </strong>
+                                        <span style="color: #546e7a; font-size: 0.825rem; font-weight: 500; display: block; line-height: 1.35;">
+                                            <?= e($rt['full_form_en']) ?>
+                                        </span>
+                                    </a>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
 
-            <!-- Related Acronyms Grid -->
-            <?php if (!empty($relatedTerms)): ?>
-                <div style="margin-top: 2.5rem;">
-                    <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-heading); margin-bottom: 1rem;">
-                        Related <?= e(ucfirst(str_replace('_', ' ', $term['category']))) ?> Acronyms &amp; Full Forms
-                    </h3>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem;">
-                        <?php foreach ($relatedTerms as $rt): ?>
-                            <a href="<?= url('full-forms/' . $rt['slug'] . '/') ?>" style="display: block; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.15rem; text-decoration: none; box-shadow: var(--shadow-sm); transition: all 0.15s ease;" onmouseover="this.style.borderColor='var(--color-primary)';" onmouseout="this.style.borderColor='var(--border-color)';">
-                                <span style="font-size: 1.1rem; font-weight: 800; color: var(--color-primary); display: block; margin-bottom: 0.25rem;">
-                                    <?= e($rt['acronym']) ?>
-                                </span>
-                                <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-body); line-height: 1.4; display: block;">
-                                    <?= e($rt['full_form_en']) ?>
-                                </span>
+                    <!-- Student Tools Callout Card -->
+                    <div style="background: #ffffff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.25rem 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                        <div style="font-size: 0.72rem; font-weight: 800; color: #f57c00; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.35rem;">
+                            STUDENT UTILITIES
+                        </div>
+                        <h4 style="font-size: 0.95rem; font-weight: 800; color: #1a237e; margin: 0 0 0.5rem 0;">
+                            Salary &amp; Eligibility Calculators
+                        </h4>
+                        <p style="font-size: 0.825rem; color: #546e7a; line-height: 1.5; margin: 0 0 1rem 0;">
+                            Calculate in-hand salary as per 7th CPC (50% DA, HRA), calculate exact age, or convert CGPA to percentage.
+                        </p>
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <a href="<?= url('tools/7th-pay-commission-salary-calculator/') ?>" style="display: block; padding: 8px 12px; background: #1a237e; color: #ffffff; font-size: 0.8rem; font-weight: 700; text-decoration: none; border-radius: 6px; text-align: center;">
+                                7th Pay Calculator &rarr;
                             </a>
-                        <?php endforeach; ?>
+                            <a href="<?= url('tools/age-calculator/') ?>" style="display: block; padding: 8px 12px; background: #fafafa; border: 1px solid #e0e0e0; color: #1a237e; font-size: 0.8rem; font-weight: 700; text-decoration: none; border-radius: 6px; text-align: center;">
+                                Age Calculator &rarr;
+                            </a>
+                        </div>
                     </div>
-                </div>
-            <?php endif; ?>
+
+                </aside>
+
+            </div>
 
         </div>
     </main>
+
+    <style>
+    @media (max-width: 992px) {
+        .fullform-editorial-grid {
+            grid-template-columns: 1fr !important;
+        }
+        .fullform-sidebar {
+            position: static !important;
+            margin-top: 1.5rem !important;
+        }
+    }
+    </style>
 
     <?php
     include __DIR__ . '/components/footer.php';
@@ -415,13 +494,13 @@ include __DIR__ . '/components/header.php';
         <!-- Cards Grid -->
         <div id="glossaryGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.25rem;">
             <?php foreach ($allTerms as $item): ?>
-                <div class="glossary-card" data-letter="<?= e($item['letter']) ?>" data-category="<?= e($item['category']) ?>" data-search="<?= strtolower(e($item['acronym'] . ' ' . $item['full_form_en'] . ' ' . ($item['full_form_hi'] ?? '') . ' ' . ($item['conducting_body'] ?? ''))) ?>" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; box-shadow: var(--shadow-xs); transition: all 0.2s ease-in-out;" onmouseover="this.style.borderColor='var(--color-primary)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='var(--shadow-card-hover)';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-xs)';">
+                <div class="glossary-card" data-letter="<?= e($item['letter']) ?>" data-category="<?= e($item['category']) ?>" data-search="<?= strtolower(e($item['acronym'] . ' ' . $item['full_form_en'] . ' ' . ($item['full_form_hi'] ?? '') . ' ' . ($item['conducting_body'] ?? ''))) ?>" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-top: 3px solid var(--color-primary); border-radius: var(--radius-md); padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; box-shadow: var(--shadow-xs); transition: all 0.2s ease-in-out;" onmouseover="this.style.borderTopColor='var(--color-accent)'; this.style.transform='translateY(-3px)'; this.style.boxShadow='var(--shadow-card-hover)';" onmouseout="this.style.borderTopColor='var(--color-primary)'; this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-xs)';">
                     <div>
                         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
-                            <span style="font-size: 1.3rem; font-weight: 800; color: var(--color-primary); letter-spacing: -0.01em;">
+                            <span style="font-size: 1.35rem; font-weight: 800; color: var(--color-primary); letter-spacing: -0.01em;">
                                 <?= e($item['acronym']) ?>
                             </span>
-                            <span style="font-size: 0.7rem; font-weight: 700; color: var(--color-primary); background: var(--color-primary-light); border: 1px solid var(--border-color); padding: 2px 8px; border-radius: var(--radius-xs); text-transform: uppercase;">
+                            <span style="font-size: 0.7rem; font-weight: 700; color: #ffffff; background: var(--color-primary); padding: 2px 8px; border-radius: 4px; text-transform: uppercase;">
                                 <?= e(ucfirst(str_replace('_', ' ', $item['category']))) ?>
                             </span>
                         </div>
@@ -449,7 +528,7 @@ include __DIR__ . '/components/header.php';
                             </div>
                         <?php endif; ?>
 
-                        <a href="<?= url('full-forms/' . $item['slug'] . '/') ?>" style="display: inline-flex; width: 100%; align-items: center; justify-content: space-between; padding: 0.55rem 0.85rem; border-radius: 6px; background: #f8fafc; border: 1px solid #e2e8f0; color: #1e3a8a; font-weight: 700; font-size: 0.825rem; text-decoration: none; transition: background 0.15s ease, border-color 0.15s ease;" onmouseover="this.style.background='#eff6ff'; this.style.borderColor='#bfdbfe';" onmouseout="this.style.background='#f8fafc'; this.style.borderColor='#e2e8f0';">
+                        <a href="<?= url('full-forms/' . $item['slug'] . '/') ?>" style="display: inline-flex; width: 100%; align-items: center; justify-content: space-between; padding: 0.65rem 1rem; border-radius: 6px; background: #1a237e; color: #ffffff; font-weight: 700; font-size: 0.85rem; text-decoration: none; transition: all 0.2s ease;" onmouseover="this.style.background='#f57c00';" onmouseout="this.style.background='#1a237e';">
                             <span>View Full Details &amp; Criteria</span>
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                         </a>

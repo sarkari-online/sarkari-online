@@ -161,7 +161,7 @@ if (!$isAdminSession):
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
 
-    <!-- Critical CSS Reset: Prevent Giant Icon Flash & Layout Shifts (CLS = 0) -->
+    <!-- Critical CSS Reset & Brand Header Lock (CLS = 0, Cache Proof) -->
     <style>
     svg.icon{width:1em;height:1em;display:inline-block;vertical-align:middle;max-width:24px;max-height:24px}
     svg.icon-xs{width:12px;height:12px}
@@ -174,6 +174,14 @@ if (!$isAdminSession):
     img{max-width:100%;height:auto;display:block}
     .goog-te-banner-frame,iframe.skiptranslate,.VIpgJd-ZVi9od-aZ2wEe-wOHMyf,.VIpgJd-ZVi9od-ORHb-OEVmcb{display:none!important;visibility:hidden!important;height:0!important;width:0!important}
     body{top:0!important}
+    .site-header{background-color:#1a237e!important;border-bottom:3px solid #f57c00!important;box-shadow:0 4px 14px rgba(26,35,126,0.25)!important}
+    .site-header .nav-link{color:#ffffff!important;font-weight:600}
+    .site-header .nav-link:hover{color:#f57c00!important}
+    .site-header .nav-link.active{color:#ffffff!important;background-color:rgba(255,255,255,0.16)!important}
+    .site-header .header-btn{color:#ffffff!important;border-color:rgba(255,255,255,0.3)!important;background:rgba(255,255,255,0.12)!important}
+    .site-header .lang-select-btn{color:#ffffff!important;border-color:rgba(255,255,255,0.3)!important;background:rgba(255,255,255,0.12)!important}
+    .site-header .brand-name{color:#ffffff!important}
+    .site-header .mobile-menu-toggle{color:#ffffff!important}
     </style>
 
     <!-- Master Minified CSS Design System -->
