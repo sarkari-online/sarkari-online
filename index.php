@@ -226,37 +226,16 @@ include __DIR__ . '/components/head.php';
 include __DIR__ . '/components/header.php';
 ?>
 
-<main class="site-main">
+<main class="site-main" style="padding-top: 2rem;">
     <div class="container">
-        <!-- Portal Lead Header / Semantic Visible H1 -->
-        <div class="portal-welcome-strip" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; padding: 0.75rem 1.15rem; margin-bottom: 1.25rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
-            <div style="display: flex; align-items: center; gap: 0.65rem;">
-                <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: var(--color-primary-light); color: var(--color-primary); flex-shrink: 0;">
-                    <?= icon('award', 'icon-sm') ?>
-                </span>
-                <h1 style="font-size: 1.05rem; font-weight: 700; color: var(--text-heading); margin: 0; line-height: 1.35; letter-spacing: -0.01em;">
-                    Sarkari.online — Sarkari Result, Latest Government Jobs &amp; Admit Card 2026
-                </h1>
-            </div>
-            <div style="display: flex; align-items: center; gap: 0.6rem;">
-                <span class="badge" style="background: var(--color-success-light); color: var(--color-india-green); border: 1px solid var(--color-success-light); font-size: 0.72rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.2rem 0.55rem; border-radius: 9999px;">
-                    <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--color-india-green); display: inline-block;"></span>
-                    Live Updates
-                </span>
-                <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 500;">
-                    <?= date('d M Y') ?>
-                </span>
-            </div>
-        </div>
-
-        <!-- 1. Hero Editorial Section (Featured + Secondary) -->
+        <!-- 1. Major Announcement Hero Card (Matches Mockup) -->
         <?php include __DIR__ . '/components/featured-card.php'; ?>
 
-        <!-- 2. 3-Pillar Candidate Action Hub (Results | Admit Cards | Latest Jobs) -->
-        <?php include __DIR__ . '/components/fast-feed-columns.php'; ?>
+        <!-- 2. A-Z Full Forms Alphabet Bar (Matches Mockup) -->
+        <?php include __DIR__ . '/components/home-alphabet-bar.php'; ?>
 
-        <!-- 2.5 A-to-Z Government & Exam Full Forms Hub (Alphabet Bar + Search + Top 12 Cards) -->
-        <?php include __DIR__ . '/components/home-glossary-hub.php'; ?>
+        <!-- 3. 4-Column Candidate Action Feed (Important Dates Timeline | Results | Admit Cards | Jobs) -->
+        <?php include __DIR__ . '/components/fast-feed-columns.php'; ?>
 
         <!-- 3. Two-Column Layout: Exam Updates + Trending 1-5 -->
         <section class="content-section">
