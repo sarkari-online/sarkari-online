@@ -6,6 +6,10 @@
     RewriteEngine On
     RewriteBase /automation/
 
+    # Canonical Domain Redirection: www to non-www
+    RewriteCond %{HTTP_HOST} ^www\.sarkari\.online$ [NC]
+    RewriteRule ^(.*)$ https://sarkari.online/$1 [R=301,L]
+
     # Security: Deny direct access to sensitive directories and system folders
     RewriteRule ^(\.git|\.env|app|storage|cron|database|scripts|scratch)/ - [F,L,NC]
     RewriteRule ^(config\.php|composer\.(json|lock))$ - [F,L,NC]

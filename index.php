@@ -156,7 +156,7 @@ use App\Services\TrendService;
 use App\Services\CrawlEfficiencyService;
 
 // SEO Meta Variables
-$pageTitle = 'Sarkari Result, Latest Govt Jobs & Admit Card 2026';
+$pageTitle = 'Sarkari.online — Sarkari Result, Latest Govt Jobs 2026';
 $pageDesc = 'Sarkari.online provides verified real-time alerts for Sarkari Result, Latest Government Jobs 2026, Admit Cards, Exam Dates, and Answer Keys across India.';
 
 $pageKeywords = 'sarkari.online, sarkari online, sarkari result, sarkari result 2026, latest govt jobs, sarkari naukri 2026, admit card, exam dates, answer key';
