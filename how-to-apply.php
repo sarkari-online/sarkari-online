@@ -106,11 +106,16 @@ if (empty($slug)) {
             <!-- Full Width Container (No right-side sidebar) -->
             <div style="width: 100%; margin-top: 1.5rem;">
                 
-                <header style="margin-bottom: 2rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 1.5rem;">
-                    <h1 style="font-size: 2rem; font-weight: 800; color: #0f172a; margin: 0 0 0.75rem 0; line-height: 1.25; letter-spacing: -0.02em;">
+                <header class="directory-hero-card" style="background: #ffffff; border: 1px solid #e0e0e0; border-left: 5px solid #f57c00; border-radius: 14px; padding: 2rem 2.25rem; margin-bottom: 2.25rem; box-shadow: 0 2px 10px rgba(0,0,0,0.04);">
+                    <div style="margin-bottom: 0.85rem;">
+                        <span style="background: #1a237e; color: #ffffff; font-size: 0.72rem; font-weight: 700; padding: 4px 12px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px; display: inline-block;">
+                            Statutory Examination Guides &middot; 2026 Cycles
+                        </span>
+                    </div>
+                    <h1 style="font-size: 2.15rem; font-weight: 800; color: #0f172a; margin: 0 0 0.75rem 0; line-height: 1.25; letter-spacing: -0.02em;">
                         Government Exam Application Guides (2026)
                     </h1>
-                    <p style="font-size: 1.05rem; color: #475569; line-height: 1.6; margin: 0;">
+                    <p style="font-size: 1rem; color: #546e7a; line-height: 1.6; margin: 0; max-width: 860px;">
                         Official step-by-step registration guides, active application portals, document upload guidelines, and form correction procedures verified against statutory commission circulars.
                     </p>
                 </header>
@@ -118,24 +123,24 @@ if (empty($slug)) {
                 <!-- Section 1: Active Application Windows -->
                 <section style="margin-bottom: 3rem;">
                     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem;">
-                        <h2 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 0;">
+                        <h2 style="font-size: 1.35rem; font-weight: 800; color: #1a237e; margin: 0;">
                             Active Application &amp; Correction Portals
                         </h2>
-                        <span style="font-size: 0.75rem; font-weight: 700; color: #166534; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 3px 8px; border-radius: 4px;">
+                        <span style="font-size: 0.75rem; font-weight: 700; color: #15803d; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 3px 10px; border-radius: 4px;">
                             Live Now
                         </span>
                     </div>
 
                     <?php if (!empty($activeCycles)): ?>
-                        <div style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
+                        <div style="overflow-x: auto; border: 1px solid #e0e0e0; border-radius: 8px; background: #ffffff;">
                             <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
                                 <thead>
-                                    <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
-                                        <th style="padding: 0.85rem 1rem; text-align: left; color: #1e3a8a; font-weight: 700;">Examination / Recruitment</th>
-                                        <th style="padding: 0.85rem 1rem; text-align: left; color: #475569; font-weight: 600;">Authority</th>
-                                        <th style="padding: 0.85rem 1rem; text-align: left; color: #475569; font-weight: 600;">Current Phase</th>
-                                        <th style="padding: 0.85rem 1rem; text-align: left; color: #475569; font-weight: 600;">Last Date</th>
-                                        <th style="padding: 0.85rem 1rem; text-align: right; color: #475569; font-weight: 600;">Action</th>
+                                    <tr style="background: #1a237e; color: #ffffff;">
+                                        <th style="padding: 0.85rem 1rem; text-align: left; color: #ffffff; font-weight: 700;">Examination / Recruitment</th>
+                                        <th style="padding: 0.85rem 1rem; text-align: left; color: #ffffff; font-weight: 600;">Authority</th>
+                                        <th style="padding: 0.85rem 1rem; text-align: left; color: #ffffff; font-weight: 600;">Current Phase</th>
+                                        <th style="padding: 0.85rem 1rem; text-align: left; color: #ffffff; font-weight: 600;">Last Date</th>
+                                        <th style="padding: 0.85rem 1rem; text-align: right; color: #ffffff; font-weight: 600;">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -144,12 +149,12 @@ if (empty($slug)) {
                                         $facts = !empty($c['facts_json']) ? json_decode($c['facts_json'], true) : [];
                                         $lastDate = !empty($facts['application_end']) ? date('d M Y', strtotime($facts['application_end'])) : 'Refer Notice';
                                         $phaseBadge = $c['current_phase'] === 'APPLICATION_CORRECTION' 
-                                            ? '<span style="color: #1e40af; background: #eff6ff; border: 1px solid #bfdbfe; font-size: 0.75rem; font-weight: 700; padding: 2px 6px; border-radius: 4px;">Correction Window</span>'
-                                            : '<span style="color: #166534; background: #f0fdf4; border: 1px solid #bbf7d0; font-size: 0.75rem; font-weight: 700; padding: 2px 6px; border-radius: 4px;">Application Open</span>';
+                                            ? '<span style="color: #1a237e; background: #e8eaf6; border: 1px solid #c5cae9; font-size: 0.75rem; font-weight: 700; padding: 2px 6px; border-radius: 4px;">Correction Window</span>'
+                                            : '<span style="color: #15803d; background: #f0fdf4; border: 1px solid #bbf7d0; font-size: 0.75rem; font-weight: 700; padding: 2px 6px; border-radius: 4px;">Application Open</span>';
                                     ?>
                                         <tr style="border-bottom: 1px solid #f1f5f9;">
                                             <td style="padding: 0.85rem 1rem; font-weight: 700;">
-                                                <a href="<?= url("how-to-apply/{$cSlug}/") ?>" style="color: #0f172a; text-decoration: none;">
+                                                <a href="<?= url("how-to-apply/{$cSlug}/") ?>" style="color: #0f172a; text-decoration: none;" onmouseover="this.style.color='#1a237e'" onmouseout="this.style.color='#0f172a'">
                                                     <?= e($c['exam_name']) ?> (<?= e((string)$c['cycle_year']) ?>)
                                                 </a>
                                             </td>
@@ -163,7 +168,7 @@ if (empty($slug)) {
                                                 <?= e($lastDate) ?>
                                             </td>
                                             <td style="padding: 0.85rem 1rem; text-align: right;">
-                                                <a href="<?= url("how-to-apply/{$cSlug}/") ?>" style="display: inline-block; background: #1e3a8a; color: #ffffff; font-size: 0.8rem; font-weight: 700; padding: 5px 12px; border-radius: 4px; text-decoration: none;">
+                                                <a href="<?= url("how-to-apply/{$cSlug}/") ?>" style="display: inline-block; background: #1a237e; color: #ffffff; font-size: 0.8rem; font-weight: 700; padding: 5px 12px; border-radius: 4px; text-decoration: none; transition: background 0.15s ease;" onmouseover="this.style.background='#f57c00'" onmouseout="this.style.background='#1a237e'">
                                                     View Guide &rarr;
                                                 </a>
                                             </td>
@@ -179,17 +184,17 @@ if (empty($slug)) {
 
                 <!-- Section 2: Upcoming & Announced Cycles -->
                 <section style="margin-bottom: 3rem;">
-                    <h2 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 0 0 1rem 0;">
+                    <h2 style="font-size: 1.35rem; font-weight: 800; color: #1a237e; margin: 0 0 1rem 0;">
                         Upcoming Examination Schedules &amp; Calendars
                     </h2>
-                    <div style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
+                    <div style="overflow-x: auto; border: 1px solid #e0e0e0; border-radius: 8px; background: #ffffff;">
                         <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
                             <thead>
-                                <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
-                                    <th style="padding: 0.85rem 1rem; text-align: left; color: #1e3a8a; font-weight: 700;">Examination</th>
-                                    <th style="padding: 0.85rem 1rem; text-align: left; color: #475569; font-weight: 600;">Authority</th>
-                                    <th style="padding: 0.85rem 1rem; text-align: left; color: #475569; font-weight: 600;">Official Portal</th>
-                                    <th style="padding: 0.85rem 1rem; text-align: right; color: #475569; font-weight: 600;">Guide</th>
+                                <tr style="background: #1a237e; color: #ffffff;">
+                                    <th style="padding: 0.85rem 1rem; text-align: left; color: #ffffff; font-weight: 700;">Examination</th>
+                                    <th style="padding: 0.85rem 1rem; text-align: left; color: #ffffff; font-weight: 600;">Authority</th>
+                                    <th style="padding: 0.85rem 1rem; text-align: left; color: #ffffff; font-weight: 600;">Official Portal</th>
+                                    <th style="padding: 0.85rem 1rem; text-align: right; color: #ffffff; font-weight: 600;">Guide</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -199,7 +204,7 @@ if (empty($slug)) {
                                 ?>
                                     <tr style="border-bottom: 1px solid #f1f5f9;">
                                         <td style="padding: 0.85rem 1rem; font-weight: 600; color: #0f172a;">
-                                            <a href="<?= url("how-to-apply/{$cSlug}/") ?>" style="color: #0f172a; text-decoration: none;">
+                                            <a href="<?= url("how-to-apply/{$cSlug}/") ?>" style="color: #0f172a; text-decoration: none;" onmouseover="this.style.color='#1a237e'" onmouseout="this.style.color='#0f172a'">
                                                 <?= e($c['exam_name']) ?> (<?= e((string)$c['cycle_year']) ?>)
                                             </a>
                                         </td>
@@ -207,12 +212,12 @@ if (empty($slug)) {
                                             <?= e($c['authority_code']) ?>
                                         </td>
                                         <td style="padding: 0.85rem 1rem;">
-                                            <a href="<?= e($portal) ?>" target="_blank" rel="noopener noreferrer" style="color: #1e3a8a; text-decoration: underline;">
+                                            <a href="<?= e($portal) ?>" target="_blank" rel="noopener noreferrer" style="color: #1a237e; text-decoration: underline;" onmouseover="this.style.color='#f57c00'" onmouseout="this.style.color='#1a237e'">
                                                 <?= parse_url($portal, PHP_URL_HOST) ?> &rarr;
                                             </a>
                                         </td>
                                         <td style="padding: 0.85rem 1rem; text-align: right;">
-                                            <a href="<?= url("how-to-apply/{$cSlug}/") ?>" style="color: #1e3a8a; font-weight: 700; text-decoration: none;">
+                                            <a href="<?= url("how-to-apply/{$cSlug}/") ?>" style="color: #1a237e; font-weight: 700; text-decoration: none;" onmouseover="this.style.color='#f57c00'" onmouseout="this.style.color='#1a237e'">
                                                 Read Process &rarr;
                                             </a>
                                         </td>

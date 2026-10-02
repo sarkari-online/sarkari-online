@@ -72,16 +72,16 @@ include __DIR__ . '/components/header.php';
         <!-- Breadcrumb Navigation -->
         <nav class="breadcrumb-nav" aria-label="Breadcrumb" style="margin-bottom: 1.5rem; font-size: 0.8125rem; color: #64748b;">
             <ol style="display: flex; flex-wrap: wrap; list-style: none; gap: 0.5rem; padding: 0; margin: 0; align-items: center;">
-                <li><a href="<?= url() ?>" style="color: #1e3a8a; text-decoration: none; font-weight: 600;">Home</a></li>
+                <li><a href="<?= url() ?>" style="color: #1a237e; text-decoration: none; font-weight: 600;">Home</a></li>
                 <li style="color: #cbd5e1;">/</li>
-                <li><a href="<?= url('about/') ?>" style="color: #1e3a8a; text-decoration: none; font-weight: 600;">Editorial Board</a></li>
+                <li><a href="<?= url('about/') ?>" style="color: #1a237e; text-decoration: none; font-weight: 600;">Editorial Board</a></li>
                 <li style="color: #cbd5e1;">/</li>
                 <li style="color: #475569; font-weight: 600;" aria-current="page"><?= e($author['name']) ?></li>
             </ol>
         </nav>
 
-        <!-- Author Master Profile Card -->
-        <section class="author-master-card" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 2.5rem;">
+        <!-- Author Master Profile Card (Executive Design) -->
+        <section class="author-master-card" style="background: #ffffff; border: 1px solid #e0e0e0; border-left: 5px solid #f57c00; border-radius: 14px; padding: 2rem 2.25rem; box-shadow: 0 2px 10px rgba(0,0,0,0.04); margin-bottom: 2.5rem;">
             <div style="display: flex; flex-direction: column; gap: 1.75rem;">
                 
                 <div style="display: flex; gap: 1.5rem; align-items: flex-start; flex-wrap: wrap;">
@@ -105,7 +105,7 @@ include __DIR__ . '/components/header.php';
                                 Verified Education Analyst
                             </span>
                         </div>
-                        <div style="font-size: 0.95rem; font-weight: 700; color: #1e3a8a; margin-bottom: 0.25rem;">
+                        <div style="font-size: 0.95rem; font-weight: 700; color: #1a237e; margin-bottom: 0.25rem;">
                             <?= e($author['title']) ?>
                         </div>
                         <div style="font-size: 0.8125rem; color: #64748b; margin-bottom: 0.5rem;">

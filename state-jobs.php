@@ -77,13 +77,13 @@ include __DIR__ . '/components/header.php';
     background-color: #f8fafc !important;
 }
 .state-job-item-row:hover .state-job-title {
-    color: #dc2626 !important;
+    color: #f57c00 !important;
     text-decoration: underline !important;
 }
 .state-job-item-row:hover .state-job-apply-btn {
-    background: #2563eb !important;
+    background: #1a237e !important;
     color: #ffffff !important;
-    border-color: #2563eb !important;
+    border-color: #1a237e !important;
 }
 .state-job-apply-btn.closed {
     color: #475569 !important;
@@ -179,10 +179,10 @@ include __DIR__ . '/components/header.php';
         <section class="state-live-jobs-section" style="margin-bottom: 2rem;">
             <div class="section-title-wrap" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
                 <div>
-                    <h2 class="section-heading" style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 0;">⚡ All Latest Government Jobs 2026 (Live Recruitment List)</h2>
+                    <h2 class="section-heading" style="font-size: 1.35rem; font-weight: 800; color: #1a237e; margin: 0;">Latest Government Jobs 2026 (Live Recruitment List)</h2>
                     <p style="font-size: 0.85rem; color: #64748b; margin: 0.2rem 0 0;">Verified notifications with post counts, deadlines, and official portal links:</p>
                 </div>
-                <a href="<?= url('latest-jobs/') ?>" style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; font-weight: 700; color: #2563eb; text-decoration: none; background: #eff6ff; border: 1px solid #bfdbfe; padding: 0.4rem 0.8rem; border-radius: 6px;">
+                <a href="<?= url('latest-jobs/') ?>" style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; font-weight: 700; color: #1a237e; text-decoration: none; background: #e8eaf6; border: 1px solid #c5cae9; padding: 0.4rem 0.8rem; border-radius: 6px;">
                     <span>View All Jobs Hub</span>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
                 </a>

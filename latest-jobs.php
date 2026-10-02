@@ -85,10 +85,10 @@ include __DIR__ . '/components/header.php';
 <style>
 /* Latest Jobs Directory Styles */
 .jobs-hub-hero {
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    background: linear-gradient(135deg, #0f1740 0%, #1a237e 60%, #0d1642 100%);
     color: #ffffff;
     padding: 2.25rem 0 2rem;
-    border-bottom: 1px solid #334155;
+    border-bottom: 4px solid #f57c00;
 }
 .jobs-breadcrumb {
     display: flex;
@@ -110,9 +110,9 @@ include __DIR__ . '/components/header.php';
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    background: rgba(37, 99, 235, 0.2);
-    border: 1px solid rgba(59, 130, 246, 0.4);
-    color: #60a5fa;
+    background: rgba(245, 124, 0, 0.15);
+    border: 1px solid rgba(245, 124, 0, 0.4);
+    color: #f57c00;
     padding: 0.35rem 0.85rem;
     border-radius: 9999px;
     font-size: 0.78rem;
@@ -130,7 +130,7 @@ include __DIR__ . '/components/header.php';
 }
 .jobs-hero-sub {
     font-size: 1rem;
-    color: #94a3b8;
+    color: #cbd5e1;
     max-width: 820px;
     line-height: 1.55;
     margin-bottom: 1.25rem;
@@ -140,8 +140,8 @@ include __DIR__ . '/components/header.php';
     align-items: center;
     gap: 1.5rem;
     flex-wrap: wrap;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     padding: 0.75rem 1.25rem;
     border-radius: 8px;
     width: fit-content;
@@ -154,7 +154,7 @@ include __DIR__ . '/components/header.php';
 .jobs-stat-val {
     font-size: 1.15rem;
     font-weight: 800;
-    color: #38bdf8;
+    color: #f57c00;
 }
 .jobs-stat-lbl {
     font-size: 0.8rem;
@@ -205,9 +205,9 @@ include __DIR__ . '/components/header.php';
     background: #f8fafc;
 }
 .jobs-search-input:focus {
-    border-color: #2563eb;
+    border-color: #1a237e;
     background: #ffffff;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    box-shadow: 0 0 0 3px rgba(26, 35, 126, 0.12);
 }
 .jobs-pills-row {
     display: flex;
@@ -235,9 +235,9 @@ include __DIR__ . '/components/header.php';
     color: #0f172a;
 }
 .jobs-pill-btn.active {
-    background: #2563eb;
+    background: #1a237e;
     color: #ffffff;
-    border-color: #2563eb;
+    border-color: #1a237e;
 }
 
 /* Jobs Feed Table / List (Clean Authentic Minimalist UI) */
@@ -282,7 +282,7 @@ include __DIR__ . '/components/header.php';
     margin-bottom: 0.35rem;
 }
 .job-bullet {
-    color: #dc2626;
+    color: #f57c00;
     font-size: 1.25rem;
     line-height: 1;
     font-weight: bold;
@@ -292,12 +292,12 @@ include __DIR__ . '/components/header.php';
 .job-link-title {
     font-size: 1.02rem;
     font-weight: 700;
-    color: #1e3a8a;
+    color: #1a237e;
     line-height: 1.4;
     text-decoration: none;
 }
 .job-item-card:hover .job-link-title {
-    color: #dc2626;
+    color: #f57c00;
     text-decoration: underline;
 }
 .job-vacancy-badge {
@@ -364,18 +364,18 @@ include __DIR__ . '/components/header.php';
     gap: 0.3rem;
     font-size: 0.78rem;
     font-weight: 700;
-    color: #2563eb;
-    background: #eff6ff;
-    border: 1px solid #bfdbfe;
+    color: #1a237e;
+    background: #e8eaf6;
+    border: 1px solid #c5cae9;
     padding: 0.35rem 0.75rem;
     border-radius: 5px;
     white-space: nowrap;
     transition: all 0.15s ease;
 }
 .job-item-card:hover .job-apply-btn {
-    background: #2563eb;
+    background: #1a237e;
     color: #ffffff;
-    border-color: #2563eb;
+    border-color: #1a237e;
 }
 .job-apply-btn.closed {
     color: #475569;

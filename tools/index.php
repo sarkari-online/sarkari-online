@@ -31,17 +31,18 @@ include dirname(__DIR__) . '/components/header.php';
             </ol>
         </nav>
 
-        <!-- Professional Institutional Header -->
-        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 2.25rem 2.5rem; margin-bottom: 2.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+        <!-- Professional Institutional Header (Executive Hero Card) -->
+        <div style="background: #ffffff; border: 1px solid #e0e0e0; border-left: 5px solid #f57c00; border-radius: 14px; padding: 2rem 2.25rem; margin-bottom: 2.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.04);">
             <div style="max-width: 820px;">
-                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 0.75rem; background: #f1f5f9; border: 1px solid #e2e8f0; color: #334155; margin-bottom: 1rem;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                    <span>Statutory Computation Engines</span>
+                <div style="margin-bottom: 0.85rem;">
+                    <span style="background: #1a237e; color: #ffffff; font-size: 0.72rem; font-weight: 700; padding: 4px 12px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px; display: inline-block;">
+                        Statutory Computation Engines &middot; 2026 Fiscal Year
+                    </span>
                 </div>
-                <h1 style="font-size: 1.85rem; font-weight: 800; line-height: 1.25; margin: 0 0 0.75rem 0; color: #0f172a; letter-spacing: -0.02em;">
+                <h1 style="font-size: 2.15rem; font-weight: 800; line-height: 1.25; margin: 0 0 0.75rem 0; color: #0f172a; letter-spacing: -0.02em;">
                     Student Utilities &amp; Examination Calculators
                 </h1>
-                <p style="font-size: 0.95rem; color: #64748b; line-height: 1.6; margin: 0;">
+                <p style="font-size: 1rem; color: #546e7a; line-height: 1.6; margin: 0;">
                     Accurate, statutory-compliant calculation tools engineered for candidates preparing for UPSC, SSC, Railways, Banking, State PSCs, and Board/University evaluations.
                 </p>
             </div>
@@ -51,13 +52,13 @@ include dirname(__DIR__) . '/components/header.php';
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.75rem; margin-bottom: 3rem;">
             
             <!-- Card 1: 7th Pay Commission Salary Calculator -->
-            <div style="background: #ffffff; border-radius: 12px; padding: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.2s ease-in-out;" onmouseover="this.style.borderColor='#0284c7'; this.style.boxShadow='0 8px 20px rgba(2,132,199,0.08)';" onmouseout="this.style.borderColor='#e2e8f0'; this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)';">
+            <div style="background: #ffffff; border-radius: 12px; padding: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e0e0e0; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.2s ease-in-out;" onmouseover="this.style.borderColor='#1a237e'; this.style.boxShadow='0 8px 24px -4px rgba(26, 35, 126, 0.12)';" onmouseout="this.style.borderColor='#e0e0e0'; this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)';">
                 <div>
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
-                        <div style="width: 48px; height: 48px; border-radius: 10px; background: #f0fdf4; border: 1px solid #bbf7d0; display: flex; align-items: center; justify-content: center; color: #16a34a;">
+                        <div style="width: 48px; height: 48px; border-radius: 10px; background: #e8eaf6; border: 1px solid #c5cae9; display: flex; align-items: center; justify-content: center; color: #1a237e;">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                         </div>
-                        <span style="font-size: 0.72rem; font-weight: 700; color: #15803d; background: #dcfce7; padding: 3px 8px; border-radius: 4px; border: 1px solid #bbf7d0;">
+                        <span style="font-size: 0.72rem; font-weight: 700; color: #1a237e; background: #e8eaf6; padding: 3px 8px; border-radius: 4px; border: 1px solid #c5cae9;">
                             7th CPC Matrix &middot; 50% DA
                         </span>
                     </div>
@@ -65,25 +66,25 @@ include dirname(__DIR__) . '/components/header.php';
                     <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0 0 0.6rem 0; line-height: 1.35;">
                         7th Pay Commission Salary &amp; In-Hand Pay Calculator
                     </h2>
-                    <p style="font-size: 0.875rem; color: #64748b; line-height: 1.6; margin: 0 0 1.5rem 0;">
+                    <p style="font-size: 0.875rem; color: #546e7a; line-height: 1.6; margin: 0 0 1.5rem 0;">
                         Calculate post-wise monthly in-hand net salary, gross package, 50% DA, HRA (X, Y, Z cities), TA, and mandatory NPS deductions for SSC CGL, RRB NTPC, UPSC, and Banking exams.
                     </p>
                 </div>
 
-                <a href="<?= url('tools/7th-pay-commission-salary-calculator/') ?>" class="btn btn-primary" style="width: 100%; text-align: center; justify-content: center; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; padding: 0.75rem 1.25rem; border-radius: 8px;">
+                <a href="<?= url('tools/7th-pay-commission-salary-calculator/') ?>" style="width: 100%; text-align: center; justify-content: center; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; padding: 0.75rem 1.25rem; border-radius: 8px; background: #1a237e; color: #ffffff; text-decoration: none; transition: background 0.15s ease;" onmouseover="this.style.background='#f57c00'" onmouseout="this.style.background='#1a237e'">
                     <span>Open Salary Calculator</span>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                 </a>
             </div>
 
             <!-- Card 2: CGPA to Percentage Converter -->
-            <div style="background: #ffffff; border-radius: 12px; padding: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.2s ease-in-out;" onmouseover="this.style.borderColor='#0284c7'; this.style.boxShadow='0 8px 20px rgba(2,132,199,0.08)';" onmouseout="this.style.borderColor='#e2e8f0'; this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)';">
+            <div style="background: #ffffff; border-radius: 12px; padding: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e0e0e0; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.2s ease-in-out;" onmouseover="this.style.borderColor='#1a237e'; this.style.boxShadow='0 8px 24px -4px rgba(26, 35, 126, 0.12)';" onmouseout="this.style.borderColor='#e0e0e0'; this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)';">
                 <div>
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
-                        <div style="width: 48px; height: 48px; border-radius: 10px; background: #f0f9ff; border: 1px solid #bae6fd; display: flex; align-items: center; justify-content: center; color: #0284c7;">
+                        <div style="width: 48px; height: 48px; border-radius: 10px; background: #e8eaf6; border: 1px solid #c5cae9; display: flex; align-items: center; justify-content: center; color: #1a237e;">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
                         </div>
-                        <span style="font-size: 0.72rem; font-weight: 700; color: #0369a1; background: #e0f2fe; padding: 3px 8px; border-radius: 4px; border: 1px solid #bae6fd;">
+                        <span style="font-size: 0.72rem; font-weight: 700; color: #1a237e; background: #e8eaf6; padding: 3px 8px; border-radius: 4px; border: 1px solid #c5cae9;">
                             CBSE, AICTE &amp; VTU Formulas
                         </span>
                     </div>
@@ -91,25 +92,25 @@ include dirname(__DIR__) . '/components/header.php';
                     <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0 0 0.6rem 0; line-height: 1.35;">
                         CGPA to Percentage &amp; Marks Converter
                     </h2>
-                    <p style="font-size: 0.875rem; color: #64748b; line-height: 1.6; margin: 0 0 1.5rem 0;">
+                    <p style="font-size: 0.875rem; color: #546e7a; line-height: 1.6; margin: 0 0 1.5rem 0;">
                         Convert Cumulative Grade Point Average (CGPA) to exact percentage and equivalent calculated marks for CBSE 10th/12th, B.Tech Engineering, AKTU, and Mumbai University.
                     </p>
                 </div>
 
-                <a href="<?= url('tools/cgpa-to-percentage-calculator/') ?>" class="btn btn-primary" style="width: 100%; text-align: center; justify-content: center; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; padding: 0.75rem 1.25rem; border-radius: 8px;">
+                <a href="<?= url('tools/cgpa-to-percentage-calculator/') ?>" style="width: 100%; text-align: center; justify-content: center; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; padding: 0.75rem 1.25rem; border-radius: 8px; background: #1a237e; color: #ffffff; text-decoration: none; transition: background 0.15s ease;" onmouseover="this.style.background='#f57c00'" onmouseout="this.style.background='#1a237e'">
                     <span>Open CGPA Converter</span>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                 </a>
             </div>
 
             <!-- Card 3: Govt Job Age Calculator & Eligibility Checker -->
-            <div style="background: #ffffff; border-radius: 12px; padding: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.2s ease-in-out;" onmouseover="this.style.borderColor='#1e3a8a'; this.style.boxShadow='0 8px 20px rgba(30,58,138,0.08)';" onmouseout="this.style.borderColor='#e2e8f0'; this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)';">
+            <div style="background: #ffffff; border-radius: 12px; padding: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e0e0e0; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.2s ease-in-out;" onmouseover="this.style.borderColor='#1a237e'; this.style.boxShadow='0 8px 24px -4px rgba(26, 35, 126, 0.12)';" onmouseout="this.style.borderColor='#e0e0e0'; this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)';">
                 <div>
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
-                        <div style="width: 48px; height: 48px; border-radius: 10px; background: #eff6ff; border: 1px solid #bfdbfe; display: flex; align-items: center; justify-content: center; color: #1e3a8a;">
+                        <div style="width: 48px; height: 48px; border-radius: 10px; background: #e8eaf6; border: 1px solid #c5cae9; display: flex; align-items: center; justify-content: center; color: #1a237e;">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                         </div>
-                        <span style="font-size: 0.72rem; font-weight: 700; color: #1e40af; background: #dbeafe; padding: 3px 8px; border-radius: 4px; border: 1px solid #bfdbfe;">
+                        <span style="font-size: 0.72rem; font-weight: 700; color: #1a237e; background: #e8eaf6; padding: 3px 8px; border-radius: 4px; border: 1px solid #c5cae9;">
                             DoPT Rules &middot; All Categories
                         </span>
                     </div>
@@ -117,12 +118,12 @@ include dirname(__DIR__) . '/components/header.php';
                     <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0 0 0.6rem 0; line-height: 1.35;">
                         Govt Job Age Calculator &amp; Eligibility Checker
                     </h2>
-                    <p style="font-size: 0.875rem; color: #64748b; line-height: 1.6; margin: 0 0 1.5rem 0;">
+                    <p style="font-size: 0.875rem; color: #546e7a; line-height: 1.6; margin: 0 0 1.5rem 0;">
                         Calculate exact age in years, months, and days as on notification cutoff date. Check age eligibility and category relaxation (UR, OBC, SC, ST, PwBD) for UPSC, SSC, and Banking forms.
                     </p>
                 </div>
 
-                <a href="<?= url('tools/age-calculator/') ?>" class="btn btn-primary" style="width: 100%; text-align: center; justify-content: center; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; padding: 0.75rem 1.25rem; border-radius: 8px;">
+                <a href="<?= url('tools/age-calculator/') ?>" style="width: 100%; text-align: center; justify-content: center; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; padding: 0.75rem 1.25rem; border-radius: 8px; background: #1a237e; color: #ffffff; text-decoration: none; transition: background 0.15s ease;" onmouseover="this.style.background='#f57c00'" onmouseout="this.style.background='#1a237e'">
                     <span>Open Age Calculator</span>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                 </a>

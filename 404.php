@@ -1,13 +1,14 @@
 <?php
 /**
- * EduPulse - 404 Not Found Page (Phase 0)
+ * Sarkari.online - 404 Not Found Page
+ * Executive Design matching brand system (#1a237e Navy, #f57c00 Orange)
  */
 require_once __DIR__ . '/config.php';
 
 http_response_code(404);
 
-$pageTitle = '404 — Page Not Found';
-$pageDesc = 'The page or education update you are looking for could not be located. Search our database of verified exam notices, results, and career guides.';
+$pageTitle = 'Page Not Found (404) | ' . SITE_NAME;
+$pageDesc = 'The page or notification you are looking for has been relocated or updated. Search our verified database of government job alerts, admit cards, and results.';
 $canonicalUrl = url('404.php');
 $ogType = 'website';
 
@@ -20,40 +21,54 @@ include __DIR__ . '/components/head.php';
 include __DIR__ . '/components/header.php';
 ?>
 
-<main class="site-main">
+<main class="site-main" style="padding: 2.5rem 0 4rem; background: var(--bg-page);">
     <div class="container container-narrow">
         
         <?php include __DIR__ . '/components/breadcrumbs.php'; ?>
 
-        <div class="error-404-container">
-            <div class="error-404-code">404</div>
-            <h1 class="error-404-title">Update Not Found or Relocated</h1>
-            <p class="error-404-desc">
-                The exam notification, result portal, or article you were seeking might have been moved, renamed, or updated with a newer cycle notice.
+        <div style="background: #ffffff; border: 1px solid #e0e0e0; border-top: 4px solid #f57c00; border-radius: 16px; padding: 3rem 2rem; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.05); max-width: 680px; margin: 1.5rem auto;">
+            
+            <div style="display: inline-block; background: #e8eaf6; color: #1a237e; font-size: 0.8rem; font-weight: 800; padding: 4px 14px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem;">
+                HTTP 404 &middot; Notice Relocated
+            </div>
+
+            <div style="font-size: clamp(3.5rem, 8vw, 5.5rem); font-weight: 900; line-height: 1; color: #1a237e; letter-spacing: -0.04em; margin-bottom: 0.75rem;">
+                404
+            </div>
+
+            <h1 style="font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 0.75rem;">
+                Notice Not Found or Cycle Relocated
+            </h1>
+
+            <p style="color: #546e7a; font-size: 0.95rem; line-height: 1.6; max-width: 500px; margin: 0 auto 2rem auto;">
+                The recruitment notice, examination scorecard, or syllabus update you requested may have been updated with a newer cycle or relocated.
             </p>
 
-            <form action="<?= url('search/') ?>" method="GET" class="search-page-form" style="max-width: 480px; margin: 0 auto 2rem auto;">
-                <input type="search" name="q" class="search-page-input" placeholder="Search exams, results, admit cards..." required>
-                <button type="submit" class="btn btn-primary">
-                    <?= icon('search', 'icon-sm') ?> Search
+            <!-- Search Box with Navy & Orange Action -->
+            <form action="<?= url('search/') ?>" method="GET" style="max-width: 480px; margin: 0 auto 2rem auto; display: flex; gap: 8px;">
+                <input type="search" name="q" placeholder="Search exams, results, admit cards, full forms..." required style="flex: 1; padding: 0.75rem 1rem; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; outline: none; transition: border-color 0.15s;" onfocus="this.style.borderColor='#1a237e'" onblur="this.style.borderColor='#cbd5e1'">
+                <button type="submit" style="background: #1a237e; color: #ffffff; border: none; padding: 0.75rem 1.25rem; border-radius: 8px; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: background 0.15s; white-space: nowrap;" onmouseover="this.style.background='#f57c00'" onmouseout="this.style.background='#1a237e'">
+                    Search
                 </button>
             </form>
 
-            <div style="margin-bottom: 2rem;">
-                <h3 style="font-size: 1rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem;">
-                    Popular Education Portals
-                </h3>
-                <div class="search-tag-list" style="justify-content: center;">
-                    <a href="<?= url('category/exam-results/') ?>" class="search-tag-chip">Exam Results</a>
-                    <a href="<?= url('category/admit-cards/') ?>" class="search-tag-chip">Admit Cards</a>
-                    <a href="<?= url('category/government-jobs/') ?>" class="search-tag-chip">Govt Jobs</a>
-                    <a href="<?= url('category/scholarships/') ?>" class="search-tag-chip">Scholarships</a>
-                    <a href="<?= url('category/entrance-exams/') ?>" class="search-tag-chip">Entrance Exams</a>
+            <!-- Quick Access Portals -->
+            <div style="margin-bottom: 2.25rem; padding-top: 1.5rem; border-top: 1px solid #f0f0f0;">
+                <div style="font-size: 0.75rem; font-weight: 800; color: #78909c; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 1rem;">
+                    Quick Portal Shortcuts
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;">
+                    <a href="<?= url('category/exam-results/') ?>" style="padding: 6px 14px; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 0.825rem; font-weight: 600; color: #1a237e; text-decoration: none; transition: all 0.15s;" onmouseover="this.style.background='#1a237e'; this.style.color='#fff';" onmouseout="this.style.background='#fafafa'; this.style.color='#1a237e';">Exam Results</a>
+                    <a href="<?= url('latest-jobs/') ?>" style="padding: 6px 14px; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 0.825rem; font-weight: 600; color: #1a237e; text-decoration: none; transition: all 0.15s;" onmouseover="this.style.background='#1a237e'; this.style.color='#fff';" onmouseout="this.style.background='#fafafa'; this.style.color='#1a237e';">Latest Govt Jobs</a>
+                    <a href="<?= url('category/admit-cards/') ?>" style="padding: 6px 14px; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 0.825rem; font-weight: 600; color: #1a237e; text-decoration: none; transition: all 0.15s;" onmouseover="this.style.background='#1a237e'; this.style.color='#fff';" onmouseout="this.style.background='#fafafa'; this.style.color='#1a237e';">Admit Cards</a>
+                    <a href="<?= url('category/answer-keys/') ?>" style="padding: 6px 14px; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 0.825rem; font-weight: 600; color: #1a237e; text-decoration: none; transition: all 0.15s;" onmouseover="this.style.background='#1a237e'; this.style.color='#fff';" onmouseout="this.style.background='#fafafa'; this.style.color='#1a237e';">Answer Keys</a>
+                    <a href="<?= url('full-forms/') ?>" style="padding: 6px 14px; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 0.825rem; font-weight: 600; color: #1a237e; text-decoration: none; transition: all 0.15s;" onmouseover="this.style.background='#1a237e'; this.style.color='#fff';" onmouseout="this.style.background='#fafafa'; this.style.color='#1a237e';">Full Forms (A-Z)</a>
+                    <a href="<?= url('state-jobs/') ?>" style="padding: 6px 14px; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 0.825rem; font-weight: 600; color: #1a237e; text-decoration: none; transition: all 0.15s;" onmouseover="this.style.background='#1a237e'; this.style.color='#fff';" onmouseout="this.style.background='#fafafa'; this.style.color='#1a237e';">State Jobs (28 States)</a>
                 </div>
             </div>
 
-            <a href="<?= url() ?>" class="btn btn-outline">
-                <?= icon('chevron-left', 'icon-sm') ?> Return to Homepage
+            <a href="<?= url() ?>" style="display: inline-flex; align-items: center; gap: 6px; color: #1a237e; font-weight: 700; font-size: 0.9rem; text-decoration: none;" onmouseover="this.style.color='#f57c00'" onmouseout="this.style.color='#1a237e'">
+                &larr; Return to Homepage
             </a>
         </div>
 

@@ -2,83 +2,102 @@
 /**
  * Professional Authority-Grade Footer Component
  * Sarkari.online - Indian Education & Recruitment News Network
- * Designed with Logo-Matched Color Palette (Deep Navy, Saffron/Amber, Crisp White)
- * Strictly zero emojis, 100% SVG & institutional typography.
+ * Executive Design: Deep Navy gradient + Orange accent borders
+ * Matches brand DNA (#1a237e Navy, #f57c00 Orange)
  */
 ?>
-<footer class="site-footer">
-    <!-- Main Footer Columns -->
-    <div class="footer-main-section">
+<footer class="site-footer" style="background: linear-gradient(180deg, #0f1740 0%, #0a1128 50%, #050a18 100%); border-top: 4px solid #f57c00; position: relative;">
+    
+    <!-- Executive Top Section: Brand Identity + Quick Stats -->
+    <div style="background: rgba(26, 35, 126, 0.15); border-bottom: 1px solid rgba(255,255,255,0.06); padding: 2rem 0;">
         <div class="container">
-            <div class="footer-grid">
-                
-                <!-- Column 1: Brand & Purpose -->
-                <div class="footer-col footer-col-brand">
-                    <a href="<?= url() ?>" class="footer-brand-logo" aria-label="<?= e(SITE_NAME) ?>" title="<?= e(SITE_NAME) ?> — Sarkari Result &amp; Latest Govt Jobs 2026">
-                        <img src="<?= asset('sarkari-logo-white.png') ?>" alt="<?= e(SITE_NAME) ?> - Sarkari Result &amp; Latest Govt Jobs" title="<?= e(SITE_NAME) ?> - Official Public Employment &amp; Examination Portal" style="height: 38px; width: auto; max-width: 175px; object-fit: contain; display: block;">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem;">
+                <div style="display: flex; align-items: center; gap: 1.25rem;">
+                    <a href="<?= url() ?>" aria-label="<?= e(SITE_NAME) ?>" title="<?= e(SITE_NAME) ?> — Sarkari Result & Latest Govt Jobs 2026">
+                        <img src="<?= asset('sarkari-logo-white.png') ?>" alt="<?= e(SITE_NAME) ?> - Sarkari Result & Latest Govt Jobs" style="height: 42px; width: auto; max-width: 185px; object-fit: contain; display: block;">
                     </a>
-                    <p class="footer-brand-desc">
-                        Education &amp; Career Portal
-                    </p>
-                    <div class="footer-live-status-pill">
-                        <span class="live-pulse-dot"></span>
-                        <span class="live-status-text">Statutory Portal Feed: Active</span>
+                    <div style="border-left: 1px solid rgba(255,255,255,0.12); padding-left: 1.25rem;">
+                        <div style="font-size: 0.9rem; font-weight: 700; color: #e2e8f0; line-height: 1.3;">India's Verified Education &amp; Career Portal</div>
+                        <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 2px;">Real-time Govt Job Alerts, Results &amp; Exam Updates</div>
                     </div>
                 </div>
+                <div style="display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
+                    <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(245, 124, 0, 0.1); border: 1px solid rgba(245, 124, 0, 0.3); padding: 6px 14px; border-radius: 6px;">
+                        <span style="width: 7px; height: 7px; border-radius: 50%; background: #f57c00; box-shadow: 0 0 8px #f57c00; display: inline-block; animation: livePulseGlow 2s infinite ease-in-out;"></span>
+                        <span style="font-size: 0.78rem; font-weight: 700; color: #f57c00; letter-spacing: 0.02em;">Portal Feed: Active</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                <!-- Column 2: National Examination Hub -->
+    <!-- Main Footer Columns -->
+    <div class="footer-main-section" style="padding: 2.75rem 0 2rem 0;">
+        <div class="container">
+            <div class="footer-grid" style="display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 2.5rem;">
+                
+                <!-- Column 1: Explore Portal -->
                 <div class="footer-col">
-                    <h3 class="footer-heading">National Exams</h3>
+                    <h3 style="color: #ffffff; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 1.25rem 0; padding-bottom: 0.6rem; border-bottom: 2px solid #f57c00; display: inline-block;">Explore Portal</h3>
                     <ul class="footer-links-list">
-                        <li><a href="<?= url('category/career-guides/') ?>" class="footer-link" title="NTA Entrance Tests &amp; Career Guides">NTA Entrance Tests</a></li>
-                        <li><a href="<?= url('category/entrance-exams/') ?>" class="footer-link" title="UPSC Civil Services Examination Updates">UPSC Civil Services</a></li>
-                        <li><a href="<?= url('category/school-boards/') ?>" class="footer-link" title="CBSE &amp; State School Boards Updates">CBSE &amp; State Boards</a></li>
-                        <li><a href="<?= url('category/exam-results/') ?>" class="footer-link" title="Teacher Eligibility Test (CTET) Results">Teacher Eligibility (CTET)</a></li>
-                        <li><a href="<?= url('category/entrance-exams/') ?>" class="footer-link" title="Central University Admissions &amp; CUET">Central University Admissions</a></li>
-                        <li><a href="<?= url('category/answer-keys/') ?>" class="footer-link" title="Official Answer Keys &amp; OMR Sheets">Official Answer Keys</a></li>
+                        <li><a href="<?= url('category/exam-results/') ?>" class="footer-link" title="Sarkari Result — Latest Exam Results">Sarkari Result</a></li>
+                        <li><a href="<?= url('latest-jobs/') ?>" class="footer-link" title="Latest Government Jobs 2026">Latest Govt Jobs 2026</a></li>
+                        <li><a href="<?= url('category/admit-cards/') ?>" class="footer-link" title="Admit Cards & Hall Tickets">Admit Cards</a></li>
+                        <li><a href="<?= url('category/answer-keys/') ?>" class="footer-link" title="Official Answer Keys">Answer Keys</a></li>
+                        <li><a href="<?= url('category/exam-dates/') ?>" class="footer-link" title="Exam Calendars 2026–27">Exam Dates 2026-27</a></li>
+                        <li><a href="<?= url('category/scholarships/') ?>" class="footer-link" title="Scholarships & Financial Aid">Scholarships</a></li>
+                        <li><a href="<?= url('state-jobs/') ?>" class="footer-link" title="State Government Jobs — 28 States">State Jobs (28 States)</a></li>
+                        <li><a href="<?= url('full-forms/') ?>" class="footer-link" title="A-Z Government Full Forms">Full Forms (A-Z)</a></li>
                     </ul>
                 </div>
 
-                <!-- Column 3: Recruitment & Aid -->
+                <!-- Column 2: National Exams -->
                 <div class="footer-col">
-                    <h3 class="footer-heading">Recruitment &amp; Aid</h3>
+                    <h3 style="color: #ffffff; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 1.25rem 0; padding-bottom: 0.6rem; border-bottom: 2px solid #f57c00; display: inline-block;">National Exams</h3>
                     <ul class="footer-links-list">
-                        <li><a href="<?= url('state-jobs/') ?>" class="footer-link" title="State Government Jobs 2026 — 28 States &amp; UTs">State Govt Jobs 2026</a></li>
-                        <li><a href="<?= url('how-to-apply/') ?>" class="footer-link" title="How to Apply Online — Govt Exam Application Guides">How to Apply (Forms)</a></li>
-                        <li><a href="<?= url('category/government-jobs/') ?>" class="footer-link" title="Staff Selection Commission (SSC) Recruitment">Staff Selection (SSC)</a></li>
-                        <li><a href="<?= url('category/government-jobs/') ?>" class="footer-link" title="Railway Recruitment Board (RRB) Jobs">Railway Recruitment (RRB)</a></li>
-                        <li><a href="<?= url('tools/age-calculator/') ?>" class="footer-link" title="Govt Job Age Calculator &amp; Eligibility Tool">Govt Job Age Calculator</a></li>
-                        <li><a href="<?= url('tools/7th-pay-commission-salary-calculator/') ?>" class="footer-link" title="7th Pay Commission Salary &amp; In-Hand Calculator">7th Pay Salary Calculator</a></li>
-                        <li><a href="<?= url('tools/cgpa-to-percentage-calculator/') ?>" class="footer-link" title="CGPA to Percentage &amp; Marks Converter">CGPA to % Converter</a></li>
-                        <li><a href="<?= url('full-forms/') ?>" class="footer-link" title="Government Full Forms Directory (A-Z)">Govt Full Forms (A-Z)</a></li>
-                        <li><a href="<?= url('category/scholarships/') ?>" class="footer-link" title="National Scholarship Portal (NSP) Schemes">National Scholarships (NSP)</a></li>
-                        <li><a href="<?= url('category/admit-cards/') ?>" class="footer-link" title="Admit Cards &amp; Hall Tickets">Admit Cards &amp; Hall Tickets</a></li>
-                        <li><a href="<?= url('category/exam-dates/') ?>" class="footer-link" title="Exam Calendars 2026–27 Schedules">Exam Calendars 2026–27</a></li>
+                        <li><a href="<?= url('category/entrance-exams/') ?>" class="footer-link" title="UPSC Civil Services Examination">UPSC Civil Services</a></li>
+                        <li><a href="<?= url('category/career-guides/') ?>" class="footer-link" title="NTA NEET, JEE & CUET">NTA (NEET / JEE / CUET)</a></li>
+                        <li><a href="<?= url('category/government-jobs/') ?>" class="footer-link" title="SSC CGL, CHSL, GD Recruitment">SSC Recruitment</a></li>
+                        <li><a href="<?= url('category/government-jobs/') ?>" class="footer-link" title="Railway RRB NTPC, Group D">Railway (RRB) Jobs</a></li>
+                        <li><a href="<?= url('category/school-boards/') ?>" class="footer-link" title="CBSE & State Board Results">CBSE & State Boards</a></li>
+                        <li><a href="<?= url('category/entrance-exams/') ?>" class="footer-link" title="CUET Admissions">Central University (CUET)</a></li>
                     </ul>
                 </div>
 
-                <!-- Column 4: Trust & Standards -->
+                <!-- Column 3: Tools & Resources -->
                 <div class="footer-col">
-                    <h3 class="footer-heading">Editorial &amp; Legal</h3>
+                    <h3 style="color: #ffffff; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 1.25rem 0; padding-bottom: 0.6rem; border-bottom: 2px solid #f57c00; display: inline-block;">Tools & Resources</h3>
                     <ul class="footer-links-list">
-                        <li><a href="<?= url('about/') ?>" class="footer-link" title="About Sarkari.online Editorial Desk">About Editorial Desk</a></li>
-                        <li><a href="<?= url('editorial-policy/') ?>" class="footer-link" title="Editorial Policy &amp; Standards">Editorial Policy</a></li>
-                        <li><a href="<?= url('fact-checking-policy/') ?>" class="footer-link" title="Fact-Checking Methodology &amp; Guidelines">Fact-Checking Methodology</a></li>
-                        <li><a href="<?= url('fact-checking-policy/#corrections') ?>" class="footer-link" title="Corrections Policy &amp; Accountability">Corrections Policy</a></li>
-                        <li><a href="<?= url('ai-policy/') ?>" class="footer-link" title="AI Transparency Code &amp; Principles">AI Transparency Code</a></li>
-                        <li><a href="<?= url('why-choose-us/') ?>" class="footer-link" title="Why Choose Sarkari.online">Why Choose Us</a></li>
-                        <li><a href="<?= url('contact/') ?>" class="footer-link" title="Grievance Redressal &amp; Contact Us">Grievance Redressal</a></li>
-                        <li><a href="<?= url('disclaimer/') ?>" class="footer-link" title="Statutory Non-Affiliation Disclaimer">Statutory Disclaimer</a></li>
-                        <li><a href="<?= url('sitemap/') ?>" class="footer-link" title="Sarkari.online HTML Sitemap &amp; Directory">HTML Sitemap</a></li>
+                        <li><a href="<?= url('tools/7th-pay-commission-salary-calculator/') ?>" class="footer-link" title="7th Pay Commission Salary Calculator">7th Pay Calculator</a></li>
+                        <li><a href="<?= url('tools/age-calculator/') ?>" class="footer-link" title="Govt Job Age Eligibility Calculator">Age Calculator</a></li>
+                        <li><a href="<?= url('tools/cgpa-to-percentage-calculator/') ?>" class="footer-link" title="CGPA to Percentage Converter">CGPA to % Converter</a></li>
+                        <li><a href="<?= url('how-to-apply/') ?>" class="footer-link" title="Application Guides">How to Apply (Guides)</a></li>
+                        <li><a href="<?= url('full-forms/') ?>" class="footer-link" title="Government Full Forms A-Z Directory">Govt Full Forms (A-Z)</a></li>
+                        <li><a href="<?= url('category/career-guides/') ?>" class="footer-link" title="Career Roadmaps & Guides">Career Guides</a></li>
+                    </ul>
+                </div>
+
+                <!-- Column 4: Trust & Legal -->
+                <div class="footer-col">
+                    <h3 style="color: #ffffff; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 1.25rem 0; padding-bottom: 0.6rem; border-bottom: 2px solid #f57c00; display: inline-block;">Trust & Legal</h3>
+                    <ul class="footer-links-list">
+                        <li><a href="<?= url('about/') ?>" class="footer-link" title="About Sarkari.online Editorial Desk">About Us</a></li>
+                        <li><a href="<?= url('contact/') ?>" class="footer-link" title="Contact & Grievance Redressal">Contact Us</a></li>
+                        <li><a href="<?= url('editorial-policy/') ?>" class="footer-link" title="Editorial Policy & Standards">Editorial Policy</a></li>
+                        <li><a href="<?= url('fact-checking-policy/') ?>" class="footer-link" title="Fact-Checking Methodology">Fact-Checking Policy</a></li>
+                        <li><a href="<?= url('ai-policy/') ?>" class="footer-link" title="AI Transparency Code">AI Transparency</a></li>
+                        <li><a href="<?= url('disclaimer/') ?>" class="footer-link" title="Statutory Disclaimer">Disclaimer</a></li>
+                        <li><a href="<?= url('privacy-policy/') ?>" class="footer-link" title="Privacy Policy">Privacy Policy</a></li>
+                        <li><a href="<?= url('terms/') ?>" class="footer-link" title="Terms of Service">Terms of Service</a></li>
                     </ul>
                 </div>
 
             </div>
 
-            <!-- Simple Minimalist Disclaimer (No bulky card/borders) -->
-            <div class="footer-disclaimer-simple">
-                <p>
-                    <strong>Disclaimer:</strong> Sarkari.online is an independent educational news portal and is not affiliated, associated, or endorsed by any Government ministry, commission, or statutory agency. All recruitment notifications, admission timelines, and exam updates are curated from publicly available government gazettes and official board portals for candidate assistance. Aspirants must verify all details on the respective official statutory websites.
+            <!-- Executive Disclaimer Card -->
+            <div style="margin-top: 2.25rem; padding: 1.25rem 1.5rem; background: rgba(26, 35, 126, 0.12); border: 1px solid rgba(255,255,255,0.06); border-left: 4px solid #f57c00; border-radius: 0 10px 10px 0;">
+                <p style="font-size: 0.78rem; line-height: 1.6; color: #7c8db5; margin: 0;">
+                    <strong style="color: #94a3b8; font-weight: 700;">Disclaimer:</strong> Sarkari.online is an independent educational news portal and is not affiliated, associated, or endorsed by any Government ministry, commission, or statutory agency. All recruitment notifications, admission timelines, and exam updates are curated from publicly available government gazettes and official board portals for candidate assistance. Aspirants must verify all details on the respective official statutory websites.
                 </p>
             </div>
         </div>
@@ -106,39 +125,49 @@
     $siteLastUpdated = !empty($timestamps) ? max($timestamps) : date('Y-m-d H:i:s');
     $siteLastUpdatedStr = date('d M Y, h:i A', strtotime($siteLastUpdated)) . ' IST';
     ?>
-    <div class="footer-bottom-bar">
+    <div style="border-top: 1px solid rgba(255,255,255,0.08); padding: 1.15rem 0; font-size: 0.8125rem; color: #64748b; background: rgba(0,0,0,0.2);">
         <div class="container">
-            <div class="footer-bottom-flex">
-                <div class="footer-copy-left">
-                    <div>&copy; <?= date('Y') ?> <?= e(SITE_NAME) ?> &middot; Government Exams &middot; Results &middot; Jobs &middot; Education</div>
-                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem; display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                        <span>Portal Last Updated: <strong style="color: #cbd5e1;"><?= e($siteLastUpdatedStr) ?></strong></span>
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <div style="color: #94a3b8; font-size: 0.8125rem; font-weight: 600;">&copy; <?= date('Y') ?> <?= e(SITE_NAME) ?> &middot; Government Exams &middot; Results &middot; Jobs &middot; Education</div>
+                    <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.35rem; display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        <span>Last Updated: <strong style="color: #cbd5e1;"><?= e($siteLastUpdatedStr) ?></strong></span>
                         <?php if ($publishedArticlesCount > 0): ?>
-                            <span class="footer-sep">&middot;</span>
-                            <span style="color: #94a3b8;"><strong style="color: #cbd5e1;"><?= $publishedArticlesCount ?></strong> Active Guides</span>
+                            <span style="color: rgba(255,255,255,0.15);">&middot;</span>
+                            <span><strong style="color: #f57c00;"><?= $publishedArticlesCount ?></strong> Active Guides</span>
                         <?php endif; ?>
                         <?php if ($glossaryCount > 0): ?>
-                            <span class="footer-sep">&middot;</span>
-                            <a href="<?= url('full-forms/') ?>" style="color: #38bdf8; text-decoration: none;" title="A-Z Government &amp; Exam Full Forms Directory"><strong style="color: #38bdf8;"><?= $glossaryCount ?></strong> Full Forms (A-Z)</a>
+                            <span style="color: rgba(255,255,255,0.15);">&middot;</span>
+                            <a href="<?= url('full-forms/') ?>" style="color: #f57c00; text-decoration: none; font-weight: 600;" title="A-Z Government Full Forms"><strong><?= $glossaryCount ?></strong> Full Forms</a>
                         <?php endif; ?>
                     </div>
                 </div>
-                <div class="footer-legal-inline-links">
-                    <a href="<?= url('privacy-policy/') ?>" title="Privacy Policy">Privacy Policy</a>
-                    <span class="footer-sep">&middot;</span>
-                    <a href="<?= url('terms/') ?>" title="Terms of Service">Terms of Service</a>
-                    <span class="footer-sep">&middot;</span>
-                    <a href="<?= url('disclaimer/') ?>" title="Statutory Disclaimer">Disclaimer</a>
-                    <span class="footer-sep">&middot;</span>
-                    <a href="<?= url('sitemap/') ?>" title="HTML Sitemap &amp; Directory">HTML Sitemap</a>
-                    <span class="footer-sep">&middot;</span>
-                    <a href="<?= url('sitemap.xml') ?>" target="_blank" title="XML Sitemap">XML Sitemap</a>
+                <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                    <a href="<?= url('privacy-policy/') ?>" style="color: #64748b; text-decoration: none; font-size: 0.8125rem; transition: color 0.15s;" onmouseover="this.style.color='#f57c00'" onmouseout="this.style.color='#64748b'">Privacy</a>
+                    <span style="color: rgba(255,255,255,0.12);">&middot;</span>
+                    <a href="<?= url('terms/') ?>" style="color: #64748b; text-decoration: none; font-size: 0.8125rem; transition: color 0.15s;" onmouseover="this.style.color='#f57c00'" onmouseout="this.style.color='#64748b'">Terms</a>
+                    <span style="color: rgba(255,255,255,0.12);">&middot;</span>
+                    <a href="<?= url('disclaimer/') ?>" style="color: #64748b; text-decoration: none; font-size: 0.8125rem; transition: color 0.15s;" onmouseover="this.style.color='#f57c00'" onmouseout="this.style.color='#64748b'">Disclaimer</a>
+                    <span style="color: rgba(255,255,255,0.12);">&middot;</span>
+                    <a href="<?= url('sitemap/') ?>" style="color: #64748b; text-decoration: none; font-size: 0.8125rem; transition: color 0.15s;" onmouseover="this.style.color='#f57c00'" onmouseout="this.style.color='#64748b'">Sitemap</a>
+                    <span style="color: rgba(255,255,255,0.12);">&middot;</span>
+                    <a href="<?= url('sitemap.xml') ?>" target="_blank" style="color: #64748b; text-decoration: none; font-size: 0.8125rem; transition: color 0.15s;" onmouseover="this.style.color='#f57c00'" onmouseout="this.style.color='#64748b'">XML Sitemap</a>
                 </div>
             </div>
         </div>
     </div>
 </footer>
+
+<!-- Footer responsive styles -->
+<style>
+@media (max-width: 1024px) {
+    .footer-grid { grid-template-columns: 1fr 1fr !important; gap: 2rem !important; }
+}
+@media (max-width: 640px) {
+    .footer-grid { grid-template-columns: 1fr !important; gap: 1.5rem !important; }
+}
+</style>
 
 <!-- Mobile Smart Language Choice Banner (Safe Non-Intrusive Floating Pill) -->
 <div id="mobileLangBanner" class="mobile-lang-banner" style="display: none;">
@@ -432,11 +461,11 @@ document.addEventListener('DOMContentLoaded', function() {
     font-family: inherit;
 }
 .cookie-btn-accept {
-    background: #2563eb;
+    background: #1a237e;
     color: #ffffff;
 }
 .cookie-btn-accept:hover {
-    background: #1d4ed8;
+    background: #0d1642;
     transform: translateY(-1px);
 }
 .cookie-btn-necessary {

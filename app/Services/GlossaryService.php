@@ -97,111 +97,59 @@ class GlossaryService {
     }
 
     /**
-     * Generate high-CTR, Google-compliant SERP Meta Title (Under 60 chars)
-     * Never leaks the full expansion directly into the SERP snippet.
+     * Generate high-CTR, Google-compliant SERP Meta Title (Strictly under 58 chars)
+     * Includes exact expansion for maximal search match and entity relevance.
      */
     public static function generateMetaTitle(array $term, ?array $facts = null): string {
         $acronym = trim($term['acronym'] ?? '');
         $fullEn = trim($term['full_form_en'] ?? '');
 
-        // Determine if this entity has verified salary data
-        $hasSalary = false;
-        if ($facts !== null) {
-            $hasSalary = !empty($facts['pay_level_7cpc']) || !empty($facts['basic_pay_min']) || !empty($facts['gross_salary_min']);
-        } elseif (!empty($term['id'])) {
-            try {
-                $fact = Database::fetchOne("SELECT pay_level_7cpc, basic_pay_min, gross_salary_min FROM full_form_entity_facts WHERE full_form_id = :fid LIMIT 1", ['fid' => (int)$term['id']]);
-                if ($fact && (!empty($fact['pay_level_7cpc']) || !empty($fact['basic_pay_min']) || !empty($fact['gross_salary_min']))) {
-                    $hasSalary = true;
-                }
-            } catch (\Throwable $e) {}
-        }
-
-        if ($hasSalary) {
-            // High-Curiosity, Anti-Spoiler Formula for salary-holding recruitment posts
-            $title = "{$acronym} Full Form: Meaning in Hindi, Salary & Selection 2026";
-            if (mb_strlen($title) <= 59) {
-                self::validateMetaAgainstExpansion($title, $fullEn);
-                return $title;
+        // Pattern 1: "[ACRONYM] Full Form: [FULL EXPANSION] — Eligibility"
+        $base = "{$acronym} Full Form: {$fullEn}";
+        if (mb_strlen($base) <= 40) {
+            $withSuffix = "{$base} — Eligibility & Exam";
+            if (mb_strlen($withSuffix) <= 58) {
+                return $withSuffix;
             }
-
-            $title = "{$acronym} Full Form: Meaning, Salary & Eligibility 2026";
-            if (mb_strlen($title) <= 59) {
-                self::validateMetaAgainstExpansion($title, $fullEn);
-                return $title;
-            }
-
-            $title = "{$acronym} Full Form: Meaning, Salary & Selection";
-            if (mb_strlen($title) <= 59) {
-                self::validateMetaAgainstExpansion($title, $fullEn);
-                return $title;
-            }
+            return $base;
         }
 
-        // For entrance examinations, academic tests, or statutory commissions without pay scale:
-        $title = "{$acronym} Full Form: Meaning, Eligibility & Selection 2026";
-        if (mb_strlen($title) <= 59) {
-            self::validateMetaAgainstExpansion($title, $fullEn);
-            return $title;
+        if (mb_strlen($base) <= 58) {
+            return $base;
         }
 
-        $title = "{$acronym} Full Form: Meaning in Hindi & Eligibility 2026";
-        if (mb_strlen($title) <= 59) {
-            self::validateMetaAgainstExpansion($title, $fullEn);
-            return $title;
+        // Pattern 2: When expansion is very long, format cleanly under 58 chars
+        $shortened = "{$acronym} Full Form: " . mb_substr($fullEn, 0, 55 - mb_strlen("{$acronym} Full Form: ")) . "...";
+        if (mb_strlen($shortened) <= 58) {
+            return $shortened;
         }
 
-        $title = "{$acronym} Full Form: Meaning & Eligibility 2026";
-        self::validateMetaAgainstExpansion($title, $fullEn);
-        return $title;
+        return "{$acronym} Full Form: Meaning, Eligibility & Selection";
     }
 
     /**
-     * Generate high-CTR SERP Meta Description (145-155 chars)
-     * Free of zero-click full-form spoilers across all 132 terms.
+     * Generate high-CTR SERP Meta Description (140-155 chars)
+     * Directly answers user intent with full expansion for Google Featured Snippets.
      */
     public static function generateMetaDescription(array $term, ?array $facts = null): string {
         $acronym = trim($term['acronym'] ?? '');
         $fullEn = trim($term['full_form_en'] ?? '');
+        $hindi = !empty($term['full_form_hi']) ? " ({$term['full_form_hi']})" : "";
 
-        // Determine if this entity has verified salary data
-        $hasSalary = false;
-        if ($facts !== null) {
-            $hasSalary = !empty($facts['pay_level_7cpc']) || !empty($facts['basic_pay_min']) || !empty($facts['gross_salary_min']);
-        } elseif (!empty($term['id'])) {
-            try {
-                $fact = Database::fetchOne("SELECT pay_level_7cpc, basic_pay_min, gross_salary_min FROM full_form_entity_facts WHERE full_form_id = :fid LIMIT 1", ['fid' => (int)$term['id']]);
-                if ($fact && (!empty($fact['pay_level_7cpc']) || !empty($fact['basic_pay_min']) || !empty($fact['gross_salary_min']))) {
-                    $hasSalary = true;
-                }
-            } catch (\Throwable $e) {}
+        $desc = "What is {$acronym} full form? {$acronym} stands for {$fullEn}{$hindi}. Check official eligibility criteria, selection process, salary structure & exam updates on Sarkari.online.";
+        if (mb_strlen($desc) > 155) {
+            $desc = "{$acronym} full form is {$fullEn}{$hindi}. Check eligibility criteria, selection process, salary structure and exam details on Sarkari.online.";
         }
-
-        if ($hasSalary) {
-            $desc = "What is {$acronym} full form? Check official statutory meaning in English & Hindi, salary structure, eligibility criteria and selection process on Sarkari.online.";
-        } else {
-            $desc = "What is {$acronym} full form? Check official statutory meaning in English & Hindi, eligibility criteria, exam pattern and selection process on Sarkari.online.";
+        if (mb_strlen($desc) > 155) {
+            $desc = mb_substr($desc, 0, 151) . '...';
         }
-
-        self::validateMetaAgainstExpansion($desc, $fullEn);
         return $desc;
     }
 
     /**
-     * Validate that a meta title or description does NOT leak the literal full expansion.
-     * Future-proofing anti-spoiler gate.
+     * Entity name validator
      */
     public static function validateMetaAgainstExpansion(string $metaText, string $fullFormEn): bool {
-        $cleanExpansion = trim($fullFormEn);
-        if (empty($cleanExpansion) || strlen($cleanExpansion) < 4) {
-            return true;
-        }
-
-        if (stripos($metaText, $cleanExpansion) !== false) {
-            Logger::warning("GlossaryService: Meta text leaks literal full expansion '{$cleanExpansion}' in string: '{$metaText}'");
-            return false;
-        }
-
         return true;
     }
 
@@ -273,6 +221,12 @@ class GlossaryService {
             "@type" => "DefinedTerm",
             "name" => "{$term['acronym']} Full Form",
             "termCode" => $term['acronym'],
+            "alternateName" => array_values(array_filter([
+                $term['full_form_en'],
+                $term['full_form_hi'] ?? null,
+                "{$term['acronym']} Exam",
+                "Full Form of {$term['acronym']}"
+            ])),
             "description" => "{$term['acronym']} stands for {$term['full_form_en']}. Official definition, Hindi meaning, eligibility criteria, and selection scheme.",
             "inDefinedTermSet" => [
                 "@type" => "DefinedTermSet",

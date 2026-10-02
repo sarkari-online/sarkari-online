@@ -52,14 +52,14 @@ include __DIR__ . '/components/header.php';
         <!-- Breadcrumbs -->
         <?php include __DIR__ . '/components/breadcrumbs.php'; ?>
 
-        <!-- Search Bar Header Card -->
-        <div class="search-page-box">
-            <h1 style="font-size: 1.5rem; margin-bottom: 1rem; color: var(--text-main);">
+        <!-- Search Bar Header Card (Executive Redesign) -->
+        <div class="search-page-box" style="background: #ffffff; border: 1px solid #e0e0e0; border-left: 5px solid #f57c00; border-radius: 12px; padding: 1.75rem 2rem; margin-bottom: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.04);">
+            <h1 style="font-size: 1.65rem; font-weight: 800; margin: 0 0 1rem 0; color: #1a237e; letter-spacing: -0.01em;">
                 Search Education &amp; Career Updates
             </h1>
-            <form action="<?= url('search/') ?>" method="GET" class="search-page-form">
-                <input type="search" name="q" value="<?= e($query) ?>" class="search-page-input" placeholder="Search keywords (e.g. NORCET, NEET UG, Cutoff, SSC, Admit Card)..." required autofocus>
-                <button type="submit" class="btn btn-primary">
+            <form action="<?= url('search/') ?>" method="GET" class="search-page-form" style="display: flex; gap: 8px;">
+                <input type="search" name="q" value="<?= e($query) ?>" class="search-page-input" placeholder="Search keywords (e.g. NORCET, NEET UG, Cutoff, SSC, Admit Card, Full Forms)..." required autofocus style="flex: 1; padding: 0.8rem 1rem; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; outline: none; transition: border-color 0.15s;" onfocus="this.style.borderColor='#1a237e'" onblur="this.style.borderColor='#cbd5e1'">
+                <button type="submit" style="background: #1a237e; color: #ffffff; border: none; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: background 0.15s; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;" onmouseover="this.style.background='#f57c00'" onmouseout="this.style.background='#1a237e'">
                     <?= icon('search', 'icon-sm') ?> Search
                 </button>
             </form>
@@ -70,51 +70,51 @@ include __DIR__ . '/components/header.php';
             <!-- Left Results Area -->
             <div>
                 <?php if (!empty($query)): ?>
-                    <div class="search-results-info" style="margin-bottom: 1.25rem;">
+                    <div class="search-results-info" style="margin-bottom: 1.25rem; font-size: 0.95rem; color: #546e7a;">
                         <?php 
                         $totalCombined = $total + count($glossaryMatches);
                         ?>
-                        Showing <strong><?= e((string)$totalCombined) ?></strong> verified result<?= $totalCombined === 1 ? '' : 's' ?> for <em>"<?= e($query) ?>"</em>
+                        Showing <strong style="color: #1a237e;"><?= e((string)$totalCombined) ?></strong> verified result<?= $totalCombined === 1 ? '' : 's' ?> for <em>"<?= e($query) ?>"</em>
                     </div>
                 <?php endif; ?>
 
-                <!-- Full Form / Glossary Matches Section -->
+                <!-- Full Form / Glossary Matches Section (Executive Styling) -->
                 <?php if (!empty($glossaryMatches)): ?>
-                    <div style="background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.75rem; flex-wrap: wrap; gap: 8px;">
-                            <h2 style="font-size: 1.1rem; font-weight: 800; color: #0f172a; margin: 0; display: flex; align-items: center; gap: 8px;">
-                                <span style="background: #1e3a8a; color: #fff; width: 26px; height: 26px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 900;">A-Z</span>
+                    <div style="background: #ffffff; border: 1px solid #e0e0e0; border-top: 4px solid #f57c00; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; border-bottom: 1px solid #f0f0f0; padding-bottom: 0.75rem; flex-wrap: wrap; gap: 8px;">
+                            <h2 style="font-size: 1.15rem; font-weight: 800; color: #1a237e; margin: 0; display: flex; align-items: center; gap: 8px;">
+                                <span style="background: #1a237e; color: #fff; width: 28px; height: 28px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 900;">A-Z</span>
                                 Government &amp; Exam Full Form Matches
                             </h2>
-                            <a href="<?= url('full-forms/') ?>" style="font-size: 0.825rem; font-weight: 700; color: #1e3a8a; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                            <a href="<?= url('full-forms/') ?>" style="font-size: 0.85rem; font-weight: 700; color: #1a237e; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" onmouseover="this.style.color='#f57c00'" onmouseout="this.style.color='#1a237e'">
                                 View All Full Forms &rarr;
                             </a>
                         </div>
                         <div style="display: grid; gap: 0.85rem;">
                             <?php foreach ($glossaryMatches as $gt): ?>
-                                <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.15rem 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 1.25rem; flex-wrap: wrap;">
+                                <div style="background: #fafafa; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.15rem 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 1.25rem; flex-wrap: wrap; transition: all 0.15s ease;" onmouseover="this.style.borderColor='#1a237e'; this.style.background='#ffffff';" onmouseout="this.style.borderColor='#e0e0e0'; this.style.background='#fafafa';">
                                     <div style="flex: 1; min-width: 260px;">
                                         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 0.35rem; flex-wrap: wrap;">
-                                            <span style="font-weight: 900; font-size: 1.2rem; color: #1e3a8a; letter-spacing: 0.02em;"><?= e($gt['acronym']) ?></span>
-                                            <span style="background: #e0f2fe; color: #0369a1; font-size: 0.725rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; text-transform: uppercase;"><?= e($gt['category']) ?></span>
+                                            <span style="font-weight: 900; font-size: 1.2rem; color: #1a237e; letter-spacing: 0.02em;"><?= e($gt['acronym']) ?></span>
+                                            <span style="background: #e8eaf6; color: #1a237e; font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; text-transform: uppercase;"><?= e($gt['category']) ?></span>
                                             <?php if (!empty($gt['conducting_body'])): ?>
-                                                <span style="color: #64748b; font-size: 0.8rem; font-weight: 600;">&bull; <?= e($gt['conducting_body']) ?></span>
+                                                <span style="color: #78909c; font-size: 0.8rem; font-weight: 600;">&bull; <?= e($gt['conducting_body']) ?></span>
                                             <?php endif; ?>
                                         </div>
-                                        <div style="font-size: 1rem; font-weight: 700; color: #1e293b; margin-bottom: 0.4rem;">
+                                        <div style="font-size: 1rem; font-weight: 700; color: #0f172a; margin-bottom: 0.4rem;">
                                             <?= e($gt['full_form_en']) ?>
                                             <?php if (!empty($gt['full_form_hi'])): ?>
-                                                <span style="color: #64748b; font-weight: 500; font-size: 0.925rem;">(<?= e($gt['full_form_hi']) ?>)</span>
+                                                <span style="color: #546e7a; font-weight: 500; font-size: 0.925rem;">(<?= e($gt['full_form_hi']) ?>)</span>
                                             <?php endif; ?>
                                         </div>
                                         <?php if (!empty($gt['overview'])): ?>
-                                            <p style="font-size: 0.835rem; color: #475569; margin: 0; line-height: 1.45; max-width: 680px;">
+                                            <p style="font-size: 0.85rem; color: #546e7a; margin: 0; line-height: 1.5; max-width: 680px;">
                                                 <?= e(mb_substr(strip_tags($gt['overview']), 0, 160)) ?>...
                                             </p>
                                         <?php endif; ?>
                                     </div>
-                                    <a href="<?= url('full-forms/' . $gt['slug'] . '/') ?>" class="btn btn-sm btn-primary" style="font-weight: 700; white-space: nowrap; padding: 0.55rem 1.15rem; border-radius: 6px;">
-                                        View Full Details &rarr;
+                                    <a href="<?= url('full-forms/' . $gt['slug'] . '/') ?>" style="font-weight: 700; white-space: nowrap; padding: 0.6rem 1.2rem; border-radius: 6px; background: #1a237e; color: #ffffff; text-decoration: none; font-size: 0.85rem; transition: background 0.15s ease;" onmouseover="this.style.background='#f57c00'" onmouseout="this.style.background='#1a237e'">
+                                        View Details &rarr;
                                     </a>
                                 </div>
                             <?php endforeach; ?>

@@ -3711,9 +3711,10 @@ p:last-child {
 .static-page-card {
     background-color: var(--bg-surface);
     border: 1px solid var(--border-color);
+    border-top: 4px solid var(--color-accent);
     border-radius: var(--radius-lg);
     padding: clamp(1.5rem, 3.5vw, 3rem);
-    box-shadow: var(--shadow-xs);
+    box-shadow: var(--shadow-sm);
 }
 
 .static-page-header {
@@ -3724,6 +3725,8 @@ p:last-child {
 
 .static-page-title {
     font-size: clamp(1.6rem, 3vw, 2.2rem);
+    font-weight: 800;
+    color: var(--color-primary);
     margin-bottom: 0.5rem;
 }
 
@@ -3734,9 +3737,12 @@ p:last-child {
 
 .static-page-content h2 {
     font-size: 1.35rem;
+    font-weight: 800;
     margin-top: 2rem;
     margin-bottom: 0.75rem;
-    color: var(--text-main);
+    color: var(--color-primary);
+    border-left: 3px solid var(--color-accent);
+    padding-left: 0.75rem;
 }
 
 .static-page-content h3 {
@@ -3841,10 +3847,10 @@ p:last-child {
    Institutional Authority Footer (Sarkari.online Brand Match)
    ========================================================================== */
 .site-footer {
-    background: linear-gradient(180deg, #0a1128 0%, #050a18 100%);
+    background: linear-gradient(180deg, #0f1740 0%, #0a1128 50%, #050a18 100%);
     color: #94a3b8;
     font-size: 0.875rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-top: 4px solid var(--color-accent);
     margin-top: auto;
     position: relative;
 }
