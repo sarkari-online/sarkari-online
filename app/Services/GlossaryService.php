@@ -283,15 +283,17 @@ class GlossaryService {
      * on the FIRST occurrence of an acronym in article content.
      */
     public static function injectGlossaryLinks(string $content): string {
-        self::initTable();
+        static $cachedTerms = null;
         try {
-            // Fetch top active glossary terms
-            $terms = Database::fetchAll("SELECT acronym, slug, full_form_en FROM glossary_terms ORDER BY LENGTH(acronym) DESC LIMIT 150");
-            if (empty($terms)) {
+            if ($cachedTerms === null) {
+                self::initTable();
+                $cachedTerms = Database::fetchAll("SELECT acronym, slug, full_form_en FROM glossary_terms ORDER BY LENGTH(acronym) DESC LIMIT 150") ?: [];
+            }
+            if (empty($cachedTerms)) {
                 return $content;
             }
 
-            foreach ($terms as $t) {
+            foreach ($cachedTerms as $t) {
                 $acr = preg_quote($t['acronym'], '/');
                 // Replace only first occurrence outside HTML tags
                 $pattern = '/(?!(?:[^<]+>|[^>]+<\/a>))\b(' . $acr . ')\b/u';

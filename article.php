@@ -388,6 +388,11 @@ include __DIR__ . '/components/header.php';
                         $renderedContent
                     );
                     
+                    // Contextual internal links to official full-form guides for Googlebot discovery & indexing
+                    if (class_exists('\App\Services\GlossaryService')) {
+                        $renderedContent = \App\Services\GlossaryService::injectGlossaryLinks($renderedContent);
+                    }
+
                     if (str_contains($renderedContent, '<table') && !str_contains($renderedContent, 'table-responsive')) {
                         $renderedContent = preg_replace('/<table\b([^>]*)>/i', '<div class="table-responsive"><table$1>', $renderedContent);
                         $renderedContent = str_replace('</table>', '</table></div>', $renderedContent);

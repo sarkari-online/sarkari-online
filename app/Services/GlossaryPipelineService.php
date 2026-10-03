@@ -421,9 +421,9 @@ PROMPT;
     {
         $filePath = self::getStateFilePath();
         $defaultState = [
-            'enabled' => true,
-            'daily_limit' => 5,
-            'slots' => self::DEFAULT_SLOTS,
+            'enabled' => false,
+            'daily_limit' => 0,
+            'slots' => [],
             'today_date' => date('Y-m-d'),
             'executed_slots' => [],
             'published_today' => []
