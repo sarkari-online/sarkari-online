@@ -133,13 +133,9 @@
                     <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.35rem; display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                         <span>Last Updated: <strong style="color: #cbd5e1;"><?= e($siteLastUpdatedStr) ?></strong></span>
-                        <?php if ($publishedArticlesCount > 0): ?>
-                            <span style="color: rgba(255,255,255,0.15);">&middot;</span>
-                            <span><strong style="color: #f57c00;"><?= $publishedArticlesCount ?></strong> Active Guides</span>
-                        <?php endif; ?>
                         <?php if ($glossaryCount > 0): ?>
                             <span style="color: rgba(255,255,255,0.15);">&middot;</span>
-                            <a href="<?= url('full-forms/') ?>" style="color: #f57c00; text-decoration: none; font-weight: 600;" title="A-Z Government Full Forms"><strong><?= $glossaryCount ?></strong> Full Forms</a>
+                            <a href="<?= url('full-forms/') ?>" style="color: #f57c00; text-decoration: none; font-weight: 600;" title="A-Z Government Full Forms"><strong><?= $glossaryCount ?></strong> Verified Full Forms</a>
                         <?php endif; ?>
                     </div>
                 </div>
