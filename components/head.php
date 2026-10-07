@@ -19,7 +19,7 @@ if (!empty($pageTitle)) {
 $rawDesc = !empty($pageDesc) ? $pageDesc : SITE_DESCRIPTION;
 $metaDesc = SEOHelper::clampDescription($rawDesc, 110, 155);
 
-$metaCanonical = !empty($canonicalUrl) ? $canonicalUrl : SITE_URL . $_SERVER['REQUEST_URI'];
+$metaCanonical = isset($canonicalUrl) ? $canonicalUrl : SITE_URL . $_SERVER['REQUEST_URI'];
 $metaOgType = !empty($ogType) ? $ogType : 'website';
 $metaKeywords = !empty($pageKeywords) ? $pageKeywords : 'Sarkari result, Sarkari online, government jobs 2026, entrance exams 2026, admit cards, answer keys, admission cutoffs, scholarships in India';
 $metaAuthorVal = !empty($metaAuthor) ? $metaAuthor : 'Sarkari.online Editorial Desk';
@@ -80,15 +80,19 @@ if (!$isAdminSession):
     <meta name="title" content="<?= e($metaTitle) ?>">
     <meta name="description" content="<?= e($metaDesc) ?>">
     <meta name="keywords" content="<?= e($metaKeywords) ?>">
+    <?php if (!empty($metaCanonical)): ?>
     <link rel="canonical" href="<?= e($metaCanonical) ?>">
+    <?php endif; ?>
 
     <!-- Crawling & Indexation Directives -->
     <meta name="robots" content="<?= e($metaRobots ?? 'index, follow') ?>">
     <meta name="googlebot" content="<?= e($metaRobots ?? 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1') ?>">
 
     <!-- Multi-Language & Regional Alternate Directives (Hreflang) -->
+    <?php if (!empty($metaCanonical)): ?>
     <link rel="alternate" hreflang="en-IN" href="<?= e($metaCanonical) ?>">
     <link rel="alternate" hreflang="x-default" href="<?= e($metaCanonical) ?>">
+    <?php endif; ?>
 
     <!-- RSS Syndication & WebSub Real-Time Discovery Hubs -->
     <link rel="alternate" type="application/rss+xml" title="<?= e(SITE_NAME) ?> RSS Feed" href="<?= e(url('feed/')) ?>">

@@ -6,10 +6,14 @@
 require_once __DIR__ . '/config.php';
 
 http_response_code(404);
+if (!headers_sent()) {
+    header('X-Robots-Tag: noindex, nofollow', true);
+}
 
 $pageTitle = 'Page Not Found (404) | ' . SITE_NAME;
 $pageDesc = 'The page or notification you are looking for has been relocated or updated. Search our verified database of government job alerts, admit cards, and results.';
-$canonicalUrl = url('404.php');
+$canonicalUrl = '';
+$metaRobots = 'noindex, nofollow';
 $ogType = 'website';
 
 $crumbs = [
