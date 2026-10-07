@@ -15,13 +15,30 @@ use App\Helpers\SEOHelper;
 
 $slug = $_GET['slug'] ?? '';
 $slug = trim($slug, '/');
-$isPreview = isset($_GET['preview']) && (bool)$_GET['preview'];
 
-// Allow viewing drafts if authenticated as admin in preview mode
-$allowDraft = $isPreview && Auth::check();
+// Universal Article Retirement: 301 Redirect all /article/* URLs to relevant Full Forms directory
+if ($slug !== '') {
+    // 1. Try matching any acronym part to a known full form (e.g. upsc, ssc, ctet, rrb)
+    try {
+        $cleanSlugParts = explode('-', $slug);
+        foreach ($cleanSlugParts as $part) {
+            if (strlen($part) >= 3 && !is_numeric($part)) {
+                $term = \App\Database\Database::fetchOne(
+                    "SELECT slug FROM glossary_terms WHERE LOWER(acronym) = :acr OR slug = :s LIMIT 1", 
+                    ['acr' => strtolower($part), 's' => strtolower($part)]
+                );
+                if ($term) {
+                    header("Location: " . url('full-forms/' . $term['slug'] . '/'), true, 301);
+                    exit;
+                }
+            }
+        }
+    } catch (\Throwable $e) {}
 
-// Fetch from Database
-$article = $slug !== '' ? ArticleService::getBySlug($slug, $allowDraft) : null;
+    // 2. Default: Permanently redirect to Full Forms directory hub
+    header("Location: " . url('full-forms/'), true, 301);
+    exit;
+}
 
 // 301 SEO Fallback: If old or renamed slug requested, auto-redirect permanently
 if (!$article && $slug !== '') {

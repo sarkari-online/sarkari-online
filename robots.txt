@@ -14,20 +14,21 @@ User-agent: CCBot
 User-agent: cohere-ai
 User-agent: Bytespider
 Allow: /
-Allow: /latest-jobs/
-Allow: /state-jobs/
-Allow: /jobs/
-Allow: /tools/
 Allow: /full-forms/
-Allow: /article/
-Allow: /category/
 Allow: /about/
 Allow: /contact/
 Allow: /editorial-policy/
-Allow: /ai-policy/
 Allow: /privacy-policy/
 Allow: /terms/
 Allow: /disclaimer/
+
+# Disallow Deprecated Article & Job Feeds
+Disallow: /article/
+Disallow: /jobs/
+Disallow: /latest-jobs/
+Disallow: /state-jobs/
+Disallow: /category/
+Disallow: /tools/
 
 # Disallow Internal & Protected Directories
 Disallow: /cdn-cgi/
@@ -48,5 +49,4 @@ Disallow: /*?*category=*
 
 # Sitemap Location
 Sitemap: https://sarkari.online/sitemap.xml
-Sitemap: https://sarkari.online/news-sitemap.xml
 

@@ -135,7 +135,15 @@
         <nav class="mobile-nav-list" aria-label="Mobile Navigation">
             <?php 
             $currentUrl = $_SERVER['REQUEST_URI'] ?? '';
-            foreach ($primaryNavLinks as $link): 
+            $mobileNavLinks = [
+                ['label' => 'Home', 'url' => ''],
+                ['label' => 'Full Forms (A-Z)', 'url' => 'full-forms/'],
+                ['label' => 'About Us', 'url' => 'about/'],
+                ['label' => 'Contact', 'url' => 'contact/'],
+                ['label' => 'Privacy Policy', 'url' => 'privacy-policy/'],
+                ['label' => 'Terms of Use', 'url' => 'terms/'],
+            ];
+            foreach ($mobileNavLinks as $link): 
                 $isActive = ($link['url'] === '' && ($currentUrl === '/' || $currentUrl === BASE_PATH || $currentUrl === BASE_PATH . '/'))
                             || ($link['url'] !== '' && str_contains($currentUrl, trim($link['url'], '/')));
             ?>
@@ -144,89 +152,6 @@
                     <?= icon('chevron-right', 'icon-sm') ?>
                 </a>
             <?php endforeach; ?>
-
-            <!-- Featured Portals & Tools Cards Section -->
-            <div class="mobile-nav-featured-section">
-                
-                <!-- State Govt Jobs Card -->
-                <a href="<?= url('state-jobs/') ?>" class="mobile-feature-card <?= str_contains($currentUrl, 'state-jobs') ? 'active' : '' ?>" title="State Government Jobs 2026 — 28 States &amp; UTs Employment Hub">
-                    <div class="mobile-feature-icon state-icon">
-                        <?= icon('award', 'icon-sm') ?>
-                    </div>
-                    <div class="mobile-feature-body">
-                        <div class="mobile-feature-top">
-                            <span class="mobile-feature-title">State Govt Jobs</span>
-                            <span class="mobile-feature-badge state-badge">2026</span>
-                        </div>
-                        <span class="mobile-feature-sub">28 States &amp; UTs Employment Hub</span>
-                    </div>
-                    <span class="mobile-feature-arrow"><?= icon('chevron-right', 'icon-xs') ?></span>
-                </a>
-
-                <!-- More: Examination Tools & Portals Accordion Card -->
-                <div class="mobile-accordion-container <?= $isMoreActive ? 'open' : '' ?>">
-                    <button type="button" class="mobile-feature-card mobile-accordion-trigger <?= $isMoreActive ? 'open' : '' ?>" id="mobileMegaToggle" aria-expanded="<?= $isMoreActive ? 'true' : 'false' ?>">
-                        <div class="mobile-feature-icon tools-icon">
-                            <?= icon('layers', 'icon-sm') ?>
-                        </div>
-                        <div class="mobile-feature-body">
-                            <div class="mobile-feature-top">
-                                <span class="mobile-feature-title">More Portals &amp; Tools</span>
-                                <span class="mobile-feature-badge tools-badge">Interactive</span>
-                            </div>
-                            <span class="mobile-feature-sub">Salary, Age, Portals &amp; Guides</span>
-                        </div>
-                        <span class="mobile-accordion-chevron"><?= icon('chevron-right', 'icon-xs') ?></span>
-                    </button>
-
-                    <div class="mobile-accordion-drawer <?= $isMoreActive ? 'open' : '' ?>" id="mobileMegaCollapse">
-                        
-                        <!-- Section 1: Examination & Student Tools -->
-                        <div class="mobile-sub-group">
-                            <div class="mobile-sub-header">
-                                <span class="mobile-sub-header-title">Examination Tools</span>
-                                <span class="mobile-sub-header-badge">Interactive</span>
-                            </div>
-                            <div class="mobile-sub-list">
-                                <?php foreach ($toolsLinks as $tl): 
-                                    $isTlActive = str_contains($currentUrl, trim($tl['url'], '/'));
-                                ?>
-                                    <a href="<?= url($tl['url']) ?>" class="mobile-sub-item <?= $isTlActive ? 'active' : '' ?>" title="<?= e($tl['label']) ?> — <?= e($tl['desc']) ?>">
-                                        <span class="mobile-sub-icon"><?= icon($tl['icon'], 'icon-xs') ?></span>
-                                        <div class="mobile-sub-text">
-                                            <span class="mobile-sub-title"><?= e($tl['label']) ?></span>
-                                            <span class="mobile-sub-desc"><?= e($tl['desc']) ?></span>
-                                        </div>
-                                    </a>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-
-                        <!-- Section 2: Academic & Career Portals -->
-                        <div class="mobile-sub-group">
-                            <div class="mobile-sub-header">
-                                <span class="mobile-sub-header-title">Academic &amp; Career Portals</span>
-                                <span class="mobile-sub-header-badge">Live Updates</span>
-                            </div>
-                            <div class="mobile-sub-list">
-                                <?php foreach ($portalLinks as $pl): 
-                                    $isPlActive = str_contains($currentUrl, trim($pl['url'], '/'));
-                                ?>
-                                    <a href="<?= url($pl['url']) ?>" class="mobile-sub-item <?= $isPlActive ? 'active' : '' ?>" title="<?= e($pl['label']) ?> — <?= e($pl['desc']) ?>">
-                                        <span class="mobile-sub-icon"><?= icon($pl['icon'], 'icon-xs') ?></span>
-                                        <div class="mobile-sub-text">
-                                            <span class="mobile-sub-title"><?= e($pl['label']) ?></span>
-                                            <span class="mobile-sub-desc"><?= e($pl['desc']) ?></span>
-                                        </div>
-                                    </a>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-
-            </div>
         </nav>
 
         <div style="padding: 1.25rem; margin-top: auto; border-top: 1px solid var(--border-color); font-size: 0.8125rem; color: var(--text-muted);">

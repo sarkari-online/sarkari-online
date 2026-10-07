@@ -36,56 +36,56 @@
         <div class="container">
             <div class="footer-grid" style="display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 2.5rem;">
                 
-                <!-- Column 1: Explore Portal -->
+                <!-- Column 1: Full Forms Directory -->
                 <div class="footer-col">
-                    <h3 style="color: #ffffff; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 1.25rem 0; padding-bottom: 0.6rem; border-bottom: 2px solid #f57c00; display: inline-block;">Explore Portal</h3>
+                    <h3 style="color: #ffffff; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 1.25rem 0; padding-bottom: 0.6rem; border-bottom: 2px solid #f57c00; display: inline-block;">Full Forms (A-Z)</h3>
                     <ul class="footer-links-list">
-                        <li><a href="<?= url('category/exam-results/') ?>" class="footer-link" title="Sarkari Result — Latest Exam Results">Sarkari Result</a></li>
-                        <li><a href="<?= url('latest-jobs/') ?>" class="footer-link" title="Latest Government Jobs 2026">Latest Govt Jobs 2026</a></li>
-                        <li><a href="<?= url('category/admit-cards/') ?>" class="footer-link" title="Admit Cards & Hall Tickets">Admit Cards</a></li>
-                        <li><a href="<?= url('category/answer-keys/') ?>" class="footer-link" title="Official Answer Keys">Answer Keys</a></li>
-                        <li><a href="<?= url('category/exam-dates/') ?>" class="footer-link" title="Exam Calendars 2026–27">Exam Dates 2026-27</a></li>
-                        <li><a href="<?= url('category/scholarships/') ?>" class="footer-link" title="Scholarships & Financial Aid">Scholarships</a></li>
-                        <li><a href="<?= url('state-jobs/') ?>" class="footer-link" title="State Government Jobs — 28 States">State Jobs (28 States)</a></li>
-                        <li><a href="<?= url('full-forms/') ?>" class="footer-link" title="A-Z Government Full Forms">Full Forms (A-Z)</a></li>
+                        <li><a href="<?= url('full-forms/') ?>" class="footer-link" title="Full Forms Master Directory">All Full Forms A-Z</a></li>
+                        <li><a href="<?= url('full-forms/#letter-A') ?>" class="footer-link" title="Full Forms starting with A">Letter A to D Full Forms</a></li>
+                        <li><a href="<?= url('full-forms/#letter-E') ?>" class="footer-link" title="Full Forms starting with E">Letter E to H Full Forms</a></li>
+                        <li><a href="<?= url('full-forms/#letter-I') ?>" class="footer-link" title="Full Forms starting with I">Letter I to L Full Forms</a></li>
+                        <li><a href="<?= url('full-forms/#letter-M') ?>" class="footer-link" title="Full Forms starting with M">Letter M to P Full Forms</a></li>
+                        <li><a href="<?= url('full-forms/#letter-Q') ?>" class="footer-link" title="Full Forms starting with Q">Letter Q to T Full Forms</a></li>
+                        <li><a href="<?= url('full-forms/#letter-U') ?>" class="footer-link" title="Full Forms starting with U">Letter U to Z Full Forms</a></li>
                     </ul>
                 </div>
 
-                <!-- Column 2: National Exams -->
+                <!-- Column 2: Popular National Full Forms -->
                 <div class="footer-col">
-                    <h3 style="color: #ffffff; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 1.25rem 0; padding-bottom: 0.6rem; border-bottom: 2px solid #f57c00; display: inline-block;">National Exams</h3>
+                    <h3 style="color: #ffffff; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 1.25rem 0; padding-bottom: 0.6rem; border-bottom: 2px solid #f57c00; display: inline-block;">Top Full Forms</h3>
                     <ul class="footer-links-list">
-                        <li><a href="<?= url('category/entrance-exams/') ?>" class="footer-link" title="UPSC Civil Services Examination">UPSC Civil Services</a></li>
-                        <li><a href="<?= url('category/career-guides/') ?>" class="footer-link" title="NTA NEET, JEE & CUET">NTA (NEET / JEE / CUET)</a></li>
-                        <li><a href="<?= url('category/government-jobs/') ?>" class="footer-link" title="SSC CGL, CHSL, GD Recruitment">SSC Recruitment</a></li>
-                        <li><a href="<?= url('category/government-jobs/') ?>" class="footer-link" title="Railway RRB NTPC, Group D">Railway (RRB) Jobs</a></li>
-                        <li><a href="<?= url('category/school-boards/') ?>" class="footer-link" title="CBSE & State Board Results">CBSE & State Boards</a></li>
-                        <li><a href="<?= url('category/entrance-exams/') ?>" class="footer-link" title="CUET Admissions">Central University (CUET)</a></li>
+                        <li><a href="<?= url('full-forms/upsc/') ?>" class="footer-link" title="UPSC Full Form">UPSC Full Form</a></li>
+                        <li><a href="<?= url('full-forms/ssc/') ?>" class="footer-link" title="SSC Full Form">SSC Full Form</a></li>
+                        <li><a href="<?= url('full-forms/rrb/') ?>" class="footer-link" title="RRB Full Form">RRB Full Form</a></li>
+                        <li><a href="<?= url('full-forms/neet/') ?>" class="footer-link" title="NEET Full Form">NEET Full Form</a></li>
+                        <li><a href="<?= url('full-forms/gate/') ?>" class="footer-link" title="GATE Full Form">GATE Full Form</a></li>
+                        <li><a href="<?= url('full-forms/nda/') ?>" class="footer-link" title="NDA Full Form">NDA Full Form</a></li>
+                        <li><a href="<?= url('full-forms/ibps/') ?>" class="footer-link" title="IBPS Full Form">IBPS Full Form</a></li>
+                        <li><a href="<?= url('full-forms/ctet/') ?>" class="footer-link" title="CTET Full Form">CTET Full Form</a></li>
                     </ul>
                 </div>
 
-                <!-- Column 3: Tools & Resources -->
+                <!-- Column 3: Defense & Banking -->
                 <div class="footer-col">
-                    <h3 style="color: #ffffff; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 1.25rem 0; padding-bottom: 0.6rem; border-bottom: 2px solid #f57c00; display: inline-block;">Tools & Resources</h3>
+                    <h3 style="color: #ffffff; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 1.25rem 0; padding-bottom: 0.6rem; border-bottom: 2px solid #f57c00; display: inline-block;">Banking &amp; Defense</h3>
                     <ul class="footer-links-list">
-                        <li><a href="<?= url('tools/7th-pay-commission-salary-calculator/') ?>" class="footer-link" title="7th Pay Commission Salary Calculator">7th Pay Calculator</a></li>
-                        <li><a href="<?= url('tools/age-calculator/') ?>" class="footer-link" title="Govt Job Age Eligibility Calculator">Age Calculator</a></li>
-                        <li><a href="<?= url('tools/cgpa-to-percentage-calculator/') ?>" class="footer-link" title="CGPA to Percentage Converter">CGPA to % Converter</a></li>
-                        <li><a href="<?= url('how-to-apply/') ?>" class="footer-link" title="Application Guides">How to Apply (Guides)</a></li>
-                        <li><a href="<?= url('full-forms/') ?>" class="footer-link" title="Government Full Forms A-Z Directory">Govt Full Forms (A-Z)</a></li>
-                        <li><a href="<?= url('category/career-guides/') ?>" class="footer-link" title="Career Roadmaps & Guides">Career Guides</a></li>
+                        <li><a href="<?= url('full-forms/rbi/') ?>" class="footer-link" title="RBI Full Form">RBI Full Form</a></li>
+                        <li><a href="<?= url('full-forms/sbi/') ?>" class="footer-link" title="SBI Full Form">SBI Full Form</a></li>
+                        <li><a href="<?= url('full-forms/drdo/') ?>" class="footer-link" title="DRDO Full Form">DRDO Full Form</a></li>
+                        <li><a href="<?= url('full-forms/isro/') ?>" class="footer-link" title="ISRO Full Form">ISRO Full Form</a></li>
+                        <li><a href="<?= url('full-forms/cds/') ?>" class="footer-link" title="CDS Full Form">CDS Full Form</a></li>
+                        <li><a href="<?= url('full-forms/afcat/') ?>" class="footer-link" title="AFCAT Full Form">AFCAT Full Form</a></li>
+                        <li><a href="<?= url('full-forms/rpf/') ?>" class="footer-link" title="RPF Full Form">RPF Full Form</a></li>
                     </ul>
                 </div>
 
                 <!-- Column 4: Trust & Legal -->
                 <div class="footer-col">
-                    <h3 style="color: #ffffff; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 1.25rem 0; padding-bottom: 0.6rem; border-bottom: 2px solid #f57c00; display: inline-block;">Trust & Legal</h3>
+                    <h3 style="color: #ffffff; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 1.25rem 0; padding-bottom: 0.6rem; border-bottom: 2px solid #f57c00; display: inline-block;">Trust &amp; Legal</h3>
                     <ul class="footer-links-list">
-                        <li><a href="<?= url('about/') ?>" class="footer-link" title="About Sarkari.online Editorial Desk">About Us</a></li>
-                        <li><a href="<?= url('contact/') ?>" class="footer-link" title="Contact & Grievance Redressal">Contact Us</a></li>
-                        <li><a href="<?= url('editorial-policy/') ?>" class="footer-link" title="Editorial Policy & Standards">Editorial Policy</a></li>
-                        <li><a href="<?= url('fact-checking-policy/') ?>" class="footer-link" title="Fact-Checking Methodology">Fact-Checking Policy</a></li>
-                        <li><a href="<?= url('ai-policy/') ?>" class="footer-link" title="AI Transparency Code">AI Transparency</a></li>
+                        <li><a href="<?= url('about/') ?>" class="footer-link" title="About Sarkari.online">About Us</a></li>
+                        <li><a href="<?= url('contact/') ?>" class="footer-link" title="Contact Us">Contact Us</a></li>
+                        <li><a href="<?= url('editorial-policy/') ?>" class="footer-link" title="Editorial Policy">Editorial Policy</a></li>
                         <li><a href="<?= url('disclaimer/') ?>" class="footer-link" title="Statutory Disclaimer">Disclaimer</a></li>
                         <li><a href="<?= url('privacy-policy/') ?>" class="footer-link" title="Privacy Policy">Privacy Policy</a></li>
                         <li><a href="<?= url('terms/') ?>" class="footer-link" title="Terms of Service">Terms of Service</a></li>

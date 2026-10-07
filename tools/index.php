@@ -5,11 +5,9 @@
  */
 require_once dirname(__DIR__) . '/config.php';
 
-$pageTitle = 'Student Utilities & Exam Calculators 2026 | ' . SITE_NAME;
-$pageDesc = 'Free interactive calculators for students and job seekers: calculate 7th Pay Commission salary, DA, HRA, CGPA percentage, and age eligibility.';
-
-$pageKeywords = 'sarkari tools, exam calculators, 7th pay commission calculator, cgpa to percentage converter, cbse percentage calculator, in hand salary calculator';
-$canonicalUrl = url('tools/');
+// Universal Tools Retirement: 301 Redirect all /tools/ to Full Forms directory
+header("Location: " . url('full-forms/'), true, 301);
+exit;
 
 $crumbs = [
     ['label' => 'Home', 'url' => url()],

@@ -9,14 +9,9 @@ require_once __DIR__ . '/config.php';
 use App\Services\StateJobService;
 use App\Helpers\Sanitizer;
 
-$stateSlug = Sanitizer::string($_GET['state'] ?? '');
-$state = StateJobService::getStateBySlug($stateSlug);
-
-if (!$state) {
-    http_response_code(404);
-    require __DIR__ . '/404.php';
-    exit;
-}
+// Universal State Job Detail Retirement: 301 Redirect all /jobs/* to Full Forms directory
+header("Location: " . url('full-forms/'), true, 301);
+exit;
 
 $currentPage = max(1, (int)($_GET['page'] ?? 1));
 $articlesData = StateJobService::getArticlesByState($state, 12, $currentPage);

@@ -10,10 +10,9 @@ require_once __DIR__ . '/config.php';
 use App\Services\JobDirectoryService;
 use App\Services\StateJobService;
 
-// Fetch all active jobs
-$allJobs = JobDirectoryService::getActiveJobs(60);
-$stats = JobDirectoryService::getDirectoryStats($allJobs);
-$allStates = StateJobService::getAllStates();
+// Universal Jobs Retirement: 301 Redirect all /latest-jobs/ to Full Forms directory
+header("Location: " . url('full-forms/'), true, 301);
+exit;
 
 // SEO Meta Variables
 $pageTitle = 'Latest Govt Jobs 2026: Online Forms & Notifications';

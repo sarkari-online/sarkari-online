@@ -150,77 +150,37 @@ if (!empty($cleanPath) && $cleanPath !== 'index.php') {
     exit;
 }
 
-use App\Services\ArticleService;
-use App\Services\CategoryService;
-use App\Services\TrendService;
+use App\Database\Database;
+use App\Services\GlossaryService;
 use App\Services\CrawlEfficiencyService;
 
-// SEO Meta Variables
-$pageTitle = 'Sarkari.online — Sarkari Result, Latest Govt Jobs 2026';
-$pageDesc = 'Sarkari.online provides verified real-time alerts for Sarkari Result, Latest Government Jobs 2026, Admit Cards, Exam Dates, and Answer Keys across India.';
-
-$pageKeywords = 'sarkari.online, sarkari online, sarkari result, sarkari result 2026, latest govt jobs, sarkari naukri 2026, admit card, exam dates, answer key';
+// SEO Meta Variables - Dedicated to Full Forms & Statutory Lexicon
+$pageTitle = 'Sarkari.online — Government & Examination Full Forms (A-Z Directory)';
+$pageDesc = 'Explore authentic expansions, Hindi meanings, eligibility rules, and selection schemes for UPSC, SSC, RRB, NEET, NDA, and 200+ Indian government examinations.';
+$pageKeywords = 'full form, full forms list, upsc full form, ssc full form, rrb full form, neet full form, government exam full forms, sarkari result full form, exam acronyms a to z';
 $canonicalUrl = SITE_URL . '/';
 $ogType = 'website';
 
-// Fetch Live Articles from Database
-$dbArticles = ArticleService::getLatestPublished(12);
+// ── HTTP Crawl Efficiency & Cache Validation Headers ──
+$homepageModTime = Database::fetchValue("SELECT GREATEST(COALESCE(MAX(updated_at), '1970-01-01'), COALESCE(MAX(created_at), '1970-01-01')) FROM glossary_terms") ?: 'now';
+CrawlEfficiencyService::handleConditionalGet('home-glossary-index', $homepageModTime);
 
-// ── HTTP Crawl Efficiency & Cache Validation Headers (Googlebot 304 & ETag) ──
-$homepageModTime = \App\Database\Database::fetchValue("SELECT GREATEST(COALESCE(MAX(updated_at), '1970-01-01'), COALESCE(MAX(published_at), '1970-01-01')) FROM articles WHERE status = 'published'") ?: (!empty($dbArticles[0]['updated_at']) ? $dbArticles[0]['updated_at'] : 'now');
-CrawlEfficiencyService::handleConditionalGet('home-index', $homepageModTime);
+// Fetch Total Full Forms
+$totalTermsCount = 212;
+try {
+    $countDb = (int)Database::fetchValue("SELECT COUNT(*) FROM glossary_terms");
+    if ($countDb > 0) $totalTermsCount = $countDb;
+} catch (\Throwable $e) {}
 
-if (!empty($dbArticles)) {
-    $hotArticles = array_slice($dbArticles, 0, 8);
-    $featured = $dbArticles[0];
-    $secondary = array_slice($dbArticles, 1, 4);
-    $latestArticles = $dbArticles;
-} else {
-    $heroData = MockData::getHeroArticles();
-    $featured = $heroData['featured'];
-    $secondary = $heroData['secondary'];
-    $hotArticles = MockData::getLatestArticles(8);
-    $latestArticles = MockData::getLatestArticles(6);
-}
-
-// Category-Specific Database Records
-$examUpdates = ArticleService::getLatestPublished(5, 3); // Category 3: Exam Dates
-if (count($examUpdates) < 5) {
-    // Backfill so Left column always has 5 items matching Right column Trending (5 items)
-    $existingIds = array_column($examUpdates, 'id');
-    $moreExamUpdates = ArticleService::getLatestPublished(10);
-    foreach ($moreExamUpdates as $meu) {
-        if (count($examUpdates) >= 5) break;
-        if (!in_array($meu['id'], $existingIds, true)) {
-            $examUpdates[] = $meu;
-            $existingIds[] = $meu['id'];
-        }
-    }
-}
-
-$govtJobs = ArticleService::getLatestPublished(3, 6); // Category 6: Government Jobs
-if (empty($govtJobs)) {
-    $govtJobs = array_slice($dbArticles, 0, 3);
-}
-
-$scholarships = ArticleService::getLatestPublished(3, 7); // Category 7: Scholarships
-if (empty($scholarships)) {
-    $scholarships = array_slice($dbArticles, 0, 3);
-}
-
-$careerGuides = ArticleService::getLatestPublished(3, 9); // Category 9: Career Guides
-if (empty($careerGuides)) {
-    $careerGuides = array_slice($dbArticles, 0, 3);
-}
-
-$studentTech = ArticleService::getLatestPublished(2, 10); // Category 10: Student Tech
-if (empty($studentTech)) {
-    $studentTech = array_slice($dbArticles, 0, 2);
-}
-
-$popularGuides = array_slice($dbArticles, 0, 4);
-$categoriesList = CategoryService::getAll();
-$lcpImagePreload = !empty($featured['featured_image']) ? url($featured['featured_image']) : null;
+// Top National Categories
+$featuredCategories = [
+    ['slug' => 'civil_services', 'name' => 'Civil Services & Administration', 'icon' => 'award', 'count' => 'UPSC, IAS, IPS, IFS'],
+    ['slug' => 'defense_police', 'name' => 'Defense & Armed Forces', 'icon' => 'shield', 'count' => 'NDA, CDS, AFCAT, CAPF'],
+    ['slug' => 'staff_selection', 'name' => 'Staff Selection & SSC', 'icon' => 'briefcase', 'count' => 'SSC, CGL, CHSL, MTS, GD'],
+    ['slug' => 'railway', 'name' => 'Railways (RRB)', 'icon' => 'compass', 'count' => 'RRB, NTPC, ALP, RPF'],
+    ['slug' => 'banking_insurance', 'name' => 'Banking & Insurance', 'icon' => 'layers', 'count' => 'RBI, SBI, IBPS, LIC, NABARD'],
+    ['slug' => 'medical_engineering', 'name' => 'Entrance & Higher Education', 'icon' => 'graduation-cap', 'count' => 'NEET, JEE, GATE, UGC, NTA'],
+];
 
 include __DIR__ . '/components/head.php';
 include __DIR__ . '/components/header.php';
@@ -228,349 +188,81 @@ include __DIR__ . '/components/header.php';
 
 <main class="site-main" style="padding-top: 2rem;">
     <div class="container">
-        <!-- 1. Major Announcement Hero Card (Matches Mockup) -->
+        
+        <!-- 1. Master Directory Hero Card -->
         <?php include __DIR__ . '/components/featured-card.php'; ?>
 
-        <!-- 2. A-Z Full Forms Alphabet Bar (Matches Mockup) -->
+        <!-- 2. A-Z Full Forms Alphabet Bar -->
         <?php include __DIR__ . '/components/home-alphabet-bar.php'; ?>
 
-        <!-- 3. 4-Column Candidate Action Feed (Important Dates Timeline | Results | Admit Cards | Jobs) -->
-        <?php include __DIR__ . '/components/fast-feed-columns.php'; ?>
+        <!-- 3. High-Value Full Forms Hub & Category Grid -->
+        <?php include __DIR__ . '/components/home-glossary-hub.php'; ?>
 
-        <!-- 3. Two-Column Layout: Exam Updates + Trending 1-5 -->
-        <section class="content-section">
-            <div class="hero-editorial-grid">
-                
-                <!-- Left: Exam Updates (Dates, Admit Cards, Results) -->
-                <div>
-                    <div class="section-header">
-                        <h2 class="section-title">
-                            <?= icon('calendar') ?>
-                            <span>Exam Updates &amp; Schedules</span>
-                        </h2>
-                        <a href="<?= url('category/exam-dates/') ?>" class="section-link-more" title="View Full Exam Calendar &amp; Schedules 2026">
-                            Calendar <?= icon('chevron-right', 'icon-sm') ?>
-                        </a>
-                    </div>
+        <!-- 4. Domain & Sector Quick Directory -->
+        <section class="content-section" style="margin: 2.5rem 0;">
+            <div class="section-header" style="border-bottom: 2px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
+                <h2 class="section-title" style="font-size: 1.25rem; font-weight: 800; color: #1a237e;">
+                    Browse Full Forms by Sector &amp; Domain
+                </h2>
+                <span style="font-size: 0.85rem; color: #64748b;">Curated across all central and state regulatory sectors</span>
+            </div>
 
-                    <div style="display: flex; flex-direction: column; gap: 0.85rem;">
-                        <?php foreach ($examUpdates as $exam): ?>
-                            <div class="exam-update-card">
-                                <div class="exam-update-info">
-                                    <div class="card-meta" style="margin-bottom: 0.25rem;">
-                                        <span class="badge badge-pill" style="background: var(--color-primary-light); color: var(--color-primary); font-weight: 700; font-size: 0.7rem; border: 1px solid var(--border-color);">
-                                            <?= e($exam['category_name'] ?? 'Exam Notice') ?>
-                                        </span>
-                                        <span><?= format_date($exam['published_at'] ?? 'now') ?></span>
-                                    </div>
-                                    <h3 class="exam-update-title">
-                                        <a href="<?= url('article/' . $exam['slug'] . '/') ?>" title="<?= e($exam['title']) ?>"><?= e($exam['title']) ?></a>
-                                    </h3>
-                                    <div class="exam-update-meta">
-                                        <span><strong>Source:</strong> <?= e($exam['source_name'] ?? 'Official Authority') ?></span>
-                                    </div>
-                                </div>
-                                <div>
-                                    <a href="<?= url('article/' . $exam['slug'] . '/') ?>" class="btn btn-sm btn-outline" title="<?= e($exam['title']) ?> — Read Notice Details">
-                                        Details
-                                    </a>
-                                </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.25rem;">
+                <?php foreach ($featuredCategories as $fc): ?>
+                    <a href="<?= url('full-forms/?category=' . $fc['slug']) ?>" style="background: #ffffff; border: 1px solid #e2e8f0; border-left: 4px solid #1a237e; border-radius: 10px; padding: 1.25rem; text-decoration: none; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.2s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.04);" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 15px rgba(0,0,0,0.08)';" onmouseout="this.style.transform='none';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.04)';">
+                        <div>
+                            <div style="font-size: 1rem; font-weight: 800; color: #1a237e; margin-bottom: 0.35rem;">
+                                <?= htmlspecialchars($fc['name']) ?>
                             </div>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-
-                <!-- Right: Trending Now (Rank 1 to 5) -->
-                <div>
-                    <div class="section-header">
-                        <h2 class="section-title">
-                            <?= icon('trending-up') ?>
-                            <span>Trending Now</span>
-                        </h2>
-                    </div>
-
-                    <?php include __DIR__ . '/components/trending-list.php'; ?>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- 4. Latest Government Jobs -->
-        <section class="content-section" aria-labelledby="sec-govt-jobs">
-            <div class="section-header">
-                <h2 class="section-title" id="sec-govt-jobs">
-                    <?= icon('briefcase') ?>
-                    <span>Latest Government Jobs</span>
-                </h2>
-                <a href="<?= url('latest-jobs/') ?>" class="section-link-more" title="View Complete Latest Government Jobs Directory">
-                    Jobs Directory <?= icon('chevron-right', 'icon-sm') ?>
-                </a>
-            </div>
-
-            <div class="grid-3">
-                <?php foreach ($govtJobs as $article): ?>
-                    <?php include __DIR__ . '/components/article-card.php'; ?>
-                <?php endforeach; ?>
-            </div>
-        </section>
-
-        <!-- 5. Scholarships & Student Opportunities -->
-        <section class="content-section" aria-labelledby="sec-scholarships">
-            <div class="section-header">
-                <h2 class="section-title" id="sec-scholarships">
-                    <?= icon('graduation-cap') ?>
-                    <span>Scholarships &amp; Student Opportunities</span>
-                </h2>
-                <a href="<?= url('category/scholarships/') ?>" class="section-link-more" title="View All National &amp; State Scholarship Schemes">
-                    All Scholarships <?= icon('chevron-right', 'icon-sm') ?>
-                </a>
-            </div>
-
-            <div class="grid-3">
-                <?php foreach ($scholarships as $article): ?>
-                    <?php include __DIR__ . '/components/article-card.php'; ?>
-                <?php endforeach; ?>
-            </div>
-        </section>
-
-        <!-- 6. Career Guides & Evergreen Roadmaps -->
-        <section class="content-section" aria-labelledby="sec-career-guides">
-            <div class="section-header">
-                <h2 class="section-title" id="sec-career-guides">
-                    <?= icon('compass') ?>
-                    <span>Career Guides &amp; Roadmaps</span>
-                </h2>
-                <a href="<?= url('category/career-guides/') ?>" class="section-link-more" title="View All Career Guides &amp; Examination Roadmaps">
-                    All Guides <?= icon('chevron-right', 'icon-sm') ?>
-                </a>
-            </div>
-
-            <div class="grid-3">
-                <?php foreach ($careerGuides as $article): ?>
-                    <?php include __DIR__ . '/components/article-card.php'; ?>
-                <?php endforeach; ?>
-            </div>
-        </section>
-
-        <!-- 7. Two-Column: Student Tech & AI (Secondary) + Popular Evergreen Guides -->
-        <section class="content-section">
-            <div class="grid-2">
-                
-                <!-- Examination Tools & Student Calculators -->
-                <div>
-                    <div class="section-header">
-                        <h2 class="section-title">
-                            <?= icon('layers') ?>
-                            <span>Student Utilities &amp; Exam Tools</span>
-                        </h2>
-                        <a href="<?= url('tools/') ?>" class="section-link-more" title="View All Interactive Examination &amp; Student Tools">
-                            All Tools <?= icon('chevron-right', 'icon-sm') ?>
-                        </a>
-                    </div>
-
-                    <div style="display: flex; flex-direction: column; gap: 0.85rem;">
-                        
-                        <!-- Tool 1: Age Calculator -->
-                        <div class="card-compact-row" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1rem 1.15rem; display: flex; gap: 1rem; align-items: center; transition: all 0.2s ease;">
-                            <div style="width: 48px; height: 48px; border-radius: 10px; background: var(--color-primary-light); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; color: var(--color-primary); flex-shrink: 0;">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                            </div>
-                            <div style="flex: 1; min-width: 0;">
-                                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 0.25rem;">
-                                    <span style="font-size: 0.6875rem; font-weight: 700; color: var(--color-primary); background: var(--color-primary-light); padding: 2px 7px; border-radius: 4px;">DoPT Rules</span>
-                                    <span style="font-size: 0.7rem; color: var(--text-light);">2026 Cutoff</span>
-                                </div>
-                                <h3 style="font-size: 0.95rem; font-weight: 700; line-height: 1.35; margin: 0 0 0.25rem 0;">
-                                    <a href="<?= url('tools/age-calculator/') ?>" style="color: var(--text-main); text-decoration: none;" title="Govt Job Age Calculator &amp; Eligibility Checker">Govt Job Age Calculator &amp; Eligibility Checker</a>
-                                </h3>
-                                <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0 0 0.35rem 0; line-height: 1.4;">Calculate exact age &amp; category relaxation (UR, OBC, SC, ST) for UPSC &amp; SSC.</p>
-                                <a href="<?= url('tools/age-calculator/') ?>" style="font-size: 0.775rem; font-weight: 700; color: var(--color-primary); display: inline-flex; align-items: center; gap: 4px; text-decoration: none;" title="Open Govt Job Age Calculator">
-                                    <span>Open Age Calculator</span>
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-                                </a>
+                            <div style="font-size: 0.825rem; color: #64748b; line-height: 1.5;">
+                                <?= htmlspecialchars($fc['count']) ?>
                             </div>
                         </div>
-
-                        <!-- Tool 2: 7th Pay Salary Calculator -->
-                        <div class="card-compact-row" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1rem 1.15rem; display: flex; gap: 1rem; align-items: center; transition: all 0.2s ease;">
-                            <div style="width: 48px; height: 48px; border-radius: 10px; background: var(--color-success-light); border: 1px solid var(--color-success-light); display: flex; align-items: center; justify-content: center; color: var(--color-india-green); flex-shrink: 0;">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                            </div>
-                            <div style="flex: 1; min-width: 0;">
-                                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 0.25rem;">
-                                    <span style="font-size: 0.6875rem; font-weight: 700; color: var(--color-india-green); background: var(--color-success-light); padding: 2px 7px; border-radius: 4px;">7th CPC Matrix</span>
-                                    <span style="font-size: 0.7rem; color: var(--text-light);">50% DA Updated</span>
-                                </div>
-                                <h3 style="font-size: 0.95rem; font-weight: 700; line-height: 1.35; margin: 0 0 0.25rem 0;">
-                                    <a href="<?= url('tools/7th-pay-commission-salary-calculator/') ?>" style="color: var(--text-main); text-decoration: none;" title="7th Pay Commission Salary &amp; In-Hand Calculator">7th Pay Commission Salary &amp; In-Hand Calculator</a>
-                                </h3>
-                                <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0 0 0.35rem 0; line-height: 1.4;">Calculate post-wise monthly in-hand net salary, HRA &amp; mandatory NPS deductions.</p>
-                                <a href="<?= url('tools/7th-pay-commission-salary-calculator/') ?>" style="font-size: 0.775rem; font-weight: 700; color: var(--color-primary); display: inline-flex; align-items: center; gap: 4px; text-decoration: none;" title="Open 7th Pay Salary Calculator">
-                                    <span>Open Salary Calculator</span>
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-                                </a>
-                            </div>
+                        <div style="margin-top: 1rem; font-size: 0.775rem; font-weight: 700; color: #f57c00; display: inline-flex; align-items: center; gap: 4px;">
+                            <span>Explore Sector</span>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
                         </div>
-
-                        <!-- Tool 3: CGPA Converter -->
-                        <div class="card-compact-row" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1rem 1.15rem; display: flex; gap: 1rem; align-items: center; transition: all 0.2s ease;">
-                            <div style="width: 48px; height: 48px; border-radius: 10px; background: var(--color-primary-light); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; color: var(--color-primary); flex-shrink: 0;">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-                            </div>
-                            <div style="flex: 1; min-width: 0;">
-                                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 0.25rem;">
-                                    <span style="font-size: 0.6875rem; font-weight: 700; color: var(--color-primary); background: var(--color-primary-light); padding: 2px 7px; border-radius: 4px;">CBSE &amp; AICTE Formula</span>
-                                    <span style="font-size: 0.7rem; color: var(--text-light);">10-Point Scale</span>
-                                </div>
-                                <h3 style="font-size: 0.95rem; font-weight: 700; line-height: 1.35; margin: 0 0 0.25rem 0;">
-                                    <a href="<?= url('tools/cgpa-to-percentage-calculator/') ?>" style="color: var(--text-main); text-decoration: none;" title="CGPA to Percentage &amp; Marks Converter">CGPA to Percentage &amp; Marks Converter</a>
-                                </h3>
-                                <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0 0 0.35rem 0; line-height: 1.4;">Convert CGPA to exact marks &amp; percentages for CBSE, B.Tech, and State Universities.</p>
-                                <a href="<?= url('tools/cgpa-to-percentage-calculator/') ?>" style="font-size: 0.775rem; font-weight: 700; color: var(--color-primary); display: inline-flex; align-items: center; gap: 4px; text-decoration: none;" title="Open CGPA to Percentage Converter">
-                                    <span>Open CGPA Converter</span>
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-                                </a>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-
-                <!-- Popular Evergreen Guides -->
-                <div>
-                    <div class="section-header">
-                        <h2 class="section-title">
-                            <?= icon('award') ?>
-                            <span>Popular High-Value Guides</span>
-                        </h2>
-                    </div>
-
-                    <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem;">
-                        <?php foreach ($popularGuides as $pop): ?>
-                            <div style="display: flex; gap: 0.85rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-subtle);">
-                                <div style="font-size: 1.1rem; font-weight: 800; color: var(--color-primary); min-width: 20px;">
-                                    <?= icon('check-circle', 'icon-sm') ?>
-                                </div>
-                                <div>
-                                    <span class="badge" style="font-size: 0.7rem; font-weight: 700; background: var(--color-primary-light); color: var(--color-primary); margin-bottom: 0.25rem;"><?= e($pop['category_name'] ?? 'Guide') ?></span>
-                                    <h3 style="font-size: 0.9375rem; font-weight: 700; line-height: 1.35; margin-bottom: 0.25rem;">
-                                        <a href="<?= url('article/' . $pop['slug'] . '/') ?>" title="<?= e($pop['title']) ?>"><?= e($pop['title']) ?></a>
-                                    </h3>
-                                    <span style="font-size: 0.75rem; color: var(--text-muted);"><?= format_date($pop['published_at'] ?? 'now') ?></span>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- 8. Interactive Topic Pills & Category Quick-Access Matrix -->
-        <section class="content-section topic-matrix-section" aria-labelledby="sec-portals">
-            <div class="topic-matrix-header">
-                <div class="topic-matrix-title-wrap">
-                    <h2 class="section-title" id="sec-portals">
-                        <?= icon('layers') ?>
-                        <span>Explore Portals &amp; Categories</span>
-                    </h2>
-                    <p class="topic-matrix-subtitle">
-                        Instant direct access to all 10 verified education, admission, and recruitment archives.
-                    </p>
-                </div>
-            </div>
-
-            <!-- Sleek Pill Capsule Matrix -->
-            <div class="topic-pills-matrix">
-                <?php foreach (CATEGORIES as $cat): ?>
-                    <a href="<?= url('category/' . $cat['slug'] . '/') ?>" class="topic-pill-item" style="--pill-color: <?= e($cat['color']) ?>; --pill-bg: <?= e($cat['bg_light']) ?>;" title="<?= e($cat['name']) ?> Portal &amp; Archives">
-                        <span class="topic-pill-icon">
-                            <?= icon($cat['icon'], 'icon-xs') ?>
-                        </span>
-                        <span class="topic-pill-name"><?= e($cat['name']) ?></span>
-                        <?php if (!empty($cat['hindi_name'])): ?>
-                            <span class="topic-pill-hindi"><?= e($cat['hindi_name']) ?></span>
-                        <?php endif; ?>
-                        <span class="topic-pill-arrow"><?= icon('arrow-right', 'icon-xs') ?></span>
                     </a>
                 <?php endforeach; ?>
             </div>
-
-            <!-- Popular Boards Quick Links Strip -->
-            <div class="topic-boards-strip">
-                <span class="topic-boards-label">Key Portals:</span>
-                <div class="topic-boards-chips">
-                    <a href="<?= url('category/entrance-exams/') ?>" class="topic-board-chip" title="NTA NEET, JEE &amp; CUET Entrance Exams">NTA (NEET / JEE / CUET)</a>
-                    <a href="<?= url('category/government-jobs/') ?>" class="topic-board-chip" title="UPSC Civil Services IAS &amp; NDA Recruitment">UPSC Civil Services</a>
-                    <a href="<?= url('latest-jobs/') ?>" class="topic-board-chip" title="SSC CGL, CHSL, GD &amp; CPO Recruitment">SSC (CGL / CHSL / GD)</a>
-                    <a href="<?= url('category/exam-dates/') ?>" class="topic-board-chip" title="CBSE Board Class 10 &amp; 12 Date Sheet 2026">CBSE Board</a>
-                    <a href="<?= url('latest-jobs/') ?>" class="topic-board-chip" title="IBPS PO, Clerk &amp; Bank Recruitment">IBPS &amp; Banking</a>
-                    <a href="<?= url('category/scholarships/') ?>" class="topic-board-chip" title="National Scholarship Portal (NSP) Schemes">National Scholarship Portal</a>
-                    <a href="<?= url('category/college-updates/') ?>" class="topic-board-chip" title="JoSAA &amp; MCC Counselling Updates">JoSAA / MCC Counselling</a>
-                </div>
-            </div>
         </section>
 
-        <!-- 9. Frequently Asked Questions (FAQ) Section -->
+        <!-- 5. Frequently Asked Questions (FAQ) Section -->
         <section class="content-section" aria-labelledby="sec-home-faq" style="margin-top: 2.5rem; margin-bottom: 2rem;">
             <div class="section-header" style="margin-bottom: 1.25rem;">
-                <h2 class="section-title" id="sec-home-faq">
-                    <?= icon('help-circle') ?>
-                    <span>Frequently Asked Questions — Sarkari.online</span>
+                <h2 class="section-title" id="sec-home-faq" style="font-size: 1.25rem; font-weight: 800; color: #1a237e;">
+                    Frequently Asked Questions — Full Forms Directory
                 </h2>
-                <p style="font-size: 0.875rem; color: var(--text-muted); margin-top: 0.25rem;">
-                    Answers to common questions about latest government jobs, admit cards, results, and notifications.
+                <p style="font-size: 0.875rem; color: #64748b; margin-top: 0.25rem;">
+                    Answers to common questions about Indian government exam acronyms, statutory bodies, and meanings.
                 </p>
             </div>
 
             <div style="display: flex; flex-direction: column; gap: 0.85rem;">
-                <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.15rem 1.25rem;">
-                    <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-heading); margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem;">
-                        <span style="color: var(--color-primary);"><?= icon('check-circle', 'icon-xs') ?></span>
-                        What is Sarkari.online and what services does it provide?
+                <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.15rem 1.25rem;">
+                    <h3 style="font-size: 0.975rem; font-weight: 700; color: #0f172a; margin-bottom: 0.4rem;">
+                        What is Sarkari.online's A-Z Full Forms Directory?
                     </h3>
-                    <p style="font-size: 0.875rem; color: var(--text-body); line-height: 1.6; margin: 0;">
-                        Sarkari.online is India's dedicated public recruitment and educational information portal providing real-time verified alerts for Sarkari Result, Latest Government Jobs 2026, Admit Cards, Exam Dates, Answer Keys, and State PSC notifications.
+                    <p style="font-size: 0.875rem; color: #475569; line-height: 1.6; margin: 0;">
+                        Sarkari.online provides an authoritative, complete directory of government, exam, and institutional acronyms across India. Each full form entry includes the official English expansion, Hindi translation (अर्थ), conducting body, eligibility criteria, and regulatory portal links.
                     </p>
                 </div>
 
-                <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.15rem 1.25rem;">
-                    <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-heading); margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem;">
-                        <span style="color: var(--color-primary);"><?= icon('check-circle', 'icon-xs') ?></span>
-                        How can candidates find Latest Government Jobs 2026 on Sarkari.online?
+                <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.15rem 1.25rem;">
+                    <h3 style="font-size: 0.975rem; font-weight: 700; color: #0f172a; margin-bottom: 0.4rem;">
+                        Are these full form expansions officially verified?
                     </h3>
-                    <p style="font-size: 0.875rem; color: var(--text-body); line-height: 1.6; margin: 0;">
-                        Candidates can visit the Sarkari.online Latest Jobs directory (<a href="<?= url('latest-jobs/') ?>" style="color: var(--color-primary); text-decoration: underline; font-weight: 600;" title="Latest Government Jobs Directory">sarkari.online/latest-jobs/</a>) to filter active recruitments by Central and State categories, check total vacancies, application start and last dates, and access direct official application links.
+                    <p style="font-size: 0.875rem; color: #475569; line-height: 1.6; margin: 0;">
+                        Yes, every acronym and statutory definition on Sarkari.online is verified directly against official gazettes of the Government of India, DoPT rules, and commission notifications.
                     </p>
                 </div>
 
-                <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.15rem 1.25rem;">
-                    <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-heading); margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem;">
-                        <span style="color: var(--color-primary);"><?= icon('check-circle', 'icon-xs') ?></span>
-                        How to download Admit Cards and check Sarkari Exam Results?
+                <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.15rem 1.25rem;">
+                    <h3 style="font-size: 0.975rem; font-weight: 700; color: #0f172a; margin-bottom: 0.4rem;">
+                        How can students find any specific full form quickly?
                     </h3>
-                    <p style="font-size: 0.875rem; color: var(--text-body); line-height: 1.6; margin: 0;">
-                        Navigate to the dedicated <a href="<?= url('category/admit-cards/') ?>" style="color: var(--color-primary); text-decoration: underline; font-weight: 600;" title="Browse Admit Cards &amp; Hall Tickets">Admit Cards</a> or <a href="<?= url('category/exam-results/') ?>" style="color: var(--color-primary); text-decoration: underline; font-weight: 600;" title="Browse Exam Results &amp; Scorecards">Exam Results</a> sections on Sarkari.online, select your examination board (SSC, RRB, UPSC, Banking, or State PSCs), and access verified direct links with step-by-step guidance to download hall tickets or check merit lists.
-                    </p>
-                </div>
-
-                <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.15rem 1.25rem;">
-                    <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-heading); margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem;">
-                        <span style="color: var(--color-primary);"><?= icon('check-circle', 'icon-xs') ?></span>
-                        Are all job notifications on Sarkari.online officially verified?
-                    </h3>
-                    <p style="font-size: 0.875rem; color: var(--text-body); line-height: 1.6; margin: 0;">
-                        Yes, every job notification, examination calendar, and scorecard link on Sarkari.online is authenticated directly from official government portals and commission gazettes before publication.
-                    </p>
-                </div>
-
-                <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.15rem 1.25rem;">
-                    <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-heading); margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem;">
-                        <span style="color: var(--color-primary);"><?= icon('check-circle', 'icon-xs') ?></span>
-                        Does Sarkari.online cover State Government Jobs for all 28 states?
-                    </h3>
-                    <p style="font-size: 0.875rem; color: var(--text-body); line-height: 1.6; margin: 0;">
-                        Yes, Sarkari.online provides dedicated state-level recruitment hubs (<a href="<?= url('state-jobs/') ?>" style="color: var(--color-primary); text-decoration: underline; font-weight: 600;" title="Explore State Government Jobs for All 28 States">sarkari.online/state-jobs/</a>) covering all 28 Indian States and Union Territories, including UP, Bihar, Rajasthan, MP, Haryana, Delhi, and other state subordinate selection boards.
+                    <p style="font-size: 0.875rem; color: #475569; line-height: 1.6; margin: 0;">
+                        Candidates can either use the search bar above to type any 2 to 6 letter acronym (e.g. UPSC, SSC, NDA, NEET, RRB) or click on any letter in the A-Z alphabet bar to jump directly to all matching organizations.
                     </p>
                 </div>
             </div>

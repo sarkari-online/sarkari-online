@@ -32,57 +32,29 @@ $homeLastMod = $latestArticleTime ? date('Y-m-d', strtotime($latestArticleTime))
 
 // Canonical static indexable pages with file modification timestamps
 $staticPages = [
-    ['url' => '', 'lastmod' => $homeLastMod],
+    ['url' => '', 'lastmod' => date('Y-m-d')],
+    ['url' => 'full-forms/', 'file' => __DIR__ . '/full-forms.php'],
     ['url' => 'about/', 'file' => __DIR__ . '/about.php'],
-    ['url' => 'why-choose-us/', 'file' => __DIR__ . '/why-choose-us.php'],
-    ['url' => 'editorial-policy/', 'file' => __DIR__ . '/editorial-policy.php'],
-    ['url' => 'ai-policy/', 'file' => __DIR__ . '/ai-policy.php'],
     ['url' => 'contact/', 'file' => __DIR__ . '/contact.php'],
     ['url' => 'privacy-policy/', 'file' => __DIR__ . '/privacy-policy.php'],
     ['url' => 'terms/', 'file' => __DIR__ . '/terms.php'],
     ['url' => 'disclaimer/', 'file' => __DIR__ . '/disclaimer.php'],
-    ['url' => 'fact-checking-policy/', 'file' => __DIR__ . '/fact-checking-policy.php'],
-    ['url' => 'how-to-apply/', 'file' => __DIR__ . '/how-to-apply.php'],
-    ['url' => 'tools/', 'file' => __DIR__ . '/tools/index.php'],
-    ['url' => 'sitemap/', 'file' => __DIR__ . '/html-sitemap.php'],
-
-    ['url' => 'tools/7th-pay-commission-salary-calculator/', 'file' => __DIR__ . '/tools/7th-pay-commission-salary-calculator.php'],
-    ['url' => 'tools/cgpa-to-percentage-calculator/', 'file' => __DIR__ . '/tools/cgpa-to-percentage-calculator.php'],
-    ['url' => 'tools/age-calculator/', 'file' => __DIR__ . '/tools/age-calculator.php'],
-    ['url' => 'full-forms/', 'file' => __DIR__ . '/full-forms.php'],
-    ['url' => 'latest-jobs/', 'file' => __DIR__ . '/latest-jobs.php'],
-    ['url' => 'state-jobs/', 'file' => __DIR__ . '/state-jobs.php'],
-    ['url' => 'jobs/uttar-pradesh/', 'file' => __DIR__ . '/state-detail.php'],
-    ['url' => 'jobs/bihar/', 'file' => __DIR__ . '/state-detail.php'],
-    ['url' => 'jobs/rajasthan/', 'file' => __DIR__ . '/state-detail.php'],
-    ['url' => 'jobs/madhya-pradesh/', 'file' => __DIR__ . '/state-detail.php'],
-    ['url' => 'jobs/delhi/', 'file' => __DIR__ . '/state-detail.php'],
-    ['url' => 'jobs/haryana/', 'file' => __DIR__ . '/state-detail.php'],
-    ['url' => 'jobs/maharashtra/', 'file' => __DIR__ . '/state-detail.php'],
-    ['url' => 'jobs/west-bengal/', 'file' => __DIR__ . '/state-detail.php'],
-    ['url' => 'jobs/gujarat/', 'file' => __DIR__ . '/state-detail.php'],
-    ['url' => 'jobs/jharkhand/', 'file' => __DIR__ . '/state-detail.php'],
-    ['url' => 'jobs/uttarakhand/', 'file' => __DIR__ . '/state-detail.php'],
-    ['url' => 'jobs/chhattisgarh/', 'file' => __DIR__ . '/state-detail.php'],
-    ['url' => 'author/ajay-mathur/', 'file' => __DIR__ . '/author.php'],
-    ['url' => 'author/editorial-desk/', 'file' => __DIR__ . '/author.php'],
+    ['url' => 'editorial-policy/', 'file' => __DIR__ . '/editorial-policy.php'],
 ];
 
 $seenUrls = [];
 
 echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
 ?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"
-        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
-    <!-- 1. Canonical Homepage & Static Pages -->
+    <!-- 1. Canonical Homepage & Core Institutional Trust Pages -->
     <?php foreach ($staticPages as $page): 
         $fullUrl = url($page['url']);
         if (isset($seenUrls[$fullUrl])) continue;
         $seenUrls[$fullUrl] = true;
 
-        $lastmod = $page['lastmod'] ?? (isset($page['file']) && file_exists($page['file']) ? date('Y-m-d', filemtime($page['file'])) : '2026-08-20');
+        $lastmod = $page['lastmod'] ?? (isset($page['file']) && file_exists($page['file']) ? date('Y-m-d', filemtime($page['file'])) : '2026-10-07');
     ?>
     <url>
         <loc><?= htmlspecialchars($fullUrl, ENT_XML1, 'UTF-8') ?></loc>
@@ -90,7 +62,7 @@ echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
     </url>
     <?php endforeach; ?>
 
-    <!-- 2. Individual A-to-Z Government Full Form URLs (Top Authority Hub) -->
+    <!-- 2. Individual A-to-Z Government Full Form URLs (Primary Focus) -->
     <?php 
     $glossaryTerms = \App\Services\GlossaryService::getAllForSitemap();
     foreach ($glossaryTerms as $gTerm):
@@ -99,110 +71,12 @@ echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
         $seenUrls[$gUrl] = true;
         $gLastmod = !empty($gTerm['last_verified_at']) 
             ? date('Y-m-d', strtotime($gTerm['last_verified_at'])) 
-            : (!empty($gTerm['updated_at']) ? date('Y-m-d', strtotime($gTerm['updated_at'])) : ($gTerm['last_reviewed_at'] ?? '2026-09-07'));
+            : (!empty($gTerm['updated_at']) ? date('Y-m-d', strtotime($gTerm['updated_at'])) : ($gTerm['last_reviewed_at'] ?? '2026-10-07'));
     ?>
     <url>
         <loc><?= htmlspecialchars($gUrl, ENT_XML1, 'UTF-8') ?></loc>
         <lastmod><?= $gLastmod ?></lastmod>
     </url>
     <?php endforeach; ?>
-
-    <!-- 3. Canonical Category Archives -->
-    <?php foreach ($categories as $cat): 
-        $catUrl = url('category/' . $cat['slug'] . '/');
-        if (isset($seenUrls[$catUrl])) continue;
-        $seenUrls[$catUrl] = true;
-
-        // Category lastmod from most recent published article in that category
-        $catLastMod = null;
-        foreach ($articles as $a) {
-            if (($a['category_slug'] ?? '') === $cat['slug']) {
-                $aTime = (!empty($a['updated_at']) && $a['updated_at'] > ($a['published_at'] ?? ''))
-                    ? $a['updated_at']
-                    : ($a['published_at'] ?? $a['created_at'] ?? null);
-                if ($aTime) {
-                    $catLastMod = date('Y-m-d', strtotime($aTime));
-                    break;
-                }
-            }
-        }
-        $catLastMod = $catLastMod ?: (!empty($cat['created_at']) ? date('Y-m-d', strtotime($cat['created_at'])) : '2026-08-20');
-    ?>
-    <url>
-        <loc><?= htmlspecialchars($catUrl, ENT_XML1, 'UTF-8') ?></loc>
-        <lastmod><?= $catLastMod ?></lastmod>
-    </url>
-    <?php endforeach; ?>
-
-    <!-- 4. Canonical Published Articles (Active & High Authority) -->
-    <?php foreach ($articles as $art): 
-        $articleUrl = url('article/' . $art['slug'] . '/');
-        if (isset($seenUrls[$articleUrl])) continue;
-        $seenUrls[$articleUrl] = true;
-
-        // Accurate lastmod: strictly actual content modification or original publication timestamp
-        $rawTimestamp = (!empty($art['updated_at']) && $art['updated_at'] > ($art['published_at'] ?? ''))
-            ? $art['updated_at']
-            : ($art['published_at'] ?? $art['created_at'] ?? null);
-        
-        $lastmod = !empty($rawTimestamp) ? date('Y-m-d', strtotime($rawTimestamp)) : '2026-08-20';
-
-        // News Sitemap eligibility: Published within last 48 hours and in news categories
-        $pubTimestamp = !empty($art['published_at']) ? strtotime($art['published_at']) : 0;
-        $isRecent = (time() - $pubTimestamp) <= (48 * 3600);
-        $isNewsCategory = in_array($art['category_slug'] ?? '', ['exam-results', 'admit-cards', 'exam-dates', 'answer-keys', 'government-jobs', 'entrance-exams'], true);
-        $isNewsEligible = $isRecent && $isNewsCategory;
-
-        // Image markup: ONLY if featured_image exists
-        $hasImage = !empty($art['featured_image']);
-    ?>
-    <url>
-        <loc><?= htmlspecialchars($articleUrl, ENT_XML1, 'UTF-8') ?></loc>
-        <lastmod><?= $lastmod ?></lastmod>
-        <?php if ($isNewsEligible): ?>
-        <news:news>
-            <news:publication>
-                <news:name><?= htmlspecialchars(SITE_NAME, ENT_XML1, 'UTF-8') ?></news:name>
-                <news:language>en</news:language>
-            </news:publication>
-            <news:publication_date><?= date('c', $pubTimestamp) ?></news:publication_date>
-            <news:title><?= htmlspecialchars($art['title'], ENT_XML1, 'UTF-8') ?></news:title>
-        </news:news>
-        <?php endif; ?>
-        <?php if ($hasImage): ?>
-        <image:image>
-            <image:loc><?= htmlspecialchars(url($art['featured_image']), ENT_XML1, 'UTF-8') ?></image:loc>
-            <image:title><?= htmlspecialchars($art['title'], ENT_XML1, 'UTF-8') ?></image:title>
-        </image:image>
-        <?php endif; ?>
-    </url>
-    <?php endforeach; ?>
-
-    <!-- Individual Verified Application Guides (Phase-Gated) -->
-    <?php
-    try {
-        $appGuideCycles = \App\Database\Database::fetchAll(
-            "SELECT authority_code, cycle_year, last_verified_at, updated_at 
-               FROM exam_cycles 
-              WHERE current_phase IN ('APPLICATION_OPEN', 'APPLICATION_CORRECTION')
-                AND phase_confidence = 'VERIFIED'"
-        );
-        foreach ($appGuideCycles as $agCycle):
-            $agSlug = strtolower($agCycle['authority_code']) . '-' . $agCycle['cycle_year'];
-            $agUrl = url('how-to-apply/' . $agSlug . '/');
-            if (isset($seenUrls[$agUrl])) continue;
-            $seenUrls[$agUrl] = true;
-            $agLastmod = !empty($agCycle['last_verified_at']) 
-                ? date('Y-m-d', strtotime($agCycle['last_verified_at'])) 
-                : (!empty($agCycle['updated_at']) ? date('Y-m-d', strtotime($agCycle['updated_at'])) : date('Y-m-d'));
-    ?>
-    <url>
-        <loc><?= htmlspecialchars($agUrl, ENT_XML1, 'UTF-8') ?></loc>
-        <lastmod><?= $agLastmod ?></lastmod>
-    </url>
-    <?php 
-        endforeach;
-    } catch (\Throwable $e) {}
-    ?>
 
 </urlset>

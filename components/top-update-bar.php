@@ -2,22 +2,34 @@
 /**
  * Top Update Strip / Breaking Updates Ticker Component
  */
-use App\Services\ArticleService;
+use App\Database\Database;
 
-$dbLatest = ArticleService::getLatestPublished(4);
+$featuredTickerTerms = [];
+try {
+    $featuredTickerTerms = Database::fetchAll("
+        SELECT acronym, slug, full_form_en, category 
+        FROM glossary_terms 
+        ORDER BY updated_at DESC, id ASC 
+        LIMIT 6
+    ");
+} catch (\Throwable $e) {}
+
 $breakingUpdates = [];
-
-if (!empty($dbLatest)) {
-    foreach ($dbLatest as $item) {
+if (!empty($featuredTickerTerms)) {
+    foreach ($featuredTickerTerms as $item) {
         $breakingUpdates[] = [
-            'tag' => strtoupper($item['category_name'] ?? 'UPDATE'),
-            'title' => $item['title'],
-            'time' => time_ago($item['published_at'] ?? 'now'),
-            'url' => 'article/' . $item['slug'] . '/'
+            'tag' => 'FULL FORM',
+            'title' => $item['acronym'] . ': ' . $item['full_form_en'],
+            'time' => 'Verified',
+            'url' => 'full-forms/' . $item['slug'] . '/'
         ];
     }
 } else {
-    $breakingUpdates = MockData::getBreakingUpdates();
+    $breakingUpdates = [
+        ['tag' => 'FULL FORM', 'title' => 'UPSC: Union Public Service Commission', 'time' => 'Verified', 'url' => 'full-forms/upsc/'],
+        ['tag' => 'FULL FORM', 'title' => 'SSC: Staff Selection Commission', 'time' => 'Verified', 'url' => 'full-forms/ssc/'],
+        ['tag' => 'FULL FORM', 'title' => 'RRB: Railway Recruitment Board', 'time' => 'Verified', 'url' => 'full-forms/rrb/'],
+    ];
 }
 ?>
 <div class="top-update-bar">

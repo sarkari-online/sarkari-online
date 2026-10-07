@@ -73,10 +73,8 @@ class AutoCronService {
     }
 
     public static function checkAndRun(): void {
-        // Strict Guard: ONLY execute in CLI background daemon (NEVER on web requests)
-        if (php_sapi_name() !== 'cli') {
-            return;
-        }
+        // Pipeline permanently paused by user request to focus 100% on Full Forms
+        return;
 
         try {
             $state = self::getScheduleState();

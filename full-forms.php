@@ -237,17 +237,7 @@ if (!empty($termSlug)) {
 
                     </div>
 
-                    <!-- Internal Linking to Active Recruitment -->
-                    <?php if (!empty($matchedArticle)): ?>
-                        <div style="margin-top: 2rem; padding: 1.25rem 1.5rem; background: #e8eaf6; border: 1px solid #c5cae9; border-radius: 8px;">
-                            <span style="font-weight: 800; color: #1a237e; text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.5px; display: block; margin-bottom: 0.35rem;">
-                                📢 LIVE RECRUITMENT &amp; EXAM NOTICE
-                            </span>
-                            <a href="<?= url('article/' . $matchedArticle['slug'] . '/') ?>" style="color: #1a237e; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; font-size: 1.05rem;">
-                                <?= e($matchedArticle['title']) ?> &rarr;
-                            </a>
-                        </div>
-                    <?php endif; ?>
+                    <!-- End of Detailed Term Overview -->
 
                     <!-- Bottom Navigation -->
                     <div style="margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid #e0e0e0; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem;">

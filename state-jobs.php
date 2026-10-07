@@ -9,9 +9,9 @@ require_once __DIR__ . '/config.php';
 use App\Services\StateJobService;
 use App\Services\JobDirectoryService;
 
-$allStates = StateJobService::getAllStates();
-$regions = StateJobService::getStatesByRegion();
-$activeJobs = JobDirectoryService::getActiveJobs(20);
+// Universal State Jobs Retirement: 301 Redirect all /state-jobs/ to Full Forms directory
+header("Location: " . url('full-forms/'), true, 301);
+exit;
 
 $pageTitle = 'State Govt Jobs 2026: All States Portal | ' . SITE_NAME;
 $pageDesc = 'Explore latest state government jobs 2026 across UP, Bihar, Rajasthan, Delhi, MP, and all Indian states with direct official portals and verified job alerts.';

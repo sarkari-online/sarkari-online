@@ -8,17 +8,9 @@ use App\Services\CategoryService;
 use App\Services\ArticleService;
 use App\Services\CrawlEfficiencyService;
 
-$slug = $_GET['slug'] ?? 'exam-results';
-$slug = trim($slug, '/');
-
-// Fetch Category from DB or Config fallback
-$category = CategoryService::getBySlug($slug) ?: get_category($slug);
-
-if (!$category) {
-    http_response_code(404);
-    include __DIR__ . '/404.php';
-    exit;
-}
+// Universal Category Retirement: 301 Redirect all /category/* URLs to Full Forms directory
+header("Location: " . url('full-forms/'), true, 301);
+exit;
 
 $currentPage = max(1, (int)($_GET['page'] ?? 1));
 $categoryData = ArticleService::getByCategory($slug, $currentPage, 16);

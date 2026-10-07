@@ -16,8 +16,9 @@ use App\Database\Database;
 use App\Services\ApplicationGuideRenderer;
 use App\Helpers\Logger;
 
-$slug = $_GET['slug'] ?? '';
-$slug = strtolower(trim((string)$slug, '/'));
+// Universal How-to-Apply Retirement: 301 Redirect all /how-to-apply/* to Full Forms directory
+header("Location: " . url('full-forms/'), true, 301);
+exit;
 
 // Helper: Canonical guide slug generator
 function formatGuideSlug(array $c): string {
